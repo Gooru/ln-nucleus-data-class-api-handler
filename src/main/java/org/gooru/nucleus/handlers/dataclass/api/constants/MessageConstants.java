@@ -1,0 +1,70 @@
+package org.gooru.nucleus.handlers.dataclass.api.constants;
+
+public final class MessageConstants {
+
+    public static final String MSG_HEADER_OP = "mb.operation";
+    public static final String MSG_HEADER_TOKEN = "session.token";
+    public static final String MSG_OP_AUTH_WITH_PREFS = "auth.with.prefs";
+    public static final String MSG_OP_STATUS = "mb.operation.status";
+    public static final String MSG_KEY_PREFS = "prefs";
+    public static final String MSG_OP_STATUS_SUCCESS = "success";
+    public static final String MSG_OP_STATUS_ERROR = "error";
+    public static final String MSG_OP_STATUS_VALIDATION_ERROR = "error.validation";
+    public static final String MSG_USER_ANONYMOUS = "anonymous";
+    public static final String MSG_USER_ID = "user_id";
+    public static final String MSG_HTTP_STATUS = "http.status";
+    public static final String MSG_HTTP_BODY = "http.body";
+    public static final String MSG_HTTP_RESPONSE = "http.response";
+    public static final String MSG_HTTP_ERROR = "http.error";
+    public static final String MSG_HTTP_VALIDATION_ERROR = "http.validation.error";
+    public static final String MSG_HTTP_HEADERS = "http.headers";
+    public static final String MSG_MESSAGE = "message";
+
+    // Operation names: Also need to be updated in corresponding handlers
+    public static final String MSG_OP_CONTENT_PUBLISH = "content.publish";
+    public static final String MSG_OP_CONTENT_FLAG = "content.flag";
+    public static final String MSG_OP_CONTENT_PUBLISH_STATUS = "content.publish.status";
+    public static final String MSG_OP_REQUEST_CONTENT_PUBLISH = "content.publish.request";
+
+    // Containers for different responses
+    public static final String RESP_CONTAINER_MBUS = "mb.container";
+    public static final String RESP_CONTAINER_EVENT = "mb.event";
+
+    public static final String ASSESSMENT_ID = "assessmentId";
+    public static final String ID = "id";
+    public static final String CONTENT_ID = "contentId";
+    
+    public static final String USER_ID = "userId";
+    public static final String CLASS_ID = "classId";
+    public static final String COURSE_ID = "courseId";
+    public static final String UNIT_ID = "unitId";
+    public static final String LESSON_ID = "lessonId";
+    public static final String COLLECTION_ID = "collectionId";
+    public static final String SESSION_ID = "sessionId";
+    public static final String RESP_JSON_KEY_RESOURCES = "resources";
+    
+    // Read API Constants
+    public static final String MSG_OP_COURSE_PEERS = "student.peers.in.course";    
+    public static final String MSG_OP_UNIT_PEERS = "student.peers.in.unit";
+    public static final String MSG_OP_LESSON_PEERS = "student.peers.in.lesson";    
+    public static final String MSG_OP_STUDENT_CURRENT_LOC = "student.current.loc";
+    public static final String MSG_OP_STUDENT_COURSE_PERF = "student.course.performance";
+    public static final String MSG_OP_STUDENT_UNIT_PERF = "student.unit.performance";
+    public static final String MSG_OP_STUDENT_LESSON_PERF = "student.lesson.performance";
+    public static final String MSG_OP_STUDENT_COLLECTION_PERF = "student.collection.performance";
+    public static final String MSG_OP_STUDENT_ASSESSMENT_PERF = "student.assessment.performance";
+    public static final String MSG_OP_SESSION_STATUS = "session.status";
+    public static final String MSG_OP_USER_ALL_ASSESSMENT_SESSIONS = "user.all.assessment.sessions";
+    public static final String MSG_OP_USER_ALL_COLLECTION_SESSIONS = "user.all.collection.sessions";
+    public static final String MSG_OP_ALL_STUDENT_COURSE_PERF = "all.student.course.performance";
+    public static final String MSG_OP_ALL_STUDENT_UNIT_PERF = "all.student.unit.performance";
+    public static final String MSG_OP_ALL_STUDENT_LESSON_PERF = "all.student.lesson.performance";
+    public static final String MSG_OP_ALL_STUDENT_COLLECTION_PERF = "all.student.collection.performance";
+    public static final String MSG_OP_ALL_STUDENT_ASSESSMENT_PERF = "all.student.assessment.performance";
+
+
+
+    private MessageConstants() {
+        throw new AssertionError();
+    }
+}

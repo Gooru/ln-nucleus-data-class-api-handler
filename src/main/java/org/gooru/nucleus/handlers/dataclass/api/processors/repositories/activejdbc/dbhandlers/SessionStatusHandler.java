@@ -1,0 +1,124 @@
+package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
+
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
+import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
+import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
+import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
+import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
+import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
+import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
+import org.javalite.activejdbc.Base;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
+
+/**
+ * Created by mukul@gooru
+ */
+
+public class SessionStatusHandler implements DBHandler {
+	
+	private static final Logger LOGGER = LoggerFactory.getLogger(SessionStatusHandler.class);
+	    
+	private final ProcessorContext context;
+    private AJEntityBaseReports baseReport;
+
+    private String collectionId;
+    private String sessionId;
+        
+    public SessionStatusHandler(ProcessorContext context) {
+        this.context = context;
+    }
+
+    @Override
+    public ExecutionResult<MessageResponse> checkSanity() {
+    	
+    	//No Sanity Check required since, no params are being passed in Request Body 
+        LOGGER.debug("checkSanity() OK");
+        return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
+    }
+
+    @Override
+    public ExecutionResult<MessageResponse> validateRequest() {
+    	LOGGER.debug("validateRequest() OK");
+        return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
+    }
+
+    @Override
+    public ExecutionResult<MessageResponse> executeRequest() {
+    	
+    	JsonObject resultBody = new JsonObject();       	
+    	baseReport = new AJEntityBaseReports();
+    
+        this.collectionId = context.collectionId();
+        LOGGER.debug("collectionId is " + this.collectionId);
+    	
+        this.sessionId = context.sessionId();
+        LOGGER.debug("UID is " + this.sessionId);
+        
+    	 List<Map> sessionStatusMap = Base.findAll( AJEntityBaseReports.GET_SESSION_STATUS, 
+    			 this.sessionId, this.collectionId,EventConstants.COLLECTION_PLAY, EventConstants.STOP);
+    	 
+    	 if (!sessionStatusMap.isEmpty()){
+    		
+    		sessionStatusMap.forEach(m -> {
+    			Integer x = Integer.valueOf(m.get(AJEntityBaseReports.ATTR_COUNT).toString());    			
+    			if (x.intValue() == 0){
+    				resultBody.putNull(JsonConstants.CONTENT).put(JsonConstants.MESSAGE, 
+    						new JsonObject().put(AJEntityBaseReports.SESSION_ID, this.sessionId)
+    						.put(JsonConstants.STATUS, JsonConstants.IN_PROGRESS))
+    				.putNull(JsonConstants.PAGINATE);
+    				
+    			} else {
+    				resultBody.putNull(JsonConstants.CONTENT).put(JsonConstants.MESSAGE, 
+    						new JsonObject().put(AJEntityBaseReports.SESSION_ID, this.sessionId)
+    						.put(JsonConstants.STATUS, JsonConstants.COMPLETE))
+    				.putNull(JsonConstants.PAGINATE);
+    			}
+    		});
+    	    		
+    	 } else {
+            LOGGER.error("Session status cannot be obtained");
+            return new ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(), ExecutionStatus.FAILED);
+         }
+   	        
+    	 return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody),
+                ExecutionStatus.SUCCESSFUL);    	
+    }   
+    
+
+    @Override
+    public boolean handlerReadOnly() {
+        return false;
+    }
+    
+    
+    private String listToPostgresArrayString(List<String> input) {
+        int approxSize = ((input.size() + 1) * 36); // Length of UUID is around
+                                                    // 36
+                                                    // chars
+        Iterator<String> it = input.iterator();
+        if (!it.hasNext()) {
+            return "{}";
+        }
+
+        StringBuilder sb = new StringBuilder(approxSize);
+        sb.append('{');
+        for (;;) {
+            String s = it.next();
+            sb.append('"').append(s).append('"');
+            if (!it.hasNext()) {
+                return sb.append('}').toString();
+            }
+            sb.append(',');
+        }
+    }
+
+}
