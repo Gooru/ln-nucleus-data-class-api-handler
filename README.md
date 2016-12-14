@@ -1,7 +1,4 @@
-<<<<<<< HEAD
-# nucleus-data-class-api-handler
-Read API handler
-=======
+
 Class Reports READ Handler
 ===========================
 
@@ -53,9 +50,3 @@ Teacher Reports:
     
     Get All Students Performance In Lesson
     /api/nucleus-insights/v2/class/{classGooruId}/course/{courseGooruId}/unit/{unitGooruId}/lesson/{lessonGooruId}/performance
-    
-  		
-
-
-
->>>>>>> Baseline Implementation of Class Reports Read Handler
