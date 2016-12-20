@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.gooru.nucleus.handlers.dataclass.api.app.components.DataSourceRegistry;
+import org.gooru.nucleus.handlers.dataclass.api.app.components.RedisClient;
 
 public class Finalizers implements Iterable<Finalizer> {
 
@@ -13,6 +14,7 @@ public class Finalizers implements Iterable<Finalizer> {
     public Finalizers() {
         List<Finalizer> finalizers = new ArrayList<>();
         finalizers.add(DataSourceRegistry.getInstance());
+        finalizers.add(RedisClient.getInstance());
         internalIterator = finalizers.iterator();
     }
 
