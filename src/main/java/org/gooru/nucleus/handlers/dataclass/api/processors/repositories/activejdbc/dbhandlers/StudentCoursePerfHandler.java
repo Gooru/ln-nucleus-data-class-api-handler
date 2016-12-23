@@ -27,6 +27,8 @@ import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.hazelcast.util.StringUtil;
+
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -92,23 +94,21 @@ class StudentCoursePerfHandler implements DBHandler {
     	baseReport = new AJEntityBaseReports();
     	
     	//CollectionType is a Mandatory Parameter
-    	JsonArray collType = this.context.request().getJsonArray(REQUEST_COLLECTION_TYPE);
-    	if (collType.isEmpty() || collType == null) {
+    	this. collectionType = this.context.request().getString(REQUEST_COLLECTION_TYPE);
+    	if (StringUtil.isNullOrEmpty(collectionType)) {
             LOGGER.warn("CollectionType is mandatory to fetch Student Performance in Course");
             return new ExecutionResult<>(
                 MessageResponseFactory.createInvalidRequestResponse("CollectionType Missing. Cannot fetch Student Performance in course"),
                 ExecutionStatus.FAILED);
         }
-    	this.collectionType  = collType.getString(0);
         
-        JsonArray uid = this.context.request().getJsonArray(REQUEST_USERID);
-        if (uid.isEmpty() || uid == null) {
+        this.userId = this.context.request().getString(REQUEST_USERID);
+        if (StringUtil.isNullOrEmpty(userId)) {
             LOGGER.warn("UserID is mandatory to fetch Student Performance in Course");
             return new ExecutionResult<>(
                 MessageResponseFactory.createInvalidRequestResponse("UserID Missing. Cannot fetch Student Performance in course"),
                 ExecutionStatus.FAILED);
         }        
-        this.userId = uid.getString(0);
         
         List<String> unitIds = new ArrayList<>();
         JsonArray CourseKpiArray = new JsonArray();
