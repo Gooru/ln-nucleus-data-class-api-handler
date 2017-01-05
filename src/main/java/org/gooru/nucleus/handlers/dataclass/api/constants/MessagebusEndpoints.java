@@ -11,6 +11,8 @@ public final class MessagebusEndpoints {
 
     public static final String MBEP_EVENT = "org.gooru.nucleus.message.bus.publisher.event";
 
+    public static final String MBEP_AUTH = "org.gooru.nucleus.message.bus.auth";
+
     private MessagebusEndpoints() {
         throw new AssertionError();
     }

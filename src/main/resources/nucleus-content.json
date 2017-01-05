@@ -7,5 +7,11 @@
     "autoCommit": false,
     "jdbcUrl": "jdbc:postgresql://localhost:5432/nucleus",
     "maximumPoolSize": 5
- }
+ },
+ "redis.config": {
+    "host": "localhost",
+    "port": 6379
+  },
+  "org.gooru.nucleus.handlers.dataclass.api.bootstrap.AuthVerticle":{},
+  "org.gooru.nucleus.handlers.dataclass.api.bootstrap.DataClassReadApiVerticle":{}
 }
