@@ -63,6 +63,10 @@ public final class MessageConstants {
     public static final String MSG_OP_ALL_STUDENT_ASSESSMENT_PERF = "all.student.assessment.performance";
 
 
+    public static final String PORT = "port";
+    public static final String HOST = "host";
+    public static final String REDIS = "redis.config";
+  
 
     private MessageConstants() {
         throw new AssertionError();
