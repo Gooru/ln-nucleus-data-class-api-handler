@@ -32,4 +32,6 @@ public interface StudentRepo {
 	
 	MessageResponse getUserCollectionSessions();
 
+	MessageResponse getSessionWiseTaxonmyReport();
+
 }

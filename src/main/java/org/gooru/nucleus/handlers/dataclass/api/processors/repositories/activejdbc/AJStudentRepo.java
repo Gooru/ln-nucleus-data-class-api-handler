@@ -75,5 +75,10 @@ class AJStudentRepo implements StudentRepo {
     public MessageResponse getUserCollectionSessions() {
         return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildUserCollectionSessionsHandler(context));
     }
+
+    @Override
+    public MessageResponse getSessionWiseTaxonmyReport() {
+      return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildSessionTaxonomyReportHandler(context));
+    }
     
 }

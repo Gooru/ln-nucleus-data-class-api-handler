@@ -92,6 +92,9 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_ALL_STUDENT_COLLECTION_PERF:
             	result = null;            	
                 break;
+            case MessageConstants.MSG_OP_SESSION_TAXONOMY_REPORT:
+              result = getSessionWiseTaxonomyReport();              
+                break;
             default:
                 LOGGER.error("Invalid operation type passed in, not able to handle");
                 return MessageResponseFactory
@@ -469,7 +472,23 @@ class MessageProcessor implements Processor {
 
     }
 
-    
+    private MessageResponse getSessionWiseTaxonomyReport() {
+      try {
+            ProcessorContext context = createContext();
+        
+            if (!checkSessionId(context)) {
+                LOGGER.error("Session id not available in the request. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid sessionId");
+            }
+            
+            return new RepoBuilder().buildStudentRepo(context).getSessionWiseTaxonmyReport();
+            
+        } catch (Throwable t) {
+            LOGGER.error("Exception while getting Student performance in Unit", t);
+            return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+        }
+
+    }
         
     private ProcessorContext createContext() {
     	String classId = message.headers().get(MessageConstants.CLASS_ID);
