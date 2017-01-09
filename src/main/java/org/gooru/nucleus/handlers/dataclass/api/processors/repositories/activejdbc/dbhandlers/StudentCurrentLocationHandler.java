@@ -63,7 +63,7 @@ public class StudentCurrentLocationHandler implements DBHandler {
     	baseReport = new AJEntityBaseReports();
     
         this.classId = context.classId();    	
-        this.userId = context.userId();        
+        this.userId = context.userIdFromSession();     
 
     	List<Map> CurrentLocMap = Base.findAll( AJEntityBaseReports.GET_STUDENT_LOCATION,this.classId, this.userId);
     	

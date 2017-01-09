@@ -5,12 +5,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
-
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
+import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
-import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.javalite.activejdbc.Base;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,8 +24,8 @@ import io.vertx.core.json.JsonObject;
 
 public class StudentCollectionPerfHandler implements DBHandler {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(StudentCollectionPerfHandler.class);
-	private static final String REQUEST_COLLECTION_TYPE = "collectionType";
+	  private static final Logger LOGGER = LoggerFactory.getLogger(StudentCollectionPerfHandler.class);
+	  private static final String REQUEST_COLLECTION_TYPE = "collectionType";
     private static final String REQUEST_USERID = "userUid";
     
     private static final String REQUEST_CLASS_ID = "classGooruId";
@@ -35,9 +35,10 @@ public class StudentCollectionPerfHandler implements DBHandler {
     private static final String REQUEST_COLLECTION_ID = "collectionId";
     private static final String REQUEST_SESSION_ID = "sessionId";
         
-	private final ProcessorContext context;
+    private final ProcessorContext context;
     private AJEntityBaseReports baseReport;
-     
+    private AJEntityClassAuthorizedUsers classAuthorizedUsers;
+    
     private String classId;
     private String courseId;
     private String unitId;
@@ -78,8 +79,20 @@ public class StudentCollectionPerfHandler implements DBHandler {
 
     @Override
     public ExecutionResult<MessageResponse> validateRequest() {
-    	LOGGER.debug("validateRequest() OK");
-        return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
+      classAuthorizedUsers = new AJEntityClassAuthorizedUsers();
+      if (context.getUserIdFromRequest() == null
+              || (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
+        List<Map> creator = Base.findAll(classAuthorizedUsers.SELECT_CLASS_CREATOR, this.context.classId(), this.context.userIdFromSession());
+        if (creator.isEmpty()) {
+          List<Map> collaborator = Base.findAll(classAuthorizedUsers.SELECT_CLASS_CREATOR, this.context.classId(), this.context.userIdFromSession());
+          if (collaborator.isEmpty()) {
+            LOGGER.debug("validateRequest() FAILED");
+            return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"), ExecutionStatus.FAILED);
+          }
+        }
+      }
+      LOGGER.debug("validateRequest() OK");
+      return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
     }
 
     @Override

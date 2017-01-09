@@ -6,7 +6,7 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResp
  * Created by mukul@gooru
  */
 
-public interface StudentRepo {
+public interface ReportRepo {
 	
 	MessageResponse getStudentPeersInCourse();
 	
@@ -33,5 +33,9 @@ public interface StudentRepo {
 	MessageResponse getUserCollectionSessions();
 
 	MessageResponse getSessionWiseTaxonmyReport();
+
+  MessageResponse getAllStudentPerfInCourse();
+
+  MessageResponse getAllStudentPerfInUnit();
 
 }

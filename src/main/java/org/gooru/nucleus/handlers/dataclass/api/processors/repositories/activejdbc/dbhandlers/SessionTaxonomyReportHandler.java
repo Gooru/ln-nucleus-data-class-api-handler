@@ -4,17 +4,16 @@ import java.util.List;
 import java.util.Map;
 
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
-import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntitySessionTaxonomyReport;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.converters.ValueTypeCaster;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
-import org.javalite.activejdbc.Base;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
+import org.javalite.activejdbc.Base;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.hazelcast.util.StringUtil;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -25,6 +24,7 @@ public class SessionTaxonomyReportHandler implements DBHandler {
 
   private final ProcessorContext context;
   private AJEntitySessionTaxonomyReport sessionTaxonomyReport;
+  private AJEntityClassAuthorizedUsers classAuthorizedUsers;
 
   SessionTaxonomyReportHandler(ProcessorContext context) {
     this.context = context;
@@ -40,8 +40,17 @@ public class SessionTaxonomyReportHandler implements DBHandler {
 
   @Override
   public ExecutionResult<MessageResponse> validateRequest() {
+   /* classAuthorizedUsers = new AJEntityClassAuthorizedUsers();
+    List<Map> creator = Base.findAll(classAuthorizedUsers.SELECT_CLASS_CREATOR, this.context.classId(), this.context.userId());
+    if (creator.isEmpty()) {
+      List<Map> collaborator = Base.findAll(classAuthorizedUsers.SELECT_CLASS_CREATOR, this.context.classId(), this.context.userId());
+      if (collaborator.isEmpty()) {
+        return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"), ExecutionStatus.FAILED);
+      }
+    }*/
     LOGGER.debug("validateRequest() OK");
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
+
   }
 
   @Override
@@ -59,16 +68,16 @@ public class SessionTaxonomyReportHandler implements DBHandler {
           aggResult.put("learningTargetId", taxonomyRow.get("learning_target_id"));
         }
         aggResult.put("displayCode", taxonomyRow.get("display_code"));
-        aggResult.put("timespent", taxonomyRow.get("agg_time_spent").toString());
-        aggResult.put("score", taxonomyRow.get("agg_score").toString());
+        aggResult.put("timespent", ValueTypeCaster.castValue(taxonomyRow.get("agg_time_spent")));
+        aggResult.put("score", ValueTypeCaster.castValue(taxonomyRow.get("agg_score")));
         JsonObject questions = new JsonObject();
         questions.put("questionId", taxonomyRow.get("resource_id"));
-        questions.put("timespent", taxonomyRow.get("time_spent").toString());
-        questions.put("attempts", taxonomyRow.get("views").toString());
-        questions.put("score", taxonomyRow.get("score").toString());
+        questions.put("timespent", ValueTypeCaster.castValue(taxonomyRow.get("time_spent")));
+        questions.put("attempts", ValueTypeCaster.castValue(taxonomyRow.get("views")));
+        questions.put("score", ValueTypeCaster.castValue(taxonomyRow.get("score")));
         questions.put("questionType", taxonomyRow.get("question_type"));
         questions.put("answerStatus", taxonomyRow.get("resource_attempt_status"));
-        questions.put("reaction", taxonomyRow.get("reaction").toString());
+        questions.put("reaction", ValueTypeCaster.castValue(taxonomyRow.get("reaction")));
         if (aggResult.getJsonArray("questions") == null) {
           aggResult.put("questions", new JsonArray().add(questions));
         } else {

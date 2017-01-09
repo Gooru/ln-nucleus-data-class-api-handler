@@ -35,6 +35,8 @@ public final class MessageConstants {
     public static final String CONTENT_ID = "contentId";
     
     public static final String USER_ID = "userId";
+    public static final String _USER_ID = "user_id";
+    public static final String USER_UID = "userUid";
     public static final String CLASS_ID = "classId";
     public static final String COURSE_ID = "courseId";
     public static final String UNIT_ID = "unitId";

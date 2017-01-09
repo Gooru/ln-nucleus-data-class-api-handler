@@ -4,7 +4,6 @@ import java.util.ResourceBundle;
 import java.util.UUID;
 
 import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
-import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.RepoBuilder;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
@@ -12,6 +11,7 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResp
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.vertx.core.MultiMap;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 
@@ -129,7 +129,7 @@ class MessageProcessor implements Processor {
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid unit id");
             }
             
-            return new RepoBuilder().buildStudentRepo(context).getStudentPeersInCourse();
+            return new RepoBuilder().buildReportRepo(context).getStudentPeersInCourse();
             
         } catch (Throwable t) {
             LOGGER.error("Exception while getting Student peers in Unit", t);
@@ -157,7 +157,7 @@ class MessageProcessor implements Processor {
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid unit id");
             }
             
-            return new RepoBuilder().buildStudentRepo(context).getStudentPeersInUnit();
+            return new RepoBuilder().buildReportRepo(context).getStudentPeersInUnit();
             
         } catch (Throwable t) {
             LOGGER.error("Exception while getting Student peers in Unit", t);
@@ -191,7 +191,7 @@ class MessageProcessor implements Processor {
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid lesson id");
             } 
             
-            return new RepoBuilder().buildStudentRepo(context).getStudentPeersInLesson();
+            return new RepoBuilder().buildReportRepo(context).getStudentPeersInLesson();
             
         } catch (Throwable t) {
             LOGGER.error("Exception while getting Student peers in Lesson", t);
@@ -212,12 +212,12 @@ class MessageProcessor implements Processor {
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid ClassId");
             }
             
-            if (!validateUser(context.userId())) {
+            if (!validateUser(context.userIdFromSession())) {
                 LOGGER.error("Invalid User ID. Aborting");
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid UserId");
             }
 
-        return new RepoBuilder().buildStudentRepo(context).getStudentCurrentLocation();
+        return new RepoBuilder().buildReportRepo(context).getStudentCurrentLocation();
         
     } catch (Throwable t) {
         LOGGER.error("Exception while getting Student Current Location", t);
@@ -242,7 +242,7 @@ class MessageProcessor implements Processor {
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid CourseId");
             }
             
-            return new RepoBuilder().buildStudentRepo(context).getStudentPerformanceInCourse();
+            return new RepoBuilder().buildReportRepo(context).getStudentPerformanceInCourse();
             
         } catch (Throwable t) {
             LOGGER.error("Exception while getting Student performance in Course", t);
@@ -270,7 +270,7 @@ class MessageProcessor implements Processor {
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid unitId");
             }
             
-            return new RepoBuilder().buildStudentRepo(context).getStudentPerformanceInUnit();
+            return new RepoBuilder().buildReportRepo(context).getStudentPerformanceInUnit();
             
         } catch (Throwable t) {
             LOGGER.error("Exception while getting Student performance in Unit", t);
@@ -303,7 +303,7 @@ class MessageProcessor implements Processor {
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid lessonId");
             } 
             
-            return new RepoBuilder().buildStudentRepo(context).getStudentPerformanceInLesson();
+            return new RepoBuilder().buildReportRepo(context).getStudentPerformanceInLesson();
             
         } catch (Throwable t) {
             LOGGER.error("Exception while getting Student performance in Lesson", t);
@@ -321,12 +321,12 @@ class MessageProcessor implements Processor {
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid collectionId");
             }
              
-            if (!validateUser(context.userId())) {
+            if (!validateUser(context.userIdFromSession())) {
                 LOGGER.error("Invalid User ID. Aborting");
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid userId");
             }
             
-            return new RepoBuilder().buildStudentRepo(context).getStudentPerformanceInCollection();
+            return new RepoBuilder().buildReportRepo(context).getStudentPerformanceInCollection();
             
         } catch (Throwable t) {
             LOGGER.error("Exception while getting Student performance in Course", t);
@@ -345,12 +345,12 @@ class MessageProcessor implements Processor {
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid collectionId");
             }
              
-            if (!validateUser(context.userId())) {
+            if (!validateUser(context.userIdFromSession())) {
                 LOGGER.error("Invalid User ID. Aborting");
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid userId");
             }
             
-            return new RepoBuilder().buildStudentRepo(context).getStudentPerformanceInAssessment();
+            return new RepoBuilder().buildReportRepo(context).getStudentPerformanceInAssessment();
             
         } catch (Throwable t) {
             LOGGER.error("Exception while getting Student performance in Course", t);
@@ -373,7 +373,7 @@ class MessageProcessor implements Processor {
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid CollectionId");
             }
             
-            return new RepoBuilder().buildStudentRepo(context).getSessionStatus();
+            return new RepoBuilder().buildReportRepo(context).getSessionStatus();
             
         } catch (Throwable t) {
             LOGGER.error("Exception while getting Student peers in Unit", t);
@@ -391,7 +391,7 @@ class MessageProcessor implements Processor {
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid collectionId");
             }
             
-            return new RepoBuilder().buildStudentRepo(context).getUserAssessmentSessions();
+            return new RepoBuilder().buildReportRepo(context).getUserAssessmentSessions();
             
         } catch (Throwable t) {
             LOGGER.error("Exception while getting User Sessions for Assessment", t);
@@ -409,7 +409,7 @@ class MessageProcessor implements Processor {
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid collectionId");
             }
             
-            return new RepoBuilder().buildStudentRepo(context).getUserCollectionSessions();
+            return new RepoBuilder().buildReportRepo(context).getUserCollectionSessions();
             
         } catch (Throwable t) {
             LOGGER.error("Exception while getting User Sessions for Collection", t);
@@ -435,7 +435,7 @@ class MessageProcessor implements Processor {
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid CourseId");
             }
             
-            return new RepoBuilder().buildTeacherRepo(context).getAllStudentPerfInCourse();
+            return new RepoBuilder().buildReportRepo(context).getAllStudentPerfInCourse();
             
         } catch (Throwable t) {
             LOGGER.error("Exception while getting All Student performance in Course for Teacher", t);
@@ -463,7 +463,7 @@ class MessageProcessor implements Processor {
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid unitId");
             }
             
-            return new RepoBuilder().buildTeacherRepo(context).getAllStudentPerfInUnit();
+            return new RepoBuilder().buildReportRepo(context).getAllStudentPerfInUnit();
             
         } catch (Throwable t) {
             LOGGER.error("Exception while getting Student performance in Unit", t);
@@ -481,7 +481,7 @@ class MessageProcessor implements Processor {
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid sessionId");
             }
             
-            return new RepoBuilder().buildStudentRepo(context).getSessionWiseTaxonmyReport();
+            return new RepoBuilder().buildReportRepo(context).getSessionWiseTaxonmyReport();
             
         } catch (Throwable t) {
             LOGGER.error("Exception while getting Student performance in Unit", t);
@@ -496,10 +496,13 @@ class MessageProcessor implements Processor {
         String unitId = message.headers().get(MessageConstants.UNIT_ID);
         String lessonId = message.headers().get(MessageConstants.LESSON_ID);
         String collectionId = message.headers().get(MessageConstants.COLLECTION_ID);
-        String userId = message.headers().get(MessageConstants.USER_ID);
+        /* user id from session */
+        String userId =  (request).getString(MessageConstants._USER_ID);
+        /* user id from api request */
+        String userUId = message.headers().get(MessageConstants.USER_UID);
         String sessionId = message.headers().get(MessageConstants.SESSION_ID);
         LOGGER.debug(sessionId);
-        return new ProcessorContext(request, userId, classId, courseId, unitId, lessonId, collectionId, sessionId);
+        return new ProcessorContext(request, userId,userUId, classId, courseId, unitId, lessonId, collectionId, sessionId);
     }
 
     //This is just the first level validation. Each Individual Handler would need to do more validation based on the

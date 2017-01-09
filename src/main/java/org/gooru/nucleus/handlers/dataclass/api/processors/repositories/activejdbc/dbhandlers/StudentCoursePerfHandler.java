@@ -18,6 +18,7 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers.StudentCoursePerfHandler;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
@@ -41,8 +42,9 @@ class StudentCoursePerfHandler implements DBHandler {
 	private static final String REQUEST_COLLECTION_TYPE = "collectionType";
     private static final String REQUEST_USERID = "userUid";
     
-	private final ProcessorContext context;
+	  private final ProcessorContext context;
     private AJEntityBaseReports baseReport;
+    private AJEntityClassAuthorizedUsers classAuthorizedUsers;
 
     
     private String collectionType;
@@ -80,10 +82,23 @@ class StudentCoursePerfHandler implements DBHandler {
     }
 
     @Override
-    public ExecutionResult<MessageResponse> validateRequest() {
-    	LOGGER.debug("validateRequest() OK");
-        return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
+  public ExecutionResult<MessageResponse> validateRequest() {
+    classAuthorizedUsers = new AJEntityClassAuthorizedUsers();
+    if (context.getUserIdFromRequest() == null
+            || (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
+      LOGGER.debug("User ID in the session : {}", context.userIdFromSession());
+      List<Map> creator = Base.findAll(classAuthorizedUsers.SELECT_CLASS_CREATOR, this.context.classId(), this.context.userIdFromSession());
+      if (creator.isEmpty()) {
+        List<Map> collaborator = Base.findAll(classAuthorizedUsers.SELECT_CLASS_CREATOR, this.context.classId(), this.context.userIdFromSession());
+        if (collaborator.isEmpty()) {
+          LOGGER.debug("validateRequest() FAILED");
+          return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"), ExecutionStatus.FAILED);
+        }
+      }
     }
+    LOGGER.debug("validateRequest() OK");
+    return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
+  }
 
     @Override
     public ExecutionResult<MessageResponse> executeRequest() {
