@@ -58,31 +58,36 @@ public class SessionTaxonomyReportHandler implements DBHandler {
     sessionTaxonomyReport = new AJEntitySessionTaxonomyReport();
     JsonArray taxonomyKpiArray = new JsonArray();
     JsonObject result = new JsonObject();
-    List<Map> sessionTaxonomyResults =
-            Base.findAll(sessionTaxonomyReport.SELECT_TAXONOMY_REPORT_BY_STANDARDS_AND_MICRO_STANDARDS, this.context.sessionId());
+    List<Map> sessionTaxonomyResults = Base.findAll(sessionTaxonomyReport.SELECT_TAXONOMY_REPORT_AGG_METRICS, this.context.sessionId());
     if (!sessionTaxonomyResults.isEmpty()) {
       sessionTaxonomyResults.forEach(taxonomyRow -> {
         JsonObject aggResult = new JsonObject();
-        aggResult.put("standardsId", taxonomyRow.get("standard_id"));
+        List<Map> sessionTaxonomyQuestionResults = null;
         if (taxonomyRow.get("learning_target_id") != null && !taxonomyRow.get("learning_target_id").toString().isEmpty()) {
           aggResult.put("learningTargetId", taxonomyRow.get("learning_target_id"));
+          sessionTaxonomyQuestionResults = Base.findAll(sessionTaxonomyReport.SELECT_TAXONOMY_REPORT_BY_MICRO_STANDARDS, this.context.sessionId(),taxonomyRow.get("subject_id"),taxonomyRow.get("course_id"),taxonomyRow.get("domain_id"),taxonomyRow.get("standard_id"),taxonomyRow.get("learning_target_id"));
+        } else {
+          aggResult.put("standardsId", taxonomyRow.get("standard_id"));
+          sessionTaxonomyQuestionResults = Base.findAll(sessionTaxonomyReport.SELECT_TAXONOMY_REPORT_BY_STANDARDS, this.context.sessionId(),taxonomyRow.get("subject_id"),taxonomyRow.get("course_id"),taxonomyRow.get("domain_id"),taxonomyRow.get("standard_id"));
         }
         aggResult.put("displayCode", taxonomyRow.get("display_code"));
-        aggResult.put("timespent", ValueTypeCaster.castValue(taxonomyRow.get("agg_time_spent")));
-        aggResult.put("score", ValueTypeCaster.castValue(taxonomyRow.get("agg_score")));
-        JsonObject questions = new JsonObject();
-        questions.put("questionId", taxonomyRow.get("resource_id"));
-        questions.put("timespent", ValueTypeCaster.castValue(taxonomyRow.get("time_spent")));
-        questions.put("attempts", ValueTypeCaster.castValue(taxonomyRow.get("views")));
-        questions.put("score", ValueTypeCaster.castValue(taxonomyRow.get("score")));
-        questions.put("questionType", taxonomyRow.get("question_type"));
-        questions.put("answerStatus", taxonomyRow.get("resource_attempt_status"));
-        questions.put("reaction", ValueTypeCaster.castValue(taxonomyRow.get("reaction")));
-        if (aggResult.getJsonArray("questions") == null) {
-          aggResult.put("questions", new JsonArray().add(questions));
-        } else {
-          aggResult.put("questions", aggResult.getJsonArray("questions").add(questions));
-        }
+        aggResult.put("timespent", ValueTypeCaster.castValue(taxonomyRow.get("time_spent")));
+        aggResult.put("score", ValueTypeCaster.castValue(taxonomyRow.get("score")));
+
+        JsonArray questionsArray = new JsonArray();
+        sessionTaxonomyQuestionResults.forEach(questionRows -> {
+          JsonObject question = new JsonObject();
+          question.put("questionId", questionRows.get("resource_id"));
+          question.put("timespent", ValueTypeCaster.castValue(questionRows.get("time_spent")));
+          question.put("attempts", ValueTypeCaster.castValue(questionRows.get("views")));
+          question.put("score", ValueTypeCaster.castValue(questionRows.get("score")));
+          question.put("questionType", questionRows.get("question_type"));
+          question.put("answerStatus", questionRows.get("resource_attempt_status"));
+          question.put("reaction", ValueTypeCaster.castValue(questionRows.get("reaction")));
+          questionsArray.add(question);
+        });
+
+        aggResult.put("questions", questionsArray);
         taxonomyKpiArray.add(aggResult);
       });
     } else {

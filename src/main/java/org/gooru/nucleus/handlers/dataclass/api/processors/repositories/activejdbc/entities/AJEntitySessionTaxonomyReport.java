@@ -50,8 +50,14 @@ public class AJEntitySessionTaxonomyReport extends Model {
 
   public static final String SELECT_TAXONOMY_REPORT_MAX_SEQUENCE_ID = "SELECT max(sequence_id) FROM taxonomy_report";
 
-  public static final String SELECT_TAXONOMY_REPORT_BY_STANDARDS_AND_MICRO_STANDARDS =
-          "SELECT standard_id,learning_target_id,display_code,resource_id, sum(time_spent) as agg_time_spent, sum(score)/count(1) as agg_score, resource_id,time_spent,views,score,reaction,resource_attempt_status,question_type FROM taxonomy_report WHERE session_id = ? AND resource_type = 'question' GROUP BY standard_id,learning_target_id,display_code,resource_id,views,time_spent,score,reaction,resource_attempt_status,question_type";
+  public static final String SELECT_TAXONOMY_REPORT_AGG_METRICS =
+          "SELECT subject_id,course_id,domain_id,standard_id,learning_target_id,display_code, sum(time_spent) as time_spent, ROUND(AVG(score)) as score,ROUND(AVG(reaction)) as reaction FROM taxonomy_report WHERE session_id = ? AND resource_type = 'question' GROUP BY subject_id,course_id,domain_id,standard_id,learning_target_id,display_code;";
+
+  public static final String SELECT_TAXONOMY_REPORT_BY_STANDARDS =
+          "SELECT time_spent, score ,reaction, views, question_type, resource_id, resource_attempt_status FROM taxonomy_report WHERE session_id = ? AND resource_type = 'question' AND subject_id = ? AND course_id = ? AND domain_id = ? AND standard_id = ? AND learning_target_id IS NULL;";
+
+  public static final String SELECT_TAXONOMY_REPORT_BY_MICRO_STANDARDS =
+          "SELECT time_spent, score ,reaction, views, question_type, resource_id, resource_attempt_status FROM taxonomy_report WHERE session_id = ? AND resource_type = 'question' AND subject_id = ? AND course_id = ? AND domain_id = ? AND standard_id = ? AND learning_target_id = ?;";
 
   public void setResourceAttemptStatus(String answerStatus) {
     setPGObject(RESOURCE_ATTEMPT_STATUS, RESOURCE_ATTEMPT_STATUS_TYPE, answerStatus);
