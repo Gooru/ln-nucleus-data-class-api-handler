@@ -63,7 +63,7 @@ public class StudentCurrentLocationHandler implements DBHandler {
     	baseReport = new AJEntityBaseReports();
     
         this.classId = context.classId();    	
-        this.userId = context.userIdFromSession();     
+        this.userId = context.getUserIdFromRequest();     
 
     	List<Map> CurrentLocMap = Base.findAll( AJEntityBaseReports.GET_STUDENT_LOCATION,this.classId, this.userId);
     	
@@ -78,8 +78,9 @@ public class StudentCurrentLocationHandler implements DBHandler {
 
     		
     	} else {
-            LOGGER.error("Current Location Attributes cannot be obtained");
-            return new ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(), ExecutionStatus.FAILED);
+            resultBody.put(JsonConstants.CONTENT, CurrentLocArray).putNull(JsonConstants.MESSAGE).putNull(JsonConstants.PAGINATE);
+            LOGGER.debug("Current Location Attributes cannot be obtained");
+            //return new ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(), ExecutionStatus.FAILED);
         }
 
         //Form the required JSon pass it on
