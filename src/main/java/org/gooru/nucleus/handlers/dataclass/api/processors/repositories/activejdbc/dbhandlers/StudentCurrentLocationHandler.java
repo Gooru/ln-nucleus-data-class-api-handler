@@ -79,8 +79,7 @@ public class StudentCurrentLocationHandler implements DBHandler {
     		
     	} else {
             resultBody.put(JsonConstants.CONTENT, CurrentLocArray).putNull(JsonConstants.MESSAGE).putNull(JsonConstants.PAGINATE);
-            LOGGER.debug("Current Location Attributes cannot be obtained");
-            //return new ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(), ExecutionStatus.FAILED);
+            LOGGER.info("Current Location Attributes cannot be obtained");
         }
 
         //Form the required JSon pass it on
