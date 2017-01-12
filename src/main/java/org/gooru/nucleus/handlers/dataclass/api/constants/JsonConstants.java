@@ -41,5 +41,19 @@ public class JsonConstants {
 	public static final String EVENT_TIME = "eventTime";
 	
 	public static final String SESSIONID = "sessionId";
-    
+  
+	public static final String STANDARDS_ID = "standardsId";
+	
+	public static final String LEARNING_TARGET_ID = "learningTargetId";
+	
+	public static final String QUESTIONS = "question";
+	
+	public static final String SCORE = "score";
+	
+	public static final String ATTEMPTS = "attempts";
+
+	public static final String TIMESPENT = "timespent";
+	
+	public static final String REACTION = "reaction";
+
 }
