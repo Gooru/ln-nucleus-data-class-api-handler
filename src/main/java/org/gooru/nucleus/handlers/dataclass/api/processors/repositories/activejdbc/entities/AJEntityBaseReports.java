@@ -1,12 +1,7 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities;
 
-import java.util.Arrays;
-import java.util.List;
-
 import org.javalite.activejdbc.Model;
 import org.javalite.activejdbc.annotations.Table;
-
-import io.vertx.core.json.JsonObject;
 
 
 /**
@@ -260,6 +255,8 @@ public class AJEntityBaseReports extends Model {
             "SELECT SUM(collectionTimeSpent) AS timeSpent, SUM(reaction) AS reaction, "
             + "SUM(collectionViews) AS views, collectionId FROM BaseReports "
             + "WHERE collectionId = ANY(?::varchar[]) GROUP BY collectionId";
+    
+    public static final String SELECT_CLASS_USER_BY_SESSION_ID = "SELECT classid,actorid FROM basereports WHERE sessionid = ? LIMIT 1";
     
     //*************************************************************************************************************************
     public static final String UUID_TYPE = "uuid";

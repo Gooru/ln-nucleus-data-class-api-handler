@@ -2,11 +2,11 @@ package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activej
 
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.converters.ResponseAttributeIdentifier;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntitySessionTaxonomyReport;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.converters.ValueMapper;
@@ -28,7 +28,6 @@ public class SessionTaxonomyReportHandler implements DBHandler {
   private static final Logger LOGGER = LoggerFactory.getLogger(SessionTaxonomyReportHandler.class);
 
   private final ProcessorContext context;
-  private AJEntityClassAuthorizedUsers classAuthorizedUsers;
 
   SessionTaxonomyReportHandler(ProcessorContext context) {
     this.context = context;
@@ -43,22 +42,32 @@ public class SessionTaxonomyReportHandler implements DBHandler {
   }
 
   @Override
+  @SuppressWarnings("rawtypes")
   public ExecutionResult<MessageResponse> validateRequest() {
-    /*
-     * classAuthorizedUsers = new AJEntityClassAuthorizedUsers(); List<Map>
-     * creator = Base.findAll(classAuthorizedUsers.SELECT_CLASS_CREATOR,
-     * this.context.classId(), this.context.userId()); if (creator.isEmpty()) {
-     * List<Map> collaborator =
-     * Base.findAll(classAuthorizedUsers.SELECT_CLASS_CREATOR,
-     * this.context.classId(), this.context.userId()); if
-     * (collaborator.isEmpty()) { return new
-     * ExecutionResult<>(MessageResponseFactory.
-     * createForbiddenResponse("User is not a teacher/collaborator"),
-     * ExecutionStatus.FAILED); } }
-     */
+    List<Map> baseResults = Base.findAll(AJEntityBaseReports.SELECT_CLASS_USER_BY_SESSION_ID, this.context.sessionId());
+    if (CollectionUtil.isNotEmpty(baseResults)) {
+      if (!context.userIdFromSession().equalsIgnoreCase(baseResults.get(0).get(AJEntityBaseReports.GOORUUID).toString())) {
+        LOGGER.debug("User ID in the session : {}", context.userIdFromSession());
+        String classId = baseResults.get(0).get(AJEntityBaseReports.CLASS_GOORU_OID).toString();
+        List<Map> creator = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_CREATOR, classId, this.context.userIdFromSession());
+        if (creator.isEmpty()) {
+          List<Map> collaborator = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_CREATOR, classId, this.context.userIdFromSession());
+          if (collaborator.isEmpty()) {
+            LOGGER.debug("validateRequest() FAILED");
+            return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"),
+                    ExecutionStatus.FAILED);
+          }
+          LOGGER.debug("User is a collaborator of this class.");
+        }
+        LOGGER.debug("User is teacher of this class.");
+      } else {
+        LOGGER.debug("User is accessing his/her own data");
+      }
+    } else {
+      return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("Given sessionId/attemptId is not valid"), ExecutionStatus.FAILED);
+    }
     LOGGER.debug("validateRequest() OK");
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
-
   }
 
   @Override
