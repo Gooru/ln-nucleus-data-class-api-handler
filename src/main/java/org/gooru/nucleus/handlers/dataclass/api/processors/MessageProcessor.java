@@ -500,6 +500,7 @@ class MessageProcessor implements Processor {
         String userId =  (request).getString(MessageConstants._USER_ID);
         /* user id from api request */
         String userUId = message.headers().get(MessageConstants.USER_UID);
+        LOGGER.debug("User ID from session :" + userId + " User ID From request : " + userUId);
         String sessionId = message.headers().get(MessageConstants.SESSION_ID);
         LOGGER.debug(sessionId);
         return new ProcessorContext(request, userId,userUId, classId, courseId, unitId, lessonId, collectionId, sessionId);
