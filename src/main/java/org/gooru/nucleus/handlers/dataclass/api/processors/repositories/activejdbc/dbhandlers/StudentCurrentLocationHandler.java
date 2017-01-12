@@ -10,6 +10,7 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
@@ -29,8 +30,9 @@ public class StudentCurrentLocationHandler implements DBHandler {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(StudentCurrentLocationHandler.class);
 	    
-	private final ProcessorContext context;
+	  private final ProcessorContext context;
     private AJEntityBaseReports baseReport;
+    private AJEntityClassAuthorizedUsers classAuthorizedUsers;
 
     private String classId;
     private String userId;
@@ -50,8 +52,22 @@ public class StudentCurrentLocationHandler implements DBHandler {
 
     @Override
     public ExecutionResult<MessageResponse> validateRequest() {
-    	LOGGER.debug("validateRequest() OK");
-        return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
+      classAuthorizedUsers = new AJEntityClassAuthorizedUsers();
+      if (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest())) {
+        LOGGER.debug("User ID in the session : {}", context.userIdFromSession());
+        List<Map> creator = Base.findAll(classAuthorizedUsers.SELECT_CLASS_CREATOR, this.context.classId(), this.context.userIdFromSession());
+        if (creator.isEmpty()) {
+          List<Map> collaborator = Base.findAll(classAuthorizedUsers.SELECT_CLASS_CREATOR, this.context.classId(), this.context.userIdFromSession());
+          if (collaborator.isEmpty()) {
+            LOGGER.debug("validateRequest() FAILED");
+            return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"), ExecutionStatus.FAILED);
+          }
+          LOGGER.debug("User is a collaborator of this class.");
+        }
+        LOGGER.debug("User is teacher of this class.");
+      }
+      LOGGER.debug("validateRequest() OK");
+      return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
     }
 
     @Override
@@ -63,7 +79,7 @@ public class StudentCurrentLocationHandler implements DBHandler {
     	baseReport = new AJEntityBaseReports();
     
         this.classId = context.classId();    	
-        this.userId = context.userId();        
+        this.userId = context.getUserIdFromRequest();     
 
     	List<Map> CurrentLocMap = Base.findAll( AJEntityBaseReports.GET_STUDENT_LOCATION,this.classId, this.userId);
     	
@@ -78,8 +94,8 @@ public class StudentCurrentLocationHandler implements DBHandler {
 
     		
     	} else {
-            LOGGER.error("Current Location Attributes cannot be obtained");
-            return new ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(), ExecutionStatus.FAILED);
+            resultBody.put(JsonConstants.CONTENT, CurrentLocArray).putNull(JsonConstants.MESSAGE).putNull(JsonConstants.PAGINATE);
+            LOGGER.info("Current Location Attributes cannot be obtained");
         }
 
         //Form the required JSon pass it on

@@ -1,8 +1,7 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc;
 
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
-import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.StudentRepo;
-import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.TeacherRepo;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.ReportRepo;
 
 public final class AJRepoBuilder {
 
@@ -10,11 +9,7 @@ public final class AJRepoBuilder {
         throw new AssertionError();
     }
 
-    public static StudentRepo buildStudentRepo(ProcessorContext context) {
-        return new AJStudentRepo(context);
-    }
-    
-    public static TeacherRepo buildTeacherRepo(ProcessorContext context) {
-        return new AJTeacherRepo(context);
+    public static ReportRepo buildReportRepo(ProcessorContext context) {
+        return new AJReportRepo(context);
     }
 }

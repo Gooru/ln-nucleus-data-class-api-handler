@@ -8,9 +8,9 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
+import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
-import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.javalite.activejdbc.Base;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,7 +60,7 @@ public class StudentPeersInCourseHandler implements DBHandler {
         this.classId = context.classId();
         this.courseId = context.courseId();
         
-    	List<Map> CoursePeerMap = Base.findAll( AJEntityBaseReports.GET_STUDENT_PEERS_IN_COURSE, this.classId, this.courseId);
+    	List<Map> CoursePeerMap = Base.findAll( baseReport.GET_STUDENT_PEERS_IN_COURSE, this.classId, this.courseId);
     	
     	if (!CoursePeerMap.isEmpty()){
     		

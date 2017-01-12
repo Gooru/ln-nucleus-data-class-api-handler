@@ -1,7 +1,7 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc;
 
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
-import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.StudentRepo;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.ReportRepo;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers.DBHandlerBuilder;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.transactions.TransactionExecutor;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
@@ -9,10 +9,10 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResp
 /**
  * Created by mukul@gooru
  */
-class AJStudentRepo implements StudentRepo {
+class AJReportRepo implements ReportRepo {
     private final ProcessorContext context;
 
-    public AJStudentRepo(ProcessorContext context) {
+    public AJReportRepo(ProcessorContext context) {
         this.context = context;
     }
   
@@ -75,5 +75,19 @@ class AJStudentRepo implements StudentRepo {
     public MessageResponse getUserCollectionSessions() {
         return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildUserCollectionSessionsHandler(context));
     }
+
+    @Override
+    public MessageResponse getSessionWiseTaxonmyReport() {
+      return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildSessionTaxonomyReportHandler(context));
+    }
     
+    @Override
+    public MessageResponse getAllStudentPerfInCourse() {
+        return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildAllStudentCoursePerfHandler(context));
+    }
+
+    @Override
+    public MessageResponse getAllStudentPerfInUnit() {
+        return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildAllStudentUnitPerfHandler(context));
+    }
 }
