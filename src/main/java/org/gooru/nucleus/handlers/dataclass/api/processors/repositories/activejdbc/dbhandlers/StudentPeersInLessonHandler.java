@@ -68,18 +68,14 @@ import io.vertx.core.json.JsonObject;
     @Override
     public ExecutionResult<MessageResponse> executeRequest() {
   
-      JsonObject resultBody = new JsonObject();
-      JsonArray studentPeerArray = new JsonArray();
-  
+      JsonObject resultBody = new JsonObject(); 
       baseReport = new AJEntityBaseReports();
   
       this.classId = context.classId();
       this.courseId = context.courseId();
       this.unitId = context.unitId();
       this.lessonId = context.lessonId();
-  
-      resultBody.put(JsonConstants.CONTENT, "WORK IN PROGRESS");
-  
+
       List<String> collIds = new ArrayList<>();
       JsonArray peerArray = new JsonArray();
   
@@ -114,11 +110,8 @@ import io.vertx.core.json.JsonObject;
             List<Map> timestampMap =
                     Base.findAll(AJEntityBaseReports.GET_USERS_LATEST_TIMESTAMP, context.lessonId(), assessmentId, EventConstants.ASSESSMENT, user);
             timestampMap.forEach(ts -> {
-              Timestamp currTs = new Timestamp(System.currentTimeMillis());
-              LOGGER.debug(currTs.toString());
+              Timestamp currTs = new Timestamp(System.currentTimeMillis());              
               Timestamp userTs = Timestamp.valueOf(ts.get(AJEntityBaseReports.UPDATE_TIMESTAMP).toString());
-              LOGGER.debug(userTs.toString());
-  
               if (((currTs.getTime() - userTs.getTime()) < timeDiff)) {
                 peerArray.add(new JsonObject().put(JsonConstants.ASSESSMENTID, assessmentId).put(JsonConstants.USERUID, user).put(JsonConstants.STATUS,
                         JsonConstants.ACTIVE));
@@ -176,8 +169,7 @@ import io.vertx.core.json.JsonObject;
         }
       }
   
-      resultBody.put(JsonConstants.CONTENT, peerArray).putNull(JsonConstants.MESSAGE).putNull(JsonConstants.PAGINATE);
-  
+      resultBody.put(JsonConstants.CONTENT, peerArray).putNull(JsonConstants.MESSAGE).putNull(JsonConstants.PAGINATE);  
       return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
   
     }
@@ -186,26 +178,5 @@ import io.vertx.core.json.JsonObject;
     public boolean handlerReadOnly() {
       return false;
     }
-  
-    private String listToPostgresArrayString(List<String> input) {
-      int approxSize = ((input.size() + 1) * 36); // Length of UUID is around
-                                                  // 36
-                                                  // chars
-      Iterator<String> it = input.iterator();
-      if (!it.hasNext()) {
-        return "{}";
-      }
-  
-      StringBuilder sb = new StringBuilder(approxSize);
-      sb.append('{');
-      for (;;) {
-        String s = it.next();
-        sb.append('"').append(s).append('"');
-        if (!it.hasNext()) {
-          return sb.append('}').toString();
-        }
-        sb.append(',');
-      }
-    }
-  
+
 }

@@ -60,7 +60,7 @@ public class StudentPeersInCourseHandler implements DBHandler {
         this.classId = context.classId();
         this.courseId = context.courseId();
         
-    	List<Map> CoursePeerMap = Base.findAll( baseReport.GET_STUDENT_PEERS_IN_COURSE, this.classId, this.courseId);
+    	List<Map> CoursePeerMap = Base.findAll( AJEntityBaseReports.GET_STUDENT_PEERS_IN_COURSE, this.classId, this.courseId);
     	
     	if (!CoursePeerMap.isEmpty()){
     		
@@ -70,9 +70,8 @@ public class StudentPeersInCourseHandler implements DBHandler {
             	    		.put(AJEntityBaseReports.ATTR_PEER_COUNT, (peerCount -1)));
              });             
              
-    	} else {
-            LOGGER.error("Student Peers Count for Course cannot be obtained");
-            return new ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(), ExecutionStatus.FAILED);
+    	} else {            
+            LOGGER.info("Student Peers cannot be obtained.There may be no peers in this Class");
         }
 
         //Form the required JSon pass it on
@@ -88,27 +87,5 @@ public class StudentPeersInCourseHandler implements DBHandler {
     public boolean handlerReadOnly() {
         return false;
     }
-    
-    
-    private String listToPostgresArrayString(List<String> input) {
-        int approxSize = ((input.size() + 1) * 36); // Length of UUID is around
-                                                    // 36
-                                                    // chars
-        Iterator<String> it = input.iterator();
-        if (!it.hasNext()) {
-            return "{}";
-        }
-
-        StringBuilder sb = new StringBuilder(approxSize);
-        sb.append('{');
-        for (;;) {
-            String s = it.next();
-            sb.append('"').append(s).append('"');
-            if (!it.hasNext()) {
-                return sb.append('}').toString();
-            }
-            sb.append(',');
-        }
-    }
-
+ 
 }

@@ -120,19 +120,14 @@ class MessageProcessor implements Processor {
             }
             
             if (!checkCourseId(context)) {
-                LOGGER.error("Course id not available to obtain Student Peers. Aborting");
+                LOGGER.error("Course Id not available to obtain Student Peers. Aborting");
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid CourseId");
-            }
-
-            if (!checkUnitId(context)) {
-                LOGGER.error("Unit id not available to get lesson. Aborting");
-                return MessageResponseFactory.createInvalidRequestResponse("Invalid unit id");
             }
             
             return new RepoBuilder().buildReportRepo(context).getStudentPeersInCourse();
             
         } catch (Throwable t) {
-            LOGGER.error("Exception while getting Student peers in Unit", t);
+            LOGGER.error("Exception while getting Student peers in Course", t);
             return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
         }
 
@@ -153,8 +148,8 @@ class MessageProcessor implements Processor {
             }
 
             if (!checkUnitId(context)) {
-                LOGGER.error("Unit id not available to get lesson. Aborting");
-                return MessageResponseFactory.createInvalidRequestResponse("Invalid unit id");
+                LOGGER.error("Unit id not available to obtain Student Peers. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid UnitId");
             }
             
             return new RepoBuilder().buildReportRepo(context).getStudentPeersInUnit();
@@ -177,18 +172,18 @@ class MessageProcessor implements Processor {
             }
             
             if (!checkCourseId(context)) {
-                LOGGER.error("Course id not available to obtain Student Peers. Aborting");
+                LOGGER.error("CourseId not available to obtain Student Peers. Aborting");
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid CourseId");
             }
 
             if (!checkUnitId(context)) {
-                LOGGER.error("Unit id not available to get lesson. Aborting");
-                return MessageResponseFactory.createInvalidRequestResponse("Invalid unit id");
+                LOGGER.error("UnitId not available to obtain Student Peers. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid UnitId");
             }
 
             if (!checkLessonId(context)) {
-                LOGGER.error("Lesson id not available to get lesson. Aborting");
-                return MessageResponseFactory.createInvalidRequestResponse("Invalid lesson id");
+                LOGGER.error("LessonId not available to obtain Student Peers. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid LessonId");
             } 
             
             return new RepoBuilder().buildReportRepo(context).getStudentPeersInLesson();
@@ -238,7 +233,7 @@ class MessageProcessor implements Processor {
             }
             
             if (!checkCourseId(context)) {
-                LOGGER.error("Course id not available to obtain Student Performance. Aborting");
+                LOGGER.error("CourseId not available to obtain Student Performance. Aborting");
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid CourseId");
             }
             
@@ -261,13 +256,13 @@ class MessageProcessor implements Processor {
             }
             
             if (!checkCourseId(context)) {
-                LOGGER.error("Course id not available to obtain Student Performance. Aborting");
+                LOGGER.error("CourseId not available to obtain Student Performance. Aborting");
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid CourseId");
             }
 
             if (!checkUnitId(context)) {
-                LOGGER.error("Unit id not available to get lesson. Aborting");
-                return MessageResponseFactory.createInvalidRequestResponse("Invalid unitId");
+                LOGGER.error("UnitId not available to obtain Student Performance. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid UnitId");
             }
             
             return new RepoBuilder().buildReportRepo(context).getStudentPerformanceInUnit();
@@ -289,18 +284,18 @@ class MessageProcessor implements Processor {
             }
             
             if (!checkCourseId(context)) {
-                LOGGER.error("Course id not available to obtain Student Performance. Aborting");
+                LOGGER.error("CourseId not available to obtain Student Performance. Aborting");
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid CourseId");
             }
 
             if (!checkUnitId(context)) {
-                LOGGER.error("Unit id not available to get lesson. Aborting");
-                return MessageResponseFactory.createInvalidRequestResponse("Invalid unitId");
+                LOGGER.error("UnitId not available to obtain Student Performance. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid UnitId");
             }
 
             if (!checkLessonId(context)) {
-                LOGGER.error("Lesson id not available to get lesson. Aborting");
-                return MessageResponseFactory.createInvalidRequestResponse("Invalid lessonId");
+                LOGGER.error("LessonId not available to obtain Student Performance. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid LessonId");
             } 
             
             return new RepoBuilder().buildReportRepo(context).getStudentPerformanceInLesson();

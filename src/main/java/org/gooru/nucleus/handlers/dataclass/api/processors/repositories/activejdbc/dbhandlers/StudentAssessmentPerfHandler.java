@@ -153,19 +153,21 @@ public class StudentAssessmentPerfHandler implements DBHandler {
             	});
 
             } else {
-                LOGGER.error("Assessment Attributes cannot be obtained");
-                return new ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(), ExecutionStatus.FAILED);
-            }
+                LOGGER.info("Assessment Attributes cannot be obtained");
+                //Return empty resultBody object instead of an error
+                //return new ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(), ExecutionStatus.FAILED);
+            }        	
         	
-        	LOGGER.info(AssessmentKPIArray.encodePrettily());
         	resultBody.put("UsageData:", AssessmentKPIArray);
 
         	return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody),
                     ExecutionStatus.SUCCESSFUL);
             		
         	} else {
-                LOGGER.error("SessionID Missing, Cannot Obtain Student Lesson Perf data");
-                return new ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(), ExecutionStatus.FAILED);
+                LOGGER.info("SessionID Missing, Cannot Obtain Student Lesson Perf data");
+              //Return empty resultBody object instead of an error
+                return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody),
+                        ExecutionStatus.SUCCESSFUL);
             }
     }   // End ExecuteRequest()
     
@@ -194,29 +196,6 @@ public class StudentAssessmentPerfHandler implements DBHandler {
     		return false;
     	}
     		
-    }
-    
-    private String listToPostgresArrayString(List<String> input) {
-        int approxSize = ((input.size() + 1) * 36); // Length of UUID is around
-                                                    // 36
-                                                    // chars
-        Iterator<String> it = input.iterator();
-        if (!it.hasNext()) {
-            return "{}";
-        }
-
-        StringBuilder sb = new StringBuilder(approxSize);
-        sb.append('{');
-        for (;;) {
-            String s = it.next();
-            sb.append('"').append(s).append('"');
-            if (!it.hasNext()) {
-                return sb.append('}').toString();
-            }
-            sb.append(',');
-        }
-    }
-
-
+    } 
 
 }

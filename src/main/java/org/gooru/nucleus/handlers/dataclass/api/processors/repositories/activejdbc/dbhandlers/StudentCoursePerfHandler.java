@@ -109,7 +109,7 @@ class StudentCoursePerfHandler implements DBHandler {
     	baseReport = new AJEntityBaseReports();
     	
     	//CollectionType is a Mandatory Parameter
-    	this. collectionType = this.context.request().getString(REQUEST_COLLECTION_TYPE);
+    	this.collectionType = this.context.request().getString(REQUEST_COLLECTION_TYPE);
     	if (StringUtil.isNullOrEmpty(collectionType)) {
             LOGGER.warn("CollectionType is mandatory to fetch Student Performance in Course");
             return new ExecutionResult<>(
@@ -172,8 +172,9 @@ class StudentCoursePerfHandler implements DBHandler {
                 });                
                 
         	} else {
-                LOGGER.error("Could not get Student Course Performance");
-                return new ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(), ExecutionStatus.FAILED);
+                LOGGER.info("Could not get Student Course Performance");
+                //Return an empty resultBody instead of an Error
+                //return new ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(), ExecutionStatus.FAILED);
             }
         }
     
@@ -220,8 +221,9 @@ class StudentCoursePerfHandler implements DBHandler {
                     		.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, AJEntityBaseReports.NA));                    				                	
                 });        		
         	} else {
-                LOGGER.error("Could not get Student Course Performance");
-                return new ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(), ExecutionStatus.FAILED);
+                LOGGER.info("Could not get Student Course Performance");
+              //Return an empty resultBody instead of an Error
+              //return new ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(), ExecutionStatus.FAILED);
             }        	
                 
         }

@@ -16,6 +16,8 @@ import org.javalite.activejdbc.Base;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.hazelcast.util.StringUtil;
+
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -79,23 +81,22 @@ public class UserCollectionSessionsHandler implements DBHandler {
     	baseReport = new AJEntityBaseReports();
     
         this.collectionId = context.collectionId();    	
-    	
-    	JsonArray os_array = this.context.request().getJsonArray(REQUEST_OPEN_SESSION);
-    	if (os_array != null) {
-    		this.openSession = os_array.getString(0);
-    		LOGGER.debug("openSession =" + this.openSession);
-    	}
-    	
-    	JsonArray uid = this.context.request().getJsonArray(REQUEST_USERID);
-        if (uid.isEmpty() || uid == null) {
-            LOGGER.warn("UserID is mandatory to fetch Student Performance in Course");
-            return new ExecutionResult<>(
-                MessageResponseFactory.createInvalidRequestResponse("UserID Missing. Cannot fetch Student Performance in course"),
-                ExecutionStatus.FAILED);
-        }        
         
-        this.userId = uid.getString(0);
-        
+      	this.openSession = this.context.request().getString(REQUEST_OPEN_SESSION);
+      	if (StringUtil.isNullOrEmpty(openSession)) {
+      		this.openSession = "false";
+              LOGGER.info("By Default OpenSession is assumed to be false");            
+          }
+          
+          this.userId = this.context.request().getString(REQUEST_USERID);
+          if (StringUtil.isNullOrEmpty(userId)) {
+              LOGGER.warn("UserID is mandatory to fetch Session Information");
+              return new ExecutionResult<>(
+                  MessageResponseFactory.createInvalidRequestResponse("UserID Missing. Cannot fetch Session Information"),
+                  ExecutionStatus.FAILED);
+          }
+          LOGGER.debug("UID is " + this.userId);
+
     	List<Map> distinctSessionsList = Base.findAll( AJEntityBaseReports.GET_USER_SESSIONS_FOR_COLLID, 
     			this.collectionId, EventConstants.COLLECTION, this.userId);
     	if (!distinctSessionsList.isEmpty()) {
@@ -173,28 +174,5 @@ public class UserCollectionSessionsHandler implements DBHandler {
     		return true;    		
     	} else return false;
     }
-    
-    private String listToPostgresArrayString(List<String> input) {
-        int approxSize = ((input.size() + 1) * 36); // Length of UUID is around
-                                                    // 36
-                                                    // chars
-        Iterator<String> it = input.iterator();
-        if (!it.hasNext()) {
-            return "{}";
-        }
-
-        StringBuilder sb = new StringBuilder(approxSize);
-        sb.append('{');
-        for (;;) {
-            String s = it.next();
-            sb.append('"').append(s).append('"');
-            if (!it.hasNext()) {
-                return sb.append('}').toString();
-            }
-            sb.append(',');
-        }
-    }
-
-
-
+ 
 }

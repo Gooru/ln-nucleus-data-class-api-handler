@@ -28,19 +28,7 @@ public class DataClassReadApiVerticle extends AbstractVerticle {
         future.complete(result);
       }, res -> {
         MessageResponse result = (MessageResponse) res.result();
-        message.reply(result.reply(), result.deliveryOptions());
-      /**
-       * TODO : We don't need this event push logic here.
-       *   JsonObject eventData = result.event();
-        if (eventData != null) {
-          String sessionToken = ((JsonObject) message.body()).getString(MessageConstants.MSG_HEADER_TOKEN);
-          if (sessionToken != null && !sessionToken.isEmpty()) {
-            eventData.put(MessageConstants.MSG_HEADER_TOKEN, sessionToken);
-          } else {
-            LOGGER.warn("Invalid session token received");
-          }
-          eb.send(MessagebusEndpoints.MBEP_EVENT, eventData);
-        }*/
+        message.reply(result.reply(), result.deliveryOptions());      
       });
 
     }).completionHandler(result -> {

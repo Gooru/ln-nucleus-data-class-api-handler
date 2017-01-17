@@ -76,15 +76,12 @@ public class StudentPeersInUnitHandler implements DBHandler {
              });             
              
     	} else {
-            LOGGER.error("Student Peers Count for Unit cannot be obtained");
-            return new ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(), ExecutionStatus.FAILED);
+            LOGGER.error("Student Peers Count for Unit cannot be obtained. There may be no peers for this Unit");            
         }
 
-    	resultBody.put(JsonConstants.CONTENT, StudentPeerArray).putNull(JsonConstants.MESSAGE).putNull(JsonConstants.PAGINATE);
-                 
+    	resultBody.put(JsonConstants.CONTENT, StudentPeerArray).putNull(JsonConstants.MESSAGE).putNull(JsonConstants.PAGINATE);                 
     	return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody),
-                ExecutionStatus.SUCCESSFUL);
-    	
+                ExecutionStatus.SUCCESSFUL);    	
     }   
     
 
@@ -92,28 +89,5 @@ public class StudentPeersInUnitHandler implements DBHandler {
     public boolean handlerReadOnly() {
         return false;
     }
-    
-    
-    private String listToPostgresArrayString(List<String> input) {
-        int approxSize = ((input.size() + 1) * 36); // Length of UUID is around
-                                                    // 36
-                                                    // chars
-        Iterator<String> it = input.iterator();
-        if (!it.hasNext()) {
-            return "{}";
-        }
-
-        StringBuilder sb = new StringBuilder(approxSize);
-        sb.append('{');
-        for (;;) {
-            String s = it.next();
-            sb.append('"').append(s).append('"');
-            if (!it.hasNext()) {
-                return sb.append('}').toString();
-            }
-            sb.append(',');
-        }
-    }
-
 	
 }

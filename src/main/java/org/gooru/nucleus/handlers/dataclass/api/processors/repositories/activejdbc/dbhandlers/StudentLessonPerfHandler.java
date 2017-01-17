@@ -19,6 +19,8 @@ import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.hazelcast.util.StringUtil;
+
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -96,14 +98,23 @@ public class StudentLessonPerfHandler implements DBHandler {
     	JsonArray resultarray = new JsonArray();
     	baseReport = new AJEntityBaseReports();
     	
-    	JsonArray collType = this.context.request().getJsonArray(REQUEST_COLLECTION_TYPE);
-    	this.collectionType  = collType.getString(0);
+        //CollectionType is a Mandatory Parameter
+    	this.collectionType = this.context.request().getString(REQUEST_COLLECTION_TYPE);
+    	if (StringUtil.isNullOrEmpty(collectionType)) {
+            LOGGER.warn("CollectionType is mandatory to fetch Student Performance in Course");
+            return new ExecutionResult<>(
+                MessageResponseFactory.createInvalidRequestResponse("CollectionType Missing. Cannot fetch Student Performance in course"),
+                ExecutionStatus.FAILED);
+        }
+    	LOGGER.debug("Collection Type is " + this.collectionType);
         
-        LOGGER.debug("Collection Type is " + this.collectionType);
-        
-        JsonArray uid = this.context.request().getJsonArray(REQUEST_USERID);
-        this.userId = uid.getString(0);
-        
+        this.userId = this.context.request().getString(REQUEST_USERID);
+        if (StringUtil.isNullOrEmpty(userId)) {
+            LOGGER.warn("UserID is mandatory to fetch Student Performance in Course");
+            return new ExecutionResult<>(
+                MessageResponseFactory.createInvalidRequestResponse("UserID Missing. Cannot fetch Student Performance in course"),
+                ExecutionStatus.FAILED);
+        }
         LOGGER.debug("UID is " + this.userId);
         
         List<String> collIds = new ArrayList<>();
@@ -155,8 +166,9 @@ public class StudentLessonPerfHandler implements DBHandler {
                 });                
 
         	} else {
-                LOGGER.error("Could not get Student Lesson Performance");
-                return new ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(), ExecutionStatus.FAILED);
+                LOGGER.info("Could not get Student Lesson Performance");
+                //Return an empty resultBody instead of an Error                
+                //return new ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(), ExecutionStatus.FAILED);
             }
                 
         }
@@ -206,8 +218,9 @@ public class StudentLessonPerfHandler implements DBHandler {
                 });                
 
         	}  else {
-                LOGGER.error("Could not get Student Lesson Performance");
-                return new ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(), ExecutionStatus.FAILED);
+                LOGGER.info("Could not get Student Lesson Performance");
+                //Return an empty resultBody instead of an Error                
+                //return new ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(), ExecutionStatus.FAILED);
             }
         }
 
