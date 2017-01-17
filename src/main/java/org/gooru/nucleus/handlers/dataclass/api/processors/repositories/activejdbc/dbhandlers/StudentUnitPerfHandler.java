@@ -150,59 +150,53 @@ public class StudentUnitPerfHandler implements DBHandler {
                 		LOGGER.info("Got a list of Distinct collectionIDs for this lesson");                	
                     	
                     	collIDforlesson.forEach(coll -> collIds.add(coll.getString(AJEntityBaseReports.COLLECTION_OID)));
-                        
-                        for (String u : collIds) {
-                        	LOGGER.debug (u);        	
-                        } 
                                                         
                         List<Map> assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF_FOR_ASSESSMENT,
                         		listToPostgresArrayString(collIds), this.userId);
                         
-                        if(assessmentKpi.isEmpty()){
-                        	LOGGER.debug("No data returned for Student Perf in Assessment");
-                        	return new ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(), ExecutionStatus.FAILED);
-                        }
-
-                        assessmentKpi.forEach(m -> LessonKpiArray.add(new JsonObject().put(AJEntityBaseReports.ATTR_ASSESSMENT_ID, m.get(AJEntityBaseReports.COLLECTION_OID).toString())
-                        		.put(AJEntityBaseReports.COLLECTION_TYPE, EventConstants.ASSESSMENT)
+                        if(!assessmentKpi.isEmpty()){
+                            assessmentKpi.forEach(m -> LessonKpiArray.add(new JsonObject().put(AJEntityBaseReports.ATTR_ASSESSMENT_ID, m.get(AJEntityBaseReports.COLLECTION_OID).toString())
+                            		.put(AJEntityBaseReports.COLLECTION_TYPE, EventConstants.ASSESSMENT)
+                            		.put(AJEntityBaseReports.ATTR_TIMESPENT, m.get(AJEntityBaseReports.ATTR_TIMESPENT).toString())            		
+                            		.put(AJEntityBaseReports.ATTR_REACTION, m.get(AJEntityBaseReports.ATTR_REACTION).toString())
+                            		.put(AJEntityBaseReports.ATTR_SCORE, m.get(AJEntityBaseReports.ATTR_SCORE).toString())
+                            		.put(AJEntityBaseReports.ATTR_ATTEMPTS, m.get(AJEntityBaseReports.ATTR_ATTEMPTS).toString())
+                            		));
+                            
+                            List<Map> unitKpiList = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_EACH_UNIT_PERF_FOR_ASSESSMENT,
+                            		alID, this.userId);                        
+                            
+                            List<Map> completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLLID_COUNT_FOREACH_LESSONID,
+                            		context.classId(), context.courseId(), context.unitId(), alID,
+                            		EventConstants.ASSESSMENT, this.userId, EventConstants.COLLECTION_PLAY, AJEntityBaseReports.ATTR_EVENTTYPE_STOP);
+                                            
+                            unitKpiList.forEach(m -> { 
+                            	LId = m.get(AJEntityBaseReports.LESSON_GOORU_OID).toString();
+                            	LOGGER.debug("The Value of CollectionID " + LId);
+                                if(completedCountMap.isEmpty()){
+                                	LOGGER.debug("No data returned for completedCount");
+                                	compCount = AJEntityBaseReports.NA;                                	
+                                } else {
+                                	completedCountMap.forEach(map -> { if ((map.get(AJEntityBaseReports.LESSON_GOORU_OID).toString()).equals(LId)) {
+                                		compCount = map.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString();
+                                	}
+                                	});                                	
+                                }
+                            
+                            	collList.put(AJEntityBaseReports.LESSON_GOORU_OID, m.get(AJEntityBaseReports.LESSON_GOORU_OID).toString())                    		
+                        		.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, compCount)
+                        		.put(AJEntityBaseReports.ATTR_ATTEMPT_STATUS, AJEntityBaseReports.NA)
                         		.put(AJEntityBaseReports.ATTR_TIMESPENT, m.get(AJEntityBaseReports.ATTR_TIMESPENT).toString())            		
                         		.put(AJEntityBaseReports.ATTR_REACTION, m.get(AJEntityBaseReports.ATTR_REACTION).toString())
                         		.put(AJEntityBaseReports.ATTR_SCORE, m.get(AJEntityBaseReports.ATTR_SCORE).toString())
-                        		.put(AJEntityBaseReports.ATTR_ATTEMPTS, m.get(AJEntityBaseReports.ATTR_ATTEMPTS).toString())
-                        		));
-                        
-                        List<Map> unitKpiList = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_EACH_UNIT_PERF_FOR_ASSESSMENT,
-                        		alID, this.userId);                        
-                        
-                        List<Map> completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLLID_COUNT_FOREACH_LESSONID,
-                        		context.classId(), context.courseId(), context.unitId(), alID,
-                        		EventConstants.ASSESSMENT, this.userId, EventConstants.COLLECTION_PLAY, AJEntityBaseReports.ATTR_EVENTTYPE_STOP);
-                                        
-                        if(completedCountMap.isEmpty()){
-                        	LOGGER.debug("Error in your getCount Query, No data returned");
-                        	return new ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(), ExecutionStatus.FAILED);
-                        }
-                        
-                        unitKpiList.forEach(m -> { 
-                        	LId = m.get(AJEntityBaseReports.LESSON_GOORU_OID).toString();
-                        	LOGGER.debug("The Value of CollectionID " + LId);
-                        	completedCountMap.forEach(map -> { if ((map.get(AJEntityBaseReports.LESSON_GOORU_OID).toString()).equals(LId)) {
-                        		compCount = map.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString();
-                        	}
-                        	});                	
-                        
-                        	collList.put(AJEntityBaseReports.LESSON_GOORU_OID, m.get(AJEntityBaseReports.LESSON_GOORU_OID).toString())                    		
-                    		.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, compCount)
-                    		.put(AJEntityBaseReports.ATTR_ATTEMPT_STATUS, AJEntityBaseReports.NA)
-                    		.put(AJEntityBaseReports.ATTR_TIMESPENT, m.get(AJEntityBaseReports.ATTR_TIMESPENT).toString())            		
-                    		.put(AJEntityBaseReports.ATTR_REACTION, m.get(AJEntityBaseReports.ATTR_REACTION).toString())
-                    		.put(AJEntityBaseReports.ATTR_SCORE, m.get(AJEntityBaseReports.ATTR_SCORE).toString())
-                    		.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, AJEntityBaseReports.NA);                	
-                        });                
-                        
-                        collList.put(JsonConstants.SOURCELIST, LessonKpiArray);
-                        assessmentArray.add(collList);
-                        
+                        		.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, AJEntityBaseReports.NA);                	
+                            });                
+                            
+                            collList.put(JsonConstants.SOURCELIST, LessonKpiArray);
+                            assessmentArray.add(collList);
+                        } else {
+                        	LOGGER.debug("No data returned for Student Perf in Assessment");
+                        }                        
                 	} else {
                         LOGGER.error("Could not get Student Lesson Performance");
                         //Return an empty resultBody instead of an Error
@@ -245,50 +239,49 @@ public class StudentUnitPerfHandler implements DBHandler {
                         List<Map> collectionKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF_FOR_COLLECTION,
                         		listToPostgresArrayString(collIds), this.userId);
                         
-                        if(collectionKpi.isEmpty()){
-                        	LOGGER.debug("No data returned for Student Perf in Collection");
-                        	return new ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(), ExecutionStatus.FAILED);
-                        }
+                        if(!collectionKpi.isEmpty()){                        	
+                        	collectionKpi.forEach(m -> LessonKpiArray.add(new JsonObject().put(AJEntityBaseReports.ATTR_COLLECTION_ID, m.get(AJEntityBaseReports.COLLECTION_OID).toString())
+                            		.put(AJEntityBaseReports.COLLECTION_TYPE, EventConstants.COLLECTION)
+                            		.put(AJEntityBaseReports.ATTR_TIMESPENT, m.get(AJEntityBaseReports.ATTR_TIMESPENT).toString())            		
+                            		.put(AJEntityBaseReports.ATTR_REACTION, m.get(AJEntityBaseReports.ATTR_REACTION).toString())
+                            		.put(AJEntityBaseReports.ATTR_COLLVIEWS, m.get(AJEntityBaseReports.ATTR_COLLVIEWS).toString())
+                            		));
+                            
+                            List<Map> unitKpiList = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_EACH_UNIT_PERF_FOR_COLLECTION,
+                            		clID, this.userId);
 
-                        collectionKpi.forEach(m -> LessonKpiArray.add(new JsonObject().put(AJEntityBaseReports.ATTR_COLLECTION_ID, m.get(AJEntityBaseReports.COLLECTION_OID).toString())
-                        		.put(AJEntityBaseReports.COLLECTION_TYPE, EventConstants.COLLECTION)
+                            List<Map> completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLLID_COUNT_FOREACH_LESSONID,
+                            		context.classId(), context.courseId(), context.unitId(), clID,
+                            		EventConstants.COLLECTION, this.userId, EventConstants.COLLECTION_PLAY, AJEntityBaseReports.ATTR_EVENTTYPE_STOP);
+                            
+                            unitKpiList.forEach(m -> { 
+                            	LId = m.get(AJEntityBaseReports.LESSON_GOORU_OID).toString();
+                            	LOGGER.debug("The Value of CollectionID " + LId);
+                                if(completedCountMap.isEmpty()){
+                                	LOGGER.debug("Error in your getCount Query, No data returned");
+                                	compCount = AJEntityBaseReports.NA;
+                                } else {
+                                	completedCountMap.forEach(map -> { if ((map.get(AJEntityBaseReports.LESSON_GOORU_OID).toString()).equals(LId)) {
+                                		compCount = map.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString();
+                                	}
+                                	});                                	
+                                }
+                                
+                            	collList.put(AJEntityBaseReports.LESSON_GOORU_OID, m.get(AJEntityBaseReports.LESSON_GOORU_OID).toString())
+                        		.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, compCount)
+                        		.put(AJEntityBaseReports.ATTR_ATTEMPT_STATUS, AJEntityBaseReports.NA)
                         		.put(AJEntityBaseReports.ATTR_TIMESPENT, m.get(AJEntityBaseReports.ATTR_TIMESPENT).toString())            		
                         		.put(AJEntityBaseReports.ATTR_REACTION, m.get(AJEntityBaseReports.ATTR_REACTION).toString())
                         		.put(AJEntityBaseReports.ATTR_COLLVIEWS, m.get(AJEntityBaseReports.ATTR_COLLVIEWS).toString())
-                        		));
-                        
-                        List<Map> unitKpiList = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_EACH_UNIT_PERF_FOR_COLLECTION,
-                        		clID, this.userId);
+                        		.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, AJEntityBaseReports.NA);                	
+                            });                
 
-                        List<Map> completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLLID_COUNT_FOREACH_LESSONID,
-                        		context.classId(), context.courseId(), context.unitId(), clID,
-                        		EventConstants.COLLECTION, this.userId, EventConstants.COLLECTION_PLAY, AJEntityBaseReports.ATTR_EVENTTYPE_STOP);
-                                        
-                        if(completedCountMap.isEmpty()){
-                        	LOGGER.debug("Error in your getCount Query, No data returned");
-                        	return new ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(), ExecutionStatus.FAILED);
+
+                            collList.put(JsonConstants.SOURCELIST, LessonKpiArray);
+                            collectionArray.add(collList);
+                        } else {
+                        	LOGGER.debug("No data returned for Student Perf in Collection");
                         }
-                        
-                        unitKpiList.forEach(m -> { 
-                        	LId = m.get(AJEntityBaseReports.LESSON_GOORU_OID).toString();
-                        	LOGGER.debug("The Value of CollectionID " + LId);
-                        	completedCountMap.forEach(map -> { if ((map.get(AJEntityBaseReports.LESSON_GOORU_OID).toString()).equals(LId)) {
-                        		compCount = map.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString();
-                        	}
-                        	});                	
-                        
-                        	collList.put(AJEntityBaseReports.LESSON_GOORU_OID, m.get(AJEntityBaseReports.LESSON_GOORU_OID).toString())
-                    		.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, compCount)
-                    		.put(AJEntityBaseReports.ATTR_ATTEMPT_STATUS, AJEntityBaseReports.NA)
-                    		.put(AJEntityBaseReports.ATTR_TIMESPENT, m.get(AJEntityBaseReports.ATTR_TIMESPENT).toString())            		
-                    		.put(AJEntityBaseReports.ATTR_REACTION, m.get(AJEntityBaseReports.ATTR_REACTION).toString())
-                    		.put(AJEntityBaseReports.ATTR_COLLVIEWS, m.get(AJEntityBaseReports.ATTR_COLLVIEWS).toString())
-                    		.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, AJEntityBaseReports.NA);                	
-                        });                
-
-
-                        collList.put(JsonConstants.SOURCELIST, LessonKpiArray);
-                        collectionArray.add(collList);                        
                         
                 	} else {
                         LOGGER.error("Could not get Student Lesson Performance");
