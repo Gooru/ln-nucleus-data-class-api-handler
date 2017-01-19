@@ -51,7 +51,7 @@ public class SessionTaxonomyReportHandler implements DBHandler {
         String classId = baseResults.get(0).get(AJEntityBaseReports.CLASS_GOORU_OID).toString();
         List<Map> creator = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_CREATOR, classId, this.context.userIdFromSession());
         if (creator.isEmpty()) {
-          List<Map> collaborator = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_CREATOR, classId, this.context.userIdFromSession());
+          List<Map> collaborator = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_COLLABORATOR, classId, this.context.userIdFromSession());
           if (collaborator.isEmpty()) {
             LOGGER.debug("validateRequest() FAILED");
             return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"),
