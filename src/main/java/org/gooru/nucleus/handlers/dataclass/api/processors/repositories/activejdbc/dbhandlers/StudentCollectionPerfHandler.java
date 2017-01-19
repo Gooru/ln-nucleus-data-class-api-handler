@@ -1,6 +1,5 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -37,7 +36,6 @@ public class StudentCollectionPerfHandler implements DBHandler {
         
     private final ProcessorContext context;
     private AJEntityBaseReports baseReport;
-    private AJEntityClassAuthorizedUsers classAuthorizedUsers;
     
     private String classId;
     private String courseId;
@@ -79,12 +77,11 @@ public class StudentCollectionPerfHandler implements DBHandler {
 
     @Override
     public ExecutionResult<MessageResponse> validateRequest() {
-      classAuthorizedUsers = new AJEntityClassAuthorizedUsers();
       if (context.getUserIdFromRequest() == null
               || (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
-        List<Map> creator = Base.findAll(classAuthorizedUsers.SELECT_CLASS_CREATOR, this.context.classId(), this.context.userIdFromSession());
+        List<Map> creator = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_CREATOR, this.context.classId(), this.context.userIdFromSession());
         if (creator.isEmpty()) {
-          List<Map> collaborator = Base.findAll(classAuthorizedUsers.SELECT_CLASS_CREATOR, this.context.classId(), this.context.userIdFromSession());
+          List<Map> collaborator = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_COLLABORATOR, this.context.classId(), this.context.userIdFromSession());
           if (collaborator.isEmpty()) {
             LOGGER.debug("validateRequest() FAILED");
             return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"), ExecutionStatus.FAILED);

@@ -1,28 +1,19 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
-import java.sql.PreparedStatement;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
-import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.formatter.*;
 import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
-import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
-
-import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers.StudentCoursePerfHandler;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
+import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
-import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
@@ -44,7 +35,6 @@ class StudentCoursePerfHandler implements DBHandler {
     
 	  private final ProcessorContext context;
     private AJEntityBaseReports baseReport;
-    private AJEntityClassAuthorizedUsers classAuthorizedUsers;
 
     
     private String collectionType;
@@ -83,13 +73,12 @@ class StudentCoursePerfHandler implements DBHandler {
 
     @Override
   public ExecutionResult<MessageResponse> validateRequest() {
-    classAuthorizedUsers = new AJEntityClassAuthorizedUsers();
     if (context.getUserIdFromRequest() == null
             || (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
       LOGGER.debug("User ID in the session : {}", context.userIdFromSession());
-      List<Map> creator = Base.findAll(classAuthorizedUsers.SELECT_CLASS_CREATOR, this.context.classId(), this.context.userIdFromSession());
+      List<Map> creator = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_CREATOR, this.context.classId(), this.context.userIdFromSession());
       if (creator.isEmpty()) {
-        List<Map> collaborator = Base.findAll(classAuthorizedUsers.SELECT_CLASS_CREATOR, this.context.classId(), this.context.userIdFromSession());
+        List<Map> collaborator = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_COLLABORATOR, this.context.classId(), this.context.userIdFromSession());
         if (collaborator.isEmpty()) {
           LOGGER.debug("validateRequest() FAILED");
           return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"), ExecutionStatus.FAILED);
