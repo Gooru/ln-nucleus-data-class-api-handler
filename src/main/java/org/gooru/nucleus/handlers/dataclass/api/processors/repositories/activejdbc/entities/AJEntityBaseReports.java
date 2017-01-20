@@ -84,6 +84,10 @@ public class AJEntityBaseReports extends Model {
             "SELECT DISTINCT(unitId) FROM BaseReports "
             + "WHERE classId = ? AND courseId = ? AND collectionType =? AND actorId = ?";
 
+    public static final String SELECT_DISTINCT_USERID_FOR_COURSEID_FILTERBY_COLLTYPE =
+            "SELECT DISTINCT(actorId) FROM BaseReports "
+            + "WHERE classId = ? AND courseId = ? AND collectionType =?";
+    
     public static final String SELECT_STUDENT_COURSE_PERF_FOR_ASSESSMENT =
             "SELECT SUM(collectionTimeSpent) AS timeSpent, SUM(score) AS scoreInPercentage, SUM(collectionViews) AS attempts, "
             + "SUM(reaction) AS reaction, unitId FROM BaseReports "
@@ -103,10 +107,19 @@ public class AJEntityBaseReports extends Model {
             "SELECT DISTINCT(lessonId) FROM BaseReports "
             + "WHERE classId = ? AND courseId = ? AND unitId = ? AND collectionType = ? AND actorId = ?";
     
+    public static final String SELECT_DISTINCT_USERID_FOR_UNITID_FITLERBY_COLLTYPE =
+            "SELECT DISTINCT(actorId) FROM BaseReports "
+            + "WHERE classId = ? AND courseId = ? AND unitId = ? AND collectionType = ?";
+    
     public static final String SELECT_DISTINCT_COLLID_FOR_LESSONID_FILTERBY_COLLTYPE =
             "SELECT DISTINCT(collectionId) FROM BaseReports "
             + "WHERE classId = ? AND courseId = ? AND unitId = ? AND lessonId = ? AND collectionType =? AND actorId = ?";
 
+    public static final String SELECT_DISTINCT_USERID_FOR_LESSONID_FILTERBY_COLLTYPE =
+            "SELECT DISTINCT(actorId) FROM BaseReports "
+            + "WHERE classId = ? AND courseId = ? AND unitId = ? AND lessonId = ? AND collectionType =?";
+
+    
     public static final String SELECT_STUDENT_EACH_UNIT_PERF_FOR_ASSESSMENT =
             "SELECT SUM(collectionTimeSpent) AS timeSpent, SUM(score) AS scoreInPercentage, SUM(reaction) AS reaction, lessonId FROM BaseReports "
             + "WHERE lessonId = ? AND actorId = ? GROUP BY lessonId";

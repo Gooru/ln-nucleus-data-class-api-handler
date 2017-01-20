@@ -77,21 +77,6 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_USER_ALL_COLLECTION_SESSIONS:
             	result = getUserCollectionSessions();            	
                 break;
-            case MessageConstants.MSG_OP_ALL_STUDENT_COURSE_PERF:
-            	result = getAllStudentPerfInCourse();           	
-                break;
-            case MessageConstants.MSG_OP_ALL_STUDENT_UNIT_PERF:
-            	result = getAllStudentPerfInUnit();            	
-                break;
-            case MessageConstants.MSG_OP_ALL_STUDENT_LESSON_PERF:
-            	result = null;            	
-                break;
-            case MessageConstants.MSG_OP_ALL_STUDENT_ASSESSMENT_PERF:
-            	result = null;            	
-                break;
-            case MessageConstants.MSG_OP_ALL_STUDENT_COLLECTION_PERF:
-            	result = null;            	
-                break;
             case MessageConstants.MSG_OP_SESSION_TAXONOMY_REPORT:
               result = getSessionWiseTaxonomyReport();              
                 break;
@@ -494,7 +479,7 @@ class MessageProcessor implements Processor {
         /* user id from session */
         String userId =  (request).getString(MessageConstants._USER_ID);
         /* user id from api request */
-        String userUId = message.headers().get(MessageConstants.USER_UID);
+        String userUId = (request).getString(MessageConstants.USER_UID);
         LOGGER.debug("User ID from session :" + userId + " User ID From request : " + userUId);
         String sessionId = message.headers().get(MessageConstants.SESSION_ID);
         LOGGER.debug(sessionId);

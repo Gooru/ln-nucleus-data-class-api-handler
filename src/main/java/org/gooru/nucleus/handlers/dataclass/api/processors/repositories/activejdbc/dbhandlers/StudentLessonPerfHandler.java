@@ -92,7 +92,6 @@ public class StudentLessonPerfHandler implements DBHandler {
     public ExecutionResult<MessageResponse> executeRequest() {
 
     	JsonObject resultBody = new JsonObject();    	
-    	JsonObject contentBody = new JsonObject();
     	JsonArray resultarray = new JsonArray();
     	baseReport = new AJEntityBaseReports();
     	
@@ -107,21 +106,28 @@ public class StudentLessonPerfHandler implements DBHandler {
     	LOGGER.debug("Collection Type is " + this.collectionType);
         
         this.userId = this.context.request().getString(REQUEST_USERID);
+        List<String> collIds = new ArrayList<>();
+        List<String> userIds = new ArrayList<>();        
         if (StringUtil.isNullOrEmpty(userId)) {
-            LOGGER.warn("UserID is mandatory to fetch Student Performance in Course");
-            return new ExecutionResult<>(
-                MessageResponseFactory.createInvalidRequestResponse("UserID Missing. Cannot fetch Student Performance in course"),
-                ExecutionStatus.FAILED);
+            LOGGER.warn("UserID is not in the request to fetch Student Performance in Lesson. Assume user is a teacher");
+            LazyList<AJEntityBaseReports> userIdforlesson = AJEntityBaseReports.findBySQL( AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_LESSONID_FILTERBY_COLLTYPE,
+                    context.classId(), context.courseId(), context.unitId(), context.lessonId(), this.collectionType);
+            userIdforlesson.forEach(coll -> userIds.add(coll.getString(AJEntityBaseReports.GOORUUID)));
+
+        }else{
+          userIds.add(this.userId);
         }
+        
         LOGGER.debug("UID is " + this.userId);
         
-        List<String> collIds = new ArrayList<>();
+        for(String userID : userIds){
+        JsonObject contentBody = new JsonObject();
         JsonArray LessonKpiArray = new JsonArray();
         
         //If CollectionType is Assessment
         if (collectionType.equals(EventConstants.ASSESSMENT)) {
         	LazyList<AJEntityBaseReports> collIDforlesson = AJEntityBaseReports.findBySQL( AJEntityBaseReports.SELECT_DISTINCT_COLLID_FOR_LESSONID_FILTERBY_COLLTYPE,
-                    context.classId(), context.courseId(), context.unitId(), context.lessonId(), this.collectionType, this.userId);
+                    context.classId(), context.courseId(), context.unitId(), context.lessonId(), this.collectionType, userID);
         	
         	if (!collIDforlesson.isEmpty()) {        		
         		LOGGER.debug("Got a list of Distinct collectionIDs for this lesson");
@@ -130,10 +136,10 @@ public class StudentLessonPerfHandler implements DBHandler {
                                 
                 List<Map> completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLLID_COUNT,
                 		context.classId(), context.courseId(), context.unitId(), context.lessonId(),
-                		this.collectionType, this.userId, EventConstants.COLLECTION_PLAY, AJEntityBaseReports.ATTR_EVENTTYPE_STOP);
+                		this.collectionType, userID, EventConstants.COLLECTION_PLAY, AJEntityBaseReports.ATTR_EVENTTYPE_STOP);
                         
                 List<Map> assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF_FOR_ASSESSMENT,
-                		listToPostgresArrayString(collIds), this.userId);
+                		listToPostgresArrayString(collIds), userID);
                 
                 if(!assessmentKpi.isEmpty()){                	
                 	assessmentKpi.forEach(m -> { 
@@ -174,7 +180,7 @@ public class StudentLessonPerfHandler implements DBHandler {
         //If collection is collection
         if (collectionType.equals(EventConstants.COLLECTION)) {
         	LazyList<AJEntityBaseReports> collIDforlesson = AJEntityBaseReports.findBySQL( AJEntityBaseReports.SELECT_DISTINCT_COLLID_FOR_LESSONID_FILTERBY_COLLTYPE,
-        			context.classId(), context.courseId(), context.unitId(), context.lessonId(), this.collectionType, this.userId);
+        			context.classId(), context.courseId(), context.unitId(), context.lessonId(), this.collectionType, userID);
         	
         	if (!collIDforlesson.isEmpty()) {        		
         		LOGGER.debug("Got a list of Distinct unitIDs for this Course");
@@ -183,10 +189,10 @@ public class StudentLessonPerfHandler implements DBHandler {
                 
                 List<Map> completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLLID_COUNT,
                 		context.classId(), context.courseId(), context.unitId(), context.lessonId(),
-                		this.collectionType, this.userId, EventConstants.COLLECTION_PLAY, AJEntityBaseReports.ATTR_EVENTTYPE_STOP);
+                		this.collectionType, userID, EventConstants.COLLECTION_PLAY, AJEntityBaseReports.ATTR_EVENTTYPE_STOP);
                                 
                 List<Map> collectionKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF_FOR_COLLECTION,
-                		listToPostgresArrayString(collIds), this.userId);
+                		listToPostgresArrayString(collIds), userID);
                 
                 if(!collectionKpi.isEmpty()){                	
                 	collectionKpi.forEach(m -> { 
@@ -220,8 +226,9 @@ public class StudentLessonPerfHandler implements DBHandler {
             }
         }
 
-        contentBody.put(JsonConstants.USAGE_DATA, LessonKpiArray).put(JsonConstants.USERUID, this.userId);
+        contentBody.put(JsonConstants.USAGE_DATA, LessonKpiArray).put(JsonConstants.USERUID, userID);
         resultarray.add(contentBody);
+        }
         resultBody.put(JsonConstants.CONTENT, resultarray).putNull(JsonConstants.MESSAGE).putNull(JsonConstants.PAGINATE);
 
     	return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody),
