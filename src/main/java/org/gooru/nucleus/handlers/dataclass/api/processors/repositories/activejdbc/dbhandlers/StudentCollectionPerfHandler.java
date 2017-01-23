@@ -14,6 +14,8 @@ import org.javalite.activejdbc.Base;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.hazelcast.util.StringUtil;
+
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -98,14 +100,12 @@ public class StudentCollectionPerfHandler implements DBHandler {
     	JsonObject resultBody = new JsonObject();
     	baseReport = new AJEntityBaseReports();
     	
-    	JsonArray sessionId_array = this.context.request().getJsonArray(REQUEST_SESSION_ID);
-    	if (sessionId_array != null) {    		
-    		this.sessionId = sessionId_array.getString(0);
-    	}
+    	String sessionId = this.context.request().getString(REQUEST_SESSION_ID);
+    	
     	
     	JsonArray CollectionKPIArray = new JsonArray();
     	//STUDENT PERFORMANCE REPORTS IN COLLECTION when SessionID NOT NULL
-    	if (!sessionId.isEmpty()) {
+    	if (!StringUtil.isNullOrEmpty(sessionId)) {
         	List<Map> collectionKPI = Base.findAll( AJEntityBaseReports.SELECT_COLLECTION_FOREACH_COLLID_AND_SESSIONID,
                     context.collectionId(), this.sessionId, AJEntityBaseReports.ATTR_EVENTNAME, 
                     AJEntityBaseReports.ATTR_COLLECTION, this.userId);
