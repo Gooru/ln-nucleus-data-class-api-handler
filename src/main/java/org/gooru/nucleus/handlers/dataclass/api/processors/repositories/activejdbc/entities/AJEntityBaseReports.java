@@ -55,7 +55,8 @@ public class AJEntityBaseReports extends Model {
     public static final String ATTR_REACTION = "reaction";
     public static final String ATTR_COLLVIEWS = "views";
     public static final String ATTR_ATTEMPTS = "attempts";
-    public static final String ATTR_EVENTNAME = "collection.resource.play";
+    public static final String ATTR_CRP_EVENTNAME = "collection.resource.play";
+    public static final String ATTR_CP_EVENTNAME = "collection.play";
     public static final String ATTR_EVENTTYPE_START = "start";
     public static final String ATTR_EVENTTYPE_STOP = "stop";
     public static final String ATTR_ASSESSMENT = "assessment";
