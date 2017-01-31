@@ -107,7 +107,7 @@ public class StudentCollectionPerfHandler implements DBHandler {
     	//STUDENT PERFORMANCE REPORTS IN COLLECTION when SessionID NOT NULL
     	if (!StringUtil.isNullOrEmpty(sessionId)) {
         	List<Map> collectionKPI = Base.findAll( AJEntityBaseReports.SELECT_COLLECTION_FOREACH_COLLID_AND_SESSIONID,
-                    context.collectionId(), this.sessionId, AJEntityBaseReports.ATTR_EVENTNAME, 
+                    context.collectionId(), sessionId, AJEntityBaseReports.ATTR_CP_EVENTNAME, 
                     AJEntityBaseReports.ATTR_COLLECTION, this.userId);
         	
         	if (!collectionKPI.isEmpty()) {

@@ -14,6 +14,8 @@ import org.javalite.activejdbc.Base;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.hazelcast.util.StringUtil;
+
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -49,14 +51,14 @@ public class StudentAssessmentPerfHandler implements DBHandler {
 
     private String collId;
     private String qtype;
-    private String react;
-    private String resourceTS;
+    private long react;
+    private long resourceTS;
     private String ansObj; 
     private String resType;
     private String resAttemptStatus;
-    private String sco;
+    private long sco;
     private String SID;
-    private String resViews;
+    private long resViews;
     
     
     public StudentAssessmentPerfHandler(ProcessorContext context) {
@@ -102,37 +104,34 @@ public class StudentAssessmentPerfHandler implements DBHandler {
         this.userId = context.userIdFromSession();
         LOGGER.debug("UID is " + this.userId);
     	        
-    	JsonArray sessionId_array = this.context.request().getJsonArray(REQUEST_SESSION_ID);
-    	if (sessionId_array != null) {
-    		LOGGER.debug("Session in Assessment Request is:" + sessionId_array.getString(0));
-    		this.sessionId = sessionId_array.getString(0);
-    	}
+     String sessionId = this.context.request().getString(REQUEST_SESSION_ID);
     	
     	JsonArray AssessmentKPIArray = new JsonArray();
     	    	    	
     	//STUDENT PERFORMANCE REPORTS IN ASSESSMENTS when SessionID NOT NULL
-    	if (!sessionId.isEmpty()) {
+    	if (!StringUtil.isNullOrEmpty(sessionId)) {
         	List<Map> assessmentKPI = Base.findAll( AJEntityBaseReports.SELECT_ASSESSMENT_FOREACH_COLLID_AND_SESSIONID,
-                    context.collectionId(), this.sessionId, AJEntityBaseReports.ATTR_EVENTNAME, 
+                    context.collectionId(), sessionId, AJEntityBaseReports.ATTR_CP_EVENTNAME, 
                     AJEntityBaseReports.ATTR_ASSESSMENT, this.userId);
         	
+        	LOGGER.info("cID : {} , SID : {} ",context.collectionId(), sessionId );
         	if (!assessmentKPI.isEmpty()) {
         		LOGGER.debug("Assessment Attributes obtained");      	
             	
             	assessmentKPI.stream().forEach(m  -> { 
             			if (m.get(AJEntityBaseReports.EVENTTYPE).toString().equals(AJEntityBaseReports.ATTR_EVENTTYPE_START)){
-            				resViews = m.get(AJEntityBaseReports.RESOURCE_VIEWS).toString();
+            				resViews = m.get(AJEntityBaseReports.RESOURCE_VIEWS) != null ? ((Number) m.get(AJEntityBaseReports.RESOURCE_VIEWS)).longValue() : 0L;
             				LOGGER.debug("ResourceViews" + resViews);
             			} else if (m.get(AJEntityBaseReports.EVENTTYPE).toString().equals(AJEntityBaseReports.ATTR_EVENTTYPE_STOP)){
             				collId = m.get(AJEntityBaseReports.COLLECTION_OID).toString();
             				qtype = m.get(AJEntityBaseReports.QUESTION_TYPE).toString();
-            				react = m.get(AJEntityBaseReports.REACTION).toString();
-            				resourceTS =  m.get(AJEntityBaseReports.RESOURCE_TIMESPENT).toString();
+            				react = ((Number) m.get(AJEntityBaseReports.REACTION)).longValue();
+            				resourceTS =  m.get(AJEntityBaseReports.RESOURCE_TIMESPENT) != null ? ((Number) m.get(AJEntityBaseReports.RESOURCE_TIMESPENT)).longValue() : 0L;
             				//TODO - Mukul
             				//ansObj = m.get(AJEntityBaseReports.ANSWER_OBECT).toString();
             				//resType = m.get(AJEntityBaseReports.RESOURCE_TYPE).toString();
-            				resAttemptStatus = m.get(AJEntityBaseReports.RESOURCE_ATTEMPT_STATUS).toString();
-            				sco = m.get(AJEntityBaseReports.SCORE).toString();
+            				resAttemptStatus = m.get(AJEntityBaseReports.RESOURCE_ATTEMPT_STATUS) != null ? m.get(AJEntityBaseReports.RESOURCE_ATTEMPT_STATUS).toString() : null;
+            				sco = m.get(AJEntityBaseReports.SCORE) != null ? ((Number) m.get(AJEntityBaseReports.SCORE)).longValue() : 0L;
             			}
             			if (m.get(AJEntityBaseReports.EVENTTYPE).toString().equals(AJEntityBaseReports.ATTR_EVENTTYPE_STOP)){
             				LOGGER.debug("Populating JSON array");
