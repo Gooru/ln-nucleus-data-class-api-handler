@@ -96,7 +96,7 @@ public class SessionTaxonomyReportHandler implements DBHandler {
         // Generate questions array
         JsonArray questionsArray =
                 ValueMapper.map(ResponseAttributeIdentifier.getSessionTaxReportQuestionAttributesMap(), sessionTaxonomyQuestionResults);
-        aggResult.put(JsonConstants.QUESTIONS, questionsArray);
+        aggResult.put(JsonConstants.QUESTION, questionsArray);
         taxonomyKpiArray.add(aggResult);
       });
     } else {

@@ -1,6 +1,7 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.converters;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -24,7 +25,7 @@ public class ValueMapper {
   public static JsonArray map(Map<?, ?> attributesMap, List<Map> databaseResult) {
     JsonArray arrayResult = new JsonArray();
     if (CollectionUtil.isNotEmpty(databaseResult)) {
-      databaseResult.forEach(databaseResultRow -> {
+      databaseResult.stream().forEach(databaseResultRow -> {
         JsonObject result = new JsonObject();
         for (Entry<?, ?> resultRow : attributesMap.entrySet()) {
           result.put(resultRow.getValue().toString(), castValue(databaseResultRow.get(resultRow.getKey())));
@@ -39,8 +40,12 @@ public class ValueMapper {
     /**
      * Other data types to be checked..
      */
-    if (val instanceof BigDecimal) {
-      return ((Number) val).longValue();
+    if (val != null) {
+      if (val instanceof BigDecimal) {
+        return ((Number) val).longValue();
+      }else if(val instanceof Timestamp){
+        return Timestamp.valueOf(val.toString()).getTime();
+      }
     }
     return val;
   }
