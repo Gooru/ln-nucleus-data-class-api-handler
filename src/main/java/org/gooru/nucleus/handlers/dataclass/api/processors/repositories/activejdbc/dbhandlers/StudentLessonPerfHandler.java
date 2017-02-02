@@ -109,7 +109,7 @@ public class StudentLessonPerfHandler implements DBHandler {
       for (String userID : userIds) {
         JsonObject contentBody = new JsonObject();
         JsonArray LessonKpiArray = new JsonArray();
-        List<Map> assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF_FOR_ASSESSMENT, context.classId(), context.courseId(),
+        List<Map> assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF, context.classId(), context.courseId(),
                 context.unitId(), context.lessonId(), this.collectionType, userID);
         if (!assessmentKpi.isEmpty()) {
           assessmentKpi.forEach(m -> {
