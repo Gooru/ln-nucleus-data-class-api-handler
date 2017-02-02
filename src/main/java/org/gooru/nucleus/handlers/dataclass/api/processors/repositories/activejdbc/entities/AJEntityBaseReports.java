@@ -114,7 +114,7 @@ public class AJEntityBaseReports extends Model {
     
     public static final String SELECT_DISTINCT_COLLID_FOR_LESSONID_FILTERBY_COLLTYPE =
             "SELECT DISTINCT(collectionId) FROM BaseReports "
-            + "WHERE classId = ? AND courseId = ? AND unitId = ? AND lessonId = ? AND collectionType =? AND actorId = ?";
+            + "WHERE classId = ? AND courseId = ? AND unitId = ? AND lessonId = ? AND collectionType =? AND actorId = ?--";
 
     public static final String SELECT_DISTINCT_USERID_FOR_LESSONID_FILTERBY_COLLTYPE =
             "SELECT DISTINCT(actorId) FROM BaseReports "
@@ -138,9 +138,10 @@ public class AJEntityBaseReports extends Model {
     //*************************************************************************************************************************
     //String Constants and Queries for STUDENT PERFORMANCE REPORTS IN LESSON
     public static final String SELECT_STUDENT_LESSON_PERF_FOR_ASSESSMENT =
-            "SELECT SUM(collectionTimeSpent) AS timeSpent, SUM(score) AS scoreInPercentage, SUM(reaction) AS reaction, "
-            + "SUM(collectionViews) AS attempts, collectionId FROM BaseReports "
-            + "WHERE collectionId = ANY(?::varchar[]) AND actorId = ? GROUP BY collectionId";
+            "SELECT coalesce(SUM(collectionTimeSpent),0) AS timeSpent, SUM(score) AS scoreInPercentage, SUM(reaction) AS reaction, "
+            + "coalesce(SUM(collectionViews),0) AS attempts, collectionId, case  when (eventtype = 'stop') then 'completed' else 'in-progress' end as attemptStatus FROM BaseReports "
+            + "WHERE classId = ? AND courseId = ? AND unitId = ? AND lessonId = ? AND "
+            + "collectiontype = ? AND actorId = ? GROUP BY collectionId,eventtype";
     
     public static final String SELECT_STUDENT_LESSON_PERF_FOR_COLLECTION =
             "SELECT SUM(collectionTimeSpent) AS timeSpent, SUM(reaction) AS reaction, "
