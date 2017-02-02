@@ -165,18 +165,15 @@ public class AJEntityBaseReports extends Model {
             + " WHERE sessionId = ? AND eventName = ?"
             + " AND eventtype = ?";
     
-    public static final String SELECT_ASSESSMENT_FOREACH_COLLID = "TBD";
-        
-    //String Constants and Queries for STUDENT PERFORMANCE REPORTS IN COLLECTION
     public static final String SELECT_COLLECTION_FOREACH_COLLID_AND_SESSIONID =
-            "select eventName, eventType, collectionId, score, questiontype, reaction, ResourceViews, ResourceTimespent, answerobject, "
-            + "sessionId, resourceType, ResourceAttemptStatus from basereports"
-            + " WHERE collectionId = ? "
-            + " AND sessionId = ? AND eventName = ?"
-            + " AND collectionType = ? AND actorId = ?";
-
-    public static final String SELECT_COLLECTION_FOREACH_COLLID = "TBD";
+            "SELECT distinct on (collectionid) score,collectionid,reaction,coalesce(collectiontimespent, 0) AS collectiontimespent,createtimestamp,sessionid,collectiontype,coalesce(collectionviews,0) AS collectionviews from basereports"
+            + " WHERE classid = ? AND courseid = ? AND unitid = ? AND lessonid = ? AND collectionid = ? AND actorid = ? AND eventName = ?"
+            ;
     
+    public static final String SELECT_COLLECTION_RESOURCE_FOREACH_COLLID_AND_SESSIONID =
+            "SELECT distinct on (resourceid) score,collectionid,reaction,coalesce(resourcetimespent,0) AS resourcetimespent,createtimestamp,sessionid,collectiontype,coalesce(resourceviews,0) AS resourceviews,resourcetype,questiontype,answerobject as answerobject from basereports"
+            + " WHERE classid = ? AND courseid = ? AND unitid = ? AND lessonid = ? AND collectionid = ? AND actorid = ? AND eventName = ?"
+            ; 
   //*************************************************************************************************************************
     // GET CURRENT STUDENT LOCATITON
     public static final String GET_STUDENT_LOCATION = 
