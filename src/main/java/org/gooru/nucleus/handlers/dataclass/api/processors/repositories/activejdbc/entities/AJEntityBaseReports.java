@@ -137,11 +137,16 @@ public class AJEntityBaseReports extends Model {
     
     //*************************************************************************************************************************
     //String Constants and Queries for STUDENT PERFORMANCE REPORTS IN LESSON
-    public static final String SELECT_STUDENT_LESSON_PERF_FOR_ASSESSMENT =
+    public static final String SELECT_STUDENT_LESSON_PERF =
             "SELECT coalesce(SUM(collectionTimeSpent),0) AS timeSpent, SUM(score) AS scoreInPercentage, SUM(reaction) AS reaction, "
             + "coalesce(SUM(collectionViews),0) AS attempts, collectionId, case  when (eventtype = 'stop') then 'completed' else 'in-progress' end as attemptStatus FROM BaseReports "
             + "WHERE classId = ? AND courseId = ? AND unitId = ? AND lessonId = ? AND "
             + "collectiontype = ? AND actorId = ? GROUP BY collectionId,eventtype";
+    
+    public static final String SELECT_STUDENT_LESSON_PERF_FOR_ASSESSMENT =
+                        "SELECT SUM(collectionTimeSpent) AS timeSpent, SUM(score) AS scoreInPercentage, SUM(reaction) AS reaction, "
+                       + "SUM(collectionViews) AS attempts, collectionId FROM BaseReports "
+                        + "WHERE collectionId = ANY(?::varchar[]) AND actorId = ? GROUP BY collectionId";
     
     public static final String SELECT_STUDENT_LESSON_PERF_FOR_COLLECTION =
             "SELECT SUM(collectionTimeSpent) AS timeSpent, SUM(reaction) AS reaction, "
