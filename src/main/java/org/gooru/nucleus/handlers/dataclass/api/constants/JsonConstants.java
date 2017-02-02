@@ -50,6 +50,8 @@ public class JsonConstants {
 	
 	public static final String QUESTIONS = "questions";
 
+	public static final String RESOURCES = "resources";
+
 	public static final String SCORE = "score";
 	
 	public static final String ATTEMPTS = "attempts";

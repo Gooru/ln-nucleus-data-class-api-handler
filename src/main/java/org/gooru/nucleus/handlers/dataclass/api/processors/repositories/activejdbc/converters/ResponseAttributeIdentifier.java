@@ -1,8 +1,6 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.converters;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -18,6 +16,9 @@ public class ResponseAttributeIdentifier {
   private static final Map<String, String> sessionAssessmentAttributes;
   private static final Map<String, String> sessionAssessmentQuestionAttributes;
 
+  private static final Map<String, String> sessionCollectionAttributes;
+  private static final Map<String, String> sessionCollectionResouceAttributes;
+  
   static {
     sessionAssessmentAttributes = new HashMap<>();
     sessionAssessmentAttributes.put("score", "score");
@@ -42,9 +43,36 @@ public class ResponseAttributeIdentifier {
     sessionAssessmentQuestionAttributes.put("resourcetype", "resourceType");
     sessionAssessmentQuestionAttributes.put("questiontype", "questionType");
     sessionAssessmentQuestionAttributes.put("resourceviews", "views");
-    //sessionAssessmentQuestionAttributes.put("answerobject", "answerObject");
 
   }
+  
+  static {
+    sessionCollectionAttributes = new HashMap<>();
+    sessionCollectionAttributes.put("score", "score");
+    sessionCollectionAttributes.put("collectionid", "gooruOId");
+    sessionCollectionAttributes.put("reaction", "reaction");
+    sessionCollectionAttributes.put("collectiontimespent", "timeSpent");
+    sessionCollectionAttributes.put("createtimestamp", "eventTime");
+    sessionCollectionAttributes.put("sessionid", "sessionId");
+    sessionCollectionAttributes.put("collectiontype", "resourceType");
+    sessionCollectionAttributes.put("collectionviews", "views");
+
+    
+  }
+  static {
+    sessionCollectionResouceAttributes = new HashMap<>();
+    sessionCollectionResouceAttributes.put("score", "score");
+    sessionCollectionResouceAttributes.put("collectionid", "gooruOId");
+    sessionCollectionResouceAttributes.put("reaction", "reaction");
+    sessionCollectionResouceAttributes.put("resourcetimespent", "timeSpent");
+    sessionCollectionResouceAttributes.put("createtimestamp", "eventTime");
+    sessionCollectionResouceAttributes.put("sessionid", "sessionId");
+    sessionCollectionResouceAttributes.put("resourcetype", "resourceType");
+    sessionCollectionResouceAttributes.put("questiontype", "questionType");
+    sessionCollectionResouceAttributes.put("resourceviews", "views");
+
+  }
+  
   static {
     sessionTaxReportAggAttributes = new HashMap<>();
     sessionTaxReportAggAttributes.put("display_code", "displayCode");
@@ -76,5 +104,12 @@ public class ResponseAttributeIdentifier {
   }
   public static Map<String, String> getSessionAssessmentQuestionAttributesMap() {
     return sessionAssessmentQuestionAttributes;
+  }
+  
+  public static Map<String, String> getSessionCollectionAttributesMap() {
+    return sessionCollectionAttributes;
+  }
+  public static Map<String, String> getSessionCollectionResourceAttributesMap() {
+    return sessionCollectionResouceAttributes;
   }
 }

@@ -3,9 +3,13 @@ package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activej
 import java.util.List;
 import java.util.Map;
 
+import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
+import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.converters.ResponseAttributeIdentifier;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.converters.ValueMapper;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
@@ -21,44 +25,15 @@ import io.vertx.core.json.JsonObject;
 
 /**
  * Created by mukul@gooru
+ * 
+ * Modified by daniel
  */
 
 public class StudentCollectionPerfHandler implements DBHandler {
 
 	  private static final Logger LOGGER = LoggerFactory.getLogger(StudentCollectionPerfHandler.class);
-	  private static final String REQUEST_COLLECTION_TYPE = "collectionType";
-    private static final String REQUEST_USERID = "userUid";
-    
-    private static final String REQUEST_CLASS_ID = "classGooruId";
-    private static final String REQUEST_COURSE_ID = "courseGooruId";
-    private static final String REQUEST_UNIT_ID = "unitGooruId";
-    private static final String REQUEST_LESSON_ID = "lessonGooruId";
-    private static final String REQUEST_COLLECTION_ID = "collectionId";
-    private static final String REQUEST_SESSION_ID = "sessionId";
-        
     private final ProcessorContext context;
-    private AJEntityBaseReports baseReport;
-    
-    private String classId;
-    private String courseId;
-    private String unitId;
-    private String lessonId;
-    private String collectionId;
-    private String collectionType;
     private String userId;
-    private String sessionId;
-
-    String collId;
-    String qtype;
-    String react;
-    String resourceTS;
-    String ansObj; 
-    String resType;
-    String resAttemptStatus;
-    String sco;
-    String SID;
-    String resViews;
-
 
     public StudentCollectionPerfHandler(ProcessorContext context) {
         this.context = context;
@@ -78,6 +53,7 @@ public class StudentCollectionPerfHandler implements DBHandler {
     }
 
     @Override
+    @SuppressWarnings("rawtypes")
     public ExecutionResult<MessageResponse> validateRequest() {
       if (context.getUserIdFromRequest() == null
               || (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
@@ -95,90 +71,76 @@ public class StudentCollectionPerfHandler implements DBHandler {
     }
 
     @Override
+    @SuppressWarnings("rawtypes")
     public ExecutionResult<MessageResponse> executeRequest() {
+      JsonObject resultBody = new JsonObject();
+      JsonObject assessmentDataKPI = new JsonObject();
 
-    	JsonObject resultBody = new JsonObject();
-    	baseReport = new AJEntityBaseReports();
-    	
-    	String sessionId = this.context.request().getString(REQUEST_SESSION_ID);
-    	
-    	
-    	JsonArray CollectionKPIArray = new JsonArray();
-    	//STUDENT PERFORMANCE REPORTS IN COLLECTION when SessionID NOT NULL
-    	if (!StringUtil.isNullOrEmpty(sessionId)) {
-        	List<Map> collectionKPI = Base.findAll( AJEntityBaseReports.SELECT_COLLECTION_FOREACH_COLLID_AND_SESSIONID,
-                    context.collectionId(), sessionId, AJEntityBaseReports.ATTR_CP_EVENTNAME, 
-                    AJEntityBaseReports.ATTR_COLLECTION, this.userId);
-        	
-        	if (!collectionKPI.isEmpty()) {
-        		LOGGER.debug("Collection Attributes obtained");      	
+      this.userId = context.userIdFromSession();
+      LOGGER.debug("UID is " + this.userId);
+      String classId = context.request().getString(EventConstants.CLASS_GOORU_OID);
+      String courseId = context.request().getString(EventConstants.COURSE_GOORU_OID);
+      String unitId = context.request().getString(EventConstants.UNIT_GOORU_OID);
+      String lessonId = context.request().getString(EventConstants.LESSON_GOORU_OID);
+      String collectionId = context.collectionId();
+      JsonArray contentArray = new JsonArray();
+      
+      LOGGER.info("cID : {} , ClassID : {} ", collectionId, classId);
 
-            	collectionKPI.stream().forEach(m  -> { 
-            			if (m.get(AJEntityBaseReports.EVENTTYPE).toString().equals(AJEntityBaseReports.ATTR_EVENTTYPE_START)){
-            				resViews = m.get(AJEntityBaseReports.RESOURCE_VIEWS).toString();
-            				LOGGER.debug("ResourceViews" + resViews);
-            			} else if (m.get(AJEntityBaseReports.EVENTTYPE).toString().equals(AJEntityBaseReports.ATTR_EVENTTYPE_STOP)){
-            				collId = m.get(AJEntityBaseReports.COLLECTION_OID).toString();            				
-            				react = m.get(AJEntityBaseReports.REACTION).toString();
-            				resourceTS =  m.get(AJEntityBaseReports.RESOURCE_TIMESPENT).toString();
-            				//These will only be populated when the Collection has a few Questions in it
-            				qtype = m.get(AJEntityBaseReports.QUESTION_TYPE).toString();
-            				//ansObj = m.get(AJEntityBaseReports.ANSWER_OBECT).toString();
-            				//resType = m.get(AJEntityBaseReports.RESOURCE_TYPE).toString();  
-            				resAttemptStatus = m.get(AJEntityBaseReports.RESOURCE_ATTEMPT_STATUS).toString();
-            				sco = m.get(AJEntityBaseReports.SCORE).toString();
-            			}
-            			if (m.get(AJEntityBaseReports.EVENTTYPE).toString().equals(AJEntityBaseReports.ATTR_EVENTTYPE_STOP)){
-            				LOGGER.debug("Populating JSON array");
-            				CollectionKPIArray.add (new JsonObject().put(AJEntityBaseReports.COLLECTION_OID, collId)            	            		            		
-            	            		.put(AJEntityBaseReports.REACTION, react)
-            	            		.put(AJEntityBaseReports.RESOURCE_TIMESPENT, resourceTS)            	            		
-            	            		.put(AJEntityBaseReports.SESSION_ID, this.sessionId)
-            	            		.put(AJEntityBaseReports.RESOURCE_VIEWS, resViews)
-            	            		.put(AJEntityBaseReports.QUESTION_TYPE, qtype)
-            	            		.put(AJEntityBaseReports.RESOURCE_ATTEMPT_STATUS, resAttemptStatus)
-            	            		.put(AJEntityBaseReports.SCORE, sco));            	                   				
-            			}
-            			          		
-            	});
-
-            }
-        	
-        	resultBody.put("UsageData:", CollectionKPIArray);
-        	return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody),
-                    ExecutionStatus.SUCCESSFUL);
-            		
-        	} else {
-                LOGGER.info("SessionId not found. Performance Data cannot be obtained");
-                //Return empty resultBody object instead of an error
-                return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody),
-                        ExecutionStatus.SUCCESSFUL);
-
-            }
+      if (!StringUtil.isNullOrEmpty(classId) && !StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
+        List<Map> assessmentKPI = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_FOREACH_COLLID_AND_SESSIONID, classId,courseId,unitId,lessonId,collectionId,this.userId,
+                AJEntityBaseReports.ATTR_CP_EVENTNAME);
+  
+        if (!assessmentKPI.isEmpty()) {
+          LOGGER.debug("COllection Attributes obtained");
+          assessmentKPI.stream().forEach(m -> {
+            JsonObject assessmentData = ValueMapper.map(ResponseAttributeIdentifier.getSessionCollectionAttributesMap(), m);
+            assessmentDataKPI.put(JsonConstants.COLLECTION, assessmentData);
+          });
+          LOGGER.debug("Collection resource Attributes started");
+          List<Map> assessmentQuestionsKPI = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_RESOURCE_FOREACH_COLLID_AND_SESSIONID,
+                  classId,courseId,unitId,lessonId,collectionId,this.userId, AJEntityBaseReports.ATTR_CRP_EVENTNAME);
+          
+          JsonArray questionsArray = new JsonArray();
+          if(!assessmentQuestionsKPI.isEmpty()){
+            assessmentQuestionsKPI.stream().forEach(questions -> {
+              JsonObject qnData = ValueMapper.map(ResponseAttributeIdentifier.getSessionCollectionResourceAttributesMap(), questions);
+              //FIXME :: This is to be revisited. We should alter the schema column type from TEXT to JSONB. After this change we can remove this logic
+              if(questions.get(AJEntityBaseReports.ANSWER_OBECT) != null){
+                qnData.put(JsonConstants.ANSWER_OBJECT, new JsonArray(questions.get(AJEntityBaseReports.ANSWER_OBECT).toString()));
+              }
+              //FIXME :: it can be removed once we fix writer code.
+              if(qnData.getString(JsonConstants.RESOURCE_TYPE) != null){
+                qnData.put(JsonConstants.RESOURCE_TYPE, JsonConstants.QUESTION);
+              }else{
+                qnData.put(JsonConstants.RESOURCE_TYPE, JsonConstants.RESOURCE);
+              }
+              questionsArray.add(qnData);
+            });
+          }
+          //JsonArray questionsArray = ValueMapper.map(ResponseAttributeIdentifier.getSessionAssessmentQuestionAttributesMap(), assessmentQuestionsKPI);
+          assessmentDataKPI.put(JsonConstants.RESOURCES, questionsArray);
+          LOGGER.debug("Collection Attributes obtained");
+          contentArray.add(assessmentDataKPI);
+          LOGGER.debug("Done");
+        } else {
+          LOGGER.info("Collection Attributes cannot be obtained");
+          // Return empty resultBody object instead of an error
+          // return new
+          // ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(),
+          // ExecutionStatus.FAILED);
+        }
+        resultBody.put(JsonConstants.CONTENT, contentArray);
+        return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
+      } else {
+        LOGGER.info("CUL IDs are Missing, Cannot Obtain Student Collection Perf data");
+        // Return empty resultBody object instead of an error
+        return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
+      }
     }   
-    
 
     @Override
     public boolean handlerReadOnly() {
         return false;
     }
-    
-    private boolean validateOptionalParams(ProcessorContext context) {
-    	
-
-    	JsonArray classId_array = this.context.request().getJsonArray(REQUEST_CLASS_ID);
-    	JsonArray courseId_array = this.context.request().getJsonArray(REQUEST_COURSE_ID);
-    	JsonArray unitId_array = this.context.request().getJsonArray(REQUEST_UNIT_ID);
-    	JsonArray lessonId_array = this.context.request().getJsonArray(REQUEST_LESSON_ID);
-    	
-    	if ((classId_array != null) && (courseId_array != null) && (unitId_array != null) && (lessonId_array != null)){
-    		this.classId = classId_array.getString(0);
-    		this.courseId = courseId_array.getString(0);
-    		this.unitId = unitId_array.getString(0);
-    		this.lessonId = lessonId_array.getString(0);
-    		
-    		return true;    		
-    	} else return false;
-    }
- 
 }
