@@ -81,14 +81,18 @@ public class SessionTaxonomyReportHandler implements DBHandler {
         // Generate aggregate data object
         JsonObject aggResult = ValueMapper.map(ResponseAttributeIdentifier.getSessionTaxReportAggAttributesMap(), taxonomyRow);
         List<Map> sessionTaxonomyQuestionResults = null;
+       
+        //FIXME: writer code should be fixed against splitting taxonomy code. It can be single column in schema. eg : least_code.
         if (taxonomyRow.get(AJEntitySessionTaxonomyReport.LEARNING_TARGET_ID) != null) {
-          aggResult.put(JsonConstants.LEARNING_TARGET_ID, taxonomyRow.get(AJEntitySessionTaxonomyReport.LEARNING_TARGET_ID));
+          aggResult.put(JsonConstants.LEARNING_TARGET_ID, appendHyphen(taxonomyRow.get(AJEntitySessionTaxonomyReport.SUBJECT_ID), taxonomyRow.get(AJEntitySessionTaxonomyReport.COURSE_ID),
+                  taxonomyRow.get(AJEntitySessionTaxonomyReport.DOMAIN_ID), taxonomyRow.get(AJEntitySessionTaxonomyReport.STANDARD_ID), taxonomyRow.get(AJEntitySessionTaxonomyReport.LEARNING_TARGET_ID)));
           sessionTaxonomyQuestionResults = Base.findAll(AJEntitySessionTaxonomyReport.SELECT_TAXONOMY_REPORT_BY_MICRO_STANDARDS,
                   this.context.sessionId(), taxonomyRow.get(AJEntitySessionTaxonomyReport.SUBJECT_ID),
                   taxonomyRow.get(AJEntitySessionTaxonomyReport.COURSE_ID), taxonomyRow.get(AJEntitySessionTaxonomyReport.DOMAIN_ID),
                   taxonomyRow.get(AJEntitySessionTaxonomyReport.STANDARD_ID), taxonomyRow.get(AJEntitySessionTaxonomyReport.LEARNING_TARGET_ID));
         } else {
-          aggResult.put(JsonConstants.STANDARDS_ID, taxonomyRow.get(AJEntitySessionTaxonomyReport.STANDARD_ID));
+          aggResult.put(JsonConstants.STANDARDS_ID, appendHyphen(taxonomyRow.get(AJEntitySessionTaxonomyReport.SUBJECT_ID), taxonomyRow.get(AJEntitySessionTaxonomyReport.COURSE_ID),
+                  taxonomyRow.get(AJEntitySessionTaxonomyReport.DOMAIN_ID), taxonomyRow.get(AJEntitySessionTaxonomyReport.STANDARD_ID)));
           sessionTaxonomyQuestionResults = Base.findAll(AJEntitySessionTaxonomyReport.SELECT_TAXONOMY_REPORT_BY_STANDARDS, this.context.sessionId(),
                   taxonomyRow.get(AJEntitySessionTaxonomyReport.SUBJECT_ID), taxonomyRow.get(AJEntitySessionTaxonomyReport.COURSE_ID),
                   taxonomyRow.get(AJEntitySessionTaxonomyReport.DOMAIN_ID), taxonomyRow.get(AJEntitySessionTaxonomyReport.STANDARD_ID));
@@ -101,12 +105,24 @@ public class SessionTaxonomyReportHandler implements DBHandler {
       });
     } else {
       LOGGER.info("No Records found for given session ID");
-      return new ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(), ExecutionStatus.FAILED);
     }
     result.put(JsonConstants.CONTENT, taxonomyKpiArray);
     return new ExecutionResult<>(MessageResponseFactory.createGetResponse(result), ExecutionStatus.SUCCESSFUL);
   }
 
+  private String appendHyphen(Object... texts) {
+    StringBuilder sb = new StringBuilder();
+    for (Object text : texts) {
+      if (text != null) {
+        if (sb.length() > 0) {
+          sb.append("-");
+        }
+        sb.append(text);
+      }
+    }
+    return sb.toString();
+  }
+    
   @Override
   public boolean handlerReadOnly() {
     // TODO Auto-generated method stub
