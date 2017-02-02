@@ -156,11 +156,14 @@ public class AJEntityBaseReports extends Model {
     //*************************************************************************************************************************
     //String Constants and Queries for STUDENT PERFORMANCE REPORTS IN ASSESSMENTS
     public static final String SELECT_ASSESSMENT_FOREACH_COLLID_AND_SESSIONID =
-            "select eventName, eventType, collectionId, score, questiontype, reaction, ResourceViews, ResourceTimespent, answerobject, "
-            + "sessionId, resourceType, ResourceAttemptStatus from basereports"
-            + " WHERE collectionId = ? "
-            + " AND sessionId = ? AND eventName = ?"
-            + " AND collectionType = ? AND actorId = ?";
+            "select score,collectionid,reaction,collectiontimespent,createtimestamp,sessionid,collectiontype,coalesce(collectionviews,0) AS collectionviews from basereports"
+            + " WHERE sessionId = ? AND eventName = ?"
+            + " AND eventtype = ?";
+    
+    public static final String SELECT_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSIONID =
+            "select score,collectionid,reaction,resourcetimespent,createtimestamp,sessionid,collectiontype,coalesce(resourceviews,0) AS resourceviews,resourcetype,questiontype,answerobject as answerobject from basereports"
+            + " WHERE sessionId = ? AND eventName = ?"
+            + " AND eventtype = ?";
     
     public static final String SELECT_ASSESSMENT_FOREACH_COLLID = "TBD";
         

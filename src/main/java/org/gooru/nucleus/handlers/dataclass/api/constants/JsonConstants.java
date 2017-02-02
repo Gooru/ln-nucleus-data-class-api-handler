@@ -46,8 +46,10 @@ public class JsonConstants {
 	
 	public static final String LEARNING_TARGET_ID = "learningTargetId";
 	
-	public static final String QUESTIONS = "question";
+	public static final String QUESTION = "question";
 	
+	public static final String QUESTIONS = "questions";
+
 	public static final String SCORE = "score";
 	
 	public static final String ATTEMPTS = "attempts";
@@ -55,5 +57,13 @@ public class JsonConstants {
 	public static final String TIMESPENT = "timespent";
 	
 	public static final String REACTION = "reaction";
+	
+	public static final String RESOURCE_TYPE = "resourceType";
+
+	public static final String QUESTION_TYPE = "questionType";
+
+	public static final String ANSWER_OBJECT = "answerObject";
+	
+	public static final String RESOURCE = "resource";
 
 }
