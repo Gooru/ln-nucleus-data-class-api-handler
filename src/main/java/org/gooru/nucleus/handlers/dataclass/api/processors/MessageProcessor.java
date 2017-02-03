@@ -11,6 +11,8 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResp
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.hazelcast.util.StringUtil;
+
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 
@@ -511,7 +513,10 @@ class MessageProcessor implements Processor {
         String courseId = message.headers().get(MessageConstants.COURSE_ID);
         String unitId = message.headers().get(MessageConstants.UNIT_ID);
         String lessonId = message.headers().get(MessageConstants.LESSON_ID);
-        String collectionId = message.headers().get(MessageConstants.ASSESSMENT_ID);
+        String collectionId = message.headers().get(MessageConstants.COLLECTION_ID);
+        if(StringUtil.isNullOrEmpty(collectionId)){
+          collectionId = message.headers().get(MessageConstants.ASSESSMENT_ID);
+        }
         /* user id from session */
         String userId =  (request).getString(MessageConstants._USER_ID);
         /* user id from api request */
