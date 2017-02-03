@@ -514,9 +514,6 @@ class MessageProcessor implements Processor {
         String unitId = message.headers().get(MessageConstants.UNIT_ID);
         String lessonId = message.headers().get(MessageConstants.LESSON_ID);
         String collectionId = message.headers().get(MessageConstants.COLLECTION_ID);
-        if(StringUtil.isNullOrEmpty(collectionId)){
-          collectionId = message.headers().get(MessageConstants.ASSESSMENT_ID);
-        }
         /* user id from session */
         String userId =  (request).getString(MessageConstants._USER_ID);
         /* user id from api request */
