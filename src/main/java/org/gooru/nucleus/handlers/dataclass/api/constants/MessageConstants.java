@@ -53,7 +53,8 @@ public final class MessageConstants {
     public static final String MSG_OP_STUDENT_COURSE_PERF = "student.course.performance";
     public static final String MSG_OP_STUDENT_UNIT_PERF = "student.unit.performance";
     public static final String MSG_OP_STUDENT_LESSON_PERF = "student.lesson.performance";
-    public static final String MSG_OP_STUDENT_COLLECTION_PERF = "student.collection.performance";
+    public static final String MSG_OP_STUDENT_COLLECTION_SUMMARY = "student.collection.summary";
+    public static final String MSG_OP_STUDENT_ASSESSMENT_SUMMARY = "student.assessment.summary";
     public static final String MSG_OP_STUDENT_ASSESSMENT_PERF = "student.assessment.performance";
     public static final String MSG_OP_SESSION_STATUS = "session.status";
     public static final String MSG_OP_USER_ALL_ASSESSMENT_SESSIONS = "user.all.assessment.sessions";

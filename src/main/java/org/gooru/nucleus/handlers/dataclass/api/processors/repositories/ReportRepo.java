@@ -21,10 +21,12 @@ public interface ReportRepo {
 	MessageResponse getStudentPerformanceInUnit();
 	
 	MessageResponse getStudentPerformanceInLesson();
-	
-	MessageResponse getStudentPerformanceInCollection();
-	
+
 	MessageResponse getStudentPerformanceInAssessment();
+
+	MessageResponse getStudentSummaryInCollection();
+	
+	MessageResponse getStudentSummaryInAssessment();
 	
 	MessageResponse getSessionStatus();
 	

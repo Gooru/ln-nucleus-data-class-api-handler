@@ -52,13 +52,18 @@ class AJReportRepo implements ReportRepo {
     }
     
     @Override
-    public MessageResponse getStudentPerformanceInCollection() {
-        return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildStudentCollectionPerfHandler(context));
+    public MessageResponse getStudentPerformanceInAssessment() {
+        return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildStudentAssessmentPerfHandler(context));
     }
     
     @Override
-    public MessageResponse getStudentPerformanceInAssessment() {
-        return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildStudentAssessmentPerfHandler(context));
+    public MessageResponse getStudentSummaryInCollection() {
+        return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildStudentCollectionSummaryHandler(context));
+    }
+    
+    @Override
+    public MessageResponse getStudentSummaryInAssessment() {
+        return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildStudentAssessmentSummaryHandler(context));
     }
     
     @Override

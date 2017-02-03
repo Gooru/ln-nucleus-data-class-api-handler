@@ -40,12 +40,16 @@ public final class DBHandlerBuilder {
         return new StudentLessonPerfHandler(context);
     }
     
-    public static DBHandler buildStudentCollectionPerfHandler(ProcessorContext context) {
-        return new StudentCollectionPerfHandler(context);
+    public static DBHandler buildStudentAssessmentPerfHandler(ProcessorContext context) {
+      return new StudentAssessmentPerfHandler(context);
     }
     
-    public static DBHandler buildStudentAssessmentPerfHandler(ProcessorContext context) {
-        return new StudentAssessmentPerfHandler(context);
+    public static DBHandler buildStudentCollectionSummaryHandler(ProcessorContext context) {
+        return new StudentCollectionSummaryHandler(context);
+    }
+    
+    public static DBHandler buildStudentAssessmentSummaryHandler(ProcessorContext context) {
+        return new StudentAssessmentSummaryHandler(context);
     }
     
     public static DBHandler buildSessionStatusHandler(ProcessorContext context) {

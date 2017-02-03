@@ -11,7 +11,6 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResp
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.vertx.core.MultiMap;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 
@@ -20,8 +19,6 @@ class MessageProcessor implements Processor {
     private static final Logger LOGGER = LoggerFactory.getLogger(Processor.class);
     private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("messages");
     private final Message<Object> message;
-    private String userId;
-    private JsonObject prefs;
     private JsonObject request;
     
     public MessageProcessor(Message<Object> message) {
@@ -62,11 +59,14 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_STUDENT_LESSON_PERF:
             	result = getStudentPerfInLesson();
                 break;
-            case MessageConstants.MSG_OP_STUDENT_COLLECTION_PERF:
-            	result = getStudentPerfInCollection();
-                break;
             case MessageConstants.MSG_OP_STUDENT_ASSESSMENT_PERF:
-            	result = getStudentPerfInAssessment();            	
+              result = getStudentPerfInAssessment();
+                break;
+            case MessageConstants.MSG_OP_STUDENT_COLLECTION_SUMMARY:
+            	result = getStudentSummaryInCollection();
+                break;
+            case MessageConstants.MSG_OP_STUDENT_ASSESSMENT_SUMMARY:
+            	result = getStudentSummaryInAssessment();            	
                 break;
             case MessageConstants.MSG_OP_SESSION_STATUS:
             	result = getSessionStatus();            	
@@ -292,7 +292,43 @@ class MessageProcessor implements Processor {
 
     }
     
-    private MessageResponse getStudentPerfInCollection() {
+    private MessageResponse getStudentPerfInAssessment() {
+      try {
+            ProcessorContext context = createContext();
+            
+            if (!checkClassId(context)) {
+                LOGGER.error("ClassId not available to obtain Student Performance. Aborting!");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid ClassId");
+            }
+            
+            if (!checkCourseId(context)) {
+                LOGGER.error("CourseId not available to obtain Student Performance. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid CourseId");
+            }
+
+            if (!checkUnitId(context)) {
+                LOGGER.error("UnitId not available to obtain Student Performance. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid UnitId");
+            }
+
+            if (!checkLessonId(context)) {
+                LOGGER.error("LessonId not available to obtain Student Performance. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid LessonId");
+            } 
+            if (!checkCollectionId(context)) {
+              LOGGER.error("AssessmentId not available to obtain Student Performance. Aborting");
+              return MessageResponseFactory.createInvalidRequestResponse("Invalid assessmentId");
+            } 
+            return new RepoBuilder().buildReportRepo(context).getStudentPerformanceInAssessment();
+            
+        } catch (Throwable t) {
+            LOGGER.error("Exception while getting Student performance in Lesson", t);
+            return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+        }
+
+    }
+    
+    private MessageResponse getStudentSummaryInCollection() {
     	try {
             ProcessorContext context = createContext();
                         
@@ -306,7 +342,7 @@ class MessageProcessor implements Processor {
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid userId");
             }
             
-            return new RepoBuilder().buildReportRepo(context).getStudentPerformanceInCollection();
+            return new RepoBuilder().buildReportRepo(context).getStudentSummaryInCollection();
             
         } catch (Throwable t) {
             LOGGER.error("Exception while getting Student performance in Course", t);
@@ -316,7 +352,7 @@ class MessageProcessor implements Processor {
     }
 
     
-    private MessageResponse getStudentPerfInAssessment() {
+    private MessageResponse getStudentSummaryInAssessment() {
     	try {
             ProcessorContext context = createContext();
                         
@@ -330,7 +366,7 @@ class MessageProcessor implements Processor {
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid userId");
             }
             
-            return new RepoBuilder().buildReportRepo(context).getStudentPerformanceInAssessment();
+            return new RepoBuilder().buildReportRepo(context).getStudentSummaryInAssessment();
             
         } catch (Throwable t) {
             LOGGER.error("Exception while getting Student performance in Course", t);
@@ -475,7 +511,7 @@ class MessageProcessor implements Processor {
         String courseId = message.headers().get(MessageConstants.COURSE_ID);
         String unitId = message.headers().get(MessageConstants.UNIT_ID);
         String lessonId = message.headers().get(MessageConstants.LESSON_ID);
-        String collectionId = message.headers().get(MessageConstants.COLLECTION_ID);
+        String collectionId = message.headers().get(MessageConstants.ASSESSMENT_ID);
         /* user id from session */
         String userId =  (request).getString(MessageConstants._USER_ID);
         /* user id from api request */

@@ -120,7 +120,10 @@ public class AJEntityBaseReports extends Model {
             "SELECT DISTINCT(actorId) FROM BaseReports "
             + "WHERE classId = ? AND courseId = ? AND unitId = ? AND lessonId = ? AND collectionType =?";
 
-    
+    public static final String SELECT_DISTINCT_USERID_FOR_COLLECTIONID_FILTERBY_COLLTYPE =
+            "SELECT DISTINCT(actorId) FROM BaseReports "
+            + "WHERE classId = ? AND courseId = ? AND unitId = ? AND lessonId = ? AND collectionId = ? AND collectionType =?";
+
     public static final String SELECT_STUDENT_EACH_UNIT_PERF_FOR_ASSESSMENT =
             "SELECT SUM(collectionTimeSpent) AS timeSpent, SUM(score) AS scoreInPercentage, SUM(reaction) AS reaction, lessonId FROM BaseReports "
             + "WHERE lessonId = ? AND actorId = ? GROUP BY lessonId";
@@ -159,6 +162,13 @@ public class AJEntityBaseReports extends Model {
     		+ "collectionType = ? AND actorId = ? AND eventName = ? AND eventType = ? GROUP BY collectionId";
 
 
+    //*************************************************************************************************************************
+    //STUDENT PERFORMANCE in Assessment
+    public static final String GET_LATEST_COMPLETED_SESSION_ID = "SELECT sessionid AS sessionId FROM basereports WHERE"
+            +" classid = ? AND courseid = ? AND unitid = ? AND lessonid = ? AND collectionid = ? AND actorid = ? AND"
+            +" eventname = 'collection.play' AND eventtype = 'stop'"
+            +" ORDER BY createtimestamp ASC";
+    
     //*************************************************************************************************************************
     //String Constants and Queries for STUDENT PERFORMANCE REPORTS IN ASSESSMENTS
     public static final String SELECT_ASSESSMENT_FOREACH_COLLID_AND_SESSIONID =
