@@ -3,7 +3,6 @@ package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activej
 import java.util.List;
 import java.util.Map;
 
-import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.converters.ResponseAttributeIdentifier;
@@ -26,16 +25,20 @@ import io.vertx.core.json.JsonObject;
 /**
  * Created by mukul@gooru
  * 
- * Modified by daniel
+ * modified by daniel
  */
 
-public class StudentCollectionPerfHandler implements DBHandler {
+public class StudentAssessmentSummaryHandler implements DBHandler {
+	
+	  private static final Logger LOGGER = LoggerFactory.getLogger(StudentAssessmentSummaryHandler.class);
 
-	  private static final Logger LOGGER = LoggerFactory.getLogger(StudentCollectionPerfHandler.class);
+    private static final String REQUEST_SESSION_ID = "sessionId";
+        
     private final ProcessorContext context;
+  
     private String userId;
-
-    public StudentCollectionPerfHandler(ProcessorContext context) {
+    
+    public StudentAssessmentSummaryHandler(ProcessorContext context) {
         this.context = context;
     }
 
@@ -51,7 +54,7 @@ public class StudentCollectionPerfHandler implements DBHandler {
         LOGGER.debug("checkSanity() OK");
         return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
     }
-
+    
     @Override
     @SuppressWarnings("rawtypes")
     public ExecutionResult<MessageResponse> validateRequest() {
@@ -78,38 +81,33 @@ public class StudentCollectionPerfHandler implements DBHandler {
 
       this.userId = context.userIdFromSession();
       LOGGER.debug("UID is " + this.userId);
-      String classId = context.request().getString(EventConstants.CLASS_GOORU_OID);
-      String courseId = context.request().getString(EventConstants.COURSE_GOORU_OID);
-      String unitId = context.request().getString(EventConstants.UNIT_GOORU_OID);
-      String lessonId = context.request().getString(EventConstants.LESSON_GOORU_OID);
-      String collectionId = context.collectionId();
+      String sessionId = this.context.request().getString(REQUEST_SESSION_ID);
       JsonArray contentArray = new JsonArray();
-      
-      LOGGER.info("cID : {} , ClassID : {} ", collectionId, classId);
-
-      if (!StringUtil.isNullOrEmpty(classId) && !StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
-        List<Map> assessmentKPI = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_FOREACH_COLLID_AND_SESSIONID, classId,courseId,unitId,lessonId,collectionId,this.userId,
-                AJEntityBaseReports.ATTR_CP_EVENTNAME);
+      // STUDENT PERFORMANCE REPORTS IN ASSESSMENTS when SessionID NOT NULL
+      if (!StringUtil.isNullOrEmpty(sessionId)) {
+        List<Map> assessmentKPI = Base.findAll(AJEntityBaseReports.SELECT_ASSESSMENT_FOREACH_COLLID_AND_SESSIONID, sessionId,
+                AJEntityBaseReports.ATTR_CP_EVENTNAME, AJEntityBaseReports.ATTR_EVENTTYPE_STOP);
   
+        LOGGER.info("cID : {} , SID : {} ", context.collectionId(), sessionId);
         if (!assessmentKPI.isEmpty()) {
-          LOGGER.debug("COllection Attributes obtained");
+          LOGGER.debug("Assessment Attributes obtained");
           assessmentKPI.stream().forEach(m -> {
-            JsonObject assessmentData = ValueMapper.map(ResponseAttributeIdentifier.getSessionCollectionAttributesMap(), m);
-            assessmentDataKPI.put(JsonConstants.COLLECTION, assessmentData);
+            JsonObject assessmentData = ValueMapper.map(ResponseAttributeIdentifier.getSessionAssessmentAttributesMap(), m);
+            assessmentDataKPI.put(JsonConstants.ASSESSMENT, assessmentData);
           });
-          LOGGER.debug("Collection resource Attributes started");
-          List<Map> assessmentQuestionsKPI = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_RESOURCE_FOREACH_COLLID_AND_SESSIONID,
-                  classId,courseId,unitId,lessonId,collectionId,this.userId, AJEntityBaseReports.ATTR_CRP_EVENTNAME);
+          
+          LOGGER.debug("Assessment question Attributes started");
+
+          List<Map> assessmentQuestionsKPI = Base.findAll(AJEntityBaseReports.SELECT_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSIONID,
+                  sessionId, AJEntityBaseReports.ATTR_CRP_EVENTNAME, AJEntityBaseReports.ATTR_EVENTTYPE_STOP);
           
           JsonArray questionsArray = new JsonArray();
           if(!assessmentQuestionsKPI.isEmpty()){
             assessmentQuestionsKPI.stream().forEach(questions -> {
-              JsonObject qnData = ValueMapper.map(ResponseAttributeIdentifier.getSessionCollectionResourceAttributesMap(), questions);
+              JsonObject qnData = ValueMapper.map(ResponseAttributeIdentifier.getSessionAssessmentQuestionAttributesMap(), questions);
               //FIXME :: This is to be revisited. We should alter the schema column type from TEXT to JSONB. After this change we can remove this logic
-              if(questions.get(AJEntityBaseReports.ANSWER_OBECT) != null){
-                qnData.put(JsonConstants.ANSWER_OBJECT, new JsonArray(questions.get(AJEntityBaseReports.ANSWER_OBECT).toString()));
-              }
-              //FIXME :: it can be removed once we fix writer code.
+              qnData.put(JsonConstants.ANSWER_OBJECT, new JsonArray(questions.get(AJEntityBaseReports.ANSWER_OBECT).toString()));
+             //FIXME :: it can be removed once we fix writer code.
               if(qnData.getString(JsonConstants.RESOURCE_TYPE) != null){
                 qnData.put(JsonConstants.RESOURCE_TYPE, JsonConstants.QUESTION);
               }else{
@@ -119,12 +117,12 @@ public class StudentCollectionPerfHandler implements DBHandler {
             });
           }
           //JsonArray questionsArray = ValueMapper.map(ResponseAttributeIdentifier.getSessionAssessmentQuestionAttributesMap(), assessmentQuestionsKPI);
-          assessmentDataKPI.put(JsonConstants.RESOURCES, questionsArray);
-          LOGGER.debug("Collection Attributes obtained");
+          assessmentDataKPI.put(JsonConstants.QUESTIONS, questionsArray);
+          LOGGER.debug("Assessment question Attributes obtained");
           contentArray.add(assessmentDataKPI);
           LOGGER.debug("Done");
         } else {
-          LOGGER.info("Collection Attributes cannot be obtained");
+          LOGGER.info("Assessment Attributes cannot be obtained");
           // Return empty resultBody object instead of an error
           // return new
           // ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(),
@@ -133,11 +131,12 @@ public class StudentCollectionPerfHandler implements DBHandler {
         resultBody.put(JsonConstants.CONTENT, contentArray);
         return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
       } else {
-        LOGGER.info("CUL IDs are Missing, Cannot Obtain Student Collection Perf data");
+        LOGGER.info("SessionID Missing, Cannot Obtain Student Lesson Perf data");
         // Return empty resultBody object instead of an error
         return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
       }
-    }   
+    }   // End ExecuteRequest()
+    
 
     @Override
     public boolean handlerReadOnly() {
