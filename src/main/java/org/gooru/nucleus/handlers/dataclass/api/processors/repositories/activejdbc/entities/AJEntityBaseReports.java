@@ -121,7 +121,7 @@ public class AJEntityBaseReports extends Model {
     
     public static final String SELECT_DISTINCT_COLLID_FOR_LESSONID_FILTERBY_COLLTYPE =
             "SELECT DISTINCT(collectionId) FROM BaseReports "
-            + "WHERE classId = ? AND courseId = ? AND unitId = ? AND lessonId = ? AND collectionType =? AND actorId = ?--";
+            + "WHERE classId = ? AND courseId = ? AND unitId = ? AND lessonId = ? AND collectionType =? AND actorId = ?";
 
     public static final String SELECT_DISTINCT_USERID_FOR_LESSONID_FILTERBY_COLLTYPE =
             "SELECT DISTINCT(actorId) FROM BaseReports "
@@ -139,11 +139,27 @@ public class AJEntityBaseReports extends Model {
             "SELECT SUM(collectionTimeSpent) AS timeSpent, SUM(collectionViews) AS views, SUM(reaction) AS reaction, lessonId FROM BaseReports "
             + "WHERE lessonId = ? AND actorId = ? GROUP BY lessonId";
     
-    public static final String GET_COMPLETED_COLLID_COUNT_FOREACH_LESSONID = 
+/*    public static final String GET_COMPLETED_COLLID_COUNT_FOREACH_LESSONID = 
     		"SELECT COUNT(collectionId) as completedCount, lessonId from basereports "
     		+ "WHERE classId = ? AND courseId = ? AND unitId = ? AND lessonId = ? AND collectionType = ? "
     		+ "AND actorId = ? AND eventName = ? AND eventType = ? GROUP BY lessonId";
-
+*/
+    public static final String GET_COMPLETED_COLLID_COUNT_FOREACH_LESSONID = 
+            "SELECT SUM(lessonData.completion) AS completionCount FROM "
+            + "(SELECT DISTINCT ON (collectionid) CASE  WHEN (eventtype = 'stop') THEN 1 ELSE 0 END AS completion, "
+            + "lessonId FROM basereports WHERE classid = ? AND courseid = ? AND unitid = ? AND lessonid = ? "
+            + " AND collectionType =? AND actorId = ? AND eventName = ? ORDER BY collectionid, updatetimestamp DESC) "
+            + "AS lessonData GROUP BY lessonId;";
+    
+    public static final String SELECT_STUDENT_UNIT_PERF_FOR_ASSESSMENT =
+            "SELECT SUM(agg.timeSpent) timeSpent, MAX(agg.scoreInPercentage) scoreInPercentage, "
+          + "SUM(agg.reaction) reaction, SUM(agg.attempts) attempts, agg.lessonId, 'completed' AS attemptStatus "
+          + "FROM (SELECT timeSpent AS timeSpent, FIRST_VALUE(score) OVER (PARTITION BY collectionid ORDER BY updatetimestamp desc) "
+          + "AS scoreInPercentage, reaction AS reaction, views AS attempts, lessonId FROM BaseReports "
+          + "WHERE classid = ? AND courseid = ? AND unitid = ? AND collectionType =? AND actorId = ? AND lessonId = ANY(?::varchar[]) AND "
+          + "eventName = ?) AS agg "
+          + "GROUP BY agg.lessonId";
+  
     
     //*************************************************************************************************************************
     //String Constants and Queries for STUDENT PERFORMANCE REPORTS IN LESSON
@@ -153,10 +169,19 @@ public class AJEntityBaseReports extends Model {
             + "WHERE classId = ? AND courseId = ? AND unitId = ? AND lessonId = ? AND "
             + "collectiontype = ? AND actorId = ? GROUP BY collectionId,eventtype";
     
-    public static final String SELECT_STUDENT_LESSON_PERF_FOR_ASSESSMENT =
+   /* public static final String SELECT_STUDENT_LESSON_PERF_FOR_ASSESSMENT =
                         "SELECT SUM(collectionTimeSpent) AS timeSpent, SUM(score) AS scoreInPercentage, SUM(reaction) AS reaction, "
                        + "SUM(collectionViews) AS attempts, collectionId FROM BaseReports "
-                        + "WHERE collectionId = ANY(?::varchar[]) AND actorId = ? GROUP BY collectionId";
+                        + "WHERE collectionId = ANY(?::varchar[]) AND actorId = ? GROUP BY collectionId";*/
+    
+    public static final String SELECT_STUDENT_LESSON_PERF_FOR_ASSESSMENT =
+            "SELECT SUM(agg.timeSpent) timeSpent, MAX(agg.scoreInPercentage) scoreInPercentage, "
+          + "SUM(agg.reaction) reaction, SUM(agg.attempts) attempts, agg.collectionId, 'completed' AS attemptStatus "
+          + "FROM (SELECT timeSpent AS timeSpent, FIRST_VALUE(score) OVER (PARTITION BY collectionid ORDER BY updatetimestamp desc) "
+          + "AS scoreInPercentage, reaction AS reaction, views AS attempts, collectionId FROM BaseReports "
+          + "WHERE classid = ? AND courseid = ? AND unitId = ? AND lessonId = ? AND collectionId = ANY(?::varchar[]) AND actorId = ? AND "
+          + "eventName = ?) AS agg "
+          + "GROUP BY agg.collectionId";
     
     public static final String SELECT_STUDENT_LESSON_PERF_FOR_COLLECTION =
             "SELECT SUM(collectionTimeSpent) AS timeSpent, SUM(reaction) AS reaction, "
@@ -167,8 +192,7 @@ public class AJEntityBaseReports extends Model {
     		"SELECT COUNT(collectionId) as completedCount, collectionId from basereports "
     		+ "WHERE classId = ? AND courseId = ? AND unitId = ? AND lessonId = ? AND "
     		+ "collectionType = ? AND actorId = ? AND eventName = ? AND eventType = ? GROUP BY collectionId";
-
-
+    
     //*************************************************************************************************************************
     //STUDENT PERFORMANCE in Assessment
     public static final String GET_LATEST_COMPLETED_SESSION_ID = "SELECT sessionid AS sessionId FROM basereports WHERE"
