@@ -1,6 +1,5 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -26,7 +25,6 @@ public class StudentPeersInCourseHandler implements DBHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(StudentPeersInCourseHandler.class);
     
 	private final ProcessorContext context;
-    private AJEntityBaseReports baseReport;
 
     private String classId;
     private String courseId;
@@ -50,17 +48,15 @@ public class StudentPeersInCourseHandler implements DBHandler {
     }
 
     @Override
+    @SuppressWarnings("rawtypes")
     public ExecutionResult<MessageResponse> executeRequest() {
     	
     	JsonObject resultBody = new JsonObject();
     	JsonArray StudentPeerArray = new JsonArray();
-
-    	baseReport = new AJEntityBaseReports();
-    
-        this.classId = context.classId();
-        this.courseId = context.courseId();
+      this.classId = context.classId();
+      this.courseId = context.courseId();
         
-    	List<Map> CoursePeerMap = Base.findAll( AJEntityBaseReports.GET_STUDENT_PEERS_IN_COURSE, this.classId, this.courseId);
+      List<Map> CoursePeerMap = Base.findAll( AJEntityBaseReports.GET_STUDENT_PEERS_IN_COURSE, this.classId, this.courseId);
     	
     	if (!CoursePeerMap.isEmpty()){
     		

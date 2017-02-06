@@ -2,7 +2,6 @@ package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activej
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -11,9 +10,9 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
+import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
-import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
@@ -31,12 +30,6 @@ import io.vertx.core.json.JsonObject;
     private static final Logger LOGGER = LoggerFactory.getLogger(StudentPeersInUnitHandler.class);
   
     private final ProcessorContext context;
-    private AJEntityBaseReports baseReport;
-  
-    private String classId;
-    private String courseId;
-    private String unitId;
-    private String lessonId;
   
     private static final long timeDiff = 900000;
   
@@ -66,15 +59,10 @@ import io.vertx.core.json.JsonObject;
     }
   
     @Override
+    @SuppressWarnings("rawtypes")
     public ExecutionResult<MessageResponse> executeRequest() {
   
       JsonObject resultBody = new JsonObject(); 
-      baseReport = new AJEntityBaseReports();
-  
-      this.classId = context.classId();
-      this.courseId = context.courseId();
-      this.unitId = context.unitId();
-      this.lessonId = context.lessonId();
 
       List<String> collIds = new ArrayList<>();
       JsonArray peerArray = new JsonArray();
