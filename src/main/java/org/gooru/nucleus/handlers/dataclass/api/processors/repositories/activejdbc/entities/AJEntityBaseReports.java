@@ -90,17 +90,24 @@ public class AJEntityBaseReports extends Model {
             + "WHERE classId = ? AND courseId = ? AND collectionType =?";
     
     public static final String SELECT_STUDENT_COURSE_PERF_FOR_ASSESSMENT =
-            "SELECT SUM(collectionTimeSpent) AS timeSpent, SUM(score) AS scoreInPercentage, SUM(collectionViews) AS attempts, "
-            + "SUM(reaction) AS reaction, unitId FROM BaseReports "
-            + "WHERE unitId = ANY(?::varchar[]) AND collectionType =? AND actorId = ? GROUP BY unitId";
+              "SELECT SUM(agg.timeSpent) timeSpent, MAX(agg.scoreInPercentage) scoreInPercentage, "
+            + "SUM(agg.reaction) reaction, SUM(agg.attempts) attempts, agg.unitId, 'completed' AS attemptStatus "
+            + "FROM (SELECT timeSpent AS timeSpent, FIRST_VALUE(score) OVER (PARTITION BY collectionid ORDER BY updatetimestamp desc) "
+            + "AS scoreInPercentage, reaction AS reaction, views AS attempts, unitId FROM BaseReports "
+            + "WHERE classid = ? AND courseid = ? AND collectionType =? AND actorId = ? AND unitId = ANY(?::varchar[]) AND "
+            + "eventName = ?) AS agg "
+            + "GROUP BY agg.unitId";
     
     public static final String SELECT_STUDENT_COURSE_PERF_FOR_COLLECTION =
             "SELECT SUM(collectionTimeSpent) AS timeSpent, SUM(collectionViews) AS views, SUM(reaction) AS reaction, unitId FROM BaseReports "
             + "WHERE unitId = ANY(?::varchar[]) AND collectionType =? AND actorId = ? GROUP BY unitId";
     
     public static final String GET_COMPLETED_COLLID_COUNT_FOREACH_UNITID = 
-    		"SELECT COUNT(collectionId) as completedCount, unitId from basereports "
-    		+ "WHERE classId = ? AND courseId = ? AND collectionType =? AND actorId = ? AND eventName = ? AND eventType = ? GROUP BY unitId";
+    		"SELECT SUM(unitData.completion) AS completionCount FROM "
+    		+ "(SELECT DISTINCT ON (collectionid) CASE  WHEN (eventtype = 'stop') THEN 1 ELSE 0 END AS completion, "
+    		+ "unitid FROM basereports WHERE classid = ? AND courseid = ? AND unitid = ? AND "
+    		+ "collectionType =? AND actorId = ? AND eventName = ? ORDER BY collectionid, updatetimestamp DESC) "
+    		+ "AS unitData GROUP BY unitid;";
     
     //*************************************************************************************************************************
     //String Constants and Queries for STUDENT PERFORMANCE REPORTS IN UNIT    

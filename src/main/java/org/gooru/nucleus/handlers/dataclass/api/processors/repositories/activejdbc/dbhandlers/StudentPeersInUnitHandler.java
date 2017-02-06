@@ -1,6 +1,5 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -8,9 +7,9 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
+import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
-import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.javalite.activejdbc.Base;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,13 +22,8 @@ import io.vertx.core.json.JsonObject;
  */
 
 public class StudentPeersInUnitHandler implements DBHandler {
-
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(StudentPeersInUnitHandler.class);
-    
-	private final ProcessorContext context;
-    private AJEntityBaseReports baseReport;
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(StudentPeersInUnitHandler.class);
+	  private final ProcessorContext context;
     private String classId;
     private String courseId;
     private String unitId;
@@ -54,18 +48,15 @@ public class StudentPeersInUnitHandler implements DBHandler {
     }
 
     @Override
+    @SuppressWarnings("rawtypes")
     public ExecutionResult<MessageResponse> executeRequest() {
-    	
     	JsonObject resultBody = new JsonObject();
     	JsonArray StudentPeerArray = new JsonArray();
-
-    	baseReport = new AJEntityBaseReports();
-    
-        this.classId = context.classId();
-        this.courseId = context.courseId();
-        this.unitId = context.unitId();
+      this.classId = context.classId();
+      this.courseId = context.courseId();
+      this.unitId = context.unitId();
         
-    	List<Map> UnitPeerMap = Base.findAll( AJEntityBaseReports.GET_STUDENT_PEERS_IN_UNIT, this.classId, this.courseId, this.unitId);
+      List<Map> UnitPeerMap = Base.findAll( AJEntityBaseReports.GET_STUDENT_PEERS_IN_UNIT, this.classId, this.courseId, this.unitId);
     	
     	if (!UnitPeerMap.isEmpty()){
     		

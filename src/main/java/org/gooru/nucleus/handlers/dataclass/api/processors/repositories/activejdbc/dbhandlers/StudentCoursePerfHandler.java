@@ -8,8 +8,10 @@ import java.util.Map;
 import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.converters.ResponseAttributeIdentifier;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.converters.ValueMapper;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
@@ -26,6 +28,7 @@ import io.vertx.core.json.JsonObject;
 
 /**
  * Created by mukul@gooru
+ * Modified by Daniel
  */
 class StudentCoursePerfHandler implements DBHandler {
 
@@ -34,25 +37,10 @@ class StudentCoursePerfHandler implements DBHandler {
     private static final String REQUEST_USERID = "userUid";
     
 	  private final ProcessorContext context;
-    private AJEntityBaseReports baseReport;
-
-    
     private String collectionType;
-    private String userId;
-    
+    private String userId;    
     //For stuffing Json
     private String unitId;
-    private String collId;
-    private String qtype;
-    private String react;
-    private String resourceTS;
-    private String ansObj; 
-    private String resType;
-    private String resAttemptStatus;
-    private String sco;
-    private String SID;
-    private String resViews;
-    private String compCount;
 
     public StudentCoursePerfHandler(ProcessorContext context) {
         this.context = context;
@@ -72,29 +60,31 @@ class StudentCoursePerfHandler implements DBHandler {
     }
 
     @Override
-  public ExecutionResult<MessageResponse> validateRequest() {
-    if (context.getUserIdFromRequest() == null
-            || (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
-      LOGGER.debug("User ID in the session : {}", context.userIdFromSession());
-      List<Map> creator = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_CREATOR, this.context.classId(), this.context.userIdFromSession());
-      if (creator.isEmpty()) {
-        List<Map> collaborator = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_COLLABORATOR, this.context.classId(), this.context.userIdFromSession());
-        if (collaborator.isEmpty()) {
-          LOGGER.debug("validateRequest() FAILED");
-          return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"), ExecutionStatus.FAILED);
+    @SuppressWarnings("rawtypes")
+    public ExecutionResult<MessageResponse> validateRequest() {
+      if (context.getUserIdFromRequest() == null
+              || (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
+        LOGGER.debug("User ID in the session : {}", context.userIdFromSession());
+        List<Map> creator = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_CREATOR, this.context.classId(), this.context.userIdFromSession());
+        if (creator.isEmpty()) {
+          List<Map> collaborator =
+                  Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_COLLABORATOR, this.context.classId(), this.context.userIdFromSession());
+          if (collaborator.isEmpty()) {
+            LOGGER.debug("validateRequest() FAILED");
+            return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"), ExecutionStatus.FAILED);
+          }
         }
       }
+      LOGGER.debug("validateRequest() OK");
+      return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
     }
-    LOGGER.debug("validateRequest() OK");
-    return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
-  }
 
     @Override
+    @SuppressWarnings("rawtypes")
     public ExecutionResult<MessageResponse> executeRequest() {
         
     	JsonObject resultBody = new JsonObject();
     	JsonArray resultarray = new JsonArray();
-    	baseReport = new AJEntityBaseReports();
     	
     	//CollectionType is a Mandatory Parameter
     	this.collectionType = this.context.request().getString(REQUEST_COLLECTION_TYPE);
@@ -122,8 +112,6 @@ class StudentCoursePerfHandler implements DBHandler {
             JsonObject contentBody = new JsonObject();
             JsonArray CourseKpiArray = new JsonArray();
       
-            // If CollectionType is Assessment
-            if (collectionType.equals(EventConstants.ASSESSMENT)) {
               LazyList<AJEntityBaseReports> unitIDforCourse =
                       AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_UNITID_FOR_COURSEID_FILTERBY_COLLTYPE, context.classId(),
                               context.courseId(), this.collectionType, userID);
@@ -131,35 +119,31 @@ class StudentCoursePerfHandler implements DBHandler {
               if (!unitIDforCourse.isEmpty()) {
                 LOGGER.debug("Got a list of Distinct unitIDs for this Course");
       
-                unitIDforCourse.forEach(unit -> unitIds.add(unit.getString(AJEntityBaseReports.UNIT_GOORU_OID)));
+                unitIDforCourse.forEach(unit -> unitIds.add(unit.getString(AJEntityBaseReports.UNIT_GOORU_OID)));      
       
-                List<Map> completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLLID_COUNT_FOREACH_UNITID, context.classId(),
-                        context.courseId(), this.collectionType, userID, EventConstants.COLLECTION_PLAY, AJEntityBaseReports.ATTR_EVENTTYPE_STOP);
-      
-                List<Map> assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_COURSE_PERF_FOR_ASSESSMENT, listToPostgresArrayString(unitIds),
-                        this.collectionType, userID);
+                List<Map> assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_COURSE_PERF_FOR_ASSESSMENT, context.classId(),
+                        context.courseId(), this.collectionType, userID, listToPostgresArrayString(unitIds), EventConstants.COLLECTION_PLAY);
       
                 if (!assessmentKpi.isEmpty()) {
                   assessmentKpi.forEach(m -> {
                     unitId = m.get(AJEntityBaseReports.UNIT_GOORU_OID).toString();
                     LOGGER.debug("The Value of UNITID " + unitId);
-                    if (completedCountMap.isEmpty()) {
-                      LOGGER.debug("No data returned for completedCount");
-                      compCount = AJEntityBaseReports.NA;
+                    
+                    int compCount = 0;
+                    Object completedCountObj = Base.firstCell(AJEntityBaseReports.GET_COMPLETED_COLLID_COUNT_FOREACH_UNITID, context.classId(),
+                            context.courseId(), unitId, this.collectionType, userID, EventConstants.COLLECTION_PLAY);
+                    if (completedCountObj != null) {
+                      compCount = Integer.valueOf(completedCountObj.toString());
                     } else {
-                      completedCountMap.forEach(map -> {
-                        if ((map.get(AJEntityBaseReports.UNIT_GOORU_OID).toString()).equals(unitId)) {
-                          compCount = map.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString();
-                        }
-                      });
+                      compCount = 0;
                     }
-                    CourseKpiArray.add(new JsonObject().put(AJEntityBaseReports.UNIT_GOORU_OID, unitId)
-                            .put(AJEntityBaseReports.ATTR_TIMESPENT, m.get(AJEntityBaseReports.ATTR_TIMESPENT).toString())
-                            .put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, compCount).put(AJEntityBaseReports.ATTR_ATTEMPT_STATUS, AJEntityBaseReports.NA)
-                            .put(AJEntityBaseReports.ATTR_REACTION, m.get(AJEntityBaseReports.ATTR_REACTION).toString())
-                            .put(AJEntityBaseReports.ATTR_SCORE, m.get(AJEntityBaseReports.ATTR_SCORE).toString())
-                            .put(AJEntityBaseReports.ATTR_ATTEMPTS, m.get(AJEntityBaseReports.ATTR_ATTEMPTS).toString())
-                            .put(AJEntityBaseReports.ATTR_TOTAL_COUNT, AJEntityBaseReports.NA));
+                    LOGGER.debug("compCount : {}", compCount);
+                    
+                    JsonObject unitData = ValueMapper.map(ResponseAttributeIdentifier.getCoursePerformanceAttributesMap(), m);
+                   //FIXME: Total count will be taken from nucleus core.
+                    unitData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
+                    unitData.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, compCount);
+                    CourseKpiArray.add(unitData);
                   });
                 } else {
                   LOGGER.info("No data returned for Student Perf in Assessment");
@@ -175,59 +159,6 @@ class StudentCoursePerfHandler implements DBHandler {
                 // ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(),
                 // ExecutionStatus.FAILED);
               }
-            }
-      
-            // If collection is collection
-            if (collectionType.equals(EventConstants.COLLECTION)) {
-              LazyList<AJEntityBaseReports> unitIDforCourse =
-                      AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_UNITID_FOR_COURSEID_FILTERBY_COLLTYPE, context.classId(),
-                              context.courseId(), this.collectionType, userID);
-      
-              if (!unitIDforCourse.isEmpty()) {
-                LOGGER.debug("Got a list of Distinct unitIDs for this Course");
-      
-                unitIDforCourse.forEach(unit -> unitIds.add(unit.getString(AJEntityBaseReports.UNIT_GOORU_OID)));
-      
-                List<Map> completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLLID_COUNT_FOREACH_UNITID, context.classId(),
-                        context.courseId(), this.collectionType, userID, EventConstants.COLLECTION_PLAY, AJEntityBaseReports.ATTR_EVENTTYPE_STOP);
-      
-                List<Map> collectionKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_COURSE_PERF_FOR_COLLECTION, listToPostgresArrayString(unitIds),
-                        this.collectionType, userID);
-      
-                if (!collectionKpi.isEmpty()) {
-                  // LOGGER.debug("No data returned for Student Perf in Collection");
-                  collectionKpi.forEach(m -> {
-                    unitId = m.get(AJEntityBaseReports.UNIT_GOORU_OID).toString();
-                    LOGGER.debug("The Value of UNITID " + unitId);
-                    if (completedCountMap.isEmpty()) {
-                      LOGGER.debug("No data returned for completedCount");
-                      compCount = AJEntityBaseReports.NA;
-                    } else {
-                      completedCountMap.forEach(map -> {
-                        if ((map.get(AJEntityBaseReports.UNIT_GOORU_OID).toString()).equals(unitId)) {
-                          compCount = map.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString();
-                        }
-                      });
-                    }
-                    CourseKpiArray.add(new JsonObject().put(AJEntityBaseReports.UNIT_GOORU_OID, unitId)
-                            .put(AJEntityBaseReports.ATTR_TIMESPENT, m.get(AJEntityBaseReports.ATTR_TIMESPENT).toString())
-                            .put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, compCount).put(AJEntityBaseReports.ATTR_ATTEMPT_STATUS, AJEntityBaseReports.NA)
-                            .put(AJEntityBaseReports.ATTR_REACTION, m.get(AJEntityBaseReports.ATTR_REACTION).toString())
-                            .put(AJEntityBaseReports.ATTR_COLLVIEWS, m.get(AJEntityBaseReports.ATTR_COLLVIEWS).toString())
-                            .put(AJEntityBaseReports.ATTR_TOTAL_COUNT, AJEntityBaseReports.NA));
-                  });
-                } else {
-                  LOGGER.info("No data returned for Student Perf in Collection");
-                }
-              } else {
-                LOGGER.info("Could not get Student Course Performance");
-                // Return an empty resultBody instead of an Error
-                // return new
-                // ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(),
-                // ExecutionStatus.FAILED);
-              }
-      
-            }
       
             // Form the required Json pass it on
             contentBody.put(JsonConstants.USAGE_DATA, CourseKpiArray).put(JsonConstants.USERUID, userID);

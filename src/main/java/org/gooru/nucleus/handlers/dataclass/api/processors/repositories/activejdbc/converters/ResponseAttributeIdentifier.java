@@ -19,6 +19,8 @@ public class ResponseAttributeIdentifier {
   private static final Map<String, String> sessionCollectionAttributes;
   private static final Map<String, String> sessionCollectionResouceAttributes;
   
+  private static final Map<String, String> coursePerformanceAttributes;
+  
   private static final Map<String, String> lessonPerformanceAttributes;
   
   static {
@@ -105,6 +107,17 @@ public class ResponseAttributeIdentifier {
     lessonPerformanceAttributes.put("attemptStatus", "attemptStatus");
   }
   
+  static {
+    coursePerformanceAttributes = new HashMap<>();
+    coursePerformanceAttributes.put("timeSpent", "timeSpent");
+    coursePerformanceAttributes.put("scoreInPercentage", "scoreInPercentage");
+    coursePerformanceAttributes.put("attempts", "attempts");
+    coursePerformanceAttributes.put("views", "attempts");
+    coursePerformanceAttributes.put("reaction", "reaction");
+    coursePerformanceAttributes.put("unitId", "unitId");
+    coursePerformanceAttributes.put("attemptStatus", "attemptStatus");
+  }
+  
   public static Map<String, String> getSessionTaxReportAggAttributesMap() {
     return sessionTaxReportAggAttributes;
   }
@@ -123,6 +136,9 @@ public class ResponseAttributeIdentifier {
   }
   public static Map<String, String> getSessionCollectionResourceAttributesMap() {
     return sessionCollectionResouceAttributes;
+  }
+  public static Map<String, String> getCoursePerformanceAttributesMap() {
+    return coursePerformanceAttributes;
   }
   public static Map<String, String> getLessonPerformanceAttributesMap() {
     return lessonPerformanceAttributes;
