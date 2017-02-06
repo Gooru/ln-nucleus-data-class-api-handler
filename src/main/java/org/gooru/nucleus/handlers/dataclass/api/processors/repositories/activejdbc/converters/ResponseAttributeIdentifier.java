@@ -21,6 +21,8 @@ public class ResponseAttributeIdentifier {
   
   private static final Map<String, String> coursePerformanceAttributes;
   
+  private static final Map<String, String> unitPerformanceAttributes;
+  
   private static final Map<String, String> lessonPerformanceAttributes;
   
   static {
@@ -103,7 +105,7 @@ public class ResponseAttributeIdentifier {
     lessonPerformanceAttributes.put("scoreInPercentage", "scoreInPercentage");
     lessonPerformanceAttributes.put("attempts", "attempts");
     lessonPerformanceAttributes.put("reaction", "reaction");
-    lessonPerformanceAttributes.put("collectionId", "collectionId");
+    lessonPerformanceAttributes.put("collectionId", "assessmentId");
     lessonPerformanceAttributes.put("attemptStatus", "attemptStatus");
   }
   
@@ -115,6 +117,16 @@ public class ResponseAttributeIdentifier {
     coursePerformanceAttributes.put("reaction", "reaction");
     coursePerformanceAttributes.put("unitId", "unitId");
     coursePerformanceAttributes.put("attemptStatus", "attemptStatus");
+  }
+  
+  static {
+    unitPerformanceAttributes = new HashMap<>();
+    unitPerformanceAttributes.put("timeSpent", "timeSpent");
+    unitPerformanceAttributes.put("scoreInPercentage", "scoreInPercentage");
+    unitPerformanceAttributes.put("attempts", "attempts");
+    unitPerformanceAttributes.put("reaction", "reaction");
+    unitPerformanceAttributes.put("lessonId", "lessonId");
+    unitPerformanceAttributes.put("attemptStatus", "attemptStatus");
   }
   
   public static Map<String, String> getSessionTaxReportAggAttributesMap() {
@@ -138,6 +150,9 @@ public class ResponseAttributeIdentifier {
   }
   public static Map<String, String> getCoursePerformanceAttributesMap() {
     return coursePerformanceAttributes;
+  }
+  public static Map<String, String> getUnitPerformanceAttributesMap() {
+    return unitPerformanceAttributes;
   }
   public static Map<String, String> getLessonPerformanceAttributesMap() {
     return lessonPerformanceAttributes;
