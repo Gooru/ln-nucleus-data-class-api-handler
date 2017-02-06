@@ -143,6 +143,11 @@ class StudentCoursePerfHandler implements DBHandler {
                    //FIXME: Total count will be taken from nucleus core.
                     unitData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
                     unitData.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, compCount);
+                    //FIXME : Revisit this logic in future.
+                    if(this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)){
+                      unitData.put(EventConstants.VIEWS, unitData.getInteger(EventConstants.ATTEMPTS));
+                      unitData.remove(EventConstants.ATTEMPTS);
+                    }
                     CourseKpiArray.add(unitData);
                   });
                 } else {
