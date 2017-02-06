@@ -112,7 +112,6 @@ public class ResponseAttributeIdentifier {
     coursePerformanceAttributes.put("timeSpent", "timeSpent");
     coursePerformanceAttributes.put("scoreInPercentage", "scoreInPercentage");
     coursePerformanceAttributes.put("attempts", "attempts");
-    coursePerformanceAttributes.put("views", "attempts");
     coursePerformanceAttributes.put("reaction", "reaction");
     coursePerformanceAttributes.put("unitId", "unitId");
     coursePerformanceAttributes.put("attemptStatus", "attemptStatus");
