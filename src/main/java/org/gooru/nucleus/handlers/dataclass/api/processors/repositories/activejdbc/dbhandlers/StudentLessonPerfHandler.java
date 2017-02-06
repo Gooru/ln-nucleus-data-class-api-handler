@@ -1,9 +1,11 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.converters.ResponseAttributeIdentifier;
@@ -109,8 +111,18 @@ public class StudentLessonPerfHandler implements DBHandler {
       for (String userID : userIds) {
         JsonObject contentBody = new JsonObject();
         JsonArray LessonKpiArray = new JsonArray();
-        List<Map> assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF, context.classId(), context.courseId(),
-                context.unitId(), context.lessonId(), this.collectionType, userID);
+        LazyList<AJEntityBaseReports> collIDforlesson =
+                AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_COLLID_FOR_LESSONID_FILTERBY_COLLTYPE, context.classId(),
+                        context.courseId(), context.unitId(), context.lessonId(), this.collectionType, userID);
+
+        List<String> collIds = new ArrayList<>();
+        if (!collIDforlesson.isEmpty()) {
+          LOGGER.info("Got a list of Distinct collectionIDs for this lesson");
+          collIDforlesson.forEach(coll -> collIds.add(coll.getString(AJEntityBaseReports.COLLECTION_OID)));
+        }
+        
+        List<Map> assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF_FOR_ASSESSMENT, context.classId(),
+                context.courseId(), context.unitId(), context.lessonId(), listToPostgresArrayString(collIds), userID, EventConstants.COLLECTION_PLAY);
         if (!assessmentKpi.isEmpty()) {
           assessmentKpi.forEach(m -> {
             JsonObject lessonKpi = ValueMapper.map(ResponseAttributeIdentifier.getLessonPerformanceAttributesMap(), m);
@@ -118,9 +130,11 @@ public class StudentLessonPerfHandler implements DBHandler {
             lessonKpi.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 1);
             lessonKpi.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
             // FIXME: This logic to be revisited.
-            if (this.collectionType.equalsIgnoreCase(JsonConstants.ASSESSMENT)) {
-              lessonKpi.put(AJEntityBaseReports.ATTR_ASSESSMENT_ID, lessonKpi.getString(AJEntityBaseReports.ATTR_COLLECTION_ID));
-              lessonKpi.remove(AJEntityBaseReports.ATTR_COLLECTION_ID);
+            if (this.collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {
+              lessonKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, lessonKpi.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID));
+              lessonKpi.remove(AJEntityBaseReports.ATTR_ASSESSMENT_ID);
+              lessonKpi.put(EventConstants.VIEWS, lessonKpi.getInteger(EventConstants.ATTEMPTS));
+              lessonKpi.remove(EventConstants.ATTEMPTS);
             }
             LessonKpiArray.add(lessonKpi);
           });
@@ -140,5 +154,26 @@ public class StudentLessonPerfHandler implements DBHandler {
     @Override
     public boolean handlerReadOnly() {
         return false;
+    }
+    private String listToPostgresArrayString(List<String> input) {
+      int approxSize = ((input.size() + 1) * 36); // Length of UUID is around
+                                                  // 36
+                                                  // chars
+      Iterator<String> it = input.iterator();
+      if (!it.hasNext()) {
+        return "{}";
+      }
+  
+      StringBuilder sb = new StringBuilder(approxSize);
+      sb.append('{');
+      for (;;) {
+        String s = it.next();
+        sb.append('"').append(s).append('"');
+        if (!it.hasNext()) {
+          return sb.append('}').toString();
+        }
+        sb.append(',');
+      }
+  
     }
 }
