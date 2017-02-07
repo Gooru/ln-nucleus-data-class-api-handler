@@ -31,7 +31,7 @@ public class ResponseAttributeIdentifier {
     sessionAssessmentAttributes.put("collectionid", "gooruOId");
     sessionAssessmentAttributes.put("reaction", "reaction");
     sessionAssessmentAttributes.put("collectiontimespent", "timeSpent");
-    sessionAssessmentAttributes.put("createtimestamp", "eventTime");
+    sessionAssessmentAttributes.put("updatetimestamp", "eventTime");
     sessionAssessmentAttributes.put("sessionid", "sessionId");
     sessionAssessmentAttributes.put("collectiontype", "resourceType");
     sessionAssessmentAttributes.put("collectionviews", "attempts");

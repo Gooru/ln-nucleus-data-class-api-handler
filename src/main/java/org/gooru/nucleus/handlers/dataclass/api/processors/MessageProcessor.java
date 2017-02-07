@@ -11,8 +11,6 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResp
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hazelcast.util.StringUtil;
-
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 
@@ -439,56 +437,7 @@ class MessageProcessor implements Processor {
     //TEACHER REPORTS
     //********************************************************************************************************************************
    
-    private MessageResponse getAllStudentPerfInCourse() {
-    	try {
-            ProcessorContext context = createContext();
-            
-            if (!checkClassId(context)) {
-                LOGGER.error("ClassId not available to obtain All Students Performance Teacher. Aborting!");
-                return MessageResponseFactory.createInvalidRequestResponse("Invalid ClassId");
-            }
-            
-            if (!checkCourseId(context)) {
-                LOGGER.error("Course id not available to obtain All Student Performance for Teacher. Aborting");
-                return MessageResponseFactory.createInvalidRequestResponse("Invalid CourseId");
-            }
-            
-            return new RepoBuilder().buildReportRepo(context).getAllStudentPerfInCourse();
-            
-        } catch (Throwable t) {
-            LOGGER.error("Exception while getting All Student performance in Course for Teacher", t);
-            return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
-        }
 
-    }
-
-    private MessageResponse getAllStudentPerfInUnit() {
-    	try {
-            ProcessorContext context = createContext();
-            
-            if (!checkClassId(context)) {
-                LOGGER.error("ClassId not available to obtain Student Performance. Aborting!");
-                return MessageResponseFactory.createInvalidRequestResponse("Invalid ClassId");
-            }
-            
-            if (!checkCourseId(context)) {
-                LOGGER.error("Course id not available to obtain Student Performance. Aborting");
-                return MessageResponseFactory.createInvalidRequestResponse("Invalid CourseId");
-            }
-
-            if (!checkUnitId(context)) {
-                LOGGER.error("Unit id not available to get lesson. Aborting");
-                return MessageResponseFactory.createInvalidRequestResponse("Invalid unitId");
-            }
-            
-            return new RepoBuilder().buildReportRepo(context).getAllStudentPerfInUnit();
-            
-        } catch (Throwable t) {
-            LOGGER.error("Exception while getting Student performance in Unit", t);
-            return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
-        }
-
-    }
 
     private MessageResponse getSessionWiseTaxonomyReport() {
       try {
