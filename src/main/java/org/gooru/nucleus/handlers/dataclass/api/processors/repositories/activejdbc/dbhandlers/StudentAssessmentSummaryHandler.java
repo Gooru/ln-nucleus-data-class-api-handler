@@ -86,7 +86,7 @@ public class StudentAssessmentSummaryHandler implements DBHandler {
       // STUDENT PERFORMANCE REPORTS IN ASSESSMENTS when SessionID NOT NULL
       if (!StringUtil.isNullOrEmpty(sessionId)) {
         List<Map> assessmentKPI = Base.findAll(AJEntityBaseReports.SELECT_ASSESSMENT_FOREACH_COLLID_AND_SESSIONID, sessionId,
-                AJEntityBaseReports.ATTR_CP_EVENTNAME, AJEntityBaseReports.ATTR_EVENTTYPE_STOP);
+                AJEntityBaseReports.ATTR_CP_EVENTNAME);
   
         LOGGER.info("cID : {} , SID : {} ", context.collectionId(), sessionId);
         if (!assessmentKPI.isEmpty()) {
@@ -99,7 +99,7 @@ public class StudentAssessmentSummaryHandler implements DBHandler {
           LOGGER.debug("Assessment question Attributes started");
 
           List<Map> assessmentQuestionsKPI = Base.findAll(AJEntityBaseReports.SELECT_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSIONID,
-                  sessionId, AJEntityBaseReports.ATTR_CRP_EVENTNAME, AJEntityBaseReports.ATTR_EVENTTYPE_STOP);
+                  sessionId, AJEntityBaseReports.ATTR_CRP_EVENTNAME);
           
           JsonArray questionsArray = new JsonArray();
           if(!assessmentQuestionsKPI.isEmpty()){
@@ -107,12 +107,6 @@ public class StudentAssessmentSummaryHandler implements DBHandler {
               JsonObject qnData = ValueMapper.map(ResponseAttributeIdentifier.getSessionAssessmentQuestionAttributesMap(), questions);
               //FIXME :: This is to be revisited. We should alter the schema column type from TEXT to JSONB. After this change we can remove this logic
               qnData.put(JsonConstants.ANSWER_OBJECT, new JsonArray(questions.get(AJEntityBaseReports.ANSWER_OBECT).toString()));
-             //FIXME :: it can be removed once we fix writer code.
-              if(qnData.getString(JsonConstants.RESOURCE_TYPE) != null){
-                qnData.put(JsonConstants.RESOURCE_TYPE, JsonConstants.QUESTION);
-              }else{
-                qnData.put(JsonConstants.RESOURCE_TYPE, JsonConstants.RESOURCE);
-              }
               questionsArray.add(qnData);
             });
           }

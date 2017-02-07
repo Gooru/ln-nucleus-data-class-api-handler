@@ -109,12 +109,6 @@ public class StudentCollectionSummaryHandler implements DBHandler {
               if(questions.get(AJEntityBaseReports.ANSWER_OBECT) != null){
                 qnData.put(JsonConstants.ANSWER_OBJECT, new JsonArray(questions.get(AJEntityBaseReports.ANSWER_OBECT).toString()));
               }
-              //FIXME :: it can be removed once we fix writer code.
-              if(qnData.getString(JsonConstants.RESOURCE_TYPE) != null){
-                qnData.put(JsonConstants.RESOURCE_TYPE, JsonConstants.QUESTION);
-              }else{
-                qnData.put(JsonConstants.RESOURCE_TYPE, JsonConstants.RESOURCE);
-              }
               questionsArray.add(qnData);
             });
           }
