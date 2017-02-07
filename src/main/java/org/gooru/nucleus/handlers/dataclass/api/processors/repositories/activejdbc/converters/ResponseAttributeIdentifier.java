@@ -41,10 +41,10 @@ public class ResponseAttributeIdentifier {
   static {
     sessionAssessmentQuestionAttributes = new HashMap<>();
     sessionAssessmentQuestionAttributes.put("score", "score");
-    sessionAssessmentQuestionAttributes.put("collectionid", "gooruOId");
+    sessionAssessmentQuestionAttributes.put("resourceId", "gooruOId");
     sessionAssessmentQuestionAttributes.put("reaction", "reaction");
     sessionAssessmentQuestionAttributes.put("resourcetimespent", "timeSpent");
-    sessionAssessmentQuestionAttributes.put("createtimestamp", "eventTime");
+    sessionAssessmentQuestionAttributes.put("updatetimestamp", "eventTime");
     sessionAssessmentQuestionAttributes.put("sessionid", "sessionId");
     sessionAssessmentQuestionAttributes.put("resourcetype", "resourceType");
     sessionAssessmentQuestionAttributes.put("questiontype", "questionType");
@@ -58,7 +58,7 @@ public class ResponseAttributeIdentifier {
     sessionCollectionAttributes.put("collectionid", "gooruOId");
     sessionCollectionAttributes.put("reaction", "reaction");
     sessionCollectionAttributes.put("collectiontimespent", "timeSpent");
-    sessionCollectionAttributes.put("createtimestamp", "eventTime");
+    sessionCollectionAttributes.put("updatetimestamp", "eventTime");
     sessionCollectionAttributes.put("sessionid", "sessionId");
     sessionCollectionAttributes.put("collectiontype", "resourceType");
     sessionCollectionAttributes.put("collectionviews", "views");

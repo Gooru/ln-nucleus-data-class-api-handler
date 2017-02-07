@@ -201,24 +201,32 @@ public class AJEntityBaseReports extends Model {
             +" ORDER BY createtimestamp ASC";
     
     //*************************************************************************************************************************
-    //String Constants and Queries for STUDENT PERFORMANCE REPORTS IN ASSESSMENTS
+    //String Constants and Queries for STUDENT PERFORMANCE REPORTS IN ASSESSMENTS    
     public static final String SELECT_ASSESSMENT_FOREACH_COLLID_AND_SESSIONID =
-            "select score,collectionid,reaction,collectiontimespent,createtimestamp,sessionid,collectiontype,coalesce(collectionviews,0) AS collectionviews from basereports"
-            + " WHERE sessionId = ? AND eventName = ?"
-            + " AND eventtype = ?";
+            "select distinct on (collectionid) FIRST_VALUE(score) OVER (PARTITION BY collectionid ORDER BY updatetimestamp desc) AS score,"
+            + "collectionid,FIRST_VALUE(reaction) OVER (PARTITION BY collectionid ORDER BY updatetimestamp desc) AS reaction,"
+            + "FIRST_VALUE(timespent) OVER (PARTITION BY collectionid ORDER BY updatetimestamp desc) as collectiontimespent,"
+            + "updatetimestamp,sessionid,collectiontype,FIRST_VALUE(views) OVER (PARTITION BY collectionid ORDER BY updatetimestamp asc) AS collectionviews "
+            + "from basereports WHERE sessionId = ? AND eventName = ? ";
+    
     
     public static final String SELECT_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSIONID =
-            "select score,collectionid,reaction,resourcetimespent,createtimestamp,sessionid,collectiontype,coalesce(resourceviews,0) AS resourceviews,resourcetype,questiontype,answerobject as answerobject from basereports"
-            + " WHERE sessionId = ? AND eventName = ?"
-            + " AND eventtype = ?";
+            "select  distinct on (resourceid) FIRST_VALUE(score) OVER (PARTITION BY resourceid ORDER BY updatetimestamp desc) AS score,"
+            + "resourceid,FIRST_VALUE(reaction) OVER (PARTITION BY resourceid ORDER BY updatetimestamp desc) AS reaction,"
+            + "FIRST_VALUE(timespent) OVER (PARTITION BY resourceid ORDER BY updatetimestamp desc) as resourcetimespent,"
+            + "updatetimestamp,sessionid,collectiontype,"
+            + "FIRST_VALUE(views) OVER (PARTITION BY resourceid ORDER BY updatetimestamp asc) AS resourceviews, "
+            + "resourcetype,questiontype,"
+            + "FIRST_VALUE(answerobject) OVER (PARTITION BY resourceid ORDER BY updatetimestamp desc) as answerobject "
+            + "from basereports WHERE sessionId = ? AND eventname = ? ";
     
     public static final String SELECT_COLLECTION_FOREACH_COLLID_AND_SESSIONID =
-            "SELECT distinct on (collectionid) score,collectionid,reaction,coalesce(collectiontimespent, 0) AS collectiontimespent,createtimestamp,sessionid,collectiontype,coalesce(collectionviews,0) AS collectionviews from basereports"
+            "SELECT distinct on (collectionid) score,collectionid,reaction,timespent AS collectiontimespent,createtimestamp,sessionid,collectiontype,views AS collectionviews from basereports"
             + " WHERE classid = ? AND courseid = ? AND unitid = ? AND lessonid = ? AND collectionid = ? AND actorid = ? AND eventName = ?"
             ;
     
     public static final String SELECT_COLLECTION_RESOURCE_FOREACH_COLLID_AND_SESSIONID =
-            "SELECT distinct on (resourceid) score,collectionid,reaction,coalesce(resourcetimespent,0) AS resourcetimespent,createtimestamp,sessionid,collectiontype,coalesce(resourceviews,0) AS resourceviews,resourcetype,questiontype,answerobject as answerobject from basereports"
+            "SELECT distinct on (resourceid) score,collectionid,reaction,timespent AS resourcetimespent,createtimestamp,sessionid,collectiontype,views AS resourceviews,resourcetype,questiontype,answerobject as answerobject from basereports"
             + " WHERE classid = ? AND courseid = ? AND unitid = ? AND lessonid = ? AND collectionid = ? AND actorid = ? AND eventName = ?"
             ; 
   //*************************************************************************************************************************
