@@ -50,30 +50,28 @@ public class StudentPeersInUnitHandler implements DBHandler {
     @Override
     @SuppressWarnings("rawtypes")
     public ExecutionResult<MessageResponse> executeRequest() {
-    	JsonObject resultBody = new JsonObject();
-    	JsonArray StudentPeerArray = new JsonArray();
-      this.classId = context.classId();
-      this.courseId = context.courseId();
-      this.unitId = context.unitId();
-        
-      List<Map> UnitPeerMap = Base.findAll( AJEntityBaseReports.GET_STUDENT_PEERS_IN_UNIT, this.classId, this.courseId, this.unitId);
-    	
-    	if (!UnitPeerMap.isEmpty()){
-    		
-             UnitPeerMap.forEach(m -> {
-            	 Integer peerCount = Integer.valueOf(m.get(AJEntityBaseReports.ATTR_PEER_COUNT).toString());            
-            	 StudentPeerArray.add(new JsonObject().put(AJEntityBaseReports.LESSON_GOORU_OID, m.get(AJEntityBaseReports.LESSON_GOORU_OID).toString())
-            	    		.put(AJEntityBaseReports.ATTR_PEER_COUNT, (peerCount -1)));
-             });             
-             
-    	} else {
-            LOGGER.error("Student Peers Count for Unit cannot be obtained. There may be no peers for this Unit");            
+        JsonObject resultBody = new JsonObject();
+        JsonArray StudentPeerArray = new JsonArray();
+        this.classId = context.classId();
+        this.courseId = context.courseId();
+        this.unitId = context.unitId();
+        List<Map> UnitPeerMap = Base.findAll(AJEntityBaseReports.GET_STUDENT_PEERS_IN_UNIT, this.classId, this.courseId, this.unitId);
+    
+        if (!UnitPeerMap.isEmpty()) {
+    
+          UnitPeerMap.forEach(m -> {
+            Integer peerCount = Integer.valueOf(m.get(AJEntityBaseReports.ATTR_PEER_COUNT).toString());
+            StudentPeerArray.add(new JsonObject().put(AJEntityBaseReports.LESSON_GOORU_OID, m.get(AJEntityBaseReports.LESSON_GOORU_OID).toString())
+                    .put(AJEntityBaseReports.ATTR_PEER_COUNT, (peerCount)));
+          });
+    
+        } else {
+          LOGGER.error("Student Peers Count for Unit cannot be obtained. There may be no peers for this Unit");
         }
-
-    	resultBody.put(JsonConstants.CONTENT, StudentPeerArray).putNull(JsonConstants.MESSAGE).putNull(JsonConstants.PAGINATE);                 
-    	return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody),
-                ExecutionStatus.SUCCESSFUL);    	
-    }   
+    
+        resultBody.put(JsonConstants.CONTENT, StudentPeerArray).putNull(JsonConstants.MESSAGE).putNull(JsonConstants.PAGINATE);
+        return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
+      }   
     
 
     @Override

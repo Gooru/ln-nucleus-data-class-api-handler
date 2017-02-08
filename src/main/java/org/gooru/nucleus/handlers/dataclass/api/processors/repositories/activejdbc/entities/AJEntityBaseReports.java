@@ -237,16 +237,25 @@ public class AJEntityBaseReports extends Model {
 
     // GET STUDENT's PEERS IN COURSE
     public static final String GET_STUDENT_PEERS_IN_COURSE = 
-    		"select count(DISTINCT(actorID)) AS peerCount, unitId from BaseReports where classId = ? AND courseId = ? GROUP BY unitID";
+    		"SELECT count(aId) AS peerCount, unitId FROM "
+    		+ "(SELECT DISTINCT ON (actorID) collectionId, courseId, lessonId, unitId as unitId, actorId as aId, "
+    		+ "updateTimeStamp FROM basereports where classid = ? "
+    		+ "ORDER BY actorId, updatetimestamp DESC) AS DS "
+    		+ "WHERE DS.courseId = ?  GROUP BY unitId;";
     
     // GET STUDENT's PEERS IN UNIT
     public static final String GET_STUDENT_PEERS_IN_UNIT = 
-    		"select count(DISTINCT(actorID)) AS peerCount, lessonId from BaseReports where classId = ? AND courseId = ? AND unitId = ? GROUP BY lessonID";
+    		"SELECT count(aId) AS peerCount, lessonId FROM "
+    		+ "(SELECT DISTINCT ON (actorID) collectionId, courseId, lessonId, unitId as unitId, actorId as aId, "
+    		+ "updateTimeStamp FROM basereports where classid = ? "
+    		+ "ORDER BY actorId, updatetimestamp DESC) AS DS "
+    		+ "WHERE  DS.courseId = ? AND DS.unitId = ?  GROUP BY lessonId";
 
     //GET STUDENT's PEERS IN LESSON
-    public static final String GET_DISTINCT_COLLID_FOR_LESSONID_FILTERBY_COLLTYPE =
-            "SELECT DISTINCT(collectionId) FROM BaseReports "
-            + "WHERE classId = ? AND courseId = ? AND unitId = ? AND lessonId = ? AND collectionType =?";
+    public static final String GET_DISTINCT_COLLID_FOR_LESSONID_FILTERBY_COLLTYPE = "SELECT collectionId, aId as actorId, collectionType, updatetimestamp "
+            + "FROM (SELECT DISTINCT ON (actorID) collectionId, courseId, lessonId, unitId as unitId, actorId as aId, collectionType, updateTimeStamp "
+            + "FROM basereports where classid = ? ORDER BY actorId, updatetimestamp DESC) AS DS "
+            + "WHERE DS.courseId = ? AND DS.unitId = ?  AND lessonId = ?";
 
 
     public static final String GET_DISTINCT_USERS_FOR_COLLECTION_FILTERBY_COLLTYPE =
