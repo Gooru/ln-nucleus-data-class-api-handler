@@ -1,11 +1,7 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
-import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
@@ -13,7 +9,6 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionRe
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
-import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +18,7 @@ import io.vertx.core.json.JsonObject;
 
 /**
  * Created by mukul@gooru
+ * Modified by daniel
  */
 
   public class StudentPeersInLessonHandler implements DBHandler {
@@ -59,102 +55,39 @@ import io.vertx.core.json.JsonObject;
     }
   
     @Override
-    @SuppressWarnings("rawtypes")
     public ExecutionResult<MessageResponse> executeRequest() {
-  
       JsonObject resultBody = new JsonObject(); 
-
-      List<String> collIds = new ArrayList<>();
       JsonArray peerArray = new JsonArray();
   
       // If CollectionType is Assessment
       LazyList<AJEntityBaseReports> collIDforAssessment =
               AJEntityBaseReports.findBySQL(AJEntityBaseReports.GET_DISTINCT_COLLID_FOR_LESSONID_FILTERBY_COLLTYPE, context.classId(),
-                      context.courseId(), context.unitId(), context.lessonId(), EventConstants.ASSESSMENT);
+                      context.courseId(), context.unitId(), context.lessonId());
   
       if (!collIDforAssessment.isEmpty()) {
         LOGGER.debug("Got a list of Distinct collectionIDs for this lesson");
   
-        collIDforAssessment.forEach(coll -> collIds.add(coll.getString(AJEntityBaseReports.COLLECTION_OID)));
+        collIDforAssessment.forEach(coll -> {
+
+          String assessmentId = coll.get(AJEntityBaseReports.COLLECTION_OID).toString();
+          String userId = coll.get(AJEntityBaseReports.GOORUUID).toString();
+          String timestamp = coll.get(AJEntityBaseReports.UPDATE_TIMESTAMP).toString();
+          String collectionType = coll.get(AJEntityBaseReports.COLLECTION_TYPE).toString();
+          String collTypeParam = collectionType.equalsIgnoreCase(JsonConstants.COLLECTION) ? JsonConstants.COLLECTIONID : JsonConstants.ASSESSMENTID;
+          LOGGER.debug("the User is " + user);
+          LOGGER.debug("The Value of CollectionID, should be same as assessmentId " + cId);
+            Timestamp currTs = new Timestamp(System.currentTimeMillis());              
+            Timestamp userTs = Timestamp.valueOf(timestamp);
+            if (((currTs.getTime() - userTs.getTime()) < timeDiff)) {
+              peerArray.add(new JsonObject().put(collTypeParam, assessmentId).put(JsonConstants.USERUID, userId).put(JsonConstants.STATUS,
+                      JsonConstants.ACTIVE));
+            } else if (((currTs.getTime() - userTs.getTime()) > timeDiff)) {
+              peerArray.add(new JsonObject().put(collTypeParam, assessmentId).put(JsonConstants.USERUID, userId).put(JsonConstants.STATUS,
+                      JsonConstants.INACTIVE));
+            }
+        
+         });
   
-        for (String assessmentId : collIds) {
-          // For this CollectionID get Distinct Users
-          List<Map> distinctUsersMap =
-                  Base.findAll(AJEntityBaseReports.GET_DISTINCT_USERS_FOR_COLLECTION_FILTERBY_COLLTYPE, assessmentId, EventConstants.ASSESSMENT);
-  
-          if (distinctUsersMap.isEmpty()) {
-            LOGGER.debug("No data returned for users for this collection");
-            // return new
-            // ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(),
-            // ExecutionStatus.FAILED);
-            continue;
-          }
-  
-          distinctUsersMap.forEach(m -> {
-            cId = m.get(AJEntityBaseReports.COLLECTION_OID).toString();
-            user = m.get(AJEntityBaseReports.ATTR_USERS).toString();
-            LOGGER.debug("the User is " + user);
-            LOGGER.debug("The Value of CollectionID, should be same as assessmentId " + cId);
-            List<Map> timestampMap =
-                    Base.findAll(AJEntityBaseReports.GET_USERS_LATEST_TIMESTAMP, context.lessonId(), assessmentId, EventConstants.ASSESSMENT, user);
-            timestampMap.forEach(ts -> {
-              Timestamp currTs = new Timestamp(System.currentTimeMillis());              
-              Timestamp userTs = Timestamp.valueOf(ts.get(AJEntityBaseReports.UPDATE_TIMESTAMP).toString());
-              if (((currTs.getTime() - userTs.getTime()) < timeDiff)) {
-                peerArray.add(new JsonObject().put(JsonConstants.ASSESSMENTID, assessmentId).put(JsonConstants.USERUID, user).put(JsonConstants.STATUS,
-                        JsonConstants.ACTIVE));
-              } else if (((currTs.getTime() - userTs.getTime()) > timeDiff)) {
-                peerArray.add(new JsonObject().put(JsonConstants.ASSESSMENTID, assessmentId).put(JsonConstants.USERUID, user).put(JsonConstants.STATUS,
-                        JsonConstants.INACTIVE));
-              }
-            });
-          });
-        }
-      }
-  
-      // If CollectionType is Collection
-      LazyList<AJEntityBaseReports> collIDforCollection =
-              AJEntityBaseReports.findBySQL(AJEntityBaseReports.GET_DISTINCT_COLLID_FOR_LESSONID_FILTERBY_COLLTYPE, context.classId(),
-                      context.courseId(), context.unitId(), context.lessonId(), EventConstants.COLLECTION);
-  
-      if (!collIDforCollection.isEmpty()) {
-        LOGGER.debug("Got a list of Distinct collectionIDs for this lesson");
-  
-        collIDforCollection.forEach(coll -> collIds.add(coll.getString(AJEntityBaseReports.COLLECTION_OID)));
-  
-        for (String collectionId : collIds) {
-          // For this CollectionID get Distinct Users
-          List<Map> distinctUsersMap =
-                  Base.findAll(AJEntityBaseReports.GET_DISTINCT_USERS_FOR_COLLECTION_FILTERBY_COLLTYPE, collectionId, EventConstants.COLLECTION);
-  
-          if (distinctUsersMap.isEmpty()) {
-            LOGGER.debug("No data returned for users for this collection");
-            // return new
-            // ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(),
-            // ExecutionStatus.FAILED);
-            continue;
-          }
-  
-          distinctUsersMap.forEach(m -> {
-            cId = m.get(AJEntityBaseReports.COLLECTION_OID).toString();
-            user = m.get(AJEntityBaseReports.ATTR_USERS).toString();
-            LOGGER.debug("The Value of CollectionID, should be same as collectionId " + cId);
-            List<Map> timestampMap =
-                    Base.findAll(AJEntityBaseReports.GET_USERS_LATEST_TIMESTAMP, context.lessonId(), collectionId, EventConstants.COLLECTION, user);
-            timestampMap.forEach(ts -> {
-              Timestamp currTs = new Timestamp(System.currentTimeMillis());
-              Timestamp userTs = Timestamp.valueOf(ts.get(AJEntityBaseReports.UPDATE_TIMESTAMP).toString());
-  
-              if (((currTs.getTime() - userTs.getTime()) < timeDiff)) {
-                peerArray.add(new JsonObject().put(JsonConstants.COLLECTIONID, collectionId).put(JsonConstants.USERUID, user).put(JsonConstants.STATUS,
-                        JsonConstants.ACTIVE));
-              } else if (((currTs.getTime() - userTs.getTime()) > timeDiff)) {
-                peerArray.add(new JsonObject().put(JsonConstants.COLLECTIONID, collectionId).put(JsonConstants.USERUID, user).put(JsonConstants.STATUS,
-                        JsonConstants.INACTIVE));
-              }
-            });
-          });
-        }
       }
   
       resultBody.put(JsonConstants.CONTENT, peerArray).putNull(JsonConstants.MESSAGE).putNull(JsonConstants.PAGINATE);  

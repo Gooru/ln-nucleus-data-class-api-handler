@@ -50,32 +50,24 @@ public class StudentPeersInCourseHandler implements DBHandler {
     @Override
     @SuppressWarnings("rawtypes")
     public ExecutionResult<MessageResponse> executeRequest() {
-    	
-    	JsonObject resultBody = new JsonObject();
-    	JsonArray StudentPeerArray = new JsonArray();
+      JsonObject resultBody = new JsonObject();
+      JsonArray StudentPeerArray = new JsonArray();
       this.classId = context.classId();
       this.courseId = context.courseId();
-        
-      List<Map> CoursePeerMap = Base.findAll( AJEntityBaseReports.GET_STUDENT_PEERS_IN_COURSE, this.classId, this.courseId);
-    	
-    	if (!CoursePeerMap.isEmpty()){
-    		
-             CoursePeerMap.forEach(m -> {
-            	 Integer peerCount = Integer.valueOf(m.get(AJEntityBaseReports.ATTR_PEER_COUNT).toString());            
-            	 StudentPeerArray.add(new JsonObject().put(AJEntityBaseReports.UNIT_GOORU_OID, m.get(AJEntityBaseReports.UNIT_GOORU_OID).toString())
-            	    		.put(AJEntityBaseReports.ATTR_PEER_COUNT, (peerCount -1)));
-             });             
-             
-    	} else {            
-            LOGGER.info("Student Peers cannot be obtained.There may be no peers in this Class");
-        }
-
-        //Form the required JSon pass it on
-        resultBody.put(JsonConstants.CONTENT, StudentPeerArray).putNull(JsonConstants.MESSAGE).putNull(JsonConstants.PAGINATE);
-                 
-    	return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody),
-                ExecutionStatus.SUCCESSFUL);
-    	
+      List<Map> CoursePeerMap = Base.findAll(AJEntityBaseReports.GET_STUDENT_PEERS_IN_COURSE, this.classId, this.courseId);
+      if (!CoursePeerMap.isEmpty()) {
+        CoursePeerMap.forEach(m -> {
+          Integer peerCount = Integer.valueOf(m.get(AJEntityBaseReports.ATTR_PEER_COUNT).toString());
+          StudentPeerArray.add(new JsonObject().put(AJEntityBaseReports.UNIT_GOORU_OID, m.get(AJEntityBaseReports.UNIT_GOORU_OID).toString())
+                  .put(AJEntityBaseReports.ATTR_PEER_COUNT, (peerCount)));
+        });
+      } else {
+        LOGGER.info("Student Peers cannot be obtained.There may be no peers in this Class");
+      }
+      // Form the required JSon pass it on
+      resultBody.put(JsonConstants.CONTENT, StudentPeerArray).putNull(JsonConstants.MESSAGE).putNull(JsonConstants.PAGINATE);
+  
+      return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
     }   
     
 
