@@ -51,7 +51,7 @@ public class AJEntitySessionTaxonomyReport extends Model {
   public static final String SELECT_TAXONOMY_REPORT_MAX_SEQUENCE_ID = "SELECT max(sequence_id) FROM taxonomy_report";
 
   public static final String SELECT_TAXONOMY_REPORT_AGG_METRICS =
-          "SELECT subject_id,course_id,domain_id,standard_id,learning_target_id,display_code, sum(time_spent) as time_spent, ROUND(AVG(score)) as score,ROUND(AVG(reaction)) as reaction FROM taxonomy_report WHERE session_id = ? AND resource_type = 'question' GROUP BY subject_id,course_id,domain_id,standard_id,learning_target_id,display_code;";
+          "SELECT subject_id,course_id,domain_id,standard_id,learning_target_id,display_code, sum(time_spent) as time_spent, ROUND(AVG(score * 100)) as score,ROUND(AVG(reaction)) as reaction FROM taxonomy_report WHERE session_id = ? AND resource_type = 'question' GROUP BY subject_id,course_id,domain_id,standard_id,learning_target_id,display_code;";
 
   //FIXME : Writer code should be fixed to avoid duplicates. so that we can remove AND resource_attempt_status IS NOT NULL from query.
   public static final String SELECT_TAXONOMY_REPORT_BY_STANDARDS =
