@@ -3,6 +3,7 @@ package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activej
 import java.util.List;
 import java.util.Map;
 
+import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.converters.ResponseAttributeIdentifier;
@@ -83,7 +84,7 @@ public class SessionTaxonomyReportHandler implements DBHandler {
         List<Map> sessionTaxonomyQuestionResults = null;
        
         //FIXME: writer code should be fixed against splitting taxonomy code. It can be single column in schema. eg : least_code.
-        if (taxonomyRow.get(AJEntitySessionTaxonomyReport.LEARNING_TARGET_ID) != null) {
+        if (taxonomyRow.get(AJEntitySessionTaxonomyReport.LEARNING_TARGET_ID) != null && !taxonomyRow.get(AJEntitySessionTaxonomyReport.LEARNING_TARGET_ID).equals(EventConstants.NA)) {
           aggResult.put(JsonConstants.LEARNING_TARGET_ID, appendHyphen(taxonomyRow.get(AJEntitySessionTaxonomyReport.SUBJECT_ID), taxonomyRow.get(AJEntitySessionTaxonomyReport.COURSE_ID),
                   taxonomyRow.get(AJEntitySessionTaxonomyReport.DOMAIN_ID), taxonomyRow.get(AJEntitySessionTaxonomyReport.STANDARD_ID), taxonomyRow.get(AJEntitySessionTaxonomyReport.LEARNING_TARGET_ID)));
           sessionTaxonomyQuestionResults = Base.findAll(AJEntitySessionTaxonomyReport.SELECT_TAXONOMY_REPORT_BY_MICRO_STANDARDS,
