@@ -54,7 +54,7 @@ public class StudentPeersInCourseHandler implements DBHandler {
       JsonArray StudentPeerArray = new JsonArray();
       this.classId = context.classId();
       this.courseId = context.courseId();
-      List<Map> CoursePeerMap = Base.findAll(AJEntityBaseReports.GET_STUDENT_PEERS_IN_COURSE, this.classId, this.courseId);
+      List<Map> CoursePeerMap = Base.findAll(AJEntityBaseReports.GET_PEERS_COUNT_IN_COURSE, this.classId,this.context.userIdFromSession(), this.courseId);
       if (!CoursePeerMap.isEmpty()) {
         CoursePeerMap.forEach(m -> {
           Integer peerCount = Integer.valueOf(m.get(AJEntityBaseReports.ATTR_PEER_COUNT).toString());

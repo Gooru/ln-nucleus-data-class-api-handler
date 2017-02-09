@@ -55,7 +55,7 @@ public class StudentPeersInUnitHandler implements DBHandler {
         this.classId = context.classId();
         this.courseId = context.courseId();
         this.unitId = context.unitId();
-        List<Map> UnitPeerMap = Base.findAll(AJEntityBaseReports.GET_STUDENT_PEERS_IN_UNIT, this.classId, this.courseId, this.unitId);
+        List<Map> UnitPeerMap = Base.findAll(AJEntityBaseReports.GET_PEERS_COUNT_IN_UNIT, this.classId,this.context.userIdFromSession(), this.courseId, this.unitId);
     
         if (!UnitPeerMap.isEmpty()) {
     
