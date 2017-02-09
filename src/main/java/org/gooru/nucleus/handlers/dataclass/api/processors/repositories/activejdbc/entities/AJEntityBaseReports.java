@@ -90,7 +90,7 @@ public class AJEntityBaseReports extends Model {
             + "WHERE classId = ? AND courseId = ? AND collectionType =?";
     
     public static final String SELECT_STUDENT_COURSE_PERF_FOR_ASSESSMENT =
-              "SELECT SUM(agg.timeSpent) timeSpent, MAX(agg.scoreInPercentage) scoreInPercentage, "
+              "SELECT SUM(agg.timeSpent) timeSpent, ROUND(AVG(agg.scoreInPercentage)) scoreInPercentage, "
             + "SUM(agg.reaction) reaction, SUM(agg.attempts) attempts, agg.unitId, 'completed' AS attemptStatus "
             + "FROM (SELECT timeSpent AS timeSpent, FIRST_VALUE(score) OVER (PARTITION BY collectionid ORDER BY updatetimestamp desc) "
             + "AS scoreInPercentage, reaction AS reaction, views AS attempts, unitId FROM BaseReports "
@@ -152,7 +152,7 @@ public class AJEntityBaseReports extends Model {
             + "AS lessonData GROUP BY lessonId;";
     
     public static final String SELECT_STUDENT_UNIT_PERF_FOR_ASSESSMENT =
-            "SELECT SUM(agg.timeSpent) timeSpent, MAX(agg.scoreInPercentage) scoreInPercentage, "
+            "SELECT SUM(agg.timeSpent) timeSpent, ROUND(AVG(agg.scoreInPercentage)) scoreInPercentage, "
           + "SUM(agg.reaction) reaction, SUM(agg.attempts) attempts, agg.lessonId, 'completed' AS attemptStatus "
           + "FROM (SELECT timeSpent AS timeSpent, FIRST_VALUE(score) OVER (PARTITION BY collectionid ORDER BY updatetimestamp desc) "
           + "AS scoreInPercentage, reaction AS reaction, views AS attempts, lessonId FROM BaseReports "
@@ -175,7 +175,7 @@ public class AJEntityBaseReports extends Model {
                         + "WHERE collectionId = ANY(?::varchar[]) AND actorId = ? GROUP BY collectionId";*/
     
     public static final String SELECT_STUDENT_LESSON_PERF_FOR_ASSESSMENT =
-            "SELECT SUM(agg.timeSpent) timeSpent, MAX(agg.scoreInPercentage) scoreInPercentage, "
+            "SELECT SUM(agg.timeSpent) timeSpent, ROUND(AVG(agg.scoreInPercentage)) scoreInPercentage, "
           + "SUM(agg.reaction) reaction, SUM(agg.attempts) attempts, agg.collectionId, 'completed' AS attemptStatus "
           + "FROM (SELECT timeSpent AS timeSpent, FIRST_VALUE(score) OVER (PARTITION BY collectionid ORDER BY updatetimestamp desc) "
           + "AS scoreInPercentage, reaction AS reaction, views AS attempts, collectionId FROM BaseReports "
