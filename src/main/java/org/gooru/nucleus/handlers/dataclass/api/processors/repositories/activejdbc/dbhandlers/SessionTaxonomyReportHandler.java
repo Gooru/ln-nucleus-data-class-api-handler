@@ -84,20 +84,20 @@ public class SessionTaxonomyReportHandler implements DBHandler {
         List<Map> sessionTaxonomyQuestionResults = null;
        
         //FIXME: writer code should be fixed against splitting taxonomy code. It can be single column in schema. eg : least_code.
-        if (taxonomyRow.get(AJEntitySessionTaxonomyReport.LEARNING_TARGET_ID) != null && !taxonomyRow.get(AJEntitySessionTaxonomyReport.LEARNING_TARGET_ID).equals(EventConstants.NA)) {
+        if (taxonomyRow.get(AJEntitySessionTaxonomyReport.LEARNING_TARGET_ID) != null && taxonomyRow.get(AJEntitySessionTaxonomyReport.LEARNING_TARGET_ID).equals(EventConstants.NA)) {
           aggResult.put(JsonConstants.LEARNING_TARGET_ID, appendHyphen(taxonomyRow.get(AJEntitySessionTaxonomyReport.SUBJECT_ID), taxonomyRow.get(AJEntitySessionTaxonomyReport.COURSE_ID),
                   taxonomyRow.get(AJEntitySessionTaxonomyReport.DOMAIN_ID), taxonomyRow.get(AJEntitySessionTaxonomyReport.STANDARD_ID), taxonomyRow.get(AJEntitySessionTaxonomyReport.LEARNING_TARGET_ID)));
-          sessionTaxonomyQuestionResults = Base.findAll(AJEntitySessionTaxonomyReport.SELECT_TAXONOMY_REPORT_BY_MICRO_STANDARDS,
-                  this.context.sessionId(), taxonomyRow.get(AJEntitySessionTaxonomyReport.SUBJECT_ID),
-                  taxonomyRow.get(AJEntitySessionTaxonomyReport.COURSE_ID), taxonomyRow.get(AJEntitySessionTaxonomyReport.DOMAIN_ID),
-                  taxonomyRow.get(AJEntitySessionTaxonomyReport.STANDARD_ID), taxonomyRow.get(AJEntitySessionTaxonomyReport.LEARNING_TARGET_ID));
+         
         } else {
           aggResult.put(JsonConstants.STANDARDS_ID, appendHyphen(taxonomyRow.get(AJEntitySessionTaxonomyReport.SUBJECT_ID), taxonomyRow.get(AJEntitySessionTaxonomyReport.COURSE_ID),
                   taxonomyRow.get(AJEntitySessionTaxonomyReport.DOMAIN_ID), taxonomyRow.get(AJEntitySessionTaxonomyReport.STANDARD_ID)));
-          sessionTaxonomyQuestionResults = Base.findAll(AJEntitySessionTaxonomyReport.SELECT_TAXONOMY_REPORT_BY_STANDARDS, this.context.sessionId(),
-                  taxonomyRow.get(AJEntitySessionTaxonomyReport.SUBJECT_ID), taxonomyRow.get(AJEntitySessionTaxonomyReport.COURSE_ID),
-                  taxonomyRow.get(AJEntitySessionTaxonomyReport.DOMAIN_ID), taxonomyRow.get(AJEntitySessionTaxonomyReport.STANDARD_ID));
         }
+        
+        sessionTaxonomyQuestionResults = Base.findAll(AJEntitySessionTaxonomyReport.SELECT_TAXONOMY_REPORT_BY_MICRO_STANDARDS,
+                this.context.sessionId(), taxonomyRow.get(AJEntitySessionTaxonomyReport.SUBJECT_ID),
+                taxonomyRow.get(AJEntitySessionTaxonomyReport.COURSE_ID), taxonomyRow.get(AJEntitySessionTaxonomyReport.DOMAIN_ID),
+                taxonomyRow.get(AJEntitySessionTaxonomyReport.STANDARD_ID), taxonomyRow.get(AJEntitySessionTaxonomyReport.LEARNING_TARGET_ID));
+        
         // Generate questions array
         JsonArray questionsArray =
                 ValueMapper.map(ResponseAttributeIdentifier.getSessionTaxReportQuestionAttributesMap(), sessionTaxonomyQuestionResults);
