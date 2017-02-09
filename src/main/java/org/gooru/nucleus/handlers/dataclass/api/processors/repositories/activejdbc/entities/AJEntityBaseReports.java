@@ -234,29 +234,28 @@ public class AJEntityBaseReports extends Model {
     public static final String GET_STUDENT_LOCATION = 
     		"select classid, courseid, unitid, lessonId, collectionId, createTimestamp, updateTimestamp from basereports "
     		+ " WHERE classId = ? AND actorId = ? ORDER BY updateTimestamp DESC LIMIT 1";
-
-    // GET STUDENT's PEERS IN COURSE
-    public static final String GET_STUDENT_PEERS_IN_COURSE = 
-    		"SELECT count(aId) AS peerCount, unitId FROM "
-    		+ "(SELECT DISTINCT ON (actorID) collectionId, courseId, lessonId, unitId as unitId, actorId as aId, "
-    		+ "updateTimeStamp FROM basereports where classid = ? "
-    		+ "ORDER BY actorId, updatetimestamp DESC) AS DS "
-    		+ "WHERE DS.courseId = ?  GROUP BY unitId;";
     
+ // GET STUDENT's PEERS IN COURSE
+    public static final String GET_PEERS_COUNT_IN_COURSE = 
+        "SELECT count(aId) AS peerCount, unitId FROM "
+        + "(SELECT DISTINCT ON (actorID) collectionId, courseId, lessonId, unitId as unitId, actorId as aId, "
+        + "updateTimeStamp FROM basereports where classid = ? AND actorID <> ? "
+        + "ORDER BY actorId, updatetimestamp DESC) AS DS "
+        + "WHERE DS.courseId = ?  GROUP BY unitId;";
+
     // GET STUDENT's PEERS IN UNIT
-    public static final String GET_STUDENT_PEERS_IN_UNIT = 
-    		"SELECT count(aId) AS peerCount, lessonId FROM "
-    		+ "(SELECT DISTINCT ON (actorID) collectionId, courseId, lessonId, unitId as unitId, actorId as aId, "
-    		+ "updateTimeStamp FROM basereports where classid = ? "
-    		+ "ORDER BY actorId, updatetimestamp DESC) AS DS "
-    		+ "WHERE  DS.courseId = ? AND DS.unitId = ?  GROUP BY lessonId";
+    public static final String GET_PEERS_COUNT_IN_UNIT= 
+        "SELECT count(aId) AS peerCount, lessonId FROM "
+        + "(SELECT DISTINCT ON (actorID) collectionId, courseId, lessonId, unitId as unitId, actorId as aId, "
+        + "updateTimeStamp FROM basereports where classid = ? AND actorID <> ? "
+        + "ORDER BY actorId, updatetimestamp DESC) AS DS "
+        + "WHERE  DS.courseId = ? AND DS.unitId = ?  GROUP BY lessonId";
 
-    //GET STUDENT's PEERS IN LESSON
-    public static final String GET_DISTINCT_COLLID_FOR_LESSONID_FILTERBY_COLLTYPE = "SELECT collectionId, aId as actorId, collectionType, updatetimestamp "
+  //GET STUDENT's PEERS IN LESSON
+    public static final String GET_PEERS_IN_LESSON = "SELECT collectionId, aId as actorId, collectionType, updatetimestamp "
             + "FROM (SELECT DISTINCT ON (actorID) collectionId, courseId, lessonId, unitId as unitId, actorId as aId, collectionType, updateTimeStamp "
-            + "FROM basereports where classid = ? ORDER BY actorId, updatetimestamp DESC) AS DS "
+            + "FROM basereports where classid = ? AND actorID <> ? ORDER BY actorId, updatetimestamp DESC) AS DS "
             + "WHERE DS.courseId = ? AND DS.unitId = ?  AND lessonId = ?";
-
 
     public static final String GET_DISTINCT_USERS_FOR_COLLECTION_FILTERBY_COLLTYPE =
             "SELECT DISTINCT(actorID) AS Users, collectionId FROM BaseReports "

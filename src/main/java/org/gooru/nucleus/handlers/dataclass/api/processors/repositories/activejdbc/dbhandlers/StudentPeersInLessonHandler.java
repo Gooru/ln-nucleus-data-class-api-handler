@@ -61,7 +61,7 @@ import io.vertx.core.json.JsonObject;
   
       // If CollectionType is Assessment
       LazyList<AJEntityBaseReports> collIDforAssessment =
-              AJEntityBaseReports.findBySQL(AJEntityBaseReports.GET_DISTINCT_COLLID_FOR_LESSONID_FILTERBY_COLLTYPE, context.classId(),
+              AJEntityBaseReports.findBySQL(AJEntityBaseReports.GET_PEERS_IN_LESSON, context.classId(),this.context.userIdFromSession(),
                       context.courseId(), context.unitId(), context.lessonId());
   
       if (!collIDforAssessment.isEmpty()) {
