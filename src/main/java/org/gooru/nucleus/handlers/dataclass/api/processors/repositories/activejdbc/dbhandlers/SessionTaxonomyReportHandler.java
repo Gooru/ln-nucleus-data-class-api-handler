@@ -84,7 +84,7 @@ public class SessionTaxonomyReportHandler implements DBHandler {
         List<Map> sessionTaxonomyQuestionResults = null;
        
         //FIXME: writer code should be fixed against splitting taxonomy code. It can be single column in schema. eg : least_code.
-        if (taxonomyRow.get(AJEntitySessionTaxonomyReport.LEARNING_TARGET_ID) != null && taxonomyRow.get(AJEntitySessionTaxonomyReport.LEARNING_TARGET_ID).equals(EventConstants.NA)) {
+        if (taxonomyRow.get(AJEntitySessionTaxonomyReport.LEARNING_TARGET_ID) != null && !taxonomyRow.get(AJEntitySessionTaxonomyReport.LEARNING_TARGET_ID).equals(EventConstants.NA)) {
           aggResult.put(JsonConstants.LEARNING_TARGET_ID, appendHyphen(taxonomyRow.get(AJEntitySessionTaxonomyReport.SUBJECT_ID), taxonomyRow.get(AJEntitySessionTaxonomyReport.COURSE_ID),
                   taxonomyRow.get(AJEntitySessionTaxonomyReport.DOMAIN_ID), taxonomyRow.get(AJEntitySessionTaxonomyReport.STANDARD_ID), taxonomyRow.get(AJEntitySessionTaxonomyReport.LEARNING_TARGET_ID)));
          
