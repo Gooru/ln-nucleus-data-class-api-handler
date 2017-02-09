@@ -58,7 +58,7 @@ public class AJEntitySessionTaxonomyReport extends Model {
           "SELECT time_spent, (score*100) as score ,reaction, views, question_type, resource_id, resource_attempt_status FROM taxonomy_report WHERE session_id = ? AND resource_type = 'question' AND subject_id = ? AND course_id = ? AND domain_id = ? AND standard_id = ? AND learning_target_id IS NULL AND resource_attempt_status IS NOT NULL;";
   //FIXME : Writer code should be fixed to avoid duplicates. so that we can remove AND resource_attempt_status IS NOT NULL from query.
   public static final String SELECT_TAXONOMY_REPORT_BY_MICRO_STANDARDS =
-          "SELECT time_spent, ((score*100) as score ,reaction, views, question_type, resource_id, resource_attempt_status FROM taxonomy_report WHERE session_id = ? AND resource_type = 'question' AND subject_id = ? AND course_id = ? AND domain_id = ? AND standard_id = ? AND learning_target_id = ? AND resource_attempt_status IS NOT NULL;";
+          "SELECT time_spent, (score*100) as score ,reaction, views, question_type, resource_id, resource_attempt_status FROM taxonomy_report WHERE session_id = ? AND resource_type = 'question' AND subject_id = ? AND course_id = ? AND domain_id = ? AND standard_id = ? AND learning_target_id = ? AND resource_attempt_status IS NOT NULL;";
 
   public void setResourceAttemptStatus(String answerStatus) {
     setPGObject(RESOURCE_ATTEMPT_STATUS, RESOURCE_ATTEMPT_STATUS_TYPE, answerStatus);
