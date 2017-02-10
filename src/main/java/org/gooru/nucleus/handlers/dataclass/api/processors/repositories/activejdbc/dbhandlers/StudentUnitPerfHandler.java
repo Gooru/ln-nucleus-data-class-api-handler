@@ -132,20 +132,19 @@ import io.vertx.core.json.JsonObject;
                 this.lessonId = m.get(AJEntityBaseReports.LESSON_GOORU_OID).toString();
                 LOGGER.debug("The Value of LESSONID " + lessonId);
     
-                int compCount = 0;
-                Object completedCountObj = Base.firstCell(AJEntityBaseReports.GET_COMPLETED_COLLID_COUNT_FOREACH_LESSONID, context.classId(),
+                List<Map> completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLLID_COUNT_FOREACH_LESSONID, context.classId(),
                         context.courseId(), context.unitId(), this.lessonId, this.collectionType, userID, EventConstants.COLLECTION_PLAY);
-                if (completedCountObj != null) {
-                  compCount = Integer.valueOf(completedCountObj.toString());
-                } else {
-                  compCount = 0;
-                }
-                LOGGER.debug("compCount : {}", compCount);
     
                 JsonObject lessonData = ValueMapper.map(ResponseAttributeIdentifier.getUnitPerformanceAttributesMap(), m);
+                completedCountMap.forEach( scoreCompletonMap -> {
+                  lessonData.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, Integer.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
+                  lessonData.put(AJEntityBaseReports.ATTR_SCORE,  Integer.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE).toString()));
+                  LOGGER.debug("UnitID : {} - UserID : {} - Score : {}",lessonId,userID,Integer.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE).toString()));
+                  LOGGER.debug("UnitID : {} - UserID : {} - completedCount : {}",lessonId,userID,Integer.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
+
+                });
                 // FIXME: Total count will be taken from nucleus core.
                 lessonData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
-                lessonData.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, compCount);
                 // FIXME : Revisit this logic in future.
                 if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
                   lessonData.put(EventConstants.VIEWS, lessonData.getInteger(EventConstants.ATTEMPTS));
