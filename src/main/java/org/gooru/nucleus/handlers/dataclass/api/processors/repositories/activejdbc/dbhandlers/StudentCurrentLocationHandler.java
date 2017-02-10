@@ -47,7 +47,8 @@ public class StudentCurrentLocationHandler implements DBHandler {
 
     @Override
     public ExecutionResult<MessageResponse> validateRequest() {
-      if (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest())) {
+      //FIXME: to be reverted
+    /*  if (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest())) {
         LOGGER.debug("User ID in the session : {}", context.userIdFromSession());
         List<Map> creator = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_CREATOR, this.context.classId(), this.context.userIdFromSession());
         if (creator.isEmpty()) {
@@ -59,7 +60,7 @@ public class StudentCurrentLocationHandler implements DBHandler {
           LOGGER.debug("User is a collaborator of this class.");
         }
         LOGGER.debug("User is teacher of this class.");
-      }
+      }*/
       LOGGER.debug("validateRequest() OK");
       return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
     }

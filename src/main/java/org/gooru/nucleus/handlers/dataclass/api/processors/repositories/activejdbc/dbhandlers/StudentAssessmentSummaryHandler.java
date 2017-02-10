@@ -58,7 +58,8 @@ public class StudentAssessmentSummaryHandler implements DBHandler {
     @Override
     @SuppressWarnings("rawtypes")
     public ExecutionResult<MessageResponse> validateRequest() {
-      if (context.getUserIdFromRequest() == null
+      //FIXME: to be reverted
+      /*if (context.getUserIdFromRequest() == null
               || (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
         List<Map> creator = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_CREATOR, this.context.classId(), this.context.userIdFromSession());
         if (creator.isEmpty()) {
@@ -68,7 +69,7 @@ public class StudentAssessmentSummaryHandler implements DBHandler {
             return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"), ExecutionStatus.FAILED);
           }
         }
-      }
+      }*/
       LOGGER.debug("validateRequest() OK");
       return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
     }
