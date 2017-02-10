@@ -232,7 +232,7 @@ public class AJEntityBaseReports extends Model {
   //*************************************************************************************************************************
     // GET CURRENT STUDENT LOCATITON
     public static final String GET_STUDENT_LOCATION = 
-    		"select classid, courseid, unitid, lessonId, collectionId, createTimestamp, updateTimestamp from basereports "
+    		"select classid, courseid, unitid, lessonId, collectionId,collectiontype, createTimestamp, updateTimestamp from basereports "
     		+ " WHERE classId = ? AND actorId = ? ORDER BY updateTimestamp DESC LIMIT 1";
     
  // GET STUDENT's PEERS IN COURSE
