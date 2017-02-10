@@ -129,20 +129,19 @@ class StudentCoursePerfHandler implements DBHandler {
                     unitId = m.get(AJEntityBaseReports.UNIT_GOORU_OID).toString();
                     LOGGER.debug("The Value of UNITID " + unitId);
                     
-                    int compCount = 0;
-                    Object completedCountObj = Base.firstCell(AJEntityBaseReports.GET_COMPLETED_COLLID_COUNT_FOREACH_UNITID, context.classId(),
+                    List<Map> completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLLID_COUNT_FOREACH_UNITID, context.classId(),
                             context.courseId(), unitId, this.collectionType, userID, EventConstants.COLLECTION_PLAY);
-                    if (completedCountObj != null) {
-                      compCount = Integer.valueOf(completedCountObj.toString());
-                    } else {
-                      compCount = 0;
-                    }
-                    LOGGER.debug("compCount : {}", compCount);
                     
                     JsonObject unitData = ValueMapper.map(ResponseAttributeIdentifier.getCoursePerformanceAttributesMap(), m);
-                   //FIXME: Total count will be taken from nucleus core.
+                    completedCountMap.forEach( scoreCompletonMap -> {
+                      unitData.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, Integer.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
+                      unitData.put(AJEntityBaseReports.ATTR_SCORE,  Integer.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE).toString()));
+                      LOGGER.debug("UnitID : {} - UserID : {} - Score : {}",unitId,userID,Integer.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE).toString()));
+                      LOGGER.debug("UnitID : {} - UserID : {} - completedCount : {}",unitId,userID,Integer.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
+
+                    });
+                    //FIXME: Total count will be taken from nucleus core.
                     unitData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
-                    unitData.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, compCount);
                     //FIXME : Revisit this logic in future.
                     if(this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)){
                       unitData.put(EventConstants.VIEWS, unitData.getInteger(EventConstants.ATTEMPTS));

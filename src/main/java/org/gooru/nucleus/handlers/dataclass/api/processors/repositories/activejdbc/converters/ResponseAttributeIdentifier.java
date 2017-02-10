@@ -112,7 +112,6 @@ public class ResponseAttributeIdentifier {
   static {
     coursePerformanceAttributes = new HashMap<>();
     coursePerformanceAttributes.put("timeSpent", "timeSpent");
-    coursePerformanceAttributes.put("scoreInPercentage", "scoreInPercentage");
     coursePerformanceAttributes.put("attempts", "attempts");
     coursePerformanceAttributes.put("reaction", "reaction");
     coursePerformanceAttributes.put("unitId", "unitId");
@@ -122,7 +121,6 @@ public class ResponseAttributeIdentifier {
   static {
     unitPerformanceAttributes = new HashMap<>();
     unitPerformanceAttributes.put("timeSpent", "timeSpent");
-    unitPerformanceAttributes.put("scoreInPercentage", "scoreInPercentage");
     unitPerformanceAttributes.put("attempts", "attempts");
     unitPerformanceAttributes.put("reaction", "reaction");
     unitPerformanceAttributes.put("lessonId", "lessonId");
