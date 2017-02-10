@@ -45,7 +45,8 @@ public class SessionTaxonomyReportHandler implements DBHandler {
   @Override
   @SuppressWarnings("rawtypes")
   public ExecutionResult<MessageResponse> validateRequest() {
-    List<Map> baseResults = Base.findAll(AJEntityBaseReports.SELECT_CLASS_USER_BY_SESSION_ID, this.context.sessionId());
+    //FIXME: to be reverted
+    /*List<Map> baseResults = Base.findAll(AJEntityBaseReports.SELECT_CLASS_USER_BY_SESSION_ID, this.context.sessionId());
     if (CollectionUtil.isNotEmpty(baseResults)) {
       if (!context.userIdFromSession().equalsIgnoreCase(baseResults.get(0).get(AJEntityBaseReports.GOORUUID).toString())) {
         LOGGER.debug("User ID in the session : {}", context.userIdFromSession());
@@ -66,7 +67,7 @@ public class SessionTaxonomyReportHandler implements DBHandler {
       }
     } else {
       return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("Given sessionId/attemptId is not valid"), ExecutionStatus.FAILED);
-    }
+    }*/
     LOGGER.debug("validateRequest() OK");
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
   }
