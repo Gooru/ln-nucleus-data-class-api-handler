@@ -232,7 +232,55 @@ public class AJEntityBaseReports extends Model {
             + " WHERE classid = ? AND courseid = ? AND unitid = ? AND lessonid = ? AND collectionid = ? AND actorid = ? AND eventName = ?"
             ; 
   //*************************************************************************************************************************
-    // GET CURRENT STUDENT LOCATITON
+    //Collection Summary report Queries
+    //Getting collection question count
+    public static final String SELECT_COLLECTION_QUESTION_COUNT = "SELECT question_count,updatetimestamp FROM BaseReports "
+            + "WHERE classid = ? AND courseid = ? AND unitid = ? AND lessonid = ? AND collectionid = ? AND actorid = ? AND eventname = 'collection.play'"
+            + " ORDER BY updatetimestamp DESC LIMIT 1";
+    
+    //Getting COLLECTION DATA (views, timespent)
+    public static final String SELECT_COLLECTION_AGG_DATA = "SELECT SUM(agg.timespent) AS collectiontimespent, SUM(agg.views) AS collectionviews,"
+            + "agg.collectionId, agg.completionStatus, 0 AS score, 0 AS reaction FROM "
+            + "(SELECT collectionid,timespent,sessionid,views,"
+            + "CASE  WHEN (FIRST_VALUE(eventtype) OVER (PARTITION BY collectionid ORDER BY updatetimestamp desc) = 'stop') THEN 'completed' ELSE 'in-progress' END AS completionStatus "
+            + "FROM BaseReports WHERE classid = ? AND courseid = ? AND unitid = ? AND lessonid = ? AND collectionid = ? AND actorid = ? AND eventname = 'collection.play' ) AS agg "
+            + "GROUP BY agg.collectionId,agg.completionStatus";
+    //Getting COLLECTION DATA (score)
+    public static final String SELECT_COLLECTION_AGG_SCORE = "SELECT SUM(agg.score) AS score FROM "
+            + "(SELECT DISTINCT ON (resourceid) collectionid, "
+            + "FIRST_VALUE(score) OVER (PARTITION BY resourceid ORDER BY updatetimestamp desc) AS score "
+            + "FROM BaseReports WHERE classid = ? AND courseid = ? AND unitid = ? AND lessonid = ? AND collectionid = ? AND actorid = ? AND "
+            + "eventname = 'collection.resource.play' AND resourcetype = 'question' AND resourceattemptstatus = 'skipped' ) AS agg "
+            + "GROUP BY agg.collectionId";
+    //Getting COLLECTION DATA (reaction)
+    public static final String SELECT_COLLECTION_AGG_REACTION = "SELECT ROUND(AVG(agg.reaction)) AS reaction "
+            + "FROM (SELECT DISTINCT ON (resourceid) collectionid,  "
+            + "FIRST_VALUE(reaction) OVER (PARTITION BY resourceid ORDER BY updatetimestamp desc) "
+            + "AS reaction FROM BaseReports "
+            + "WHERE classid = ? AND courseid = ? AND unitid = ? AND lessonid = ? AND collectionid = ? "
+            + "AND actorid = ? AND eventname = 'collection.resource.play' AND reaction <> 0) AS agg GROUP BY agg.collectionId";
+    //Getting RESOURCE DATA (views, timespent)
+    public static final String SELECT_COLLECTION_RESOURCE_AGG_DATA = "SELECT collectionid, resourceid ,resourcetype,questiontype, SUM(views) AS resourceviews, "
+            + "SUM(timespent) AS resourcetimespent, 0 as reaction, 0 as score, '[]' AS answerobject "
+            + "FROM BaseReports WHERE classid = ? AND courseid = ? AND unitid = ? AND lessonid = ? AND collectionid = ? "
+            + "AND actorid = ? AND eventname = 'collection.resource.play' GROUP BY collectionid, resourceid,resourcetype,questiontype";
+  //Getting RESOURCE DATA (score)
+    public static final String SELECT_COLLECTION_QUESTION_AGG_SCORE = "SELECT DISTINCT ON (resourceid) "
+            + "FIRST_VALUE(score) OVER (PARTITION BY resourceid "
+            + "ORDER BY updatetimestamp desc) AS score, FIRST_VALUE(answerobject) OVER (PARTITION BY resourceid ORDER BY updatetimestamp desc) AS answerobject "
+            + "FROM BaseReports WHERE classid = ? AND courseid = ? AND unitid = ? AND lessonid = ? AND collectionid = ? AND resourceid = ?"
+            + "AND actorid = ? AND eventname = 'collection.resource.play' AND resourcetype = 'question' AND resourceattemptstatus = 'skipped'";
+  //Getting RESOURCE DATA (reaction)
+    public static final String SELECT_COLLECTION_RESOURCE_AGG_REACTION = "SELECT DISTINCT ON (resourceid) "
+            + "FIRST_VALUE(reaction) OVER (PARTITION BY resourceid "
+            + "ORDER BY updatetimestamp desc) AS reaction "
+            + "FROM BaseReports WHERE classid = ? AND courseid = ? AND unitid = ? AND lessonid = ? AND collectionid = ? AND resourceid = ? "
+            + "AND actorid = ? AND eventname = 'collection.resource.play' AND reaction <> 0";
+      
+  //Getting RESOURCE DATA (reaction)
+     
+  //*************************************************************************************************************************
+      // GET CURRENT STUDENT LOCATITON
     public static final String GET_STUDENT_LOCATION = 
     		"select classid, courseid, unitid, lessonId, collectionId,collectiontype, createTimestamp, updateTimestamp from basereports "
     		+ " WHERE classId = ? AND actorId = ? ORDER BY updateTimestamp DESC LIMIT 1";
