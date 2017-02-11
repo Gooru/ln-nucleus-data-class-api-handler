@@ -147,7 +147,7 @@ public class StudentCollectionSummaryHandler implements DBHandler {
                 if(!questionScore.isEmpty()){
                 questionScore.forEach(qs ->{
                   qnData.put(JsonConstants.SCORE, Integer.valueOf(qs.get(AJEntityBaseReports.SCORE).toString()) * 100);
-                  qnData.put(JsonConstants.ANSWER_OBJECT, new JsonArray(questions.get(AJEntityBaseReports.ANSWER_OBECT).toString()));
+                  qnData.put(JsonConstants.ANSWER_OBJECT, new JsonArray(qs.get(AJEntityBaseReports.ANSWER_OBECT).toString()));
                   qnData.put(EventConstants.ANSWERSTATUS, qs.get(AJEntityBaseReports.ATTR_ATTEMPT_STATUS).toString());
                   LOGGER.debug("Question Score : {} - resourceId : {}" ,qs.get(AJEntityBaseReports.SCORE).toString(), questions.get(AJEntityBaseReports.RESOURCE_ID));
                 });
