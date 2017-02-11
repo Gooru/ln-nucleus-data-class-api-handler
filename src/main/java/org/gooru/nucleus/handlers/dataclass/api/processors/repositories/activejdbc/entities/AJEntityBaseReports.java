@@ -250,7 +250,7 @@ public class AJEntityBaseReports extends Model {
             + "(SELECT DISTINCT ON (resourceid) collectionid, "
             + "FIRST_VALUE(score) OVER (PARTITION BY resourceid ORDER BY updatetimestamp desc) AS score "
             + "FROM BaseReports WHERE classid = ? AND courseid = ? AND unitid = ? AND lessonid = ? AND collectionid = ? AND actorid = ? AND "
-            + "eventname = 'collection.resource.play' AND resourcetype = 'question' AND resourceattemptstatus = 'skipped' ) AS agg "
+            + "eventname = 'collection.resource.play' AND resourcetype = 'question' AND resourceattemptstatus <> 'skipped' ) AS agg "
             + "GROUP BY agg.collectionId";
     //Getting COLLECTION DATA (reaction)
     public static final String SELECT_COLLECTION_AGG_REACTION = "SELECT ROUND(AVG(agg.reaction)) AS reaction "
@@ -267,9 +267,9 @@ public class AJEntityBaseReports extends Model {
   //Getting RESOURCE DATA (score)
     public static final String SELECT_COLLECTION_QUESTION_AGG_SCORE = "SELECT DISTINCT ON (resourceid) "
             + "FIRST_VALUE(score) OVER (PARTITION BY resourceid "
-            + "ORDER BY updatetimestamp desc) AS score, FIRST_VALUE(answerobject) OVER (PARTITION BY resourceid ORDER BY updatetimestamp desc) AS answerobject "
+            + "ORDER BY updatetimestamp desc) AS score,FIRST_VALUE(resourceattemptstatus) OVER (PARTITION BY resourceid ORDER BY updatetimestamp desc) AS attemptStatus, FIRST_VALUE(answerobject) OVER (PARTITION BY resourceid ORDER BY updatetimestamp desc) AS answerobject "
             + "FROM BaseReports WHERE classid = ? AND courseid = ? AND unitid = ? AND lessonid = ? AND collectionid = ? AND resourceid = ?"
-            + "AND actorid = ? AND eventname = 'collection.resource.play' AND resourcetype = 'question' AND resourceattemptstatus = 'skipped'";
+            + "AND actorid = ? AND eventname = 'collection.resource.play' AND resourcetype = 'question' AND resourceattemptstatus <> 'skipped'";
   //Getting RESOURCE DATA (reaction)
     public static final String SELECT_COLLECTION_RESOURCE_AGG_REACTION = "SELECT DISTINCT ON (resourceid) "
             + "FIRST_VALUE(reaction) OVER (PARTITION BY resourceid "

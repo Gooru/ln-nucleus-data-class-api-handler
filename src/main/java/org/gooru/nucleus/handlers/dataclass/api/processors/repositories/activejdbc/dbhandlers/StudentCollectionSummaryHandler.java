@@ -138,12 +138,17 @@ public class StudentCollectionSummaryHandler implements DBHandler {
               if(questions.get(AJEntityBaseReports.ANSWER_OBECT) != null){
                 qnData.put(JsonConstants.ANSWER_OBJECT, new JsonArray(questions.get(AJEntityBaseReports.ANSWER_OBECT).toString()));
               }
+              //Default answerStatus will be skipped
+              if(qnData.getString(EventConstants.RESOURCE_TYPE).equalsIgnoreCase(EventConstants.QUESTION)){
+                qnData.put(EventConstants.ANSWERSTATUS, EventConstants.SKIPPED);
+              }
               if(this.questionCount > 0){
                 List<Map> questionScore = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_QUESTION_AGG_SCORE, classId,courseId,unitId,lessonId,collectionId,questions.get(AJEntityBaseReports.RESOURCE_ID),this.userId);
                 if(!questionScore.isEmpty()){
                 questionScore.forEach(qs ->{
                   qnData.put(JsonConstants.SCORE, Integer.valueOf(qs.get(AJEntityBaseReports.SCORE).toString()) * 100);
                   qnData.put(JsonConstants.ANSWER_OBJECT, new JsonArray(questions.get(AJEntityBaseReports.ANSWER_OBECT).toString()));
+                  qnData.put(EventConstants.ANSWERSTATUS, qs.get(AJEntityBaseReports.ATTR_ATTEMPT_STATUS).toString());
                   LOGGER.debug("Question Score : {} - resourceId : {}" ,qs.get(AJEntityBaseReports.SCORE).toString(), questions.get(AJEntityBaseReports.RESOURCE_ID));
                 });
                 }
