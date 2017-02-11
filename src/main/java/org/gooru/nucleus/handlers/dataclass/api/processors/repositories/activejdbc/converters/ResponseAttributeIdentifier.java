@@ -58,9 +58,9 @@ public class ResponseAttributeIdentifier {
     sessionCollectionAttributes.put("collectionid", "gooruOId");
     sessionCollectionAttributes.put("reaction", "reaction");
     sessionCollectionAttributes.put("collectiontimespent", "timeSpent");
-    sessionCollectionAttributes.put("updatetimestamp", "eventTime");
-    sessionCollectionAttributes.put("sessionid", "sessionId");
-    sessionCollectionAttributes.put("collectiontype", "resourceType");
+   // sessionCollectionAttributes.put("updatetimestamp", "eventTime");
+  //  sessionCollectionAttributes.put("sessionid", "sessionId");
+   // sessionCollectionAttributes.put("collectiontype", "resourceType");
     sessionCollectionAttributes.put("collectionviews", "views");
 
     
@@ -68,11 +68,11 @@ public class ResponseAttributeIdentifier {
   static {
     sessionCollectionResouceAttributes = new HashMap<>();
     sessionCollectionResouceAttributes.put("score", "score");
-    sessionCollectionResouceAttributes.put("collectionid", "gooruOId");
+    sessionCollectionResouceAttributes.put("resourceid", "gooruOId");
     sessionCollectionResouceAttributes.put("reaction", "reaction");
     sessionCollectionResouceAttributes.put("resourcetimespent", "timeSpent");
     sessionCollectionResouceAttributes.put("createtimestamp", "eventTime");
-    sessionCollectionResouceAttributes.put("sessionid", "sessionId");
+    //sessionCollectionResouceAttributes.put("sessionid", "sessionId");
     sessionCollectionResouceAttributes.put("resourcetype", "resourceType");
     sessionCollectionResouceAttributes.put("questiontype", "questionType");
     sessionCollectionResouceAttributes.put("resourceviews", "views");

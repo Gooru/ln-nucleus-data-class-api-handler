@@ -1,5 +1,6 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
 
@@ -8,7 +9,6 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.converters.ResponseAttributeIdentifier;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
-import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.converters.ValueMapper;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
@@ -34,7 +34,9 @@ public class StudentCollectionSummaryHandler implements DBHandler {
 	  private static final Logger LOGGER = LoggerFactory.getLogger(StudentCollectionSummaryHandler.class);
     private final ProcessorContext context;
     private String userId;
-
+    private int questionCount = 0 ;
+    private long lastAccessedTime;
+    
     public StudentCollectionSummaryHandler(ProcessorContext context) {
         this.context = context;
     }
@@ -89,19 +91,45 @@ public class StudentCollectionSummaryHandler implements DBHandler {
       LOGGER.info("cID : {} , ClassID : {} ", collectionId, classId);
 
       if (!StringUtil.isNullOrEmpty(classId) && !StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
-        List<Map> assessmentKPI = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_FOREACH_COLLID_AND_SESSIONID, classId,courseId,unitId,lessonId,collectionId,this.userId,
-                AJEntityBaseReports.ATTR_CP_EVENTNAME);
   
-        if (!assessmentKPI.isEmpty()) {
-          LOGGER.debug("COllection Attributes obtained");
-          assessmentKPI.stream().forEach(m -> {
+        //Getting Question Count 
+
+        List<Map> collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_QUESTION_COUNT, classId,courseId,unitId,lessonId,collectionId,this.userId);
+        collectionQuestionCount.forEach(qc -> {
+          this.questionCount = Integer.valueOf(qc.get(AJEntityBaseReports.QUESTION_COUNT).toString());
+          this.lastAccessedTime = Timestamp.valueOf(qc.get(AJEntityBaseReports.UPDATE_TIMESTAMP).toString()).getTime();
+        });
+        
+        List<Map> collectionData = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_AGG_DATA, classId,courseId,unitId,lessonId,collectionId,this.userId);
+  
+        if (!collectionData.isEmpty()) {
+          LOGGER.debug("Collection Attributes obtained");
+          collectionData.stream().forEach(m -> {
             JsonObject assessmentData = ValueMapper.map(ResponseAttributeIdentifier.getSessionCollectionAttributesMap(), m);
+            assessmentData.put(EventConstants.EVENT_TIME, this.lastAccessedTime);
+            assessmentData.put(EventConstants.SESSION_ID, EventConstants.NA);
+            assessmentData.put(EventConstants.RESOURCE_TYPE, AJEntityBaseReports.ATTR_COLLECTION);
+            long scoreInPercent=0;
+            int reaction=0;
+            if(this.questionCount > 0){
+              Object collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_SCORE, classId,courseId,unitId,lessonId,collectionId,this.userId);
+              if(collectionScore != null){
+                scoreInPercent =  Math.round(((double) Integer.valueOf(collectionScore.toString()) / this.questionCount) * 100);
+              }
+            }
+            LOGGER.debug("Collection score : {} - collectionId : {}" , scoreInPercent, collectionId);
+            assessmentData.put(AJEntityBaseReports.SCORE, (scoreInPercent));           
+            Object collectionReaction = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_REACTION, classId,courseId,unitId,lessonId,collectionId,this.userId);
+            if(collectionReaction != null){
+              reaction = Integer.valueOf(collectionReaction.toString());
+            }
+            LOGGER.debug("Collection reaction : {} - collectionId : {}" , reaction, collectionId);
+            assessmentData.put(AJEntityBaseReports.ATTR_REACTION, (reaction));
             assessmentDataKPI.put(JsonConstants.COLLECTION, assessmentData);
           });
           LOGGER.debug("Collection resource Attributes started");
-          List<Map> assessmentQuestionsKPI = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_RESOURCE_FOREACH_COLLID_AND_SESSIONID,
-                  classId,courseId,unitId,lessonId,collectionId,this.userId, AJEntityBaseReports.ATTR_CRP_EVENTNAME);
-          
+          List<Map> assessmentQuestionsKPI = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_RESOURCE_AGG_DATA,
+                  classId,courseId,unitId,lessonId,collectionId,this.userId);
           JsonArray questionsArray = new JsonArray();
           if(!assessmentQuestionsKPI.isEmpty()){
             assessmentQuestionsKPI.stream().forEach(questions -> {
@@ -110,6 +138,25 @@ public class StudentCollectionSummaryHandler implements DBHandler {
               if(questions.get(AJEntityBaseReports.ANSWER_OBECT) != null){
                 qnData.put(JsonConstants.ANSWER_OBJECT, new JsonArray(questions.get(AJEntityBaseReports.ANSWER_OBECT).toString()));
               }
+              if(this.questionCount > 0){
+                List<Map> questionScore = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_QUESTION_AGG_SCORE, classId,courseId,unitId,lessonId,collectionId,questions.get(AJEntityBaseReports.RESOURCE_ID),this.userId);
+                if(!questionScore.isEmpty()){
+                questionScore.forEach(qs ->{
+                  qnData.put(JsonConstants.SCORE, Integer.valueOf(qs.get(AJEntityBaseReports.SCORE).toString()) * 100);
+                  qnData.put(JsonConstants.ANSWER_OBJECT, new JsonArray(questions.get(AJEntityBaseReports.ANSWER_OBECT).toString()));
+                  LOGGER.debug("Question Score : {} - resourceId : {}" ,qs.get(AJEntityBaseReports.SCORE).toString(), questions.get(AJEntityBaseReports.RESOURCE_ID));
+                });
+                }
+               }
+              List<Map> resourceReaction = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_RESOURCE_AGG_REACTION, classId,courseId,unitId,lessonId,collectionId,questions.get(AJEntityBaseReports.RESOURCE_ID),this.userId);
+              if(!resourceReaction.isEmpty()){
+              resourceReaction.forEach(rs ->{
+                qnData.put(JsonConstants.REACTION, Integer.valueOf(rs.get(AJEntityBaseReports.REACTION).toString()));
+                LOGGER.debug("Resource reaction: {} - resourceId : {}" ,rs.get(AJEntityBaseReports.REACTION).toString(), questions.get(AJEntityBaseReports.RESOURCE_ID));
+              });
+              }
+              qnData.put(EventConstants.EVENT_TIME, this.lastAccessedTime);
+              qnData.put(EventConstants.SESSION_ID, EventConstants.NA);
               questionsArray.add(qnData);
             });
           }
