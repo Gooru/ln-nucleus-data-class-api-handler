@@ -213,7 +213,7 @@ public class AJEntityBaseReports extends Model {
     
     
     public static final String SELECT_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSIONID =
-            "select  distinct on (resourceid) FIRST_VALUE(score) OVER (PARTITION BY resourceid ORDER BY updatetimestamp desc) AS score,"
+            "select  distinct on (resourceid) FIRST_VALUE(score * 100) OVER (PARTITION BY resourceid ORDER BY updatetimestamp desc) AS score,"
             + "resourceid,FIRST_VALUE(reaction) OVER (PARTITION BY resourceid ORDER BY updatetimestamp desc) AS reaction,"
             + "FIRST_VALUE(timespent) OVER (PARTITION BY resourceid ORDER BY updatetimestamp desc) as resourcetimespent,"
             + "updatetimestamp,sessionid,collectiontype,"
