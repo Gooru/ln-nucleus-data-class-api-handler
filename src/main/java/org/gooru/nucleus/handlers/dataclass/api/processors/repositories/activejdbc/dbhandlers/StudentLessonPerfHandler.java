@@ -10,7 +10,6 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.converters.ResponseAttributeIdentifier;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
-import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.converters.ValueMapper;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
@@ -38,7 +37,8 @@ public class StudentLessonPerfHandler implements DBHandler {
     private final ProcessorContext context;
     private String collectionType;
     private String userId;
-
+    private long questionCount;
+    
     public StudentLessonPerfHandler(ProcessorContext context) {
         this.context = context;
     }
@@ -121,9 +121,14 @@ public class StudentLessonPerfHandler implements DBHandler {
           LOGGER.info("Got a list of Distinct collectionIDs for this lesson");
           collIDforlesson.forEach(coll -> collIds.add(coll.getString(AJEntityBaseReports.COLLECTION_OID)));
         }
-        
-        List<Map> assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF_FOR_ASSESSMENT, context.classId(),
+        List<Map> assessmentKpi = null; 
+        if(this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)){
+        assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF_FOR_COLLECTION, context.classId(),
                 context.courseId(), context.unitId(), context.lessonId(), listToPostgresArrayString(collIds), userID, EventConstants.COLLECTION_PLAY);
+        }else{
+        assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF_FOR_ASSESSMENT, context.classId(),
+                  context.courseId(), context.unitId(), context.lessonId(), listToPostgresArrayString(collIds), userID, EventConstants.COLLECTION_PLAY);
+        }
         if (!assessmentKpi.isEmpty()) {
           assessmentKpi.forEach(m -> {
             JsonObject lessonKpi = ValueMapper.map(ResponseAttributeIdentifier.getLessonPerformanceAttributesMap(), m);
@@ -132,6 +137,20 @@ public class StudentLessonPerfHandler implements DBHandler {
             lessonKpi.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
             // FIXME: This logic to be revisited.
             if (this.collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {
+              List<Map> collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_QUESTION_COUNT, context.classId(),
+                      context.courseId(), context.unitId(), context.lessonId(), lessonKpi.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID),this.userId);
+              collectionQuestionCount.forEach(qc -> {
+                this.questionCount = Integer.valueOf(qc.get(AJEntityBaseReports.QUESTION_COUNT).toString());
+              });
+              long scoreInPercent=0;
+              if(this.questionCount > 0){
+                Object collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_SCORE, context.classId(),
+                        context.courseId(), context.unitId(), context.lessonId(), lessonKpi.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID),this.userId);
+                if(collectionScore != null){
+                  scoreInPercent =  Math.round(((double) Integer.valueOf(collectionScore.toString()) / this.questionCount) * 100);
+                }
+              } 
+              lessonKpi.put(AJEntityBaseReports.ATTR_SCORE, scoreInPercent);
               lessonKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, lessonKpi.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID));
               lessonKpi.remove(AJEntityBaseReports.ATTR_ASSESSMENT_ID);
               lessonKpi.put(EventConstants.VIEWS, lessonKpi.getInteger(EventConstants.ATTEMPTS));

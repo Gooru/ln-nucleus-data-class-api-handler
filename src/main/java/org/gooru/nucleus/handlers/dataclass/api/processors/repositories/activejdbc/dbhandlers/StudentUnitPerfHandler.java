@@ -1,6 +1,7 @@
     package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
     
-    import java.util.ArrayList;
+    import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +44,8 @@ import io.vertx.core.json.JsonObject;
     
       // For stuffing Json
       private String lessonId;
-    
+      private long questionCount;
+      
       public StudentUnitPerfHandler(ProcessorContext context) {
         this.context = context;
       }
@@ -124,18 +126,26 @@ import io.vertx.core.json.JsonObject;
             LOGGER.debug("Got a list of Distinct lessonIDs for this Unit");
     
             lessonIDforUnit.forEach(lesson -> lessonIds.add(lesson.getString(AJEntityBaseReports.LESSON_GOORU_OID)));
-    
-            List<Map> lessonKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_UNIT_PERF_FOR_ASSESSMENT, context.classId(), context.courseId(),
+            List<Map> lessonKpi = null;
+            if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
+              lessonKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_UNIT_PERF_FOR_COLLECTION, context.classId(), context.courseId(),
                     context.unitId(), this.collectionType, userID, listToPostgresArrayString(lessonIds), EventConstants.COLLECTION_PLAY);
-    
+            }else{
+              lessonKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_UNIT_PERF_FOR_ASSESSMENT, context.classId(), context.courseId(),
+                      context.unitId(), this.collectionType, userID, listToPostgresArrayString(lessonIds), EventConstants.COLLECTION_PLAY);
+            }
             if (!lessonKpi.isEmpty()) {
               lessonKpi.forEach(m -> {
                 this.lessonId = m.get(AJEntityBaseReports.LESSON_GOORU_OID).toString();
                 LOGGER.debug("The Value of LESSONID " + lessonId);
-    
-                List<Map> completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLLID_COUNT_FOREACH_LESSONID, context.classId(),
+                List<Map> completedCountMap = null;
+                if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
+                  completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLLID_COUNT_FOREACH_LESSONID, context.classId(),
                         context.courseId(), context.unitId(), this.lessonId, this.collectionType, userID, EventConstants.COLLECTION_PLAY);
-    
+                }else{
+                  completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLLID_COUNT_FOREACH_LESSONID, context.classId(),
+                          context.courseId(), context.unitId(), this.lessonId, this.collectionType, userID, EventConstants.COLLECTION_PLAY);   
+                }
                 JsonObject lessonData = ValueMapper.map(ResponseAttributeIdentifier.getUnitPerformanceAttributesMap(), m);
                 completedCountMap.forEach( scoreCompletonMap -> {
                   lessonData.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, Integer.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
@@ -161,18 +171,36 @@ import io.vertx.core.json.JsonObject;
                   LOGGER.info("Got a list of Distinct collectionIDs for this lesson");
                   collIDforlesson.forEach(coll -> collIds.add(coll.getString(AJEntityBaseReports.COLLECTION_OID)));
                 }
-                List<Map> assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF_FOR_ASSESSMENT, context.classId(),
+                List<Map> assessmentKpi = null;
+                if(this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)){
+                  assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF_FOR_ASSESSMENT, context.classId(),
+                          context.courseId(), context.unitId(), this.lessonId, listToPostgresArrayString(collIds), userID, EventConstants.COLLECTION_PLAY);
+                }else{
+                  assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF_FOR_ASSESSMENT, context.classId(),
                         context.courseId(), context.unitId(), this.lessonId, listToPostgresArrayString(collIds), userID, EventConstants.COLLECTION_PLAY);
-    
+                }
                 if (!assessmentKpi.isEmpty()) {
                   assessmentKpi.forEach(ass -> {
-    
                     JsonObject assData = ValueMapper.map(ResponseAttributeIdentifier.getLessonPerformanceAttributesMap(), ass);
                     // FIXME : revisit completed count and total count
                     assData.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 1);
                     assData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
                     // FIXME: This logic to be revisited.
                     if (this.collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {
+                      List<Map> collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_QUESTION_COUNT, context.classId(),
+                              context.courseId(), context.unitId(), this.lessonId, assData.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID),this.userId);
+                      collectionQuestionCount.forEach(qc -> {
+                        this.questionCount = Integer.valueOf(qc.get(AJEntityBaseReports.QUESTION_COUNT).toString());
+                      });
+                      long scoreInPercent=0;
+                      if(this.questionCount > 0){
+                        Object collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_SCORE, context.classId(),
+                                context.courseId(), context.unitId(), this.lessonId, assData.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID),this.userId);
+                        if(collectionScore != null){
+                          scoreInPercent =  Math.round(((double) Integer.valueOf(collectionScore.toString()) / this.questionCount) * 100);
+                        }
+                      } 
+                      assData.put(AJEntityBaseReports.ATTR_SCORE, scoreInPercent);
                       assData.put(AJEntityBaseReports.ATTR_COLLECTION_ID, assData.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID));
                       assData.remove(AJEntityBaseReports.ATTR_ASSESSMENT_ID);
                       assData.put(EventConstants.VIEWS, assData.getInteger(EventConstants.ATTEMPTS));

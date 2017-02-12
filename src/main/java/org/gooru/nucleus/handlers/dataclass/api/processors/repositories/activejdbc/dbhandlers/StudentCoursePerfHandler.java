@@ -10,7 +10,6 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.converters.ResponseAttributeIdentifier;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
-import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.converters.ValueMapper;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
@@ -120,19 +119,28 @@ class StudentCoursePerfHandler implements DBHandler {
               if (!unitIDforCourse.isEmpty()) {
                 LOGGER.debug("Got a list of Distinct unitIDs for this Course");
       
-                unitIDforCourse.forEach(unit -> unitIds.add(unit.getString(AJEntityBaseReports.UNIT_GOORU_OID)));      
-      
-                List<Map> assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_COURSE_PERF_FOR_ASSESSMENT, context.classId(),
+                unitIDforCourse.forEach(unit -> unitIds.add(unit.getString(AJEntityBaseReports.UNIT_GOORU_OID))); 
+                List<Map> assessmentKpi = null;
+                if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
+                  assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_COURSE_PERF_FOR_COLLECTION, context.classId(),
                         context.courseId(), this.collectionType, userID, listToPostgresArrayString(unitIds), EventConstants.COLLECTION_PLAY);
-      
+                }else{
+                  assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_COURSE_PERF_FOR_ASSESSMENT, context.classId(),
+                          context.courseId(), this.collectionType, userID, listToPostgresArrayString(unitIds), EventConstants.COLLECTION_PLAY);
+                }
                 if (!assessmentKpi.isEmpty()) {
                   assessmentKpi.forEach(m -> {
                     unitId = m.get(AJEntityBaseReports.UNIT_GOORU_OID).toString();
                     LOGGER.debug("The Value of UNITID " + unitId);
-                    
-                    List<Map> completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLLID_COUNT_FOREACH_UNITID, context.classId(),
-                            context.courseId(), unitId, this.collectionType, userID, EventConstants.COLLECTION_PLAY);
-                    
+                    List<Map> completedCountMap = null;
+                    if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
+                      //FIXME: Score will not be useful in CUL if collection so could be incorrect from this below query. 
+                      completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLL_COUNT_FOREACH_UNITID, context.classId(), context.courseId(),
+                              unitId, this.collectionType, userID, EventConstants.COLLECTION_PLAY);
+                    }else{
+                       completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLLID_COUNT_FOREACH_UNITID, context.classId(),
+                               context.courseId(), unitId, this.collectionType, userID, EventConstants.COLLECTION_PLAY);                       
+                     }
                     JsonObject unitData = ValueMapper.map(ResponseAttributeIdentifier.getCoursePerformanceAttributesMap(), m);
                     completedCountMap.forEach( scoreCompletonMap -> {
                       unitData.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, Integer.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
