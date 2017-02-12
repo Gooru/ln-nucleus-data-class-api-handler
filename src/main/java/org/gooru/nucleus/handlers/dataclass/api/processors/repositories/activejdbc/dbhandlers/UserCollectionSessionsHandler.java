@@ -1,6 +1,5 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -9,9 +8,9 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
+import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
-import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.javalite.activejdbc.Base;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,6 +80,10 @@ public class UserCollectionSessionsHandler implements DBHandler {
     	baseReport = new AJEntityBaseReports();
     
         this.collectionId = context.collectionId();    	
+        this.classId = context.classId();
+        this.courseId = context.courseId();
+        this.unitId = context.unitId();
+        this.lessonId = context.lessonId();
         
       	this.openSession = this.context.request().getString(REQUEST_OPEN_SESSION);
       	if (StringUtil.isNullOrEmpty(openSession)) {
@@ -96,9 +99,15 @@ public class UserCollectionSessionsHandler implements DBHandler {
                   ExecutionStatus.FAILED);
           }
           LOGGER.debug("UID is " + this.userId);
-
-    	List<Map> distinctSessionsList = Base.findAll( AJEntityBaseReports.GET_USER_SESSIONS_FOR_COLLID, 
-    			this.collectionId, EventConstants.COLLECTION, this.userId);
+          List<Map> distinctSessionsList = null;
+          if(!StringUtil.isNullOrEmpty(this.classId)){
+            distinctSessionsList = Base.findAll( AJEntityBaseReports.GET_USER_SESSIONS_FOR_COLLID,this.classId,this.courseId,this.unitId,this.lessonId, 
+            this.collectionId, EventConstants.ASSESSMENT, this.userId);
+          }else{
+            distinctSessionsList = Base.findAll( AJEntityBaseReports.GET_USER_SESSIONS_FOR_COLLID_, 
+                    this.collectionId, EventConstants.ASSESSMENT, this.userId);
+          }
+          
     	if (!distinctSessionsList.isEmpty()) {
     		
     		distinctSessionsList.forEach(m -> {    		
