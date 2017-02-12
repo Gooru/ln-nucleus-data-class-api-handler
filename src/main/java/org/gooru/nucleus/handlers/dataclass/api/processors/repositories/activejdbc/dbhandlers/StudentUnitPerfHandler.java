@@ -140,7 +140,7 @@ import io.vertx.core.json.JsonObject;
                 LOGGER.debug("The Value of LESSONID " + lessonId);
                 List<Map> completedCountMap = null;
                 if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
-                  completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLLID_COUNT_FOREACH_LESSONID, context.classId(),
+                  completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLL_COUNT_FOREACH_LESSONID, context.classId(),
                         context.courseId(), context.unitId(), this.lessonId, this.collectionType, userID, EventConstants.COLLECTION_PLAY);
                 }else{
                   completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLLID_COUNT_FOREACH_LESSONID, context.classId(),
@@ -173,7 +173,7 @@ import io.vertx.core.json.JsonObject;
                 }
                 List<Map> assessmentKpi = null;
                 if(this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)){
-                  assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF_FOR_ASSESSMENT, context.classId(),
+                  assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF_FOR_COLLECTION, context.classId(),
                           context.courseId(), context.unitId(), this.lessonId, listToPostgresArrayString(collIds), userID, EventConstants.COLLECTION_PLAY);
                 }else{
                   assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF_FOR_ASSESSMENT, context.classId(),
