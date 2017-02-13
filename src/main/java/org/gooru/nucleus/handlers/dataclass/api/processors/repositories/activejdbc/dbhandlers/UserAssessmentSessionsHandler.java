@@ -79,13 +79,13 @@ public class UserAssessmentSessionsHandler implements DBHandler {
     	baseReport = new AJEntityBaseReports();
     
         this.collectionId = context.collectionId();
-        this.classId = context.classId();
-        this.courseId = context.courseId();
-        this.unitId = context.unitId();
-        this.lessonId = context.lessonId();
+        this.classId = context.request().getString(EventConstants.CLASS_GOORU_OID);
+        this.courseId = context.request().getString(EventConstants.COURSE_GOORU_OID);
+        this.unitId = context.request().getString(EventConstants.UNIT_GOORU_OID);
+        this.lessonId = context.request().getString(EventConstants.LESSON_GOORU_OID);
         this.openSession = this.context.request().getString(REQUEST_OPEN_SESSION);
         this.userId = this.context.request().getString(REQUEST_USERID);
-        
+       LOGGER.debug("classId :{} , userId : {} and collectionId:{}",this.classId, this.userId, this.collectionId);
     	if (StringUtil.isNullOrEmpty(openSession)) {
     		this.openSession = "false";
             LOGGER.info("By Default OpenSession is assumed to be false");            
@@ -97,7 +97,6 @@ public class UserAssessmentSessionsHandler implements DBHandler {
                 MessageResponseFactory.createInvalidRequestResponse("UserID Missing. Cannot fetch Session Information"),
                 ExecutionStatus.FAILED);
         }
-        LOGGER.debug("UID is " + this.userId);
         List<Map> distinctSessionsList = null;
         if(!StringUtil.isNullOrEmpty(this.classId)){
           distinctSessionsList = Base.findAll( AJEntityBaseReports.GET_USER_SESSIONS_FOR_COLLID,this.classId,this.courseId,this.unitId,this.lessonId, 
@@ -143,6 +142,8 @@ public class UserAssessmentSessionsHandler implements DBHandler {
 
     	
     		
+    	}else{
+    	  LOGGER.debug("No sessions data found for given assessment");
     	}
     	    	
     	if (openSession.equalsIgnoreCase("false")) {

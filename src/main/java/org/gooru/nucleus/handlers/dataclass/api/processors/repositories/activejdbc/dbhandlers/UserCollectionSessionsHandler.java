@@ -79,13 +79,14 @@ public class UserCollectionSessionsHandler implements DBHandler {
     	    	
     	baseReport = new AJEntityBaseReports();
     
-        this.collectionId = context.collectionId();    	
-        this.classId = context.classId();
-        this.courseId = context.courseId();
-        this.unitId = context.unitId();
-        this.lessonId = context.lessonId();
-        
-      	this.openSession = this.context.request().getString(REQUEST_OPEN_SESSION);
+        this.collectionId = context.collectionId();
+        this.classId = context.request().getString(EventConstants.CLASS_GOORU_OID);
+        this.courseId = context.request().getString(EventConstants.COURSE_GOORU_OID);
+        this.unitId = context.request().getString(EventConstants.UNIT_GOORU_OID);
+        this.lessonId = context.request().getString(EventConstants.LESSON_GOORU_OID);
+        this.openSession = this.context.request().getString(REQUEST_OPEN_SESSION);
+        this.userId = this.context.request().getString(REQUEST_USERID);
+       LOGGER.debug("classId :{} , userId : {} and collectionId:{}",this.classId, this.userId, this.collectionId);;
       	if (StringUtil.isNullOrEmpty(openSession)) {
       		this.openSession = "false";
               LOGGER.info("By Default OpenSession is assumed to be false");            
