@@ -40,4 +40,6 @@ public interface ReportRepo {
 
   MessageResponse getAllStudentPerfInUnit();
 
+  MessageResponse getStudentPerfInAllClasses();
+
 }
