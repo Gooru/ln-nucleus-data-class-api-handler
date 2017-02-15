@@ -495,7 +495,7 @@ public class AJEntityBaseReports extends Model {
     //CLASS DATA FOR ALL USER(score, completion)
     public static final String SELECT_ALL_STUDENT_ALL_CLASS_COMPLETION_SCORE = "SELECT classId, SUM(classData.completion) AS completedCount, ROUND(AVG(scoreInPercentage)) AS scoreInPercentage "
             + "FROM (SELECT DISTINCT ON (collectionid) CASE  WHEN (eventtype = 'stop') THEN 1 ELSE 0 END AS completion, "
-            + "FIRST_VALUE(score) OVER (PARTITION BY collectionid ORDER BY updatetimestamp desc) AS scoreInPercentage, classId "
+            + "FIRST_VALUE(score) OVER (PARTITION BY collectionid,actorId ORDER BY updatetimestamp desc) AS scoreInPercentage, classId "
             + "FROM basereports WHERE classId = ? "
             + "AND eventName = 'collection.play' AND eventtype = 'stop' AND collectionType = 'assessment' "
             + "ORDER BY collectionid, updatetimestamp DESC) AS classData GROUP BY classId";
