@@ -14,7 +14,6 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionRe
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
 import org.javalite.activejdbc.Base;
-import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,9 +54,6 @@ public class StudentPerfInAllClasses implements DBHandler {
   @SuppressWarnings("rawtypes")
   public ExecutionResult<MessageResponse> executeRequest() {
 
-    JsonObject resultBody = new JsonObject();
-    JsonArray resultarray = new JsonArray();
-
     this.userId = this.context.request().getString(REQUEST_USERID);
     this.classIds = this.context.request().getJsonArray(EventConstants.CLASS_IDS);
     LOGGER.debug("userId : {} - classIds:{}", userId, this.classIds);
@@ -69,7 +65,7 @@ public class StudentPerfInAllClasses implements DBHandler {
               ExecutionStatus.FAILED);
     }
 
-    JsonObject contentBody = new JsonObject();
+    JsonObject reasult = new JsonObject();
     JsonArray ClassKpiArray = new JsonArray();
 
     // Getting timespent and attempts.
@@ -111,11 +107,9 @@ public class StudentPerfInAllClasses implements DBHandler {
     }
 
     // Form the required Json pass it on
-    contentBody.put(JsonConstants.USAGE_DATA, ClassKpiArray).put(JsonConstants.USERID, this.userId);
-    resultarray.add(contentBody);
-    resultBody.put(JsonConstants.CONTENT, resultarray).putNull(JsonConstants.MESSAGE).putNull(JsonConstants.PAGINATE);
+    reasult.put(JsonConstants.USAGE_DATA, ClassKpiArray).put(JsonConstants.USERID, this.userId);
 
-    return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
+    return new ExecutionResult<>(MessageResponseFactory.createGetResponse(reasult), ExecutionStatus.SUCCESSFUL);
   }
 
   @Override
