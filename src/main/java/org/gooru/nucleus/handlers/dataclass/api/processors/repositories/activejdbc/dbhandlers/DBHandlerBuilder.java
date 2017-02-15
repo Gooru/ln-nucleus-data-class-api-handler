@@ -75,4 +75,8 @@ public final class DBHandlerBuilder {
     public static DBHandler buildSessionTaxonomyReportHandler(ProcessorContext context) {
       return new SessionTaxonomyReportHandler(context);
     }
+    public static DBHandler buildStudentPerfInAllClasses(ProcessorContext context) {
+      return new StudentPerfInAllClasses(context);
+    }
+
 }

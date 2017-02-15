@@ -15,7 +15,9 @@ public class JsonConstants {
 	public static final String PAGINATE = "paginate";
 	
 	public static final String USERUID = "userUid";
-	
+	 
+	public static final String USERID = "userId";
+
 	public static final String ASSESSMENT = "assessment";
 	
 	public static final String COLLECTION = "collection";	

@@ -470,7 +470,38 @@ public class AJEntityBaseReports extends Model {
             + "WHERE collectionId = ANY(?::varchar[]) GROUP BY collectionId";
     
     public static final String SELECT_CLASS_USER_BY_SESSION_ID = "SELECT classid,actorid FROM basereports WHERE sessionid = ? LIMIT 1";
+
+    //*************************************************************************************************************************
+    //Student all classes performance
     
+    //CLASS DATA FOR A USER (attempts, timespent)
+    public static final String SELECT_STUDENT_ALL_CLASS_DATA = "SELECT SUM(timeSpent) AS timeSpent,  SUM(views) AS attempts, classId "
+            + "FROM BaseReports WHERE classid = ANY(?::varchar[]) AND actorId = ? "
+            + "AND eventName = 'collection.play' GROUP BY classid";
+
+    //CLASS DATA FOR ALL USER(attempts, timespent)
+    public static final String SELECT_ALL_STUDENT_ALL_CLASS_DATA = "SELECT SUM(timeSpent) AS timeSpent,  SUM(views) AS attempts, classId "
+            + "FROM BaseReports WHERE classid = ANY(?::varchar[]) "
+            + "AND eventName = 'collection.play' GROUP BY classid";
+    
+    //CLASS DATA FOR A USER(score, completion)
+    public static final String SELECT_STUDENT_ALL_CLASS_COMPLETION_SCORE = "SELECT classId, SUM(classData.completion) AS completedCount, ROUND(AVG(scoreInPercentage)) AS scoreInPercentage "
+            + "FROM (SELECT DISTINCT ON (collectionid) CASE  WHEN (eventtype = 'stop') THEN 1 ELSE 0 END AS completion, "
+            + "FIRST_VALUE(score) OVER (PARTITION BY collectionid ORDER BY updatetimestamp desc) AS scoreInPercentage, classId "
+            + "FROM basereports WHERE classId = ?  AND actorId = ? "
+            + "AND eventName = 'collection.play' AND eventtype = 'stop' AND collectionType = 'assessment' "
+            + "ORDER BY collectionid, updatetimestamp DESC) AS classData GROUP BY classId";
+
+    //CLASS DATA FOR ALL USER(score, completion)
+    public static final String SELECT_ALL_STUDENT_ALL_CLASS_COMPLETION_SCORE = "SELECT classId, SUM(classData.completion) AS completedCount, ROUND(AVG(scoreInPercentage)) AS scoreInPercentage "
+            + "FROM (SELECT DISTINCT ON (collectionid) CASE  WHEN (eventtype = 'stop') THEN 1 ELSE 0 END AS completion, "
+            + "FIRST_VALUE(score) OVER (PARTITION BY collectionid,actorId ORDER BY updatetimestamp desc) AS scoreInPercentage, classId "
+            + "FROM basereports WHERE classId = ? "
+            + "AND eventName = 'collection.play' AND eventtype = 'stop' AND collectionType = 'assessment' "
+            + "ORDER BY collectionid, updatetimestamp DESC) AS classData GROUP BY classId";
+
+    //*************************************************************************************************************************
+
     //*************************************************************************************************************************
     public static final String UUID_TYPE = "uuid";
    

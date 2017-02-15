@@ -95,4 +95,8 @@ class AJReportRepo implements ReportRepo {
     public MessageResponse getAllStudentPerfInUnit() {
         return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildAllStudentUnitPerfHandler(context));
     }
+    @Override
+    public MessageResponse getStudentPerfInAllClasses() {
+        return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildStudentPerfInAllClasses((context)));
+    }
 }
