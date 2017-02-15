@@ -65,7 +65,7 @@ public class StudentPerfInAllClasses implements DBHandler {
               ExecutionStatus.FAILED);
     }
 
-    JsonObject reasult = new JsonObject();
+    JsonObject result = new JsonObject();
     JsonArray ClassKpiArray = new JsonArray();
 
     // Getting timespent and attempts.
@@ -107,9 +107,9 @@ public class StudentPerfInAllClasses implements DBHandler {
     }
 
     // Form the required Json pass it on
-    reasult.put(JsonConstants.USAGE_DATA, ClassKpiArray).put(JsonConstants.USERID, this.userId);
+    result.put(JsonConstants.USAGE_DATA, ClassKpiArray).put(JsonConstants.USERID, this.userId);
 
-    return new ExecutionResult<>(MessageResponseFactory.createGetResponse(reasult), ExecutionStatus.SUCCESSFUL);
+    return new ExecutionResult<>(MessageResponseFactory.createGetResponse(result), ExecutionStatus.SUCCESSFUL);
   }
 
   @Override
