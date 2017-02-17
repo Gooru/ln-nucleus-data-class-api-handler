@@ -66,6 +66,7 @@ public final class MessageConstants {
     public static final String MSG_OP_ALL_STUDENT_ASSESSMENT_PERF = "all.student.assessment.performance";
     public static final String MSG_OP_SESSION_TAXONOMY_REPORT = "session.taxonomy.report";
     public static final String MSG_OP_ALL_STUDENT_CLASSES_PERF = "all.class.student.performance";
+    public static final String MSG_OP_STUDENT_LOC_ALL_CLASSES = "student.all.classes.location";
 
 
     public static final String PORT = "port";
