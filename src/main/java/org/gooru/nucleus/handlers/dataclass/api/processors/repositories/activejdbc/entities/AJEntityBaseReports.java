@@ -501,8 +501,11 @@ public class AJEntityBaseReports extends Model {
     //*************************************************************************************************************************    
     //Student Location in All Classes    
     public static final String GET_STUDENT_LOCATION_ALL_CLASSES = "select DISTINCT ON (classID) classId, courseId, unitId, "
-    		+ "lessonId, collectionId, updateTimeStamp FROM basereports WHERE actorid = ? AND classid = ANY(?::varchar[]) "
+    		+ "lessonId, collectionId, sessionId, updateTimeStamp FROM basereports WHERE actorid = ? AND classid = ANY(?::varchar[]) "
     		+ "ORDER BY classId, updatetimestamp DESC";
+    
+    public static final String GET_COLLECTION_STATUS =  "SELECT eventName, eventType from BaseReports WHERE sessionID = ? "
+    		+ " AND collectionID = ? AND EventName = ? AND EventType = ?";
 
     //*************************************************************************************************************************
     public static final String UUID_TYPE = "uuid";
