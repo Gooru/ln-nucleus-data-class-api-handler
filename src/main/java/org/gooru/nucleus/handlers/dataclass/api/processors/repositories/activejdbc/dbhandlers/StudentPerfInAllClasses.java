@@ -9,6 +9,7 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassCollectionCount;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
@@ -82,7 +83,9 @@ public class StudentPerfInAllClasses implements DBHandler {
         classKPI.put(AJEntityBaseReports.ATTR_TIMESPENT, Integer.valueOf(classData.get(AJEntityBaseReports.ATTR_TIMESPENT).toString()));
         classKPI.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 0);
         classKPI.put(AJEntityBaseReports.ATTR_SCORE, 0);
-        classKPI.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, EventConstants.NA);
+        Object classTotalCount = Base.firstCell(AJEntityClassCollectionCount.GET_CLASS_ASSESSMENT_COUNT,
+                classData.get(AJEntityBaseReports.CLASS_GOORU_OID).toString());
+        classKPI.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, classTotalCount != null ? Integer.valueOf(classTotalCount.toString()) : 0);
         List<Map> classScoreCompletion = null;
         if (!StringUtil.isNullOrEmpty(this.userId)) {
           classScoreCompletion = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_ALL_CLASS_COMPLETION_SCORE,
