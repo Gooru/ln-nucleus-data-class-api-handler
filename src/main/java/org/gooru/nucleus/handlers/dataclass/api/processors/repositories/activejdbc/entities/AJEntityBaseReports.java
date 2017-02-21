@@ -79,8 +79,6 @@ public class AJEntityBaseReports extends Model {
             "SELECT max(sequence_id) FROM BaseReports";
     
     //String Constants and Queries for STUDENT PERFORMANCE REPORTS IN COURSE
-    //TODO: Currently Score is calculated as SUM FOR TESTING PURPOSE, but QuestionCount is NOW available
-    // so percentScore can be calculated.
     public static final String SELECT_DISTINCT_UNITID_FOR_COURSEID_FILTERBY_COLLTYPE =
             "SELECT DISTINCT(unitId) FROM BaseReports "
             + "WHERE classId = ? AND courseId = ? AND collectionType =? AND actorId = ?";
@@ -500,7 +498,14 @@ public class AJEntityBaseReports extends Model {
             + "AND eventName = 'collection.play' AND eventtype = 'stop' AND collectionType = 'assessment' "
             + "ORDER BY collectionid, updatetimestamp DESC) AS classData GROUP BY classId";
 
-    //*************************************************************************************************************************
+    //*************************************************************************************************************************    
+    //Student Location in All Classes    
+    public static final String GET_STUDENT_LOCATION_ALL_CLASSES = "select DISTINCT ON (classID) classId, courseId, unitId, "
+    		+ "lessonId, collectionId, sessionId, updateTimeStamp FROM basereports WHERE actorid = ? AND classid = ANY(?::varchar[]) "
+    		+ "ORDER BY classId, updatetimestamp DESC";
+    
+    public static final String GET_COLLECTION_STATUS =  "SELECT eventName, eventType from BaseReports WHERE sessionID = ? "
+    		+ " AND collectionID = ? AND EventName = ? AND EventType = ?";
 
     //*************************************************************************************************************************
     public static final String UUID_TYPE = "uuid";

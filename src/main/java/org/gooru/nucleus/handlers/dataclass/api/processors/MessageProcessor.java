@@ -83,6 +83,9 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_ALL_STUDENT_CLASSES_PERF:
               result = getStudentPerfInAllClasses();    
               break;
+            case MessageConstants.MSG_OP_STUDENT_LOC_ALL_CLASSES:
+                result = getStudentLocInAllClasses();    
+                break;
             default:
                 LOGGER.error("Invalid operation type passed in, not able to handle");
                 return MessageResponseFactory
@@ -436,12 +439,7 @@ class MessageProcessor implements Processor {
         }
 
     }
-    
-    //TEACHER REPORTS
-    //********************************************************************************************************************************
-   
-
-
+ 
     private MessageResponse getSessionWiseTaxonomyReport() {
       try {
             ProcessorContext context = createContext();
@@ -466,11 +464,26 @@ class MessageProcessor implements Processor {
             return new RepoBuilder().buildReportRepo(context).getStudentPerfInAllClasses();
             
         } catch (Throwable t) {
-            LOGGER.error("Exception while getting Student performance in all classess", t);
+            LOGGER.error("Exception while getting Student performance in all Classes", t);
             return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
         }
 
     }
+    
+    
+    private MessageResponse getStudentLocInAllClasses() {
+        try {
+              ProcessorContext context = createContext();
+              return new RepoBuilder().buildReportRepo(context).getStudentLocationInAllClasses();
+              
+          } catch (Throwable t) {
+              LOGGER.error("Exception while getting Student Location in all Classes", t);
+              return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+          }
+
+      }
+    
+    
     private ProcessorContext createContext() {
     	String classId = message.headers().get(MessageConstants.CLASS_ID);
         String courseId = message.headers().get(MessageConstants.COURSE_ID);

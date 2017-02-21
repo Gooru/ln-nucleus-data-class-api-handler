@@ -36,10 +36,12 @@ public interface ReportRepo {
 
 	MessageResponse getSessionWiseTaxonmyReport();
 
-  MessageResponse getAllStudentPerfInCourse();
+    MessageResponse getAllStudentPerfInCourse();
 
-  MessageResponse getAllStudentPerfInUnit();
+    MessageResponse getAllStudentPerfInUnit();
 
-  MessageResponse getStudentPerfInAllClasses();
+    MessageResponse getStudentPerfInAllClasses();
+    
+    MessageResponse getStudentLocationInAllClasses();
 
 }
