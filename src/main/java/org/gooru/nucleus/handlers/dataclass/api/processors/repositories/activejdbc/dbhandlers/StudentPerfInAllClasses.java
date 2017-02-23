@@ -84,7 +84,7 @@ public class StudentPerfInAllClasses implements DBHandler {
         classKPI.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 0);
         classKPI.put(AJEntityBaseReports.ATTR_SCORE, 0);
         Object classTotalCount = Base.firstCell(AJEntityClassCollectionCount.GET_CLASS_ASSESSMENT_COUNT,
-                classData.get(AJEntityBaseReports.CLASS_GOORU_OID).toString());
+                classData.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
         classKPI.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, classTotalCount != null ? Integer.valueOf(classTotalCount.toString()) : 0);
         List<Map> classScoreCompletion = null;
         if (!StringUtil.isNullOrEmpty(this.userId)) {

@@ -473,14 +473,14 @@ public class AJEntityBaseReports extends Model {
     //Student all classes performance
     
     //CLASS DATA FOR A USER (attempts, timespent)
-    public static final String SELECT_STUDENT_ALL_CLASS_DATA = "SELECT SUM(timeSpent) AS timeSpent,  SUM(views) AS attempts, classId "
+    public static final String SELECT_STUDENT_ALL_CLASS_DATA = "SELECT SUM(timeSpent) AS timeSpent,  SUM(views) AS attempts, classId, courseId "
             + "FROM BaseReports WHERE classid = ANY(?::varchar[]) AND actorId = ? "
-            + "AND eventName = 'collection.play' GROUP BY classid";
+            + "AND eventName = 'collection.play' GROUP BY classid,courseId";
 
     //CLASS DATA FOR ALL USER(attempts, timespent)
-    public static final String SELECT_ALL_STUDENT_ALL_CLASS_DATA = "SELECT SUM(timeSpent) AS timeSpent,  SUM(views) AS attempts, classId "
+    public static final String SELECT_ALL_STUDENT_ALL_CLASS_DATA = "SELECT SUM(timeSpent) AS timeSpent,  SUM(views) AS attempts, classId, courseId "
             + "FROM BaseReports WHERE classid = ANY(?::varchar[]) "
-            + "AND eventName = 'collection.play' GROUP BY classid";
+            + "AND eventName = 'collection.play' GROUP BY classid,courseId";
     
     //CLASS DATA FOR A USER(score, completion)
     public static final String SELECT_STUDENT_ALL_CLASS_COMPLETION_SCORE = "SELECT classId, SUM(classData.completion) AS completedCount, ROUND(AVG(scoreInPercentage)) AS scoreInPercentage "
