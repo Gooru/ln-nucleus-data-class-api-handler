@@ -85,6 +85,7 @@ public class StudentLocationAllClassesHandler implements DBHandler {
           studLoc.put(AJEntityBaseReports.LESSON_GOORU_OID, m.get(AJEntityBaseReports.LESSON_GOORU_OID).toString());
           String collectionId = m.get(AJEntityBaseReports.COLLECTION_OID).toString();
           studLoc.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collectionId);
+          studLoc.put(AJEntityBaseReports.COLLECTION_TYPE, m.get(AJEntityBaseReports.COLLECTION_TYPE).toString());
           String sessionId = m.get(AJEntityBaseReports.SESSION_ID).toString();
           if (!Base.findAll(AJEntityBaseReports.GET_COLLECTION_STATUS, sessionId, collectionId, EventConstants.COLLECTION_PLAY, EventConstants.STOP).isEmpty()){
         	  studLoc.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
