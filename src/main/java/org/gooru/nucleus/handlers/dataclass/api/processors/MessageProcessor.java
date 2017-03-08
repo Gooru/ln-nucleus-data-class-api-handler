@@ -86,6 +86,12 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_STUDENT_LOC_ALL_CLASSES:
                 result = getStudentLocInAllClasses();    
                 break;
+            case MessageConstants.MSG_OP_STUDENT_PERF_MULT_ASSESSMENT:
+                result = getStudentPerfMultipleAssessments();    
+                break;
+            case MessageConstants.MSG_OP_STUDENT_PERF_MULT_COLLECTION:
+                result = getStudentPerfMultipleCollections();    
+                break;
             default:
                 LOGGER.error("Invalid operation type passed in, not able to handle");
                 return MessageResponseFactory
@@ -482,7 +488,31 @@ class MessageProcessor implements Processor {
           }
 
       }
+
+    private MessageResponse getStudentPerfMultipleCollections() {
+        try {
+              ProcessorContext context = createContext();
+              return new RepoBuilder().buildReportRepo(context).getStudPerfMultipleCollections();
+              
+          } catch (Throwable t) {
+              LOGGER.error("Exception while getting Student Location in all Classes", t);
+              return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+          }
+
+      }
     
+    private MessageResponse getStudentPerfMultipleAssessments() {
+        try {
+              ProcessorContext context = createContext();
+              return new RepoBuilder().buildReportRepo(context).getStudPerfMultipleAssessments();
+              
+          } catch (Throwable t) {
+              LOGGER.error("Exception while getting Student Location in all Classes", t);
+              return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+          }
+
+      }
+
     
     private ProcessorContext createContext() {
     	String classId = message.headers().get(MessageConstants.CLASS_ID);

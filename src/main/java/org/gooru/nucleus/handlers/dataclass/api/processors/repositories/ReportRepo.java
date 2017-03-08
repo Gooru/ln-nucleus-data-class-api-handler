@@ -43,5 +43,9 @@ public interface ReportRepo {
     MessageResponse getStudentPerfInAllClasses();
     
     MessageResponse getStudentLocationInAllClasses();
+    
+    MessageResponse getStudPerfMultipleCollections();
+    
+    MessageResponse getStudPerfMultipleAssessments();
 
 }

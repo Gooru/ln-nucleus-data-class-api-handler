@@ -83,5 +83,14 @@ public final class DBHandlerBuilder {
     public static DBHandler buildStudentLocAllClassesHandler(ProcessorContext context) {
         return new StudentLocationAllClassesHandler(context);
       }
+    
+    
+    public static DBHandler buildStudPerfMultipleAssessmentHandler(ProcessorContext context) {
+        return new StudPerfCourseAssessmentHandler(context);
+      }
 
+    public static DBHandler buildStudPerfMultipleCollectionHandler(ProcessorContext context) {
+        return new StudPerfCourseCollectionHandler(context);
+      }
+    
 }
