@@ -61,7 +61,7 @@ public class StudentLocationAllClassesHandler implements DBHandler {
 	    LOGGER.debug("userId : {} - classIds:{}", userId, this.classIds);
 
 	    if (classIds.isEmpty()) {
-	      LOGGER.warn("ClassIds are mandatory to fetch Student Performance in Classess");
+	      LOGGER.warn("ClassIds are mandatory to fetch Student Performance in Classes");
 	      return new ExecutionResult<>(
 	              MessageResponseFactory.createInvalidRequestResponse("ClassIds is Missing. Cannot fetch Student Performance in Classes"),
 	              ExecutionStatus.FAILED);

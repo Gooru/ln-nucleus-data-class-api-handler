@@ -508,6 +508,23 @@ public class AJEntityBaseReports extends Model {
     		+ " AND collectionID = ? AND EventName = ? AND EventType = ?";
 
     //*************************************************************************************************************************
+    
+    //Student Performance for All Assessments/Collections in a Course
+    public static final String GET_LATEST_SCORE_FOR_ASSESSMENT = "SELECT DISTINCT ON (collectionId) "
+    		+ "FIRST_VALUE(score) OVER (PARTITION BY collectionid ORDER BY updatetimestamp desc) AS scoreInPercentage, "
+    		+ "collectionId from basereports WHERE collectionId = ? AND actorId = ? AND eventName = ? AND eventtype = ?";
+    
+    public static final String GET_TOTAL_TIMESPENT_ATTEMPTS_FOR_ASSESSMENT = "SELECT SUM(timeSpent) AS timeSpent, "
+    		+ "SUM(views) AS attempts, collectionId FROM BaseReports WHERE collectionId = ? AND actorId = ? "
+    		+ "AND eventName = ? AND eventtype = ? GROUP BY collectionId";
+    
+    public static final String GET_TOTAL_TIMESPENT_ATTEMPTS_FOR_COLLECTION = "SELECT SUM(timeSpent) AS timeSpent, "
+    		+ "SUM(views) AS views, collectionId FROM BaseReports WHERE collectionId = ? AND actorId = ? "
+    		+ "AND eventName = ? GROUP BY collectionId";
+
+    //*************************************************************************************************************************
+    
+    
     public static final String UUID_TYPE = "uuid";
    
 }

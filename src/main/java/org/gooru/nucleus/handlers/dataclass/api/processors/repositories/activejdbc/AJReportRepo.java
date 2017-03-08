@@ -105,4 +105,14 @@ class AJReportRepo implements ReportRepo {
     public MessageResponse getStudentLocationInAllClasses() {
         return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildStudentLocAllClassesHandler(context));
     }
+    
+    @Override
+    public MessageResponse getStudPerfMultipleAssessments() {
+    	return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildStudPerfMultipleAssessmentHandler(context));
+    }
+    
+    @Override
+    public MessageResponse getStudPerfMultipleCollections() {
+    	return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildStudPerfMultipleCollectionHandler(context));
+    }
 }
