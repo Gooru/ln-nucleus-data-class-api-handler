@@ -73,6 +73,12 @@ public class AJEntityBaseReports extends Model {
     //Attributes for which values are not available, stuff NA into Json, eg. TotalCount
     public static final String ATTR_TOTAL_COUNT = "totalCount";
     public static final String NA = "NA";
+    public static final String AND = "AND";
+    public static final String SPACE = " ";
+    public static final String UNITID = "unitId = ? ";
+    public static final String LESSONID = "lessonId = ?";
+    public static final String CLASSID = "classId = ? ";
+    
     
     
     public static final String SELECT_BASEREPORT_MAX_SEQUENCE_ID =
@@ -512,15 +518,19 @@ public class AJEntityBaseReports extends Model {
     //Student Performance for All Assessments/Collections in a Course
     public static final String GET_LATEST_SCORE_FOR_ASSESSMENT = "SELECT DISTINCT ON (collectionId) "
     		+ "FIRST_VALUE(score) OVER (PARTITION BY collectionid ORDER BY updatetimestamp desc) AS scoreInPercentage, "
-    		+ "collectionId from basereports WHERE collectionId = ? AND actorId = ? AND eventName = ? AND eventtype = ?";
+    		+ "collectionId from basereports WHERE collectionId = ? AND collectionType = ? "
+    		+ "AND actorId = ? AND eventName = ? AND eventtype = ?";
     
     public static final String GET_TOTAL_TIMESPENT_ATTEMPTS_FOR_ASSESSMENT = "SELECT SUM(timeSpent) AS timeSpent, "
-    		+ "SUM(views) AS attempts, collectionId FROM BaseReports WHERE collectionId = ? AND actorId = ? "
-    		+ "AND eventName = ? AND eventtype = ? GROUP BY collectionId";
-    
+    		+ "SUM(views) AS attempts, collectionId FROM BaseReports WHERE collectionId = ? AND collectionType = ? "
+    		+ "AND actorId = ? AND eventName = ? AND eventtype = ? GROUP BY collectionId";
+        
     public static final String GET_TOTAL_TIMESPENT_ATTEMPTS_FOR_COLLECTION = "SELECT SUM(timeSpent) AS timeSpent, "
-    		+ "SUM(views) AS views, collectionId FROM BaseReports WHERE collectionId = ? AND actorId = ? "
+    		+ "SUM(views) AS views, collectionId FROM BaseReports WHERE collectionId = ? AND collectionType = ? AND actorId = ? "
     		+ "AND eventName = ? GROUP BY collectionId";
+
+    public static final String GET_DISTINCT_COLLECTIONS = "SELECT distinct(collectionId) from basereports where "
+    		+ "actorId = ? AND collectionType = ? AND courseId = ? ";
 
     //*************************************************************************************************************************
     

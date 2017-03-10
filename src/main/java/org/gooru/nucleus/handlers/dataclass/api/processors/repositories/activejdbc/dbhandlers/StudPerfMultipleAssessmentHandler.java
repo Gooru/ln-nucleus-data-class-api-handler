@@ -1,6 +1,7 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -8,7 +9,9 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.converters.ResponseAttributeIdentifier;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.converters.ValueMapper;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
@@ -23,23 +26,17 @@ import com.hazelcast.util.StringUtil;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
-public class StudPerfCourseAssessmentHandler implements DBHandler {
+public class StudPerfMultipleAssessmentHandler implements DBHandler {
 	
-	
-	private static final Logger LOGGER = LoggerFactory.getLogger(StudPerfCourseAssessmentHandler.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(StudPerfMultipleAssessmentHandler.class);
 	private static final String REQUEST_COLLECTION_TYPE = "collectionType";
     private static final String REQUEST_USERID = "userId";
-    private final ProcessorContext context;
-    private String collectionType;
+    private final ProcessorContext context;    
     private String userId;
     private JsonArray collectionIds;
-    private String courseId;
-    private String unitId;
-    private String lessonId;
-    private String timePeriod;
 
     
-    public StudPerfCourseAssessmentHandler(ProcessorContext context) {
+    public StudPerfMultipleAssessmentHandler(ProcessorContext context) {
         this.context = context;
     }
 
@@ -78,62 +75,40 @@ public class StudPerfCourseAssessmentHandler implements DBHandler {
     @Override
     @SuppressWarnings("rawtypes")
     public ExecutionResult<MessageResponse> executeRequest() {
-
-        StringBuilder query = new StringBuilder(AJEntityBaseReports.GET_DISTINCT_COLLECTIONS);
-        List<String> params = new ArrayList<>();
-        JsonObject resultBody = new JsonObject();        
+   
+    	JsonObject resultBody = new JsonObject();        
         JsonArray assessmentArray = new JsonArray();
+        
+    	this.userId = this.context.request().getString(REQUEST_USERID);
+        this.collectionIds = this.context.request().getJsonArray(MessageConstants.COLLECTION_IDS);
+        LOGGER.debug("userId : {} - collectionIds:{}", userId, this.collectionIds);
 
-    	this.userId = this.context.request().getString(REQUEST_USERID);        
-        LOGGER.debug("userId : {} ", userId);
+        if (collectionIds.isEmpty()) {
+          LOGGER.warn("CollectionIds are mandatory to fetch Student Performance in Assessments");
+          return new ExecutionResult<>(
+                  MessageResponseFactory.createInvalidRequestResponse("CollectionIds are Missing. Cannot fetch Student Performance for Assessments"),
+                  ExecutionStatus.FAILED);
+        }
 
       this.userId = this.context.request().getString(REQUEST_USERID);
         
       if (StringUtil.isNullOrEmpty(userId)) {
-        LOGGER.warn("UserID is mandatory for fetching Student Performance in a Collection");
+        LOGGER.warn("UserID is mandatory for fetching Student Performance in an Assessment");
         return new ExecutionResult<>(
-                MessageResponseFactory.createInvalidRequestResponse("User Id Missing. Cannot fetch Student Performance in Collection"),
+                MessageResponseFactory.createInvalidRequestResponse("User Id Missing. Cannot fetch Student Performance in Assessment"),
                 ExecutionStatus.FAILED);
   
-      } else {
-      	params.add(userId);        	
       }
       
-      params.add(AJEntityBaseReports.ATTR_ASSESSMENT);
-      
-      this.courseId = this.context.request().getString(MessageConstants.COURSE_ID);      
-      if (StringUtil.isNullOrEmpty(courseId)) {
-          LOGGER.warn("CourseID is mandatory for fetching Student Performance in a Collection");
-          return new ExecutionResult<>(
-                  MessageResponseFactory.createInvalidRequestResponse("User Id Missing. Cannot fetch Student Performance in Collection"),
-                  ExecutionStatus.FAILED);
-    
-        } else {
-        	params.add(courseId);        	
-        }
-
-      this.unitId = this.context.request().getString(MessageConstants.UNIT_ID);
-      if (!StringUtil.isNullOrEmpty(unitId)) {
-    	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.UNITID);
-    	  params.add(unitId);    
-        } 
-      
-      this.lessonId = this.context.request().getString(MessageConstants.LESSON_ID);
-      if (!StringUtil.isNullOrEmpty(lessonId)) {
-    	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.LESSONID);
-    	  params.add(lessonId);    
-        } 
-  
       LOGGER.debug("UID is " + this.userId);
-      LOGGER.debug(query.toString());
-      
-      LazyList<AJEntityBaseReports> collectionList = AJEntityBaseReports.findBySQL(query.toString(), params.toArray());
-      
+
       //Populate collIds from the Context in API
       List<String> collIds = new ArrayList<>();
-      if (!collectionList.isEmpty()) {          
-          collectionList.forEach(c -> collIds.add(c.getString(AJEntityBaseReports.COLLECTION_OID)));
-      }        
+      for (Object s : this.collectionIds) {
+          collIds.add(s.toString());
+        }
+
+        
         for (String collId : collIds) {
         	List<Map> assessScore = null;
         	List<Map> assessTSA = null;
@@ -177,6 +152,5 @@ public class StudPerfCourseAssessmentHandler implements DBHandler {
     public boolean handlerReadOnly() {
       return false;
     }
-
 
 }

@@ -92,6 +92,12 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_STUDENT_PERF_MULT_COLLECTION:
                 result = getStudentPerfMultipleCollections();    
                 break;
+            case MessageConstants.MSG_OP_STUDENT_PERF_COURSE_ASSESSMENT:
+                result = getStudentPerfCourseAssessments();    
+                break;
+            case MessageConstants.MSG_OP_STUDENT_PERF_COURSE_COLLECTION:
+                result = getStudentPerfCourseCollections();    
+                break;
             default:
                 LOGGER.error("Invalid operation type passed in, not able to handle");
                 return MessageResponseFactory
@@ -495,7 +501,7 @@ class MessageProcessor implements Processor {
               return new RepoBuilder().buildReportRepo(context).getStudPerfMultipleCollections();
               
           } catch (Throwable t) {
-              LOGGER.error("Exception while getting Student Location in all Classes", t);
+              LOGGER.error("Exception while getting Student Performance in Multiple Collections", t);
               return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
           }
 
@@ -507,7 +513,31 @@ class MessageProcessor implements Processor {
               return new RepoBuilder().buildReportRepo(context).getStudPerfMultipleAssessments();
               
           } catch (Throwable t) {
-              LOGGER.error("Exception while getting Student Location in all Classes", t);
+              LOGGER.error("Exception while getting Student Performance in Multiple Assessments", t);
+              return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+          }
+
+      }
+    
+    private MessageResponse getStudentPerfCourseAssessments() {
+        try {
+              ProcessorContext context = createContext();
+              return new RepoBuilder().buildReportRepo(context).getStudPerfCourseAssessments();
+              
+          } catch (Throwable t) {
+              LOGGER.error("Exception while getting Student Performance in Course Assessments", t);
+              return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+          }
+
+      }
+    
+    private MessageResponse getStudentPerfCourseCollections() {
+        try {
+              ProcessorContext context = createContext();
+              return new RepoBuilder().buildReportRepo(context).getStudPerfCourseCollections();
+              
+          } catch (Throwable t) {
+              LOGGER.error("Exception while getting Student Performance in Course Collections", t);
               return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
           }
 
