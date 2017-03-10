@@ -47,5 +47,9 @@ public interface ReportRepo {
     MessageResponse getStudPerfMultipleCollections();
     
     MessageResponse getStudPerfMultipleAssessments();
+    
+    MessageResponse getStudPerfCourseCollections();
+    
+    MessageResponse getStudPerfCourseAssessments();
 
 }

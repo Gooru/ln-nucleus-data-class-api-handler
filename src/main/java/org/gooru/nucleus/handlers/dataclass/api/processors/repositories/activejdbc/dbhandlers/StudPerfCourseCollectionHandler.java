@@ -14,6 +14,7 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResp
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.javalite.activejdbc.Base;
+import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,7 +23,8 @@ import com.hazelcast.util.StringUtil;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
-public class StudPerfCourseCollectionHandler implements DBHandler{
+public class StudPerfCourseCollectionHandler implements DBHandler {
+
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(StudPerfCourseCollectionHandler.class);
 	private static final String REQUEST_COLLECTION_TYPE = "collectionType";
@@ -31,6 +33,10 @@ public class StudPerfCourseCollectionHandler implements DBHandler{
     private String collectionType;
     private String userId;
     private JsonArray collectionIds;
+    private String courseId;
+    private String unitId;
+    private String lessonId;
+    private String timePeriod;
 
     
     public StudPerfCourseCollectionHandler(ProcessorContext context) {
@@ -72,40 +78,63 @@ public class StudPerfCourseCollectionHandler implements DBHandler{
     @Override
     @SuppressWarnings("rawtypes")
     public ExecutionResult<MessageResponse> executeRequest() {
-
+    	
+        StringBuilder query = new StringBuilder(AJEntityBaseReports.GET_DISTINCT_COLLECTIONS);
+        List<String> params = new ArrayList<>();
         JsonObject resultBody = new JsonObject();        
         JsonArray collectionArray = new JsonArray();
 
-    	this.userId = this.context.request().getString(REQUEST_USERID);
-        this.collectionIds = this.context.request().getJsonArray(MessageConstants.COLLECTION_IDS);
-        LOGGER.debug("userId : {} - collectionIds:{}", userId, this.collectionIds);
-
-        if (collectionIds.isEmpty()) {
-          LOGGER.warn("CollectionIds are mandatory to fetch Student Performance in Assessments");
-          return new ExecutionResult<>(
-                  MessageResponseFactory.createInvalidRequestResponse("CollectionIds are Missing. Cannot fetch Student Performance for Assessments"),
-                  ExecutionStatus.FAILED);
-        }
+    	this.userId = this.context.request().getString(REQUEST_USERID);        
+        LOGGER.debug("userId : {} ", userId);
 
       this.userId = this.context.request().getString(REQUEST_USERID);
         
       if (StringUtil.isNullOrEmpty(userId)) {
-        LOGGER.warn("UserID is mandatory for fetching Student Performance in an Assessment");
+        LOGGER.warn("UserID is mandatory for fetching Student Performance in a Collection");
         return new ExecutionResult<>(
-                MessageResponseFactory.createInvalidRequestResponse("User Id Missing. Cannot fetch Student Performance in Assessment"),
+                MessageResponseFactory.createInvalidRequestResponse("User Id Missing. Cannot fetch Student Performance in Collection"),
                 ExecutionStatus.FAILED);
   
-      } 
-  
-      LOGGER.debug("UID is " + this.userId);
-
-      //Populate collIds from the Context in API
-      List<String> collIds = new ArrayList<>();
-      for (Object s : this.collectionIds) {
-          collIds.add(s.toString());
+      } else {
+      	params.add(userId);        	
+      }
+      
+      params.add(AJEntityBaseReports.ATTR_COLLECTION);
+      
+      this.courseId = this.context.request().getString(MessageConstants.COURSE_ID);      
+      if (StringUtil.isNullOrEmpty(courseId)) {
+          LOGGER.warn("CourseID is mandatory for fetching Student Performance in a Collection");
+          return new ExecutionResult<>(
+                  MessageResponseFactory.createInvalidRequestResponse("User Id Missing. Cannot fetch Student Performance in Collection"),
+                  ExecutionStatus.FAILED);
+    
+        } else {
+        	params.add(courseId);        	
         }
 
-        
+      this.unitId = this.context.request().getString(MessageConstants.UNIT_ID);
+      if (!StringUtil.isNullOrEmpty(unitId)) {
+    	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.UNITID);
+    	  params.add(unitId);    
+        } 
+      
+      this.lessonId = this.context.request().getString(MessageConstants.LESSON_ID);
+      if (!StringUtil.isNullOrEmpty(lessonId)) {
+    	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.LESSONID);
+    	  params.add(lessonId);    
+        } 
+  
+      LOGGER.debug("UID is " + this.userId);
+      LOGGER.debug(query.toString());
+      
+      LazyList<AJEntityBaseReports> collectionList = AJEntityBaseReports.findBySQL(query.toString(), params.toArray());
+      
+      //Populate collIds from the Context in API
+      List<String> collIds = new ArrayList<>();
+      if (!collectionList.isEmpty()) {          
+          collectionList.forEach(c -> collIds.add(c.getString(AJEntityBaseReports.COLLECTION_OID)));
+      }
+      
         for (String collId : collIds) {        	
         	List<Map> collTSA = null;
         	LOGGER.debug("The collectionIds are" + collId);
@@ -113,7 +142,7 @@ public class StudPerfCourseCollectionHandler implements DBHandler{
             
         	//Find Timespent and Attempts
         	collTSA = Base.findAll(AJEntityBaseReports.GET_TOTAL_TIMESPENT_ATTEMPTS_FOR_COLLECTION, 
-        			collId, this.userId, EventConstants.COLLECTION_PLAY);
+        			collId, AJEntityBaseReports.ATTR_COLLECTION, this.userId, EventConstants.COLLECTION_PLAY);
         	
         	if (!collTSA.isEmpty()) {
         	collTSA.forEach(m -> {

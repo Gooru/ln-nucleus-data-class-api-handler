@@ -86,11 +86,19 @@ public final class DBHandlerBuilder {
     
     
     public static DBHandler buildStudPerfMultipleAssessmentHandler(ProcessorContext context) {
-        return new StudPerfCourseAssessmentHandler(context);
+        return new StudPerfMultipleAssessmentHandler(context);
       }
 
     public static DBHandler buildStudPerfMultipleCollectionHandler(ProcessorContext context) {
+        return new StudPerfMultipleCollectionHandler(context);
+      }
+        
+    public static DBHandler buildStudPerfCourseCollectionHandler(ProcessorContext context) {
         return new StudPerfCourseCollectionHandler(context);
+      }
+    
+    public static DBHandler buildStudPerfCourseAssessmentHandler(ProcessorContext context) {
+        return new StudPerfCourseAssessmentHandler(context);
       }
     
 }

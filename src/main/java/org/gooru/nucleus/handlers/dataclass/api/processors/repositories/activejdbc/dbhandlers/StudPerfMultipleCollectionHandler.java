@@ -14,7 +14,6 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResp
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.javalite.activejdbc.Base;
-import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,23 +22,18 @@ import com.hazelcast.util.StringUtil;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
-public class StudPerfCourseAssessmentHandler implements DBHandler {
+public class StudPerfMultipleCollectionHandler implements DBHandler{
 	
-	
-	private static final Logger LOGGER = LoggerFactory.getLogger(StudPerfCourseAssessmentHandler.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(StudPerfMultipleCollectionHandler.class);
 	private static final String REQUEST_COLLECTION_TYPE = "collectionType";
     private static final String REQUEST_USERID = "userId";
     private final ProcessorContext context;
     private String collectionType;
     private String userId;
     private JsonArray collectionIds;
-    private String courseId;
-    private String unitId;
-    private String lessonId;
-    private String timePeriod;
 
     
-    public StudPerfCourseAssessmentHandler(ProcessorContext context) {
+    public StudPerfMultipleCollectionHandler(ProcessorContext context) {
         this.context = context;
     }
 
@@ -79,94 +73,61 @@ public class StudPerfCourseAssessmentHandler implements DBHandler {
     @SuppressWarnings("rawtypes")
     public ExecutionResult<MessageResponse> executeRequest() {
 
-        StringBuilder query = new StringBuilder(AJEntityBaseReports.GET_DISTINCT_COLLECTIONS);
-        List<String> params = new ArrayList<>();
         JsonObject resultBody = new JsonObject();        
-        JsonArray assessmentArray = new JsonArray();
+        JsonArray collectionArray = new JsonArray();
 
-    	this.userId = this.context.request().getString(REQUEST_USERID);        
-        LOGGER.debug("userId : {} ", userId);
+    	this.userId = this.context.request().getString(REQUEST_USERID);
+        this.collectionIds = this.context.request().getJsonArray(MessageConstants.COLLECTION_IDS);
+        LOGGER.debug("userId : {} - collectionIds:{}", userId, this.collectionIds);
+
+        if (collectionIds.isEmpty()) {
+          LOGGER.warn("CollectionIds are mandatory to fetch Student Performance in Assessments");
+          return new ExecutionResult<>(
+                  MessageResponseFactory.createInvalidRequestResponse("CollectionIds are Missing. Cannot fetch Student Performance for Assessments"),
+                  ExecutionStatus.FAILED);
+        }
 
       this.userId = this.context.request().getString(REQUEST_USERID);
         
       if (StringUtil.isNullOrEmpty(userId)) {
-        LOGGER.warn("UserID is mandatory for fetching Student Performance in a Collection");
+        LOGGER.warn("UserID is mandatory for fetching Student Performance in an Assessment");
         return new ExecutionResult<>(
-                MessageResponseFactory.createInvalidRequestResponse("User Id Missing. Cannot fetch Student Performance in Collection"),
+                MessageResponseFactory.createInvalidRequestResponse("User Id Missing. Cannot fetch Student Performance in Assessment"),
                 ExecutionStatus.FAILED);
   
-      } else {
-      	params.add(userId);        	
-      }
-      
-      params.add(AJEntityBaseReports.ATTR_ASSESSMENT);
-      
-      this.courseId = this.context.request().getString(MessageConstants.COURSE_ID);      
-      if (StringUtil.isNullOrEmpty(courseId)) {
-          LOGGER.warn("CourseID is mandatory for fetching Student Performance in a Collection");
-          return new ExecutionResult<>(
-                  MessageResponseFactory.createInvalidRequestResponse("User Id Missing. Cannot fetch Student Performance in Collection"),
-                  ExecutionStatus.FAILED);
-    
-        } else {
-        	params.add(courseId);        	
-        }
-
-      this.unitId = this.context.request().getString(MessageConstants.UNIT_ID);
-      if (!StringUtil.isNullOrEmpty(unitId)) {
-    	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.UNITID);
-    	  params.add(unitId);    
-        } 
-      
-      this.lessonId = this.context.request().getString(MessageConstants.LESSON_ID);
-      if (!StringUtil.isNullOrEmpty(lessonId)) {
-    	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.LESSONID);
-    	  params.add(lessonId);    
-        } 
+      } 
   
       LOGGER.debug("UID is " + this.userId);
-      LOGGER.debug(query.toString());
-      
-      LazyList<AJEntityBaseReports> collectionList = AJEntityBaseReports.findBySQL(query.toString(), params.toArray());
-      
+
       //Populate collIds from the Context in API
       List<String> collIds = new ArrayList<>();
-      if (!collectionList.isEmpty()) {          
-          collectionList.forEach(c -> collIds.add(c.getString(AJEntityBaseReports.COLLECTION_OID)));
-      }        
-        for (String collId : collIds) {
-        	List<Map> assessScore = null;
-        	List<Map> assessTSA = null;
+      for (Object s : this.collectionIds) {
+          collIds.add(s.toString());
+        }
+
+        
+        for (String collId : collIds) {        	
+        	List<Map> collTSA = null;
         	LOGGER.debug("The collectionIds are" + collId);
-        	JsonObject assessmentKpi = new JsonObject();
+        	JsonObject collectionKpi = new JsonObject();
             
         	//Find Timespent and Attempts
-        	assessTSA = Base.findAll(AJEntityBaseReports.GET_TOTAL_TIMESPENT_ATTEMPTS_FOR_ASSESSMENT, 
-        			collId, AJEntityBaseReports.ATTR_ASSESSMENT, this.userId, EventConstants.COLLECTION_PLAY, EventConstants.STOP);
+        	collTSA = Base.findAll(AJEntityBaseReports.GET_TOTAL_TIMESPENT_ATTEMPTS_FOR_COLLECTION, 
+        			collId, AJEntityBaseReports.ATTR_COLLECTION, this.userId, EventConstants.COLLECTION_PLAY);
         	
-        	if (!assessTSA.isEmpty()) {
-        	assessTSA.forEach(m -> {
-        		assessmentKpi.put(AJEntityBaseReports.ATTR_TIMESPENT, m.get(AJEntityBaseReports.ATTR_TIMESPENT).toString());
-        		assessmentKpi.put(AJEntityBaseReports.ATTR_ATTEMPTS, m.get(AJEntityBaseReports.ATTR_ATTEMPTS).toString());
+        	if (!collTSA.isEmpty()) {
+        	collTSA.forEach(m -> {
+        		collectionKpi.put(AJEntityBaseReports.ATTR_TIMESPENT, m.get(AJEntityBaseReports.ATTR_TIMESPENT).toString());
+        		collectionKpi.put(AJEntityBaseReports.VIEWS, m.get(AJEntityBaseReports.VIEWS).toString());
 	    		});
         	}
-        	
-        	//Get the latest Score
-        	assessScore = Base.findAll(AJEntityBaseReports.GET_LATEST_SCORE_FOR_ASSESSMENT, 
-            		collId, AJEntityBaseReports.ATTR_ASSESSMENT, this.userId, EventConstants.COLLECTION_PLAY, EventConstants.STOP);
-        	
-        	if (!assessScore.isEmpty()){
-        		assessScore.forEach(m -> {
-            		assessmentKpi.put(AJEntityBaseReports.ATTR_SCORE, m.get(AJEntityBaseReports.ATTR_SCORE).toString());
-            		assessmentKpi.put(JsonConstants.STATUS, JsonConstants.COMPLETE);        
-    	    		});
-            	}
         		
-        	assessmentKpi.put(AJEntityBaseReports.COLLECTION_OID, collId);
-        	assessmentArray.add(assessmentKpi);        		
+        	collectionKpi.put(AJEntityBaseReports.COLLECTION_OID, collId);
+        	collectionArray.add(collectionKpi);        		
         	}
 
-      resultBody.put(JsonConstants.USAGE_DATA, assessmentArray).put(JsonConstants.USERUID, this.userId);
+        resultBody.put(JsonConstants.USAGE_DATA, collectionArray).put(JsonConstants.USERUID, this.userId);
+        //resultBody.put("PERF", "WORK IN PROGRESS");
       
       return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);  
 
@@ -177,6 +138,5 @@ public class StudPerfCourseAssessmentHandler implements DBHandler {
     public boolean handlerReadOnly() {
       return false;
     }
-
 
 }
