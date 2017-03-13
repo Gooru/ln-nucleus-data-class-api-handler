@@ -33,6 +33,7 @@ public class StudPerfMultipleAssessmentHandler implements DBHandler {
     private static final String REQUEST_USERID = "userId";
     private final ProcessorContext context;    
     private String userId;
+    private String classId;
     private JsonArray collectionIds;
 
     
@@ -90,8 +91,16 @@ public class StudPerfMultipleAssessmentHandler implements DBHandler {
                   ExecutionStatus.FAILED);
         }
 
+
+        List<String> collIds = new ArrayList<>();
+        for (Object s : this.collectionIds) {
+            collIds.add(s.toString());
+          }
+           
+      List<Map> assessmentPerf = null;  
+
       this.userId = this.context.request().getString(REQUEST_USERID);
-        
+      
       if (StringUtil.isNullOrEmpty(userId)) {
         LOGGER.warn("UserID is mandatory for fetching Student Performance in an Assessment");
         return new ExecutionResult<>(
@@ -99,17 +108,37 @@ public class StudPerfMultipleAssessmentHandler implements DBHandler {
                 ExecutionStatus.FAILED);
   
       }
+
+      this.classId = this.context.request().getString(MessageConstants.CLASS_ID);
+      if (!StringUtil.isNullOrEmpty(classId)) {
+        LOGGER.debug("Fetching Performance for Assessments in Class");
+        assessmentPerf = Base.findAll(AJEntityBaseReports.GET_PERFORMANCE_FOR_CLASS_ASSESSMENTS, classId,
+                listToPostgresArrayString(collIds), userId, EventConstants.COLLECTION_PLAY);  
+      } else {
+          LOGGER.debug("Fetching Performance for Assessments outside Class");
+          assessmentPerf = Base.findAll(AJEntityBaseReports.GET_PERFORMANCE_FOR_ASSESSMENTS,
+                  listToPostgresArrayString(collIds), userId, EventConstants.COLLECTION_PLAY);  
+    	  
+      }
       
-      LOGGER.debug("UID is " + this.userId);
-
-      //Populate collIds from the Context in API
-      List<String> collIds = new ArrayList<>();
-      for (Object s : this.collectionIds) {
-          collIds.add(s.toString());
-        }
-
-        
-        for (String collId : collIds) {
+      if (!assessmentPerf.isEmpty()) {
+          assessmentPerf.forEach(m -> {
+        	JsonObject assessmentKpi = new JsonObject();
+      		assessmentKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, m.get(AJEntityBaseReports.ATTR_COLLECTION_ID).toString());
+        	assessmentKpi.put(AJEntityBaseReports.ATTR_TIMESPENT, m.get(AJEntityBaseReports.ATTR_TIMESPENT).toString());
+      		assessmentKpi.put(AJEntityBaseReports.ATTR_ATTEMPTS, m.get(AJEntityBaseReports.ATTR_ATTEMPTS).toString());
+      		assessmentKpi.put(AJEntityBaseReports.ATTR_SCORE, m.get(AJEntityBaseReports.ATTR_SCORE).toString());
+    		assessmentKpi.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
+    		
+    		assessmentArray.add(assessmentKpi);
+              
+      });
+                  		
+    	  
+      } else {
+    	  LOGGER.debug("No data available for ANY of the Assessments passed on to this endpoint");
+      }
+       /** for (String collId : collIds) {
         	List<Map> assessScore = null;
         	List<Map> assessTSA = null;
         	LOGGER.debug("The collectionIds are" + collId);
@@ -139,7 +168,7 @@ public class StudPerfMultipleAssessmentHandler implements DBHandler {
         		
         	assessmentKpi.put(AJEntityBaseReports.COLLECTION_OID, collId);
         	assessmentArray.add(assessmentKpi);        		
-        	}
+        	} **/
 
       resultBody.put(JsonConstants.USAGE_DATA, assessmentArray).put(JsonConstants.USERUID, this.userId);
       
@@ -153,4 +182,25 @@ public class StudPerfMultipleAssessmentHandler implements DBHandler {
       return false;
     }
 
+    private String listToPostgresArrayString(List<String> input) {
+        int approxSize = ((input.size() + 1) * 36); // Length of UUID is around
+                                                    // 36
+                                                    // chars
+        Iterator<String> it = input.iterator();
+        if (!it.hasNext()) {
+          return "{}";
+        }
+    
+        StringBuilder sb = new StringBuilder(approxSize);
+        sb.append('{');
+        for (;;) {
+          String s = it.next();
+          sb.append('"').append(s).append('"');
+          if (!it.hasNext()) {
+            return sb.append('}').toString();
+          }
+          sb.append(',');
+        }
+    
+      }
 }
