@@ -1,6 +1,7 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -30,6 +31,7 @@ public class StudPerfMultipleCollectionHandler implements DBHandler{
     private final ProcessorContext context;
     private String collectionType;
     private String userId;
+    private String classId;
     private JsonArray collectionIds;
 
     
@@ -87,6 +89,8 @@ public class StudPerfMultipleCollectionHandler implements DBHandler{
                   ExecutionStatus.FAILED);
         }
 
+      List<Map> collectionPerf = null;
+      
       this.userId = this.context.request().getString(REQUEST_USERID);
         
       if (StringUtil.isNullOrEmpty(userId)) {
@@ -106,7 +110,35 @@ public class StudPerfMultipleCollectionHandler implements DBHandler{
         }
 
         
-        for (String collId : collIds) {        	
+      this.classId = this.context.request().getString(MessageConstants.CLASS_ID);
+      if (!StringUtil.isNullOrEmpty(classId)) {
+        LOGGER.debug("Fetching Performance for Assessments in Class");
+        collectionPerf = Base.findAll(AJEntityBaseReports.GET_PERFORMANCE_FOR_CLASS_COLLECTION, classId,
+                listToPostgresArrayString(collIds), AJEntityBaseReports.ATTR_COLLECTION, userId, EventConstants.COLLECTION_PLAY);  
+      } else {
+          LOGGER.debug("Fetching Performance for Assessments outside Class");
+          collectionPerf = Base.findAll(AJEntityBaseReports.GET_PERFORMANCE_FOR_COLLECTION,
+                  listToPostgresArrayString(collIds), AJEntityBaseReports.ATTR_COLLECTION, userId, EventConstants.COLLECTION_PLAY);  
+    	  
+      }
+      
+      if (!collectionPerf.isEmpty()) {
+          collectionPerf.forEach(m -> {
+        	JsonObject collectionKpi = new JsonObject();
+      		collectionKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, m.get(AJEntityBaseReports.ATTR_COLLECTION_ID).toString());
+        	collectionKpi.put(AJEntityBaseReports.ATTR_TIMESPENT, m.get(AJEntityBaseReports.ATTR_TIMESPENT).toString());
+      		collectionKpi.put(AJEntityBaseReports.ATTR_ATTEMPTS, m.get(AJEntityBaseReports.ATTR_ATTEMPTS).toString());
+    		
+    		collectionArray.add(collectionKpi);
+              
+      });
+                  		
+    	  
+      } else {
+    	  LOGGER.debug("No data available for ANY of the Collections passed on to this endpoint");
+      }
+      
+      /**  for (String collId : collIds) {        	
         	List<Map> collTSA = null;
         	LOGGER.debug("The collectionIds are" + collId);
         	JsonObject collectionKpi = new JsonObject();
@@ -124,7 +156,7 @@ public class StudPerfMultipleCollectionHandler implements DBHandler{
         		
         	collectionKpi.put(AJEntityBaseReports.COLLECTION_OID, collId);
         	collectionArray.add(collectionKpi);        		
-        	}
+        	} **/
 
         resultBody.put(JsonConstants.USAGE_DATA, collectionArray).put(JsonConstants.USERUID, this.userId);
         //resultBody.put("PERF", "WORK IN PROGRESS");
@@ -138,5 +170,28 @@ public class StudPerfMultipleCollectionHandler implements DBHandler{
     public boolean handlerReadOnly() {
       return false;
     }
+    
+
+    private String listToPostgresArrayString(List<String> input) {
+        int approxSize = ((input.size() + 1) * 36); // Length of UUID is around
+                                                    // 36
+                                                    // chars
+        Iterator<String> it = input.iterator();
+        if (!it.hasNext()) {
+          return "{}";
+        }
+    
+        StringBuilder sb = new StringBuilder(approxSize);
+        sb.append('{');
+        for (;;) {
+          String s = it.next();
+          sb.append('"').append(s).append('"');
+          if (!it.hasNext()) {
+            return sb.append('}').toString();
+          }
+          sb.append(',');
+        }
+    
+      }
 
 }

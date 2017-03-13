@@ -525,12 +525,34 @@ public class AJEntityBaseReports extends Model {
     		+ "SUM(views) AS attempts, collectionId FROM BaseReports WHERE collectionId = ? AND collectionType = ? "
     		+ "AND actorId = ? AND eventName = ? AND eventtype = ? GROUP BY collectionId";
         
-    public static final String GET_TOTAL_TIMESPENT_ATTEMPTS_FOR_COLLECTION = "SELECT SUM(timeSpent) AS timeSpent, "
+    public static final String GET_PERFORMANCE_FOR_COLLECTION = "SELECT SUM(timeSpent) AS timeSpent, "
     		+ "SUM(views) AS views, collectionId FROM BaseReports WHERE collectionId = ? AND collectionType = ? AND actorId = ? "
+    		+ "AND eventName = ? GROUP BY collectionId";
+    
+    public static final String GET_PERFORMANCE_FOR_CLASS_COLLECTION = "SELECT SUM(timeSpent) AS timeSpent, "
+    		+ "SUM(views) AS views, collectionId FROM BaseReports WHERE classId = ? AND collectionId = ? AND collectionType = ? AND actorId = ? "
     		+ "AND eventName = ? GROUP BY collectionId";
 
     public static final String GET_DISTINCT_COLLECTIONS = "SELECT distinct(collectionId) from basereports where "
     		+ "actorId = ? AND collectionType = ? AND courseId = ? ";
+    
+    public static final String GET_PERFORMANCE_FOR_CLASS_ASSESSMENTS =
+            "SELECT SUM(agg.timeSpent) timeSpent, ROUND(AVG(agg.scoreInPercentage)) scoreInPercentage, "
+          + "SUM(agg.attempts) attempts, agg.collectionId "
+          + "FROM (SELECT timeSpent AS timeSpent, FIRST_VALUE(score) OVER (PARTITION BY collectionid ORDER BY updatetimestamp desc) "
+          + "AS scoreInPercentage, views AS attempts, collectionId FROM BaseReports "
+          + "WHERE classid = ? AND collectionId = ANY(?::varchar[]) AND actorId = ? AND "
+          + "eventName = ? AND eventtype = 'stop') AS agg "
+          + "GROUP BY agg.collectionId";
+    
+    public static final String GET_PERFORMANCE_FOR_ASSESSMENTS =
+            "SELECT SUM(agg.timeSpent) timeSpent, ROUND(AVG(agg.scoreInPercentage)) scoreInPercentage, "
+          + "SUM(agg.reaction) reaction, SUM(agg.attempts) attempts, agg.collectionId, 'completed' AS attemptStatus "
+          + "FROM (SELECT timeSpent AS timeSpent, FIRST_VALUE(score) OVER (PARTITION BY collectionid ORDER BY updatetimestamp desc) "
+          + "AS scoreInPercentage, reaction AS reaction, views AS attempts, collectionId FROM BaseReports "
+          + "WHERE collectionId = ANY(?::varchar[]) AND actorId = ? AND "
+          + "eventName = ? AND eventtype = 'stop') AS agg "
+          + "GROUP BY agg.collectionId";
 
     //*************************************************************************************************************************
     
