@@ -141,7 +141,7 @@ public class StudPerfCourseCollectionHandler implements DBHandler {
         	JsonObject collectionKpi = new JsonObject();
             
         	//Find Timespent and Attempts
-        	collTSA = Base.findAll(AJEntityBaseReports.GET_TOTAL_TIMESPENT_ATTEMPTS_FOR_COLLECTION, 
+        	collTSA = Base.findAll(AJEntityBaseReports.GET_PERFORMANCE_FOR_COLLECTION, 
         			collId, AJEntityBaseReports.ATTR_COLLECTION, this.userId, EventConstants.COLLECTION_PLAY);
         	
         	if (!collTSA.isEmpty()) {
