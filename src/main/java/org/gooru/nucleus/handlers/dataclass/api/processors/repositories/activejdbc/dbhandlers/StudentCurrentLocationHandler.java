@@ -7,7 +7,6 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
-import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
@@ -81,10 +80,10 @@ public class StudentCurrentLocationHandler implements DBHandler {
     	if (!CurrentLocMap.isEmpty()){
     	  CurrentLocMap.forEach(m -> {
           JsonObject loc = new JsonObject();
-          loc.put(AJEntityBaseReports.CLASS_GOORU_OID, m.get(AJEntityBaseReports.CLASS_GOORU_OID).toString());
-          loc.put(AJEntityBaseReports.COURSE_GOORU_OID, m.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
-          loc.put(AJEntityBaseReports.UNIT_GOORU_OID, m.get(AJEntityBaseReports.UNIT_GOORU_OID).toString());
-          loc.put(AJEntityBaseReports.LESSON_GOORU_OID, m.get(AJEntityBaseReports.LESSON_GOORU_OID).toString());
+          loc.put(AJEntityBaseReports.ATTR_CLASS_ID, m.get(AJEntityBaseReports.CLASS_GOORU_OID).toString());
+          loc.put(AJEntityBaseReports.ATTR_COURSE_ID, m.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
+          loc.put(AJEntityBaseReports.ATTR_UNIT_ID, m.get(AJEntityBaseReports.UNIT_GOORU_OID).toString());
+          loc.put(AJEntityBaseReports.ATTR_LESSON_ID, m.get(AJEntityBaseReports.LESSON_GOORU_OID).toString());
           if (m.get(AJEntityBaseReports.COLLECTION_TYPE).equals(EventConstants.ASSESSMENT)) {
             loc.put(AJEntityBaseReports.ATTR_ASSESSMENT_ID, m.get(AJEntityBaseReports.COLLECTION_OID).toString());
           } else {

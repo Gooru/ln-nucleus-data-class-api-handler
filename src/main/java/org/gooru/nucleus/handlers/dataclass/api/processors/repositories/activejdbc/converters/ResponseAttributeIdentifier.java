@@ -28,54 +28,54 @@ public class ResponseAttributeIdentifier {
   static {
     sessionAssessmentAttributes = new HashMap<>();
     sessionAssessmentAttributes.put("score", "score");
-    sessionAssessmentAttributes.put("collectionid", "gooruOId");
+    sessionAssessmentAttributes.put("collection_id", "gooruOId");
     sessionAssessmentAttributes.put("reaction", "reaction");
-    sessionAssessmentAttributes.put("collectiontimespent", "timeSpent");
-    sessionAssessmentAttributes.put("updatetimestamp", "eventTime");
-    sessionAssessmentAttributes.put("sessionid", "sessionId");
-    sessionAssessmentAttributes.put("collectiontype", "resourceType");
-    sessionAssessmentAttributes.put("collectionviews", "attempts");
+    sessionAssessmentAttributes.put("collectionTimeSpent", "timeSpent");
+    sessionAssessmentAttributes.put("updated_timestamp", "eventTime");
+    sessionAssessmentAttributes.put("session_id", "sessionId");
+    sessionAssessmentAttributes.put("collection_type", "resourceType");
+    sessionAssessmentAttributes.put("collectionViews", "attempts");
 
     
   }
   static {
     sessionAssessmentQuestionAttributes = new HashMap<>();
     sessionAssessmentQuestionAttributes.put("score", "score");
-    sessionAssessmentQuestionAttributes.put("resourceId", "gooruOId");
+    sessionAssessmentQuestionAttributes.put("resource_id", "gooruOId");
     sessionAssessmentQuestionAttributes.put("reaction", "reaction");
-    sessionAssessmentQuestionAttributes.put("resourcetimespent", "timeSpent");
-    sessionAssessmentQuestionAttributes.put("updatetimestamp", "eventTime");
-    sessionAssessmentQuestionAttributes.put("sessionid", "sessionId");
-    sessionAssessmentQuestionAttributes.put("resourcetype", "resourceType");
-    sessionAssessmentQuestionAttributes.put("questiontype", "questionType");
-    sessionAssessmentQuestionAttributes.put("resourceviews", "views");
+    sessionAssessmentQuestionAttributes.put("resourceTimeSpent", "timeSpent");
+    sessionAssessmentQuestionAttributes.put("updated_timestamp", "eventTime");
+    sessionAssessmentQuestionAttributes.put("session_id", "sessionId");
+    sessionAssessmentQuestionAttributes.put("resource_type", "resourceType");
+    sessionAssessmentQuestionAttributes.put("question_type", "questionType");
+    sessionAssessmentQuestionAttributes.put("resourceViews", "views");
 
   }
   
   static {
     sessionCollectionAttributes = new HashMap<>();
     sessionCollectionAttributes.put("score", "score");
-    sessionCollectionAttributes.put("collectionid", "gooruOId");
+    sessionCollectionAttributes.put("collection_id", "gooruOId");
     sessionCollectionAttributes.put("reaction", "reaction");
-    sessionCollectionAttributes.put("collectiontimespent", "timeSpent");
+    sessionCollectionAttributes.put("collectionTimeSpent", "timeSpent");
    // sessionCollectionAttributes.put("updatetimestamp", "eventTime");
   //  sessionCollectionAttributes.put("sessionid", "sessionId");
    // sessionCollectionAttributes.put("collectiontype", "resourceType");
-    sessionCollectionAttributes.put("collectionviews", "views");
+    sessionCollectionAttributes.put("collectionViews", "views");
 
     
   }
   static {
     sessionCollectionResouceAttributes = new HashMap<>();
     sessionCollectionResouceAttributes.put("score", "score");
-    sessionCollectionResouceAttributes.put("resourceid", "gooruOId");
+    sessionCollectionResouceAttributes.put("resource_id", "gooruOId");
     sessionCollectionResouceAttributes.put("reaction", "reaction");
-    sessionCollectionResouceAttributes.put("resourcetimespent", "timeSpent");
-    sessionCollectionResouceAttributes.put("createtimestamp", "eventTime");
+    sessionCollectionResouceAttributes.put("resourceTimeSpent", "timeSpent");
+    sessionCollectionResouceAttributes.put("created_timestamp", "eventTime");
     //sessionCollectionResouceAttributes.put("sessionid", "sessionId");
-    sessionCollectionResouceAttributes.put("resourcetype", "resourceType");
-    sessionCollectionResouceAttributes.put("questiontype", "questionType");
-    sessionCollectionResouceAttributes.put("resourceviews", "views");
+    sessionCollectionResouceAttributes.put("resource_type", "resourceType");
+    sessionCollectionResouceAttributes.put("question_type", "questionType");
+    sessionCollectionResouceAttributes.put("resourceViews", "views");
 
   }
   
@@ -114,7 +114,7 @@ public class ResponseAttributeIdentifier {
     coursePerformanceAttributes.put("timeSpent", "timeSpent");
     coursePerformanceAttributes.put("attempts", "attempts");
     coursePerformanceAttributes.put("reaction", "reaction");
-    coursePerformanceAttributes.put("unitId", "unitId");
+    coursePerformanceAttributes.put("unit_id", "unitId");
     coursePerformanceAttributes.put("attemptStatus", "attemptStatus");
   }
   

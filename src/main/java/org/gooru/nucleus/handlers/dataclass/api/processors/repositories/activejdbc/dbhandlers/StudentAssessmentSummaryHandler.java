@@ -85,7 +85,7 @@ public class StudentAssessmentSummaryHandler implements DBHandler {
       JsonArray contentArray = new JsonArray();
       // STUDENT PERFORMANCE REPORTS IN ASSESSMENTS when SessionID NOT NULL
       if (!StringUtil.isNullOrEmpty(sessionId)) {
-        List<Map> assessmentKPI = Base.findAll(AJEntityBaseReports.SELECT_ASSESSMENT_FOREACH_COLLID_AND_SESSIONID, sessionId,
+        List<Map> assessmentKPI = Base.findAll(AJEntityBaseReports.SELECT_ASSESSMENT_FOREACH_COLLID_AND_SESSION_ID, sessionId,
                 AJEntityBaseReports.ATTR_CP_EVENTNAME);
   
         LOGGER.info("cID : {} , SID : {} ", context.collectionId(), sessionId);
@@ -98,7 +98,7 @@ public class StudentAssessmentSummaryHandler implements DBHandler {
           
           LOGGER.debug("Assessment question Attributes started");
 
-          List<Map> assessmentQuestionsKPI = Base.findAll(AJEntityBaseReports.SELECT_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSIONID,
+          List<Map> assessmentQuestionsKPI = Base.findAll(AJEntityBaseReports.SELECT_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSION_ID,
                   sessionId, AJEntityBaseReports.ATTR_CRP_EVENTNAME);
           
           JsonArray questionsArray = new JsonArray();

@@ -99,7 +99,7 @@ public class StudentLessonPerfHandler implements DBHandler {
       if (StringUtil.isNullOrEmpty(userId)) {
         LOGGER.warn("UserID is not in the request to fetch Student Performance in Lesson. Assume user is a teacher");
         LazyList<AJEntityBaseReports> userIdforlesson =
-                AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_LESSONID_FILTERBY_COLLTYPE, context.classId(),
+                AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_LESSON_ID_FILTERBY_COLLTYPE, context.classId(),
                         context.courseId(), context.unitId(), context.lessonId(), this.collectionType);
         userIdforlesson.forEach(coll -> userIds.add(coll.getString(AJEntityBaseReports.GOORUUID)));
   
@@ -113,7 +113,7 @@ public class StudentLessonPerfHandler implements DBHandler {
         JsonObject contentBody = new JsonObject();
         JsonArray LessonKpiArray = new JsonArray();
         LazyList<AJEntityBaseReports> collIDforlesson =
-                AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_COLLID_FOR_LESSONID_FILTERBY_COLLTYPE, context.classId(),
+                AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_COLLID_FOR_LESSON_ID_FILTERBY_COLLTYPE, context.classId(),
                         context.courseId(), context.unitId(), context.lessonId(), this.collectionType, userID);
 
         List<String> collIds = new ArrayList<>();

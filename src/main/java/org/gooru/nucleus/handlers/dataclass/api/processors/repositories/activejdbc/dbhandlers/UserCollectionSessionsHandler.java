@@ -28,15 +28,10 @@ public class UserCollectionSessionsHandler implements DBHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(UserAssessmentSessionsHandler.class);
 	
-	private static final String REQUEST_CLASS_ID = "classGooruId";
-    private static final String REQUEST_COURSE_ID = "courseGooruId";
-    private static final String REQUEST_UNIT_ID = "unitGooruId";
-    private static final String REQUEST_LESSON_ID = "lessonGooruId";
     private static final String REQUEST_OPEN_SESSION = "openSession";
     private static final String REQUEST_USERID = "userUid";
     
-	private final ProcessorContext context;
-    private AJEntityBaseReports baseReport;
+    private final ProcessorContext context;
 
     private String classId;
     private String courseId;
@@ -77,7 +72,6 @@ public class UserCollectionSessionsHandler implements DBHandler {
     	JsonArray closedSessionArray = new JsonArray();
     	JsonArray openSessionArray = new JsonArray();
     	    	
-    	baseReport = new AJEntityBaseReports();
     
         this.collectionId = context.collectionId();
         this.classId = context.request().getString(EventConstants.CLASS_GOORU_OID);
@@ -166,23 +160,5 @@ public class UserCollectionSessionsHandler implements DBHandler {
     public boolean handlerReadOnly() {
         return false;
     }
-    
-    private boolean validateOptionalParams(ProcessorContext context) {
-    	
-
-    	JsonArray classId_array = this.context.request().getJsonArray(REQUEST_CLASS_ID);
-    	JsonArray courseId_array = this.context.request().getJsonArray(REQUEST_COURSE_ID);
-    	JsonArray unitId_array = this.context.request().getJsonArray(REQUEST_UNIT_ID);
-    	JsonArray lessonId_array = this.context.request().getJsonArray(REQUEST_LESSON_ID);
-    	
-    	if ((classId_array != null) && (courseId_array != null) && (unitId_array != null) && (lessonId_array != null)){
-    		this.classId = classId_array.getString(0);
-    		this.courseId = courseId_array.getString(0);
-    		this.unitId = unitId_array.getString(0);
-    		this.lessonId = lessonId_array.getString(0);
-    		
-    		return true;    		
-    	} else return false;
-    }
- 
+     
 }

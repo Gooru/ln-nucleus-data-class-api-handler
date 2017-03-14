@@ -7,8 +7,6 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.converters.ResponseAttributeIdentifier;
-import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
-import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntitySessionTaxonomyReport;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.converters.ValueMapper;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
@@ -18,8 +16,6 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResp
 import org.javalite.activejdbc.Base;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.hazelcast.util.CollectionUtil;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -86,12 +82,10 @@ public class SessionTaxonomyReportHandler implements DBHandler {
        
         //FIXME: writer code should be fixed against splitting taxonomy code. It can be single column in schema. eg : least_code.
         if (taxonomyRow.get(AJEntitySessionTaxonomyReport.LEARNING_TARGET_ID) != null && !taxonomyRow.get(AJEntitySessionTaxonomyReport.LEARNING_TARGET_ID).equals(EventConstants.NA)) {
-          aggResult.put(JsonConstants.LEARNING_TARGET_ID, appendHyphen(taxonomyRow.get(AJEntitySessionTaxonomyReport.SUBJECT_ID), taxonomyRow.get(AJEntitySessionTaxonomyReport.COURSE_ID),
-                  taxonomyRow.get(AJEntitySessionTaxonomyReport.DOMAIN_ID), taxonomyRow.get(AJEntitySessionTaxonomyReport.STANDARD_ID), taxonomyRow.get(AJEntitySessionTaxonomyReport.LEARNING_TARGET_ID)));
+          aggResult.put(JsonConstants.LEARNING_TARGET_ID, taxonomyRow.get(AJEntitySessionTaxonomyReport.LEARNING_TARGET_ID));
          
         } else {
-          aggResult.put(JsonConstants.STANDARDS_ID, appendHyphen(taxonomyRow.get(AJEntitySessionTaxonomyReport.SUBJECT_ID), taxonomyRow.get(AJEntitySessionTaxonomyReport.COURSE_ID),
-                  taxonomyRow.get(AJEntitySessionTaxonomyReport.DOMAIN_ID), taxonomyRow.get(AJEntitySessionTaxonomyReport.STANDARD_ID)));
+          aggResult.put(JsonConstants.STANDARDS_ID,  taxonomyRow.get(AJEntitySessionTaxonomyReport.STANDARD_ID));
         }
         
         sessionTaxonomyQuestionResults = Base.findAll(AJEntitySessionTaxonomyReport.SELECT_TAXONOMY_REPORT_BY_MICRO_STANDARDS,
@@ -111,20 +105,7 @@ public class SessionTaxonomyReportHandler implements DBHandler {
     result.put(JsonConstants.CONTENT, taxonomyKpiArray);
     return new ExecutionResult<>(MessageResponseFactory.createGetResponse(result), ExecutionStatus.SUCCESSFUL);
   }
-
-  private String appendHyphen(Object... texts) {
-    StringBuilder sb = new StringBuilder();
-    for (Object text : texts) {
-      if (text != null) {
-        if (sb.length() > 0) {
-          sb.append("-");
-        }
-        sb.append(text);
-      }
-    }
-    return sb.toString();
-  }
-    
+  
   @Override
   public boolean handlerReadOnly() {
     // TODO Auto-generated method stub

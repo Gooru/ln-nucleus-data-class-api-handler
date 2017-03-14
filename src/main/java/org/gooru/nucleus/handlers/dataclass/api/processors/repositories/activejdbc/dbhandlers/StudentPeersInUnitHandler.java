@@ -61,7 +61,7 @@ public class StudentPeersInUnitHandler implements DBHandler {
     
           UnitPeerMap.forEach(m -> {
             Integer peerCount = Integer.valueOf(m.get(AJEntityBaseReports.ATTR_PEER_COUNT).toString());
-            StudentPeerArray.add(new JsonObject().put(AJEntityBaseReports.LESSON_GOORU_OID, m.get(AJEntityBaseReports.LESSON_GOORU_OID).toString())
+            StudentPeerArray.add(new JsonObject().put(AJEntityBaseReports.ATTR_LESSON_ID, m.get(AJEntityBaseReports.LESSON_GOORU_OID).toString())
                     .put(AJEntityBaseReports.ATTR_PEER_COUNT, (peerCount)));
           });
     
