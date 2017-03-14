@@ -10,9 +10,9 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
+import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
-import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
@@ -27,16 +27,12 @@ public class StudPerfCourseAssessmentHandler implements DBHandler {
 	
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(StudPerfCourseAssessmentHandler.class);
-	private static final String REQUEST_COLLECTION_TYPE = "collectionType";
     private static final String REQUEST_USERID = "userId";
     private final ProcessorContext context;
-    private String collectionType;
     private String userId;
-    private JsonArray collectionIds;
     private String courseId;
     private String unitId;
     private String lessonId;
-    private String timePeriod;
 
     
     public StudPerfCourseAssessmentHandler(ProcessorContext context) {
@@ -114,13 +110,13 @@ public class StudPerfCourseAssessmentHandler implements DBHandler {
 
       this.unitId = this.context.request().getString(MessageConstants.UNIT_ID);
       if (!StringUtil.isNullOrEmpty(unitId)) {
-    	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.UNITID);
+    	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.UNIT_GOORU_OID);
     	  params.add(unitId);    
         } 
       
       this.lessonId = this.context.request().getString(MessageConstants.LESSON_ID);
       if (!StringUtil.isNullOrEmpty(lessonId)) {
-    	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.LESSONID);
+    	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.LESSON_GOORU_OID);
     	  params.add(lessonId);    
         } 
   
@@ -141,12 +137,12 @@ public class StudPerfCourseAssessmentHandler implements DBHandler {
         	JsonObject assessmentKpi = new JsonObject();
             
         	//Find Timespent and Attempts
-        	assessTSA = Base.findAll(AJEntityBaseReports.GET_TOTAL_TIMESPENT_ATTEMPTS_FOR_ASSESSMENT, 
+        	assessTSA = Base.findAll(AJEntityBaseReports.GET_TOTAL_TIME_SPENT_ATTEMPTS_FOR_ASSESSMENT, 
         			collId, AJEntityBaseReports.ATTR_ASSESSMENT, this.userId, EventConstants.COLLECTION_PLAY, EventConstants.STOP);
         	
         	if (!assessTSA.isEmpty()) {
         	assessTSA.forEach(m -> {
-        		assessmentKpi.put(AJEntityBaseReports.ATTR_TIMESPENT, m.get(AJEntityBaseReports.ATTR_TIMESPENT).toString());
+        		assessmentKpi.put(AJEntityBaseReports.ATTR_TIME_SPENT, m.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString());
         		assessmentKpi.put(AJEntityBaseReports.ATTR_ATTEMPTS, m.get(AJEntityBaseReports.ATTR_ATTEMPTS).toString());
 	    		});
         	}
@@ -162,7 +158,7 @@ public class StudPerfCourseAssessmentHandler implements DBHandler {
     	    		});
             	}
         		
-        	assessmentKpi.put(AJEntityBaseReports.COLLECTION_OID, collId);
+        	assessmentKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collId);
         	assessmentArray.add(assessmentKpi);        		
         	}
 

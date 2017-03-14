@@ -101,7 +101,7 @@ class StudentCoursePerfHandler implements DBHandler {
 
         if (StringUtil.isNullOrEmpty(this.userId)) {
             LOGGER.info("UserID is not in the request fetch Student Performance in Course, Assume user is a teacher");
-            LazyList<AJEntityBaseReports> userIDforCourse = AJEntityBaseReports.findBySQL( AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_COURSEID_FILTERBY_COLLTYPE,
+            LazyList<AJEntityBaseReports> userIDforCourse = AJEntityBaseReports.findBySQL( AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_COURSE_ID_FILTERBY_COLLTYPE,
                     context.classId(), context.courseId(), this.collectionType);
             userIDforCourse.forEach(unit -> userIds.add(unit.getString(AJEntityBaseReports.GOORUUID)));
         }else{
@@ -113,7 +113,7 @@ class StudentCoursePerfHandler implements DBHandler {
             JsonArray CourseKpiArray = new JsonArray();
       
               LazyList<AJEntityBaseReports> unitIDforCourse =
-                      AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_UNITID_FOR_COURSEID_FILTERBY_COLLTYPE, context.classId(),
+                      AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_UNIT_ID_FOR_COURSE_ID_FILTERBY_COLLTYPE, context.classId(),
                               context.courseId(), this.collectionType, userID);
       
               if (!unitIDforCourse.isEmpty()) {
@@ -135,10 +135,10 @@ class StudentCoursePerfHandler implements DBHandler {
                     List<Map> completedCountMap = null;
                     if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
                       //FIXME: Score will not be useful in CUL if collection so could be incorrect from this below query. 
-                      completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLL_COUNT_FOREACH_UNITID, context.classId(), context.courseId(),
+                      completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLL_COUNT_FOREACH_UNIT_ID, context.classId(), context.courseId(),
                               unitId, this.collectionType, userID, EventConstants.COLLECTION_PLAY);
                     }else{
-                       completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLLID_COUNT_FOREACH_UNITID, context.classId(),
+                       completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLLID_COUNT_FOREACH_UNIT_ID, context.classId(),
                                context.courseId(), unitId, this.collectionType, userID, EventConstants.COLLECTION_PLAY);                       
                      }
                     JsonObject unitData = ValueMapper.map(ResponseAttributeIdentifier.getCoursePerformanceAttributesMap(), m);

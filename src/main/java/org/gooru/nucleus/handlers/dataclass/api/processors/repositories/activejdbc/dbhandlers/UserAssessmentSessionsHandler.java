@@ -118,13 +118,13 @@ public class UserAssessmentSessionsHandler implements DBHandler {
         		if (!sessionStatusMap.isEmpty()){
         			
         			sessionStatusMap.forEach(sess -> {
-        				if (sess.get(EventConstants.EVENT_TYPE).toString().equals(EventConstants.START)){
+        				if (sess.get(AJEntityBaseReports.EVENTTYPE).toString().equals(EventConstants.START)){
         	   				sessionObj.put(JsonConstants.EVENT_TIME, sess.get(AJEntityBaseReports.CREATE_TIMESTAMP).toString())
         	   				.put(JsonConstants.SESSIONID, sessionId);
         	   						
         	   			}
         	   			
-        				if (sess.get(EventConstants.EVENT_TYPE).toString().equals(EventConstants.STOP)){
+        				if (sess.get(AJEntityBaseReports.EVENTTYPE).toString().equals(EventConstants.STOP)){
         					closedSeq++;
         					sessionObj.put(JsonConstants.SEQUENCE, closedSeq.toString());
         	   				isStop = true;

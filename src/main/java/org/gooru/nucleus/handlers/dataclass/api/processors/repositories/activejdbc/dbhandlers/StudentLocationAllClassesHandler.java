@@ -79,13 +79,13 @@ public class StudentLocationAllClassesHandler implements DBHandler {
 	    if (!studLocData.isEmpty()) {
 	      studLocData.forEach(m -> {
 	        JsonObject studLoc = new JsonObject();
-	      studLoc.put(AJEntityBaseReports.CLASS_GOORU_OID, m.get(AJEntityBaseReports.CLASS_GOORU_OID).toString());
-          studLoc.put(AJEntityBaseReports.COURSE_GOORU_OID, m.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
-          studLoc.put(AJEntityBaseReports.UNIT_GOORU_OID, m.get(AJEntityBaseReports.UNIT_GOORU_OID).toString());
-          studLoc.put(AJEntityBaseReports.LESSON_GOORU_OID, m.get(AJEntityBaseReports.LESSON_GOORU_OID).toString());
+	      studLoc.put(AJEntityBaseReports.ATTR_CLASS_ID, m.get(AJEntityBaseReports.CLASS_GOORU_OID).toString());
+          studLoc.put(AJEntityBaseReports.ATTR_COURSE_ID, m.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
+          studLoc.put(AJEntityBaseReports.ATTR_UNIT_ID, m.get(AJEntityBaseReports.UNIT_GOORU_OID).toString());
+          studLoc.put(AJEntityBaseReports.ATTR_LESSON_ID, m.get(AJEntityBaseReports.LESSON_GOORU_OID).toString());
           String collectionId = m.get(AJEntityBaseReports.COLLECTION_OID).toString();
           studLoc.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collectionId);
-          studLoc.put(AJEntityBaseReports.COLLECTION_TYPE, m.get(AJEntityBaseReports.COLLECTION_TYPE).toString());
+          studLoc.put(AJEntityBaseReports.ATTR_COLLECTION_TYPE, m.get(AJEntityBaseReports.COLLECTION_TYPE).toString());
           String sessionId = m.get(AJEntityBaseReports.SESSION_ID).toString();
           if (!Base.findAll(AJEntityBaseReports.GET_COLLECTION_STATUS, sessionId, collectionId, EventConstants.COLLECTION_PLAY, EventConstants.STOP).isEmpty()){
         	  studLoc.put(JsonConstants.STATUS, JsonConstants.COMPLETE);

@@ -11,9 +11,9 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
+import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
-import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.javalite.activejdbc.Base;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -126,7 +126,7 @@ public class StudPerfMultipleCollectionHandler implements DBHandler{
           collectionPerf.forEach(m -> {
         	JsonObject collectionKpi = new JsonObject();
       		collectionKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, m.get(AJEntityBaseReports.ATTR_COLLECTION_ID).toString());
-        	collectionKpi.put(AJEntityBaseReports.ATTR_TIMESPENT, m.get(AJEntityBaseReports.ATTR_TIMESPENT).toString());
+        	collectionKpi.put(AJEntityBaseReports.ATTR_TIME_SPENT, m.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString());
       		collectionKpi.put(AJEntityBaseReports.ATTR_ATTEMPTS, m.get(AJEntityBaseReports.ATTR_ATTEMPTS).toString());
     		
     		collectionArray.add(collectionKpi);

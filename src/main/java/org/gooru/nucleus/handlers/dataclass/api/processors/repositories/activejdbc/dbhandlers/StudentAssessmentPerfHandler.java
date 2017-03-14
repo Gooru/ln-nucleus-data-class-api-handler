@@ -8,7 +8,6 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.converters.ResponseAttributeIdentifier;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
-import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.converters.ValueMapper;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
@@ -95,7 +94,7 @@ public class StudentAssessmentPerfHandler implements DBHandler {
       if (StringUtil.isNullOrEmpty(userId)) {
         LOGGER.warn("UserID is not in the request to fetch Student Performance in Lesson. Assume user is a teacher");
         LazyList<AJEntityBaseReports> userIdforlesson =
-                AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_COLLECTIONID_FILTERBY_COLLTYPE, context.classId(),
+                AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_COLLECTION_ID_FILTERBY_COLLTYPE, context.classId(),
                         context.courseId(), context.unitId(), context.lessonId(), context.collectionId(), this.collectionType);
         userIdforlesson.forEach(coll -> userIds.add(coll.getString(AJEntityBaseReports.GOORUUID)));
   
@@ -111,7 +110,7 @@ public class StudentAssessmentPerfHandler implements DBHandler {
                 context.unitId(), context.lessonId(), context.collectionId(), userID);
         if (!studentLatestAttempt.isEmpty()) {
           studentLatestAttempt.forEach(attempts -> {
-            List<Map> assessmentQuestionsKPI = Base.findAll(AJEntityBaseReports.SELECT_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSIONID,
+            List<Map> assessmentQuestionsKPI = Base.findAll(AJEntityBaseReports.SELECT_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSION_ID,
                     attempts.get(AJEntityBaseReports.SESSION_ID).toString(), AJEntityBaseReports.ATTR_CRP_EVENTNAME);
             JsonArray questionsArray = new JsonArray();
             if(!assessmentQuestionsKPI.isEmpty()){

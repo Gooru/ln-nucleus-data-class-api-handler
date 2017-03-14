@@ -1,7 +1,6 @@
     package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
     
-    import java.sql.Timestamp;
-import java.util.ArrayList;
+    import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -11,7 +10,6 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.converters.ResponseAttributeIdentifier;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
-import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.converters.ValueMapper;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
@@ -107,7 +105,7 @@ import io.vertx.core.json.JsonObject;
         if (StringUtil.isNullOrEmpty(userId)) {
           LOGGER.warn("UserID is not in the request to fetch Student Performance in Course. Asseume user is a teacher");
           LazyList<AJEntityBaseReports> userIdforUnit =
-                  AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_UNITID_FITLERBY_COLLTYPE, context.classId(),
+                  AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_UNIT_ID_FITLERBY_COLLTYPE, context.classId(),
                           context.courseId(), context.unitId(), EventConstants.ASSESSMENT);
           userIdforUnit.forEach(lesson -> userIds.add(lesson.getString(AJEntityBaseReports.GOORUUID)));
     
@@ -119,7 +117,7 @@ import io.vertx.core.json.JsonObject;
           JsonArray UnitKpiArray = new JsonArray();
     
           LazyList<AJEntityBaseReports> lessonIDforUnit =
-                  AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_LESSONID_FOR_UNITID_FITLERBY_COLLTYPE, context.classId(),
+                  AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_LESSON_ID_FOR_UNIT_ID_FITLERBY_COLLTYPE, context.classId(),
                           context.courseId(), context.unitId(), this.collectionType, userID);
     
           if (!lessonIDforUnit.isEmpty()) {
@@ -136,14 +134,14 @@ import io.vertx.core.json.JsonObject;
             }
             if (!lessonKpi.isEmpty()) {
               lessonKpi.forEach(m -> {
-                this.lessonId = m.get(AJEntityBaseReports.LESSON_GOORU_OID).toString();
+                this.lessonId = m.get(AJEntityBaseReports.ATTR_LESSON_ID).toString();
                 LOGGER.debug("The Value of LESSONID " + lessonId);
                 List<Map> completedCountMap = null;
                 if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
-                  completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLL_COUNT_FOREACH_LESSONID, context.classId(),
+                  completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLL_COUNT_FOREACH_LESSON_ID, context.classId(),
                         context.courseId(), context.unitId(), this.lessonId, this.collectionType, userID, EventConstants.COLLECTION_PLAY);
                 }else{
-                  completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLLID_COUNT_FOREACH_LESSONID, context.classId(),
+                  completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLLID_COUNT_FOREACH_LESSON_ID, context.classId(),
                           context.courseId(), context.unitId(), this.lessonId, this.collectionType, userID, EventConstants.COLLECTION_PLAY);   
                 }
                 JsonObject lessonData = ValueMapper.map(ResponseAttributeIdentifier.getUnitPerformanceAttributesMap(), m);
@@ -163,7 +161,7 @@ import io.vertx.core.json.JsonObject;
                 }
                 JsonArray assessmentArray = new JsonArray();
                 LazyList<AJEntityBaseReports> collIDforlesson =
-                        AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_COLLID_FOR_LESSONID_FILTERBY_COLLTYPE, context.classId(),
+                        AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_COLLID_FOR_LESSON_ID_FILTERBY_COLLTYPE, context.classId(),
                                 context.courseId(), context.unitId(), this.lessonId, this.collectionType, userID);
     
                 List<String> collIds = new ArrayList<>();
