@@ -554,6 +554,7 @@ class MessageProcessor implements Processor {
         String userId =  (request).getString(MessageConstants._USER_ID);
         /* user id from api request */
         String userUId = (request).getString(MessageConstants.USER_UID);
+        userUId = userUId == null ? (request).getString(MessageConstants.USER_ID) : userUId; 
         LOGGER.debug("User ID from session :" + userId + " User ID From request : " + userUId);
         String sessionId = message.headers().get(MessageConstants.SESSION_ID);
         LOGGER.debug(sessionId);
