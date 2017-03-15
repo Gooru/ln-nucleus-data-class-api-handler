@@ -200,7 +200,7 @@ public class AJEntityBaseReports extends Model {
             "SELECT SUM(agg.time_spent) timeSpent, "
           + "SUM(agg.reaction) reaction, SUM(agg.attempts) attempts, agg.lessonId, 'completed' AS attemptStatus "
           + "FROM (SELECT time_spent, "
-          + "reaction AS reaction, views AS attempts, lesson_id FROM base_reports "
+          + "reaction AS reaction, views AS attempts, lesson_id AS lessonId FROM base_reports "
           + "WHERE class_id = ? AND course_id = ? AND unit_id = ? AND collection_type =? AND actor_id = ? AND lesson_id = ANY(?::varchar[]) AND "
           + "event_name = ?) AS agg "
           + "GROUP BY agg.lesson_id";
