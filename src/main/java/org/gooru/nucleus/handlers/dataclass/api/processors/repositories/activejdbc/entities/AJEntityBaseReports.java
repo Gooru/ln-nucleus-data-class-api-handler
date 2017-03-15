@@ -418,12 +418,16 @@ public class AJEntityBaseReports extends Model {
 	+ " AND collection_id = ? AND event_name = ? ";
     
     //GET USER ALL SESSIONS FROM ASSESSMENT    
-    public static final String GET_USER_SESSIONS_FOR_COLLID =  "SELECT DISTINCT(session_id) from base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? "
-    		+ " AND collection_type = ? AND actor_id = ? ";
+    public static final String GET_USER_SESSIONS_FOR_COLLID =  "SELECT DISTINCT s.session_id,s.updated_timestamp FROM "
+            + "(SELECT FIRST_VALUE(updated_timestamp) OVER (PARTITION BY session_id ORDER BY updated_timestamp DESC) AS updated_timestamp, session_id "
+            + "FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND collection_type = ? AND actor_id = ?"
+            + " ORDER  BY updated_timestamp DESC) as s ORDER BY s.updated_timestamp DESC;";
     
     //GET USER ALL SESSIONS FROM ASSESSMENT  OUT OF CLASS  
-    public static final String GET_USER_SESSIONS_FOR_COLLID_ =  "SELECT DISTINCT(session_id) from base_reports WHERE class_id IS NULL AND course_id IS NULL AND unit_id IS NULL AND lesson_id IS NULL AND collection_id = ? "
-        + " AND collection_type = ? AND actor_id = ? ";
+    public static final String GET_USER_SESSIONS_FOR_COLLID_ =  "SELECT DISTINCT s.session_id,s.updated_timestamp "
+            + "FROM (SELECT FIRST_VALUE(updated_timestamp) OVER (PARTITION BY session_id ORDER BY updated_timestamp DESC) AS updated_timestamp, session_id "
+            + "FROM base_reports WHERE class_id IS NULL  AND course_id IS NULL  AND unit_id IS NULL  AND lesson_id IS NULL  AND collection_id = ? "
+            + " AND collection_type = ? ORDER  BY updated_timestamp DESC) as s ORDER BY s.updated_timestamp DESC;";
     
   //*************************************************************************************************************************
     // TEACHER REPORTS
