@@ -47,8 +47,8 @@ public class AJEntityBaseReports extends Model {
     //Mukul - enum (correct / incorrect / skipped / unevaluated)​
     public static final String RESOURCE_ATTEMPT_STATUS = "resource_attempt_status";    
     public static final String SCORE = "score";
-    public static final String CREATE_TIMESTAMP = "created_timestamp";
-    public static final String UPDATE_TIMESTAMP = "updated_timestamp";   
+    public static final String CREATE_TIMESTAMP = "created_at";
+    public static final String UPDATE_TIMESTAMP = "updated_at";   
     
     public static final String ATTR_TIME_SPENT = "timeSpent";
     public static final String ATTR_SCORE = "scoreInPercentage";
@@ -124,17 +124,17 @@ public class AJEntityBaseReports extends Model {
     public static final String GET_COMPLETED_COLLID_COUNT_FOREACH_UNIT_ID = 
     		"SELECT SUM(unitData.completion) AS completedCount, ROUND(AVG(scoreInPercentage)) scoreInPercentage FROM "
     		+ "(SELECT DISTINCT ON (collection_id) CASE  WHEN (event_type = 'stop') THEN 1 ELSE 0 END AS completion,"
-    		+ "FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_timestamp desc) AS scoreInPercentage,"
+    		+ "FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage,"
     		+ "unit_id FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND "
-    		+ "collection_type =? AND actor_id = ? AND event_name = ? AND event_type = 'stop' ORDER BY collection_id, updated_timestamp DESC) "
+    		+ "collection_type =? AND actor_id = ? AND event_name = ? AND event_type = 'stop' ORDER BY collection_id, updated_at DESC) "
     		+ "AS unitData GROUP BY unit_id;";
     
     public static final String GET_COMPLETED_COLL_COUNT_FOREACH_UNIT_ID = 
             "SELECT SUM(unitData.completion) AS completedCount, ROUND(AVG(scoreInPercentage)) scoreInPercentage FROM "
             + "(SELECT DISTINCT ON (collection_id) CASE  WHEN (event_type = 'stop') THEN 1 ELSE 0 END AS completion,"
-            + "FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_timestamp desc) AS scoreInPercentage,"
+            + "FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage,"
             + "unit_id FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND "
-            + "collection_type =? AND actor_id = ? AND event_name = ?  ORDER BY collection_id, updated_timestamp DESC) "
+            + "collection_type =? AND actor_id = ? AND event_name = ?  ORDER BY collection_id, updated_at DESC) "
             + "AS unitData GROUP BY unit_id;";
         
     
@@ -176,16 +176,16 @@ public class AJEntityBaseReports extends Model {
     public static final String GET_COMPLETED_COLLID_COUNT_FOREACH_LESSON_ID = 
             "SELECT SUM(lessonData.completion) AS completedCount,ROUND(AVG(scoreInPercentage)) scoreInPercentage FROM "
             + "(SELECT DISTINCT ON (collection_id) CASE  WHEN (event_type = 'stop') THEN 1 ELSE 0 END AS completion, "
-            + "lesson_id, FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_timestamp desc) AS scoreInPercentage "
+            + "lesson_id, FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage "
             + "FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? "
-            + " AND collection_type =? AND actor_id = ? AND event_name = ? AND event_type = 'stop' ORDER BY collection_id, updated_timestamp DESC) "
+            + " AND collection_type =? AND actor_id = ? AND event_name = ? AND event_type = 'stop' ORDER BY collection_id, updated_at DESC) "
             + "AS lessonData GROUP BY lesson_id;";
     public static final String GET_COMPLETED_COLL_COUNT_FOREACH_LESSON_ID = 
             "SELECT SUM(lessonData.completion) AS completedCount,ROUND(AVG(scoreInPercentage)) scoreInPercentage FROM "
             + "(SELECT DISTINCT ON (collection_id) CASE  WHEN (event_type = 'stop') THEN 1 ELSE 0 END AS completion, "
-            + "lesson_id, FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_timestamp desc) AS scoreInPercentage "
+            + "lesson_id, FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage "
             + "FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? "
-            + " AND collection_type =? AND actor_id = ? AND event_name = ? ORDER BY collection_id, updated_timestamp DESC) "
+            + " AND collection_type =? AND actor_id = ? AND event_name = ? ORDER BY collection_id, updated_at DESC) "
             + "AS lessonData GROUP BY lesson_id;";  
     public static final String SELECT_STUDENT_UNIT_PERF_FOR_ASSESSMENT =
             "SELECT SUM(agg.time_spent) AS timeSpent, "
@@ -221,7 +221,7 @@ public class AJEntityBaseReports extends Model {
     public static final String SELECT_STUDENT_LESSON_PERF_FOR_ASSESSMENT =
             "SELECT SUM(agg.time_spent) as timeSpent, ROUND(AVG(agg.scoreInPercentage)) scoreInPercentage, "
           + "SUM(agg.reaction) reaction, SUM(agg.attempts) attempts, agg.collection_id as collectionId, 'completed' AS attemptStatus "
-          + "FROM (SELECT time_spent, FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_timestamp desc) "
+          + "FROM (SELECT time_spent, FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) "
           + "AS scoreInPercentage, reaction AS reaction, views AS attempts, collection_id FROM base_reports "
           + "WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ANY(?::varchar[]) AND actor_id = ? AND "
           + "event_name = ? AND event_type = 'stop') AS agg "
@@ -230,7 +230,7 @@ public class AJEntityBaseReports extends Model {
     public static final String SELECT_STUDENT_LESSON_PERF_FOR_COLLECTION =
             "SELECT SUM(agg.time_spent) as timeSpent, ROUND(AVG(agg.scoreInPercentage)) scoreInPercentage, "
           + "SUM(agg.reaction) reaction, SUM(agg.attempts) attempts, agg.collection_id AS collectionId, 'completed' AS attemptStatus "
-          + "FROM (SELECT time_spent, FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_timestamp desc) "
+          + "FROM (SELECT time_spent, FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) "
           + "AS scoreInPercentage, reaction AS reaction, views AS attempts, collection_id FROM base_reports "
           + "WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ANY(?::varchar[]) AND actor_id = ? AND "
           + "event_name = ? ) AS agg "
@@ -250,61 +250,61 @@ public class AJEntityBaseReports extends Model {
     public static final String GET_LATEST_COMPLETED_SESSION_ID = "SELECT session_id FROM base_reports WHERE"
             +" class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND actor_id = ? AND"
             +" event_name = 'collection.play' AND event_type = 'stop'"
-            +" ORDER BY created_timestamp ASC";
+            +" ORDER BY created_at ASC";
     
     //*************************************************************************************************************************
     //String Constants and Queries for STUDENT PERFORMANCE REPORTS IN ASSESSMENTS    
     public static final String SELECT_ASSESSMENT_FOREACH_COLLID_AND_SESSION_ID =
-            "select distinct on (collection_id) FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_timestamp desc) AS score,"
-            + "collection_id,FIRST_VALUE(reaction) OVER (PARTITION BY collection_id ORDER BY updated_timestamp desc) AS reaction,"
-            + "FIRST_VALUE(time_spent) OVER (PARTITION BY collection_id ORDER BY updated_timestamp desc) as collectionTimeSpent,"
-            + "updated_timestamp,session_id,collection_type,FIRST_VALUE(views) OVER (PARTITION BY collection_id ORDER BY updated_timestamp asc) AS collectionViews "
+            "select distinct on (collection_id) FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS score,"
+            + "collection_id,FIRST_VALUE(reaction) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS reaction,"
+            + "FIRST_VALUE(time_spent) OVER (PARTITION BY collection_id ORDER BY updated_at desc) as collectionTimeSpent,"
+            + "updated_at,session_id,collection_type,FIRST_VALUE(views) OVER (PARTITION BY collection_id ORDER BY updated_at asc) AS collectionViews "
             + "from base_reports WHERE session_id = ? AND event_name = ? ";
     
     
     public static final String SELECT_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSION_ID =
-            "select  distinct on (resource_id) FIRST_VALUE(score * 100) OVER (PARTITION BY resource_id ORDER BY updated_timestamp desc) AS score,"
-            + "resource_id,FIRST_VALUE(reaction) OVER (PARTITION BY resource_id ORDER BY updated_timestamp desc) AS reaction,"
-            + "FIRST_VALUE(time_spent) OVER (PARTITION BY resource_id ORDER BY updated_timestamp desc) as resourceTimeSpent,"
-            + "updated_timestamp,session_id,collection_type,"
-            + "FIRST_VALUE(views) OVER (PARTITION BY resource_id ORDER BY updated_timestamp asc) AS resourceViews, "
+            "select  distinct on (resource_id) FIRST_VALUE(score * 100) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score,"
+            + "resource_id,FIRST_VALUE(reaction) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS reaction,"
+            + "FIRST_VALUE(time_spent) OVER (PARTITION BY resource_id ORDER BY updated_at desc) as resourceTimeSpent,"
+            + "updated_at,session_id,collection_type,"
+            + "FIRST_VALUE(views) OVER (PARTITION BY resource_id ORDER BY updated_at asc) AS resourceViews, "
             + "resource_type,question_type,"
-            + "FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_timestamp desc) as answer_object "
+            + "FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) as answer_object "
             + "from base_reports WHERE session_id = ? AND event_name = ? ";
     
     public static final String SELECT_COLLECTION_FOREACH_COLLID_AND_SESSION_ID =
-            "SELECT distinct on (collection_id) score,collection_id,reaction,time_spent AS collectiontime_spent,created_timestamp,session_id,collection_type,views AS collectionviews from base_reports"
+            "SELECT distinct on (collection_id) score,collection_id,reaction,time_spent AS collectiontime_spent,created_at,session_id,collection_type,views AS collectionviews from base_reports"
             + " WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND actor_id = ? AND event_name = ?"
             ;
     
     public static final String SELECT_COLLECTION_RESOURCE_FOREACH_COLLID_AND_SESSION_ID =
-            "SELECT distinct on (resource_id) score,collection_id,reaction,time_spent AS resourcetime_spent,created_timestamp,session_id,collection_type,views AS resourceviews,resource_type,question_type,answer_object as answer_object from base_reports"
+            "SELECT distinct on (resource_id) score,collection_id,reaction,time_spent AS resourcetime_spent,created_at,session_id,collection_type,views AS resourceviews,resource_type,question_type,answer_object as answer_object from base_reports"
             + " WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND actor_id = ? AND event_name = ?"
             ; 
   //*************************************************************************************************************************
     //Collection Summary report Queries
     //Getting collection question count
-    public static final String SELECT_COLLECTION_QUESTION_COUNT = "SELECT question_count,updated_timestamp FROM base_reports "
+    public static final String SELECT_COLLECTION_QUESTION_COUNT = "SELECT question_count,updated_at FROM base_reports "
             + "WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND actor_id = ? AND event_name = 'collection.play'"
-            + " ORDER BY updated_timestamp DESC LIMIT 1";
+            + " ORDER BY updated_at DESC LIMIT 1";
     //Getting COLLECTION DATA (views, time_spent)
     public static final String SELECT_COLLECTION_AGG_DATA = "SELECT SUM(agg.time_spent) AS collectionTimeSpent, SUM(agg.views) AS collectionViews,"
             + "agg.collection_id, agg.completionStatus, 0 AS score, 0 AS reaction FROM "
             + "(SELECT collection_id,time_spent,session_id,views,"
-            + "CASE  WHEN (FIRST_VALUE(event_type) OVER (PARTITION BY collection_id ORDER BY updated_timestamp desc) = 'stop') THEN 'completed' ELSE 'in-progress' END AS completionStatus "
+            + "CASE  WHEN (FIRST_VALUE(event_type) OVER (PARTITION BY collection_id ORDER BY updated_at desc) = 'stop') THEN 'completed' ELSE 'in-progress' END AS completionStatus "
             + "FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND actor_id = ? AND event_name = 'collection.play' ) AS agg "
             + "GROUP BY agg.collection_id,agg.completionStatus";
     //Getting COLLECTION DATA (score)
     public static final String SELECT_COLLECTION_AGG_SCORE = "SELECT SUM(agg.score) AS score FROM "
             + "(SELECT DISTINCT ON (resource_id) collection_id, "
-            + "FIRST_VALUE(score) OVER (PARTITION BY resource_id ORDER BY updated_timestamp desc) AS score "
+            + "FIRST_VALUE(score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score "
             + "FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND actor_id = ? AND "
             + "event_name = 'collection.resource.play' AND resource_type = 'question' AND resource_attempt_status <> 'skipped' ) AS agg "
             + "GROUP BY agg.collection_id";
     //Getting COLLECTION DATA (reaction)
     public static final String SELECT_COLLECTION_AGG_REACTION = "SELECT ROUND(AVG(agg.reaction)) AS reaction "
             + "FROM (SELECT DISTINCT ON (resource_id) collection_id,  "
-            + "FIRST_VALUE(reaction) OVER (PARTITION BY resource_id ORDER BY updated_timestamp desc) "
+            + "FIRST_VALUE(reaction) OVER (PARTITION BY resource_id ORDER BY updated_at desc) "
             + "AS reaction FROM base_reports "
             + "WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? "
             + "AND actor_id = ? AND event_name = 'collection.resource.play' AND reaction <> 0) AS agg GROUP BY agg.collection_id";
@@ -316,13 +316,13 @@ public class AJEntityBaseReports extends Model {
   //Getting RESOURCE DATA (score)
     public static final String SELECT_COLLECTION_QUESTION_AGG_SCORE = "SELECT DISTINCT ON (resource_id) "
             + "FIRST_VALUE(score) OVER (PARTITION BY resource_id "
-            + "ORDER BY updated_timestamp desc) AS score,FIRST_VALUE(resource_attempt_status) OVER (PARTITION BY resource_id ORDER BY updated_timestamp desc) AS attemptStatus, FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_timestamp desc) AS answer_object "
+            + "ORDER BY updated_at desc) AS score,FIRST_VALUE(resource_attempt_status) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS attemptStatus, FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS answer_object "
             + "FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND resource_id = ?"
             + "AND actor_id = ? AND event_name = 'collection.resource.play' AND resource_type = 'question' AND resource_attempt_status <> 'skipped'";
   //Getting RESOURCE DATA (reaction)
     public static final String SELECT_COLLECTION_RESOURCE_AGG_REACTION = "SELECT DISTINCT ON (resource_id) "
             + "FIRST_VALUE(reaction) OVER (PARTITION BY resource_id "
-            + "ORDER BY updated_timestamp desc) AS reaction "
+            + "ORDER BY updated_at desc) AS reaction "
             + "FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND resource_id = ? "
             + "AND actor_id = ? AND event_name = 'collection.resource.play' AND reaction <> 0";
   
@@ -330,28 +330,28 @@ public class AJEntityBaseReports extends Model {
     //Collection Summary report Queries for context of outside class
     //Getting collection question count
   //Getting collection question count in the context of outside class
-    public static final String SELECT_COLLECTION_QUESTION_COUNT_ = "SELECT question_count,updated_timestamp FROM base_reports "
+    public static final String SELECT_COLLECTION_QUESTION_COUNT_ = "SELECT question_count,updated_at FROM base_reports "
             + "WHERE class_id IS NULL AND course_id IS NULL AND unit_id IS NULL AND lesson_id IS NULL AND collection_id = ? AND actor_id = ? AND event_name = 'collection.play'"
-            + " ORDER BY updated_timestamp DESC LIMIT 1";
+            + " ORDER BY updated_at DESC LIMIT 1";
     
     //Getting COLLECTION DATA (views, time_spent)
     public static final String SELECT_COLLECTION_AGG_DATA_ = "SELECT SUM(agg.time_spent) AS collectionTimeSpent, SUM(agg.views) AS collectionViews,"
             + "agg.collection_id, agg.completionStatus, 0 AS score, 0 AS reaction FROM "
             + "(SELECT collection_id,time_spent,session_id,views,"
-            + "CASE  WHEN (FIRST_VALUE(event_type) OVER (PARTITION BY collection_id ORDER BY updated_timestamp desc) = 'stop') THEN 'completed' ELSE 'in-progress' END AS completionStatus "
+            + "CASE  WHEN (FIRST_VALUE(event_type) OVER (PARTITION BY collection_id ORDER BY updated_at desc) = 'stop') THEN 'completed' ELSE 'in-progress' END AS completionStatus "
             + "FROM base_reports WHERE class_id IS NULL AND course_id IS NULL AND unit_id IS NULL AND lesson_id IS NULL AND collection_id = ? AND actor_id = ? AND event_name = 'collection.play' ) AS agg "
             + "GROUP BY agg.collection_id,agg.completionStatus";
     //Getting COLLECTION DATA (score)
     public static final String SELECT_COLLECTION_AGG_SCORE_ = "SELECT SUM(agg.score) AS score FROM "
             + "(SELECT DISTINCT ON (resource_id) collection_id, "
-            + "FIRST_VALUE(score) OVER (PARTITION BY resource_id ORDER BY updated_timestamp desc) AS score "
+            + "FIRST_VALUE(score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score "
             + "FROM base_reports WHERE class_id IS NULL AND course_id IS NULL AND unit_id IS NULL AND lesson_id IS NULL AND collection_id = ? AND actor_id = ? AND "
             + "event_name = 'collection.resource.play' AND resource_type = 'question' AND resource_attempt_status <> 'skipped' ) AS agg "
             + "GROUP BY agg.collection_id";
     //Getting COLLECTION DATA (reaction)
     public static final String SELECT_COLLECTION_AGG_REACTION_ = "SELECT ROUND(AVG(agg.reaction)) AS reaction "
             + "FROM (SELECT DISTINCT ON (resource_id) collection_id,  "
-            + "FIRST_VALUE(reaction) OVER (PARTITION BY resource_id ORDER BY updated_timestamp desc) "
+            + "FIRST_VALUE(reaction) OVER (PARTITION BY resource_id ORDER BY updated_at desc) "
             + "AS reaction FROM base_reports "
             + "WHERE class_id IS NULL AND course_id IS NULL AND unit_id IS NULL AND lesson_id IS NULL AND collection_id = ? "
             + "AND actor_id = ? AND event_name = 'collection.resource.play' AND reaction <> 0) AS agg GROUP BY agg.collection_id";
@@ -363,42 +363,42 @@ public class AJEntityBaseReports extends Model {
   //Getting RESOURCE DATA (score)
     public static final String SELECT_COLLECTION_QUESTION_AGG_SCORE_ = "SELECT DISTINCT ON (resource_id) "
             + "FIRST_VALUE(score) OVER (PARTITION BY resource_id "
-            + "ORDER BY updated_timestamp desc) AS score,FIRST_VALUE(resource_attempt_status) OVER (PARTITION BY resource_id ORDER BY updated_timestamp desc) AS attemptStatus, FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_timestamp desc) AS answer_object "
+            + "ORDER BY updated_at desc) AS score,FIRST_VALUE(resource_attempt_status) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS attemptStatus, FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS answer_object "
             + "FROM base_reports WHERE class_id IS NULL AND course_id IS NULL AND unit_id IS NULL AND lesson_id IS NULL AND collection_id = ? AND resource_id = ?"
             + "AND actor_id = ? AND event_name = 'collection.resource.play' AND resource_type = 'question' AND resource_attempt_status <> 'skipped'";
   //Getting RESOURCE DATA (reaction)
     public static final String SELECT_COLLECTION_RESOURCE_AGG_REACTION_ = "SELECT DISTINCT ON (resource_id) "
             + "FIRST_VALUE(reaction) OVER (PARTITION BY resource_id "
-            + "ORDER BY updated_timestamp desc) AS reaction "
+            + "ORDER BY updated_at desc) AS reaction "
             + "FROM base_reports WHERE class_id IS NULL AND course_id IS NULL AND unit_id IS NULL AND lesson_id IS NULL AND collection_id = ? AND resource_id = ? "
             + "AND actor_id = ? AND event_name = 'collection.resource.play' AND reaction <> 0";
       
   //*************************************************************************************************************************
       // GET CURRENT STUDENT LOCATITON
     public static final String GET_STUDENT_LOCATION = 
-    		"select class_id, course_id, unit_id, lesson_id, collection_id,collection_type, created_timestamp, updated_timestamp from base_reports "
-    		+ " WHERE class_id = ? AND actor_id = ? ORDER BY updated_timestamp DESC LIMIT 1";
+    		"select class_id, course_id, unit_id, lesson_id, collection_id,collection_type, created_at, updated_at from base_reports "
+    		+ " WHERE class_id = ? AND actor_id = ? ORDER BY updated_at DESC LIMIT 1";
     
  // GET STUDENT's PEERS IN COURSE
     public static final String GET_PEERS_COUNT_IN_COURSE = 
         "SELECT count(aId) AS peerCount, unit_id FROM "
         + "(SELECT DISTINCT ON (actor_id) collection_id, course_id, lesson_id, unit_id as unit_id, actor_id as aId, "
-        + "updated_timestamp FROM base_reports where class_id = ? AND actor_id <> ? "
-        + "ORDER BY actor_id, updated_timestamp DESC) AS DS "
+        + "updated_at FROM base_reports where class_id = ? AND actor_id <> ? "
+        + "ORDER BY actor_id, updated_at DESC) AS DS "
         + "WHERE DS.course_id = ?  GROUP BY unit_id;";
 
     // GET STUDENT's PEERS IN UNIT
     public static final String GET_PEERS_COUNT_IN_UNIT= 
         "SELECT count(aId) AS peerCount, lesson_id FROM "
         + "(SELECT DISTINCT ON (actor_id) collection_id, course_id, lesson_id, unit_id as unit_id, actor_id as aId, "
-        + "updated_timestamp FROM base_reports where class_id = ? AND actor_id <> ? "
-        + "ORDER BY actor_id, updated_timestamp DESC) AS DS "
+        + "updated_at FROM base_reports where class_id = ? AND actor_id <> ? "
+        + "ORDER BY actor_id, updated_at DESC) AS DS "
         + "WHERE  DS.course_id = ? AND DS.unit_id = ?  GROUP BY lesson_id";
 
   //GET STUDENT's PEERS IN LESSON
-    public static final String GET_PEERS_IN_LESSON = "SELECT collection_id, actor_id, collection_type, updated_timestamp "
-            + "FROM (SELECT DISTINCT ON (actor_id) collection_id, course_id, lesson_id, unit_id as unit_id, actor_id , collection_type, updated_timestamp "
-            + "FROM base_reports where class_id = ? AND actor_id <> ? ORDER BY actor_id, updated_timestamp DESC) AS DS "
+    public static final String GET_PEERS_IN_LESSON = "SELECT collection_id, actor_id, collection_type, updated_at "
+            + "FROM (SELECT DISTINCT ON (actor_id) collection_id, course_id, lesson_id, unit_id as unit_id, actor_id , collection_type, updated_at "
+            + "FROM base_reports where class_id = ? AND actor_id <> ? ORDER BY actor_id, updated_at DESC) AS DS "
             + "WHERE DS.course_id = ? AND DS.unit_id = ?  AND lesson_id = ?";
 
     public static final String GET_DISTINCT_USERS_FOR_COLLECTION_FILTERBY_COLLTYPE =
@@ -406,28 +406,28 @@ public class AJEntityBaseReports extends Model {
             + "WHERE collection_id = ? AND collection_type =?";
     
     public static final String GET_USERS_LATEST_TIMESTAMP = 
-    		"SELECT updated_timestamp, actor_id from base_reports "
-    		+ " WHERE lesson_id = ? AND collection_id = ? AND collection_type =? AND actor_id = ? ORDER BY updated_timestamp DESC LIMIT 1";
+    		"SELECT updated_at, actor_id from base_reports "
+    		+ " WHERE lesson_id = ? AND collection_id = ? AND collection_type =? AND actor_id = ? ORDER BY updated_at DESC LIMIT 1";
 
   //*************************************************************************************************************************    
     //GET SESSION STATUS    
     /**public static final String GET_SESSION_STATUS =  "SELECT count(*) from base_reports WHERE session_id = ? "
     		+ " AND collection_id = ? AND event_type = ? AND event_name = ? "; **/
     
-    public static final String GET_SESSION_STATUS =  "SELECT event_name, event_type, created_timestamp from base_reports WHERE session_id = ? "
+    public static final String GET_SESSION_STATUS =  "SELECT event_name, event_type, created_at from base_reports WHERE session_id = ? "
 	+ " AND collection_id = ? AND event_name = ? ";
     
     //GET USER ALL SESSIONS FROM ASSESSMENT    
-    public static final String GET_USER_SESSIONS_FOR_COLLID =  "SELECT DISTINCT s.session_id,s.updated_timestamp FROM "
-            + "(SELECT FIRST_VALUE(updated_timestamp) OVER (PARTITION BY session_id ORDER BY updated_timestamp DESC) AS updated_timestamp, session_id "
+    public static final String GET_USER_SESSIONS_FOR_COLLID =  "SELECT DISTINCT s.session_id,s.updated_at FROM "
+            + "(SELECT FIRST_VALUE(updated_at) OVER (PARTITION BY session_id ORDER BY updated_at DESC) AS updated_at, session_id "
             + "FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND collection_type = ? AND actor_id = ?"
-            + " ) AS s ORDER BY s.updated_timestamp ASC";
+            + " ) AS s ORDER BY s.updated_at ASC";
     
     //GET USER ALL SESSIONS FROM ASSESSMENT  OUT OF CLASS  
-    public static final String GET_USER_SESSIONS_FOR_COLLID_ =  "SELECT DISTINCT s.session_id,s.updated_timestamp "
-            + "FROM (SELECT FIRST_VALUE(updated_timestamp) OVER (PARTITION BY session_id ORDER BY updated_timestamp DESC) AS updated_timestamp, session_id "
+    public static final String GET_USER_SESSIONS_FOR_COLLID_ =  "SELECT DISTINCT s.session_id,s.updated_at "
+            + "FROM (SELECT FIRST_VALUE(updated_at) OVER (PARTITION BY session_id ORDER BY updated_at DESC) AS updated_at, session_id "
             + "FROM base_reports WHERE class_id IS NULL  AND course_id IS NULL  AND unit_id IS NULL  AND lesson_id IS NULL  AND collection_id = ? "
-            + " AND collection_type = ? AND actor_id = ? ) AS s ORDER BY s.updated_timestamp ASC";
+            + " AND collection_type = ? AND actor_id = ? ) AS s ORDER BY s.updated_at ASC";
     
   //*************************************************************************************************************************
     // TEACHER REPORTS
@@ -502,24 +502,24 @@ public class AJEntityBaseReports extends Model {
     //CLASS DATA FOR A USER(score, completion)
     public static final String SELECT_STUDENT_ALL_CLASS_COMPLETION_SCORE = "SELECT class_id, SUM(classData.completion) AS completedCount, ROUND(AVG(scoreInPercentage)) AS scoreInPercentage "
             + "FROM (SELECT DISTINCT ON (collection_id) CASE  WHEN (event_type = 'stop') THEN 1 ELSE 0 END AS completion, "
-            + "FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_timestamp desc) AS scoreInPercentage, class_id "
+            + "FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage, class_id "
             + "FROM base_reports WHERE class_id = ?  AND actor_id = ? "
             + "AND event_name = 'collection.play' AND event_type = 'stop' AND collection_type = 'assessment' "
-            + "ORDER BY collection_id, updated_timestamp DESC) AS classData GROUP BY class_id";
+            + "ORDER BY collection_id, updated_at DESC) AS classData GROUP BY class_id";
 
     //CLASS DATA FOR ALL USER(score, completion)
     public static final String SELECT_ALL_STUDENT_ALL_CLASS_COMPLETION_SCORE = "SELECT class_id, SUM(classData.completion) AS completedCount, ROUND(AVG(scoreInPercentage)) AS scoreInPercentage "
             + "FROM (SELECT DISTINCT ON (collection_id) CASE  WHEN (event_type = 'stop') THEN 1 ELSE 0 END AS completion, "
-            + "FIRST_VALUE(score) OVER (PARTITION BY collection_id,actor_id ORDER BY updated_timestamp desc) AS scoreInPercentage, class_id "
+            + "FIRST_VALUE(score) OVER (PARTITION BY collection_id,actor_id ORDER BY updated_at desc) AS scoreInPercentage, class_id "
             + "FROM base_reports WHERE class_id = ? "
             + "AND event_name = 'collection.play' AND event_type = 'stop' AND collection_type = 'assessment' "
-            + "ORDER BY collection_id, updated_timestamp DESC) AS classData GROUP BY class_id";
+            + "ORDER BY collection_id, updated_at DESC) AS classData GROUP BY class_id";
 
     //*************************************************************************************************************************    
     //Student Location in All Classes    
     public static final String GET_STUDENT_LOCATION_ALL_CLASSES = "select DISTINCT ON (class_id) class_id, course_id, unit_id, "
-    		+ "lesson_id, collection_id, collection_type, session_id, updated_timestamp FROM base_reports WHERE actor_id = ? AND class_id = ANY(?::varchar[]) "
-    		+ "ORDER BY class_id, updated_timestamp DESC";
+    		+ "lesson_id, collection_id, collection_type, session_id, updated_at FROM base_reports WHERE actor_id = ? AND class_id = ANY(?::varchar[]) "
+    		+ "ORDER BY class_id, updated_at DESC";
     
     public static final String GET_COLLECTION_STATUS =  "SELECT event_name, event_type from base_reports WHERE session_id = ? "
     		+ " AND collection_id = ? AND event_name = ? AND event_type = ?";
@@ -528,7 +528,7 @@ public class AJEntityBaseReports extends Model {
     
     //Student Performance for All Assessments/Collections in a Course
     public static final String GET_LATEST_SCORE_FOR_ASSESSMENT = "SELECT DISTINCT ON (collection_id) "
-    		+ "FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_timestamp desc) AS scoreInPercentage, "
+    		+ "FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage, "
     		+ "collection_id from base_reports WHERE collection_id = ? AND collection_type = ? "
     		+ "AND actor_id = ? AND event_name = ? AND event_type = ?";
     
@@ -550,7 +550,7 @@ public class AJEntityBaseReports extends Model {
     public static final String GET_PERFORMANCE_FOR_CLASS_ASSESSMENTS =
             "SELECT SUM(agg.time_spent) timeSpent, ROUND(AVG(agg.scoreInPercentage)) scoreInPercentage, "
           + "SUM(agg.attempts) attempts, agg.collection_id "
-          + "FROM (SELECT time_spent, FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_timestamp desc) "
+          + "FROM (SELECT time_spent, FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) "
           + "AS scoreInPercentage, views AS attempts, collection_id FROM base_reports "
           + "WHERE class_id = ? AND collection_id = ANY(?::varchar[]) AND actor_id = ? AND "
           + "event_name = ? AND event_type = 'stop') AS agg "
@@ -559,7 +559,7 @@ public class AJEntityBaseReports extends Model {
     public static final String GET_PERFORMANCE_FOR_ASSESSMENTS =
             "SELECT SUM(agg.time_spent) timeSpent, ROUND(AVG(agg.scoreInPercentage)) scoreInPercentage, "
           + "SUM(agg.reaction) reaction, SUM(agg.attempts) attempts, agg.collection_id, 'completed' AS attemptStatus "
-          + "FROM (SELECT time_spent, FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_timestamp desc) "
+          + "FROM (SELECT time_spent, FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) "
           + "AS scoreInPercentage, reaction AS reaction, views AS attempts, collection_id FROM base_reports "
           + "WHERE collection_id = ANY(?::varchar[]) AND actor_id = ? AND "
           + "event_name = ? AND event_type = 'stop') AS agg "
