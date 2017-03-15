@@ -203,7 +203,7 @@ public class AJEntityBaseReports extends Model {
           + "reaction AS reaction, views AS attempts, lesson_id AS lessonId FROM base_reports "
           + "WHERE class_id = ? AND course_id = ? AND unit_id = ? AND collection_type =? AND actor_id = ? AND lesson_id = ANY(?::varchar[]) AND "
           + "event_name = ?) AS agg "
-          + "GROUP BY agg.lesson_id";
+          + "GROUP BY agg.lessonId";
     
     //*************************************************************************************************************************
     //String Constants and Queries for STUDENT PERFORMANCE REPORTS IN LESSON
