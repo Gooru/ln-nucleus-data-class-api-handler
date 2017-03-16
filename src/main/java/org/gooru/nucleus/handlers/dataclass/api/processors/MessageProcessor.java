@@ -86,8 +86,8 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_STUDENT_LOC_ALL_CLASSES:
                 result = getStudentLocInAllClasses();    
                 break;
-            case MessageConstants.MSG_OP_STUDENT_PERF_MULT_ASSESSMENT:
-                result = getStudentPerfMultipleAssessments();    
+            case MessageConstants.MSG_OP_STUDENT_PERF_DAILY_CLASS_ACTIVITY:
+                result = getStudentPerfDailyClassActivity();    
                 break;
             case MessageConstants.MSG_OP_STUDENT_PERF_MULT_COLLECTION:
                 result = getStudentPerfMultipleCollections();    
@@ -507,13 +507,13 @@ class MessageProcessor implements Processor {
 
       }
     
-    private MessageResponse getStudentPerfMultipleAssessments() {
+    private MessageResponse getStudentPerfDailyClassActivity() {
         try {
               ProcessorContext context = createContext();
-              return new RepoBuilder().buildReportRepo(context).getStudPerfMultipleAssessments();
+              return new RepoBuilder().buildReportRepo(context).getStudPerfDailyClassActivity();
               
           } catch (Throwable t) {
-              LOGGER.error("Exception while getting Student Performance in Multiple Assessments", t);
+              LOGGER.error("Exception while getting Student Performance in Daily Class Activity.", t);
               return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
           }
 

@@ -70,4 +70,6 @@ public class JsonConstants {
 	
 	public static final String RESOURCE = "resource";
 
+  public static final String ACTIVITY = "activity";
+
 }

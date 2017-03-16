@@ -68,7 +68,7 @@ public final class MessageConstants {
     public static final String MSG_OP_SESSION_TAXONOMY_REPORT = "session.taxonomy.report";
     public static final String MSG_OP_ALL_STUDENT_CLASSES_PERF = "all.class.student.performance";
     public static final String MSG_OP_STUDENT_LOC_ALL_CLASSES = "student.all.classes.location";
-    public static final String MSG_OP_STUDENT_PERF_MULT_ASSESSMENT = "student.multiple.assessment.performance";
+    public static final String MSG_OP_STUDENT_PERF_DAILY_CLASS_ACTIVITY = "student.daily.class.activity.performance";
     public static final String MSG_OP_STUDENT_PERF_MULT_COLLECTION = "student.multiple.collection.performance";
     public static final String MSG_OP_STUDENT_PERF_COURSE_ASSESSMENT = "student.course.assessment.performance";
     public static final String MSG_OP_STUDENT_PERF_COURSE_COLLECTION = "student.course.collection.performance";

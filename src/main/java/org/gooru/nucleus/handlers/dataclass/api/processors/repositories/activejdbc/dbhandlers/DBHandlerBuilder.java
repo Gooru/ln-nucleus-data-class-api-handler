@@ -85,8 +85,8 @@ public final class DBHandlerBuilder {
       }
     
     
-    public static DBHandler buildStudPerfMultipleAssessmentHandler(ProcessorContext context) {
-        return new StudPerfMultipleAssessmentHandler(context);
+    public static DBHandler buildStudPerfDailyClassActivityHandler(ProcessorContext context) {
+        return new StudPerfDailyActivityHandler(context);
       }
 
     public static DBHandler buildStudPerfMultipleCollectionHandler(ProcessorContext context) {
