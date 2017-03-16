@@ -107,8 +107,8 @@ class AJReportRepo implements ReportRepo {
     }
     
     @Override
-    public MessageResponse getStudPerfMultipleAssessments() {
-    	return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildStudPerfMultipleAssessmentHandler(context));
+    public MessageResponse getStudPerfDailyClassActivity() {
+    	return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildStudPerfDailyClassActivityHandler(context));
     }
     
     @Override

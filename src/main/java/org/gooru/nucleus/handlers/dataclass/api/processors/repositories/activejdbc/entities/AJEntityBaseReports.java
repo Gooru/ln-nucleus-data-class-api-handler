@@ -85,7 +85,8 @@ public class AJEntityBaseReports extends Model {
     public static final String UNIT_ID = "unit_id = ? ";
     public static final String LESSON_ID = "lesson_id = ?";
     public static final String CLASS_ID = "class_id = ? ";
-    
+    public static final String DATE = "date";
+    public static final String ACTIVITY_DATE = "activityDate";
     
     
     public static final String SELECT_BASEREPORT_MAX_SEQUENCE_ID =
@@ -547,18 +548,23 @@ public class AJEntityBaseReports extends Model {
     public static final String GET_DISTINCT_COLLECTIONS = "SELECT distinct(collection_id) from base_reports where "
     		+ "actor_id = ? AND collection_type = ? AND course_id = ? ";
     
-    public static final String GET_PERFORMANCE_FOR_CLASS_ASSESSMENTS =
-            "SELECT SUM(agg.time_spent) timeSpent, ROUND(AVG(agg.scoreInPercentage)) scoreInPercentage, "
-          + "SUM(agg.attempts) attempts, agg.collection_id "
-          + "FROM (SELECT time_spent, FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) "
-          + "AS scoreInPercentage, views AS attempts, collection_id FROM base_reports "
-          + "WHERE class_id = ? AND collection_id = ANY(?::varchar[]) AND actor_id = ? AND "
-          + "event_name = ? AND event_type = 'stop') AS agg "
-          + "GROUP BY agg.collection_id";
+    public static final String SELECT_DISTINCT_USERID_FOR_DAILY_CLASS_ACTIVITY =
+            "SELECT DISTINCT(actor_id) FROM base_reports "
+            + "WHERE class_id = ? AND collection_type = ?";
+    
+    public static final String GET_PERFORMANCE_FOR_CLASS_ASSESSMENTS = "SELECT SUM(agg.timeSpent) timeSpent, "
+            + "ROUND(AVG(agg.scoreInPercentage)) scoreInPercentage, SUM(agg.attempts) attempts, "
+            + "agg.collectionId, agg.activityDate FROM (SELECT time_spent AS timeSpent, "
+            + "FIRST_VALUE(score) OVER (PARTITION BY collection_id, DATE(updated_at) ORDER BY updated_at desc) "
+            + "AS scoreInPercentage, views AS attempts, collection_id as collectionId,actor_id as actorId, DATE(updated_at) as activityDate FROM base_reports "
+            + "WHERE class_id = ? AND collection_id = ANY(?::varchar[]) AND actor_id = ? AND event_name = ? AND collection_type = ? AND event_type = 'stop' "
+            + "AND DATE(updated_at) BETWEEN ? AND ?) AS agg GROUP BY agg.collectionId, agg.activityDate "
+            + "ORDER BY agg.activityDate DESC";
+    
     
     public static final String GET_PERFORMANCE_FOR_ASSESSMENTS =
             "SELECT SUM(agg.time_spent) timeSpent, ROUND(AVG(agg.scoreInPercentage)) scoreInPercentage, "
-          + "SUM(agg.reaction) reaction, SUM(agg.attempts) attempts, agg.collection_id, 'completed' AS attemptStatus "
+          + "SUM(agg.reaction) reaction, SUM(agg.attempts) attempts, agg.collection_id AS collectionId, 'completed' AS attemptStatus "
           + "FROM (SELECT time_spent, FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) "
           + "AS scoreInPercentage, reaction AS reaction, views AS attempts, collection_id FROM base_reports "
           + "WHERE collection_id = ANY(?::varchar[]) AND actor_id = ? AND "
