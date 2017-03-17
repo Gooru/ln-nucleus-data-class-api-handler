@@ -110,13 +110,13 @@ public class StudPerfCourseAssessmentHandler implements DBHandler {
 
       this.unitId = this.context.request().getString(MessageConstants.UNIT_ID);
       if (!StringUtil.isNullOrEmpty(unitId)) {
-    	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.UNIT_GOORU_OID);
+    	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.UNIT_ID);
     	  params.add(unitId);    
         } 
       
       this.lessonId = this.context.request().getString(MessageConstants.LESSON_ID);
       if (!StringUtil.isNullOrEmpty(lessonId)) {
-    	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.LESSON_GOORU_OID);
+    	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.LESSON_ID);
     	  params.add(lessonId);    
         } 
   
@@ -142,8 +142,8 @@ public class StudPerfCourseAssessmentHandler implements DBHandler {
         	
         	if (!assessTSA.isEmpty()) {
         	assessTSA.forEach(m -> {
-        		assessmentKpi.put(AJEntityBaseReports.ATTR_TIME_SPENT, m.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString());
-        		assessmentKpi.put(AJEntityBaseReports.ATTR_ATTEMPTS, m.get(AJEntityBaseReports.ATTR_ATTEMPTS).toString());
+        		assessmentKpi.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.parseLong(m.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()));
+        		assessmentKpi.put(AJEntityBaseReports.ATTR_ATTEMPTS, Integer.parseInt(m.get(AJEntityBaseReports.ATTR_ATTEMPTS).toString()));
 	    		});
         	}
         	
@@ -153,7 +153,7 @@ public class StudPerfCourseAssessmentHandler implements DBHandler {
         	
         	if (!assessScore.isEmpty()){
         		assessScore.forEach(m -> {
-            		assessmentKpi.put(AJEntityBaseReports.ATTR_SCORE, m.get(AJEntityBaseReports.ATTR_SCORE).toString());
+            		assessmentKpi.put(AJEntityBaseReports.ATTR_SCORE, Integer.parseInt(m.get(AJEntityBaseReports.ATTR_SCORE).toString()));
             		assessmentKpi.put(JsonConstants.STATUS, JsonConstants.COMPLETE);        
     	    		});
             	}

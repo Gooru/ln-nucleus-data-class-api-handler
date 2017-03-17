@@ -142,8 +142,8 @@ public class StudPerfCourseCollectionHandler implements DBHandler {
         	
         	if (!collTSA.isEmpty()) {
         	collTSA.forEach(m -> {
-        		collectionKpi.put(AJEntityBaseReports.ATTR_TIME_SPENT, m.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString());
-        		collectionKpi.put(AJEntityBaseReports.VIEWS, m.get(AJEntityBaseReports.VIEWS).toString());
+        		collectionKpi.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.parseLong(m.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()));
+        		collectionKpi.put(AJEntityBaseReports.VIEWS, Integer.parseInt(m.get(AJEntityBaseReports.VIEWS).toString()));
 	    		});
         	}
         		
