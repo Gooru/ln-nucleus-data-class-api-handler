@@ -91,12 +91,16 @@ public class StudentLessonPerfHandler implements DBHandler {
       }
       LOGGER.debug("Collection Type is " + this.collectionType);
   
-      this.userId = this.context.request().getString(REQUEST_USERID);
+      if (this.context.classId() != null) {
+        this.userId = this.context.request().getString(REQUEST_USERID);
+      } else {
+        this.userId = this.context.userIdFromSession();
+      }
       List<String> userIds = new ArrayList<>();
   
       // FIXME : userId can be added as GROUPBY in performance query. Not
       // necessary to get distinct users.
-      if (StringUtil.isNullOrEmpty(userId)) {
+      if (context.classId() != null && StringUtil.isNullOrEmpty(userId)) {
         LOGGER.warn("UserID is not in the request to fetch Student Performance in Lesson. Assume user is a teacher");
         LazyList<AJEntityBaseReports> userIdforlesson =
                 AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_LESSON_ID_FILTERBY_COLLTYPE, context.classId(),
@@ -112,9 +116,13 @@ public class StudentLessonPerfHandler implements DBHandler {
       for (String userID : userIds) {
         JsonObject contentBody = new JsonObject();
         JsonArray LessonKpiArray = new JsonArray();
-        LazyList<AJEntityBaseReports> collIDforlesson =
-                AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_COLLID_FOR_LESSON_ID_FILTERBY_COLLTYPE, context.classId(),
+        LazyList<AJEntityBaseReports> collIDforlesson = null;
+        if (context.classId() != null) {
+        collIDforlesson = AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_COLLID_FOR_LESSON_ID_FILTERBY_COLLTYPE, context.classId(),
                         context.courseId(), context.unitId(), context.lessonId(), this.collectionType, userID);
+        }else{
+          collIDforlesson = AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_LEARNER_DISTINCT_COLLID_FOR_LESSON_ID_FILTERBY_COLLTYPE,                  context.courseId(), context.unitId(), context.lessonId(), this.collectionType, userID);
+        }
 
         List<String> collIds = new ArrayList<>();
         if (!collIDforlesson.isEmpty()) {
@@ -123,11 +131,23 @@ public class StudentLessonPerfHandler implements DBHandler {
         }
         List<Map> assessmentKpi = null; 
         if(this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)){
+          if (context.classId() != null) {
         assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF_FOR_COLLECTION, context.classId(),
                 context.courseId(), context.unitId(), context.lessonId(), listToPostgresArrayString(collIds), userID, EventConstants.COLLECTION_PLAY);
+          }else{
+            assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_LEARNER_LESSON_PERF_FOR_COLLECTION,
+                    context.courseId(), context.unitId(), context.lessonId(), listToPostgresArrayString(collIds), userID, EventConstants.COLLECTION_PLAY);
+          }
         }else{
-        assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF_FOR_ASSESSMENT, context.classId(),
+          if (context.classId() != null) {
+          assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF_FOR_ASSESSMENT, context.classId(),
                   context.courseId(), context.unitId(), context.lessonId(), listToPostgresArrayString(collIds), userID, EventConstants.COLLECTION_PLAY);
+          }else{
+
+            assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_LEARNER_LESSON_PERF_FOR_ASSESSMENT,
+                    context.courseId(), context.unitId(), context.lessonId(), listToPostgresArrayString(collIds), userID, EventConstants.COLLECTION_PLAY);
+            
+          }
         }
         if (!assessmentKpi.isEmpty()) {
           assessmentKpi.forEach(m -> {
@@ -137,15 +157,29 @@ public class StudentLessonPerfHandler implements DBHandler {
             lessonKpi.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
             // FIXME: This logic to be revisited.
             if (this.collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {
-              List<Map> collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_QUESTION_COUNT, context.classId(),
+              List<Map> collectionQuestionCount = null;
+              if (context.classId() != null) {
+                collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_QUESTION_COUNT, context.classId(),
                       context.courseId(), context.unitId(), context.lessonId(), lessonKpi.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID),this.userId);
+              }else{
+                collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_LEARNER_COLLECTION_QUESTION_COUNT,
+                      context.courseId(), context.unitId(), context.lessonId(), lessonKpi.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID),this.userId);
+              
+              }
               collectionQuestionCount.forEach(qc -> {
                 this.questionCount = Integer.valueOf(qc.get(AJEntityBaseReports.QUESTION_COUNT).toString());
               });
               long scoreInPercent=0;
               if(this.questionCount > 0){
-                Object collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_SCORE, context.classId(),
+                Object collectionScore = null;
+                if (context.classId() != null) {
+                collectionScore =  Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_SCORE, context.classId(),
                         context.courseId(), context.unitId(), context.lessonId(), lessonKpi.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID),this.userId);
+                }else{
+                  collectionScore =  Base.firstCell(AJEntityBaseReports.SELECT_LEARNER_COLLECTION_AGG_SCORE,
+                          context.courseId(), context.unitId(), context.lessonId(), lessonKpi.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID),this.userId);
+                  
+                }
                 if(collectionScore != null){
                   scoreInPercent =  Math.round(((double) Integer.valueOf(collectionScore.toString()) / this.questionCount) * 100);
                 }

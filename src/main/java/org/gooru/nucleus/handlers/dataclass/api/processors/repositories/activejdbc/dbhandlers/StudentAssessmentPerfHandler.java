@@ -86,12 +86,16 @@ public class StudentAssessmentPerfHandler implements DBHandler {
                 ExecutionStatus.FAILED);
       }
   
-      this.userId = this.context.request().getString(REQUEST_USERID);
+      if (this.context.classId() != null) {
+        this.userId = this.context.request().getString(REQUEST_USERID);
+      } else {
+        this.userId = this.context.userIdFromSession();
+      }
       List<String> userIds = new ArrayList<>();
   
       // FIXME : userId can be added as GROUPBY in performance query. Not
       // necessary to get distinct users.
-      if (StringUtil.isNullOrEmpty(userId)) {
+      if (this.context.classId() != null && StringUtil.isNullOrEmpty(userId)) {
         LOGGER.warn("UserID is not in the request to fetch Student Performance in Lesson. Assume user is a teacher");
         LazyList<AJEntityBaseReports> userIdforlesson =
                 AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_COLLECTION_ID_FILTERBY_COLLTYPE, context.classId(),
@@ -106,8 +110,18 @@ public class StudentAssessmentPerfHandler implements DBHandler {
   
       for (String userID : userIds) {
         JsonObject contentBody = new JsonObject();
-        List<Map> studentLatestAttempt = Base.findAll(AJEntityBaseReports.GET_LATEST_COMPLETED_SESSION_ID, context.classId(), context.courseId(),
+        List<Map> studentLatestAttempt = null;
+        if (this.context.classId() != null && context.courseId() != null &&
+                context.unitId()!= null && context.lessonId() != null){
+        studentLatestAttempt = Base.findAll(AJEntityBaseReports.GET_LATEST_COMPLETED_SESSION_ID, context.classId(), context.courseId(),
                 context.unitId(), context.lessonId(), context.collectionId(), userID);
+        }else if(this.context.classId() == null && context.courseId() != null &&
+                context.unitId()!= null && context.lessonId() != null){
+          studentLatestAttempt = Base.findAll(AJEntityBaseReports.GET_LEARNER_LATEST_COMPLETED_SESSION_ID, context.courseId(),
+                  context.unitId(), context.lessonId(), context.collectionId(), userID);
+        }else{
+          studentLatestAttempt = Base.findAll(AJEntityBaseReports.GET_LEARNER_LATEST_INDEPENDENT_ASS_COMPLETED_SESSION_ID, context.collectionId(), userID);
+        }
         if (!studentLatestAttempt.isEmpty()) {
           studentLatestAttempt.forEach(attempts -> {
             List<Map> assessmentQuestionsKPI = Base.findAll(AJEntityBaseReports.SELECT_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSION_ID,

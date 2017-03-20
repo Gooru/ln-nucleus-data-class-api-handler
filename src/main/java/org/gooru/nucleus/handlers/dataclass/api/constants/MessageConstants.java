@@ -72,7 +72,13 @@ public final class MessageConstants {
     public static final String MSG_OP_STUDENT_PERF_MULT_COLLECTION = "student.multiple.collection.performance";
     public static final String MSG_OP_STUDENT_PERF_COURSE_ASSESSMENT = "student.course.assessment.performance";
     public static final String MSG_OP_STUDENT_PERF_COURSE_COLLECTION = "student.course.collection.performance";
-
+    
+    public static final String MSG_OP_LEARNER_INDEPENDENT_COURSE_PERF = "learner.independent.course.performance";
+    public static final String MSG_OP_LEARNER_INDEPENDENT_UNIT_PERF = "learner.independent.unit.performance";
+    public static final String MSG_OP_LEARNER_INDEPENDENT_LESSON_PERF = "learner.independent.lesson.performance";
+    public static final String MSG_OP_LEARNER_INDEPENDENT_ASSESSMENT_PERF = "learner.independent.assessment.performance";
+    public static final String MSG_OP_LEARNER_ASSESSMENT_PERF = "learner.assessment.performance";
+    
     public static final String PORT = "port";
     public static final String HOST = "host";
     public static final String REDIS = "redis.config";

@@ -82,105 +82,137 @@ class StudentCoursePerfHandler implements DBHandler {
     @Override
     @SuppressWarnings("rawtypes")
     public ExecutionResult<MessageResponse> executeRequest() {
-        
-    	JsonObject resultBody = new JsonObject();
-    	JsonArray resultarray = new JsonArray();
-    	
-    	//CollectionType is a Mandatory Parameter
-    	this.collectionType = this.context.request().getString(REQUEST_COLLECTION_TYPE);
-    	if (StringUtil.isNullOrEmpty(collectionType)) {
-            LOGGER.warn("CollectionType is mandatory to fetch Student Performance in Course");
-            return new ExecutionResult<>(
+  
+      JsonObject resultBody = new JsonObject();
+      JsonArray resultarray = new JsonArray();
+  
+      // CollectionType is a Mandatory Parameter
+      this.collectionType = this.context.request().getString(REQUEST_COLLECTION_TYPE);
+      if (StringUtil.isNullOrEmpty(collectionType)) {
+        LOGGER.warn("CollectionType is mandatory to fetch Student Performance in Course");
+        return new ExecutionResult<>(
                 MessageResponseFactory.createInvalidRequestResponse("CollectionType Missing. Cannot fetch Student Performance in course"),
                 ExecutionStatus.FAILED);
-        }
-        
+      }
+      if (this.context.classId() != null) {
         this.userId = this.context.request().getString(REQUEST_USERID);
-        List<String> unitIds = new ArrayList<>();
-        List<String> userIds = new ArrayList<>();
-
-        if (StringUtil.isNullOrEmpty(this.userId)) {
-            LOGGER.info("UserID is not in the request fetch Student Performance in Course, Assume user is a teacher");
-            LazyList<AJEntityBaseReports> userIDforCourse = AJEntityBaseReports.findBySQL( AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_COURSE_ID_FILTERBY_COLLTYPE,
-                    context.classId(), context.courseId(), this.collectionType);
-            userIDforCourse.forEach(unit -> userIds.add(unit.getString(AJEntityBaseReports.GOORUUID)));
-        }else{
-          userIds.add(this.userId);
-        }       
-        
-          for (String userID : userIds) {
-            JsonObject contentBody = new JsonObject();
-            JsonArray CourseKpiArray = new JsonArray();
-      
-              LazyList<AJEntityBaseReports> unitIDforCourse =
-                      AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_UNIT_ID_FOR_COURSE_ID_FILTERBY_COLLTYPE, context.classId(),
-                              context.courseId(), this.collectionType, userID);
-      
-              if (!unitIDforCourse.isEmpty()) {
-                LOGGER.debug("Got a list of Distinct unitIDs for this Course");
-      
-                unitIDforCourse.forEach(unit -> unitIds.add(unit.getString(AJEntityBaseReports.UNIT_GOORU_OID))); 
-                List<Map> assessmentKpi = null;
-                if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
-                  assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_COURSE_PERF_FOR_COLLECTION, context.classId(),
-                        context.courseId(), this.collectionType, userID, listToPostgresArrayString(unitIds), EventConstants.COLLECTION_PLAY);
-                }else{
-                  assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_COURSE_PERF_FOR_ASSESSMENT, context.classId(),
-                          context.courseId(), this.collectionType, userID, listToPostgresArrayString(unitIds), EventConstants.COLLECTION_PLAY);
-                }
-                if (!assessmentKpi.isEmpty()) {
-                  assessmentKpi.forEach(m -> {
-                    unitId = m.get(AJEntityBaseReports.UNIT_GOORU_OID).toString();
-                    LOGGER.debug("The Value of UNITID " + unitId);
-                    List<Map> completedCountMap = null;
-                    if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
-                      //FIXME: Score will not be useful in CUL if collection so could be incorrect from this below query. 
-                      completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLL_COUNT_FOREACH_UNIT_ID, context.classId(), context.courseId(),
-                              unitId, this.collectionType, userID, EventConstants.COLLECTION_PLAY);
-                    }else{
-                       completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLLID_COUNT_FOREACH_UNIT_ID, context.classId(),
-                               context.courseId(), unitId, this.collectionType, userID, EventConstants.COLLECTION_PLAY);                       
-                     }
-                    JsonObject unitData = ValueMapper.map(ResponseAttributeIdentifier.getCoursePerformanceAttributesMap(), m);
-                    completedCountMap.forEach( scoreCompletonMap -> {
-                      unitData.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, Integer.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
-                      unitData.put(AJEntityBaseReports.ATTR_SCORE,  Integer.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE).toString()));
-                      LOGGER.debug("UnitID : {} - UserID : {} - Score : {}",unitId,userID,Integer.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE).toString()));
-                      LOGGER.debug("UnitID : {} - UserID : {} - completedCount : {}",unitId,userID,Integer.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
-
-                    });
-                    //FIXME: Total count will be taken from nucleus core.
-                    unitData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
-                    //FIXME : Revisit this logic in future.
-                    if(this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)){
-                      unitData.put(EventConstants.VIEWS, unitData.getInteger(EventConstants.ATTEMPTS));
-                      unitData.remove(EventConstants.ATTEMPTS);
-                    }
-                    CourseKpiArray.add(unitData);
-                  });
-                } else {
-                  LOGGER.info("No data returned for Student Perf in Assessment");
-                  // return new
-                  // ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(),
-                  // ExecutionStatus.FAILED);
-                }
-      
-              } else {
-                LOGGER.info("Could not get Student Course Performance");
-                // Return an empty resultBody instead of an Error
-                // return new
-                // ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(),
-                // ExecutionStatus.FAILED);
-              }
-      
-            // Form the required Json pass it on
-            contentBody.put(JsonConstants.USAGE_DATA, CourseKpiArray).put(JsonConstants.USERUID, userID);
-            resultarray.add(contentBody);
+      } else {
+        this.userId = this.context.userIdFromSession();
+      }
+      List<String> unitIds = new ArrayList<>();
+      List<String> userIds = new ArrayList<>();
+  
+      if (context.classId() != null && StringUtil.isNullOrEmpty(this.userId)) {
+        LOGGER.info("UserID is not in the request fetch Student Performance in Course, Assume user is a teacher");
+        LazyList<AJEntityBaseReports> userIDforCourse = AJEntityBaseReports.findBySQL(
+                AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_COURSE_ID_FILTERBY_COLLTYPE, context.classId(), context.courseId(), this.collectionType);
+        userIDforCourse.forEach(unit -> userIds.add(unit.getString(AJEntityBaseReports.GOORUUID)));
+      } else {
+        userIds.add(this.userId);
+      }
+  
+      for (String userID : userIds) {
+        JsonObject contentBody = new JsonObject();
+        JsonArray CourseKpiArray = new JsonArray();
+  
+        LazyList<AJEntityBaseReports> unitIDforCourse = null;
+        if (context.classId() != null) {
+          unitIDforCourse = AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_UNIT_ID_FOR_COURSE_ID_FILTERBY_COLLTYPE,
+                  context.classId(), context.courseId(), this.collectionType, userID);
+        } else {
+          unitIDforCourse = AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_LEARNER_DISTINCT_UNIT_ID_FOR_COURSE_ID_FILTERBY_COLLTYPE,
+                  context.courseId(), this.collectionType, userID);
+        }
+  
+        if (!unitIDforCourse.isEmpty()) {
+          LOGGER.debug("Got a list of Distinct unitIDs for this Course");
+  
+          unitIDforCourse.forEach(unit -> unitIds.add(unit.getString(AJEntityBaseReports.UNIT_GOORU_OID)));
+          List<Map> assessmentKpi = null;
+          if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
+            if (context.classId() != null) {
+              assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_COURSE_PERF_FOR_COLLECTION, context.classId(), context.courseId(),
+                      this.collectionType, userID, listToPostgresArrayString(unitIds), EventConstants.COLLECTION_PLAY);
+            } else {
+              assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_LEARNER_COURSE_PERF_FOR_COLLECTION, context.courseId(), this.collectionType,
+                      userID, listToPostgresArrayString(unitIds), EventConstants.COLLECTION_PLAY);
+            }
+          } else {
+            if (context.classId() != null) {
+              assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_COURSE_PERF_FOR_ASSESSMENT, context.classId(), context.courseId(),
+                      this.collectionType, userID, listToPostgresArrayString(unitIds), EventConstants.COLLECTION_PLAY);
+            } else {
+              assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_LEARNER_COURSE_PERF_FOR_ASSESSMENT, context.classId(), context.courseId(),
+                      this.collectionType, userID, listToPostgresArrayString(unitIds), EventConstants.COLLECTION_PLAY);
+  
+            }
           }
-        resultBody.put(JsonConstants.CONTENT, resultarray).putNull(JsonConstants.MESSAGE).putNull(JsonConstants.PAGINATE);
-
-    	return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody),
-                ExecutionStatus.SUCCESSFUL);
+          if (!assessmentKpi.isEmpty()) {
+            assessmentKpi.forEach(m -> {
+              unitId = m.get(AJEntityBaseReports.UNIT_GOORU_OID).toString();
+              LOGGER.debug("The Value of UNITID " + unitId);
+              List<Map> completedCountMap = null;
+              if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
+                // FIXME: Score will not be useful in CUL if collection so could
+                // be incorrect from this below query.
+                if (context.classId() != null) {
+                  completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLL_COUNT_FOREACH_UNIT_ID, context.classId(), context.courseId(),
+                          unitId, this.collectionType, userID, EventConstants.COLLECTION_PLAY);
+                } else {
+                  completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLL_COUNT_FOREACH_LEARNER_UNIT_ID, context.courseId(), unitId,
+                          this.collectionType, userID, EventConstants.COLLECTION_PLAY);
+                }
+              } else {
+                if (context.classId() != null) {
+                  completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLLID_COUNT_FOREACH_UNIT_ID, context.classId(),
+                          context.courseId(), unitId, this.collectionType, userID, EventConstants.COLLECTION_PLAY);
+                } else {
+                  completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLLID_COUNT_FOREACH_LEARNER_UNIT_ID, context.courseId(), unitId,
+                          this.collectionType, userID, EventConstants.COLLECTION_PLAY);
+                }
+              }
+              JsonObject unitData = ValueMapper.map(ResponseAttributeIdentifier.getCoursePerformanceAttributesMap(), m);
+              completedCountMap.forEach(scoreCompletonMap -> {
+                unitData.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT,
+                        Integer.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
+                unitData.put(AJEntityBaseReports.ATTR_SCORE, Integer.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE).toString()));
+                LOGGER.debug("UnitID : {} - UserID : {} - Score : {}", unitId, userID,
+                        Integer.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE).toString()));
+                LOGGER.debug("UnitID : {} - UserID : {} - completedCount : {}", unitId, userID,
+                        Integer.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
+  
+              });
+              // FIXME: Total count will be taken from nucleus core.
+              unitData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
+              // FIXME : Revisit this logic in future.
+              if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
+                unitData.put(EventConstants.VIEWS, unitData.getInteger(EventConstants.ATTEMPTS));
+                unitData.remove(EventConstants.ATTEMPTS);
+              }
+              CourseKpiArray.add(unitData);
+            });
+          } else {
+            LOGGER.info("No data returned for Student Perf in Assessment");
+            // return new
+            // ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(),
+            // ExecutionStatus.FAILED);
+          }
+  
+        } else {
+          LOGGER.info("Could not get Student Course Performance");
+          // Return an empty resultBody instead of an Error
+          // return new
+          // ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(),
+          // ExecutionStatus.FAILED);
+        }
+  
+        // Form the required Json pass it on
+        contentBody.put(JsonConstants.USAGE_DATA, CourseKpiArray).put(JsonConstants.USERUID, userID);
+        resultarray.add(contentBody);
+      }
+      resultBody.put(JsonConstants.CONTENT, resultarray).putNull(JsonConstants.MESSAGE).putNull(JsonConstants.PAGINATE);
+  
+      return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
     }   
     
 
