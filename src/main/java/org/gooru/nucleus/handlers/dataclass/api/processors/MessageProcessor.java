@@ -108,8 +108,10 @@ class MessageProcessor implements Processor {
                 result = getUserIndepedentLearningPerfInLesson();
                 break;
             case MessageConstants.MSG_OP_LEARNER_INDEPENDENT_ASSESSMENT_PERF:
+                result = getUserIndepedentLearningPerfInAssessment();  
+                break;
             case MessageConstants.MSG_OP_LEARNER_ASSESSMENT_PERF:
-                result = getUserIndepedentLearningPerfInAssessment();   
+                result = getUserLearningPerfInIndepedentAssessment();
                 break;
             default:
                 LOGGER.error("Invalid operation type passed in, not able to handle");
@@ -365,14 +367,14 @@ class MessageProcessor implements Processor {
       try {
             ProcessorContext context = createContext();
             if (!checkCourseId(context)) {
-                LOGGER.error("CourseId not available to obtain Student Performance. Aborting");
+                LOGGER.error("CourseId not available to obtain Learner Performance. Aborting");
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid CourseId");
             }
             
             return new RepoBuilder().buildReportRepo(context).getStudentPerformanceInCourse();
             
         } catch (Throwable t) {
-            LOGGER.error("Exception while getting Student performance in Course", t);
+            LOGGER.error("Exception while getting learner performance in Course", t);
             return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
         }
 
@@ -383,19 +385,19 @@ class MessageProcessor implements Processor {
             ProcessorContext context = createContext();
 
             if (!checkCourseId(context)) {
-                LOGGER.error("CourseId not available to obtain Student Performance. Aborting");
+                LOGGER.error("CourseId not available to obtain Learner Performance. Aborting");
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid CourseId");
             }
 
             if (!checkUnitId(context)) {
-                LOGGER.error("UnitId not available to obtain Student Performance. Aborting");
+                LOGGER.error("UnitId not available to obtain Learner Performance. Aborting");
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid UnitId");
             }
             
             return new RepoBuilder().buildReportRepo(context).getStudentPerformanceInUnit();
             
         } catch (Throwable t) {
-            LOGGER.error("Exception while getting Student performance in Unit", t);
+            LOGGER.error("Exception while getting learner performance in Unit", t);
             return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
         }
 
@@ -406,24 +408,24 @@ class MessageProcessor implements Processor {
             ProcessorContext context = createContext();
 
             if (!checkCourseId(context)) {
-                LOGGER.error("CourseId not available to obtain Student Performance. Aborting");
+                LOGGER.error("CourseId not available to obtain Learner Performance. Aborting");
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid CourseId");
             }
 
             if (!checkUnitId(context)) {
-                LOGGER.error("UnitId not available to obtain Student Performance. Aborting");
+                LOGGER.error("UnitId not available to obtain Learner Performance. Aborting");
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid UnitId");
             }
 
             if (!checkLessonId(context)) {
-                LOGGER.error("LessonId not available to obtain Student Performance. Aborting");
+                LOGGER.error("LessonId not available to obtain Learner Performance. Aborting");
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid LessonId");
             } 
             
             return new RepoBuilder().buildReportRepo(context).getStudentPerformanceInLesson();
             
         } catch (Throwable t) {
-            LOGGER.error("Exception while getting Student performance in Lesson", t);
+            LOGGER.error("Exception while getting learner performance in Lesson", t);
             return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
         }
 
@@ -434,27 +436,42 @@ class MessageProcessor implements Processor {
             ProcessorContext context = createContext();
           
             if (!checkCourseId(context)) {
-                LOGGER.error("CourseId not available to obtain Student Performance. Aborting");
+                LOGGER.error("CourseId not available to obtain Learner Performance. Aborting");
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid CourseId");
             }
 
             if (!checkUnitId(context)) {
-                LOGGER.error("UnitId not available to obtain Student Performance. Aborting");
+                LOGGER.error("UnitId not available to obtain Learner Performance. Aborting");
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid UnitId");
             }
 
             if (!checkLessonId(context)) {
-                LOGGER.error("LessonId not available to obtain Student Performance. Aborting");
+                LOGGER.error("LessonId not available to obtain Learner Performance. Aborting");
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid LessonId");
             } 
             if (!checkCollectionId(context)) {
-              LOGGER.error("AssessmentId not available to obtain Student Performance. Aborting");
+              LOGGER.error("AssessmentId not available to obtain Learner Performance. Aborting");
               return MessageResponseFactory.createInvalidRequestResponse("Invalid assessmentId");
             } 
             return new RepoBuilder().buildReportRepo(context).getStudentPerformanceInAssessment();
             
         } catch (Throwable t) {
-            LOGGER.error("Exception while getting Student performance in Lesson", t);
+            LOGGER.error("Exception while getting learner performance in assessment", t);
+            return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+        }
+
+    }
+    private MessageResponse getUserLearningPerfInIndepedentAssessment() {
+      try {
+            ProcessorContext context = createContext();
+            if (!checkCollectionId(context)) {
+              LOGGER.error("AssessmentId not available to obtain learner assessment performance. Aborting");
+              return MessageResponseFactory.createInvalidRequestResponse("Invalid assessmentId");
+            } 
+            return new RepoBuilder().buildReportRepo(context).getStudentPerformanceInAssessment();
+            
+        } catch (Throwable t) {
+            LOGGER.error("Exception while getting Learner performance in Lesson", t);
             return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
         }
 
