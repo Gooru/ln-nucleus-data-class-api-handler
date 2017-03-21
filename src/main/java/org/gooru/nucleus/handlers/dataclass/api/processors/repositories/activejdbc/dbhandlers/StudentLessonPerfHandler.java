@@ -26,7 +26,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 /**
- * Created by mukul@gooru
+ * Created by mukul@gooru Modified by Daniel
  */
 
 public class StudentLessonPerfHandler implements DBHandler {
@@ -77,133 +77,103 @@ public class StudentLessonPerfHandler implements DBHandler {
 
     @Override
     @SuppressWarnings("rawtypes")
-    public ExecutionResult<MessageResponse> executeRequest() {
-      JsonObject resultBody = new JsonObject();
-      JsonArray resultarray = new JsonArray();
-  
-      // CollectionType is a Mandatory Parameter
-      this.collectionType = this.context.request().getString(REQUEST_COLLECTION_TYPE);
-      if (StringUtil.isNullOrEmpty(collectionType)) {
-        LOGGER.warn("CollectionType is mandatory to fetch Student Performance in Course");
-        return new ExecutionResult<>(
-                MessageResponseFactory.createInvalidRequestResponse("CollectionType Missing. Cannot fetch Student Performance in course"),
-                ExecutionStatus.FAILED);
-      }
-      LOGGER.debug("Collection Type is " + this.collectionType);
-  
-      if (this.context.classId() != null) {
-        this.userId = this.context.request().getString(REQUEST_USERID);
-      } else {
-        this.userId = this.context.userIdFromSession();
-      }
-      List<String> userIds = new ArrayList<>();
-  
-      // FIXME : userId can be added as GROUPBY in performance query. Not
-      // necessary to get distinct users.
-      if (context.classId() != null && StringUtil.isNullOrEmpty(userId)) {
-        LOGGER.warn("UserID is not in the request to fetch Student Performance in Lesson. Assume user is a teacher");
-        LazyList<AJEntityBaseReports> userIdforlesson =
-                AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_LESSON_ID_FILTERBY_COLLTYPE, context.classId(),
-                        context.courseId(), context.unitId(), context.lessonId(), this.collectionType);
-        userIdforlesson.forEach(coll -> userIds.add(coll.getString(AJEntityBaseReports.GOORUUID)));
-  
-      } else {
-        userIds.add(this.userId);
-      }
-  
-      LOGGER.debug("UID is " + this.userId);
-  
-      for (String userID : userIds) {
-        JsonObject contentBody = new JsonObject();
-        JsonArray LessonKpiArray = new JsonArray();
-        LazyList<AJEntityBaseReports> collIDforlesson = null;
-        if (context.classId() != null) {
-        collIDforlesson = AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_COLLID_FOR_LESSON_ID_FILTERBY_COLLTYPE, context.classId(),
-                        context.courseId(), context.unitId(), context.lessonId(), this.collectionType, userID);
-        }else{
-          collIDforlesson = AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_LEARNER_DISTINCT_COLLID_FOR_LESSON_ID_FILTERBY_COLLTYPE,                  context.courseId(), context.unitId(), context.lessonId(), this.collectionType, userID);
-        }
+  public ExecutionResult<MessageResponse> executeRequest() {
+    JsonObject resultBody = new JsonObject();
+    JsonArray resultarray = new JsonArray();
 
-        List<String> collIds = new ArrayList<>();
-        if (!collIDforlesson.isEmpty()) {
-          LOGGER.info("Got a list of Distinct collectionIDs for this lesson");
-          collIDforlesson.forEach(coll -> collIds.add(coll.getString(AJEntityBaseReports.COLLECTION_OID)));
-        }
-        List<Map> assessmentKpi = null; 
-        if(this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)){
-          if (context.classId() != null) {
-        assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF_FOR_COLLECTION, context.classId(),
-                context.courseId(), context.unitId(), context.lessonId(), listToPostgresArrayString(collIds), userID, EventConstants.COLLECTION_PLAY);
-          }else{
-            assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_LEARNER_LESSON_PERF_FOR_COLLECTION,
-                    context.courseId(), context.unitId(), context.lessonId(), listToPostgresArrayString(collIds), userID, EventConstants.COLLECTION_PLAY);
-          }
-        }else{
-          if (context.classId() != null) {
-          assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF_FOR_ASSESSMENT, context.classId(),
-                  context.courseId(), context.unitId(), context.lessonId(), listToPostgresArrayString(collIds), userID, EventConstants.COLLECTION_PLAY);
-          }else{
+    // CollectionType is a Mandatory Parameter
+    this.collectionType = this.context.request().getString(REQUEST_COLLECTION_TYPE);
+    if (StringUtil.isNullOrEmpty(collectionType)) {
+      LOGGER.warn("CollectionType is mandatory to fetch Student Performance in Course");
+      return new ExecutionResult<>(
+              MessageResponseFactory.createInvalidRequestResponse("CollectionType Missing. Cannot fetch Student Performance in course"),
+              ExecutionStatus.FAILED);
+    }
+    LOGGER.debug("Collection Type is " + this.collectionType);
 
-            assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_LEARNER_LESSON_PERF_FOR_ASSESSMENT,
-                    context.courseId(), context.unitId(), context.lessonId(), listToPostgresArrayString(collIds), userID, EventConstants.COLLECTION_PLAY);
-            
-          }
-        }
-        if (!assessmentKpi.isEmpty()) {
-          assessmentKpi.forEach(m -> {
-            JsonObject lessonKpi = ValueMapper.map(ResponseAttributeIdentifier.getLessonPerformanceAttributesMap(), m);
-            // FIXME : revisit completed count and total count
-            lessonKpi.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 1);
-            lessonKpi.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
-            // FIXME: This logic to be revisited.
-            if (this.collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {
-              List<Map> collectionQuestionCount = null;
-              if (context.classId() != null) {
-                collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_QUESTION_COUNT, context.classId(),
-                      context.courseId(), context.unitId(), context.lessonId(), lessonKpi.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID),this.userId);
-              }else{
-                collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_LEARNER_COLLECTION_QUESTION_COUNT,
-                      context.courseId(), context.unitId(), context.lessonId(), lessonKpi.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID),this.userId);
-              
+    this.userId = this.context.request().getString(REQUEST_USERID);
+    List<String> userIds = new ArrayList<>();
+
+    // FIXME : userId can be added as GROUPBY in performance query. Not
+    // necessary to get distinct users.
+    if (context.classId() != null && StringUtil.isNullOrEmpty(userId)) {
+      LOGGER.warn("UserID is not in the request to fetch Student Performance in Lesson. Assume user is a teacher");
+      LazyList<AJEntityBaseReports> userIdforlesson =
+              AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_LESSON_ID_FILTERBY_COLLTYPE, context.classId(),
+                      context.courseId(), context.unitId(), context.lessonId(), this.collectionType);
+      userIdforlesson.forEach(coll -> userIds.add(coll.getString(AJEntityBaseReports.GOORUUID)));
+
+    } else {
+      userIds.add(this.userId);
+    }
+
+    LOGGER.debug("UID is " + this.userId);
+
+    for (String userID : userIds) {
+      JsonObject contentBody = new JsonObject();
+      JsonArray LessonKpiArray = new JsonArray();
+      LazyList<AJEntityBaseReports> collIDforlesson = null;
+      collIDforlesson = AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_COLLID_FOR_LESSON_ID_FILTERBY_COLLTYPE, context.classId(),
+              context.courseId(), context.unitId(), context.lessonId(), this.collectionType, userID);
+
+      List<String> collIds = new ArrayList<>();
+      if (!collIDforlesson.isEmpty()) {
+        LOGGER.info("Got a list of Distinct collectionIDs for this lesson");
+        collIDforlesson.forEach(coll -> collIds.add(coll.getString(AJEntityBaseReports.COLLECTION_OID)));
+      }
+      List<Map> assessmentKpi = null;
+      if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
+        assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF_FOR_COLLECTION, context.classId(), context.courseId(),
+                context.unitId(), context.lessonId(), listToPostgresArrayString(collIds), userID, EventConstants.COLLECTION_PLAY);
+
+      } else {
+        assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF_FOR_ASSESSMENT, context.classId(), context.courseId(),
+                context.unitId(), context.lessonId(), listToPostgresArrayString(collIds), userID, EventConstants.COLLECTION_PLAY);
+      }
+      if (!assessmentKpi.isEmpty()) {
+        assessmentKpi.forEach(m -> {
+          JsonObject lessonKpi = ValueMapper.map(ResponseAttributeIdentifier.getLessonPerformanceAttributesMap(), m);
+          // FIXME : revisit completed count and total count
+          lessonKpi.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 1);
+          lessonKpi.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
+          // FIXME: This logic to be revisited.
+          if (this.collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {
+            List<Map> collectionQuestionCount = null;
+            collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_QUESTION_COUNT, context.classId(), context.courseId(),
+                    context.unitId(), context.lessonId(), lessonKpi.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID), this.userId);
+
+            collectionQuestionCount.forEach(qc -> {
+              this.questionCount = Integer.valueOf(qc.get(AJEntityBaseReports.QUESTION_COUNT).toString());
+            });
+            long scoreInPercent = 0;
+            if (this.questionCount > 0) {
+              Object collectionScore = null;
+              collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_SCORE, context.classId(), context.courseId(),
+                      context.unitId(), context.lessonId(), lessonKpi.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID), this.userId);
+              if (collectionScore != null) {
+                scoreInPercent = Math.round(((double) Integer.valueOf(collectionScore.toString()) / this.questionCount) * 100);
               }
-              collectionQuestionCount.forEach(qc -> {
-                this.questionCount = Integer.valueOf(qc.get(AJEntityBaseReports.QUESTION_COUNT).toString());
-              });
-              long scoreInPercent=0;
-              if(this.questionCount > 0){
-                Object collectionScore = null;
-                if (context.classId() != null) {
-                collectionScore =  Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_SCORE, context.classId(),
-                        context.courseId(), context.unitId(), context.lessonId(), lessonKpi.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID),this.userId);
-                }else{
-                  collectionScore =  Base.firstCell(AJEntityBaseReports.SELECT_LEARNER_COLLECTION_AGG_SCORE,
-                          context.courseId(), context.unitId(), context.lessonId(), lessonKpi.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID),this.userId);
-                  
-                }
-                if(collectionScore != null){
-                  scoreInPercent =  Math.round(((double) Integer.valueOf(collectionScore.toString()) / this.questionCount) * 100);
-                }
-              } 
-              lessonKpi.put(AJEntityBaseReports.ATTR_SCORE, scoreInPercent);
-              lessonKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, lessonKpi.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID));
-              lessonKpi.remove(AJEntityBaseReports.ATTR_ASSESSMENT_ID);
-              lessonKpi.put(EventConstants.VIEWS, lessonKpi.getInteger(EventConstants.ATTEMPTS));
-              lessonKpi.remove(EventConstants.ATTEMPTS);
             }
-            LessonKpiArray.add(lessonKpi);
-          });
-        } else {
-          // Return an empty resultBody instead of an Error
-          LOGGER.debug("No data returned for Student Perf in Assessment");
-        }
-        contentBody.put(JsonConstants.USAGE_DATA, LessonKpiArray).put(JsonConstants.USERUID, userID);
-        resultarray.add(contentBody);
+            lessonKpi.put(AJEntityBaseReports.ATTR_SCORE, scoreInPercent);
+            lessonKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, lessonKpi.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID));
+            lessonKpi.remove(AJEntityBaseReports.ATTR_ASSESSMENT_ID);
+            lessonKpi.put(EventConstants.VIEWS, lessonKpi.getInteger(EventConstants.ATTEMPTS));
+            lessonKpi.remove(EventConstants.ATTEMPTS);
+          }
+          LessonKpiArray.add(lessonKpi);
+        });
+      } else {
+        // Return an empty resultBody instead of an Error
+        LOGGER.debug("No data returned for Student Perf in Assessment");
       }
-      resultBody.put(JsonConstants.CONTENT, resultarray).putNull(JsonConstants.MESSAGE).putNull(JsonConstants.PAGINATE);
-  
-      return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
-  
-    }   
+      contentBody.put(JsonConstants.USAGE_DATA, LessonKpiArray).put(JsonConstants.USERUID, userID);
+      resultarray.add(contentBody);
+    }
+    resultBody.put(JsonConstants.CONTENT, resultarray).putNull(JsonConstants.MESSAGE).putNull(JsonConstants.PAGINATE);
+
+    return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
+
+  }   
 
     @Override
     public boolean handlerReadOnly() {

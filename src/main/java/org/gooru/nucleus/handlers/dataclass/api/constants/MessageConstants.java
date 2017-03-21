@@ -73,11 +73,11 @@ public final class MessageConstants {
     public static final String MSG_OP_STUDENT_PERF_COURSE_ASSESSMENT = "student.course.assessment.performance";
     public static final String MSG_OP_STUDENT_PERF_COURSE_COLLECTION = "student.course.collection.performance";
     
-    public static final String MSG_OP_LEARNER_INDEPENDENT_COURSE_PERF = "learner.independent.course.performance";
-    public static final String MSG_OP_LEARNER_INDEPENDENT_UNIT_PERF = "learner.independent.unit.performance";
-    public static final String MSG_OP_LEARNER_INDEPENDENT_LESSON_PERF = "learner.independent.lesson.performance";
-    public static final String MSG_OP_LEARNER_INDEPENDENT_ASSESSMENT_PERF = "learner.independent.assessment.performance";
-    public static final String MSG_OP_LEARNER_ASSESSMENT_PERF = "learner.assessment.performance";
+    public static final String MSG_OP_INDEPENDENT_LEARNER_COURSE_PERF = "independent.learner.course.performance";
+    public static final String MSG_OP_INDEPENDENT_LEARNER_UNIT_PERF = "independent.learner.unit.performance";
+    public static final String MSG_OP_INDEPENDENT_LEARNER_LESSON_PERF = "independent.learner.lesson.performance";
+    public static final String MSG_OP_INDEPENDENT_LEARNER_ASSESSMENT_PERF = "independent.learner.assessment.performance";
+    public static final String MSG_OP_INDEPENDENT_LEARNER_INDEPENDENT_ASSESSMENT_PERF = "independent.learner.independent.assessment.performance";
     
     public static final String PORT = "port";
     public static final String HOST = "host";

@@ -94,11 +94,8 @@ class StudentCoursePerfHandler implements DBHandler {
                 MessageResponseFactory.createInvalidRequestResponse("CollectionType Missing. Cannot fetch Student Performance in course"),
                 ExecutionStatus.FAILED);
       }
-      if (this.context.classId() != null) {
-        this.userId = this.context.request().getString(REQUEST_USERID);
-      } else {
-        this.userId = this.context.userIdFromSession();
-      }
+      this.userId = this.context.request().getString(REQUEST_USERID);
+      
       List<String> unitIds = new ArrayList<>();
       List<String> userIds = new ArrayList<>();
   
@@ -116,13 +113,8 @@ class StudentCoursePerfHandler implements DBHandler {
         JsonArray CourseKpiArray = new JsonArray();
   
         LazyList<AJEntityBaseReports> unitIDforCourse = null;
-        if (context.classId() != null) {
           unitIDforCourse = AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_UNIT_ID_FOR_COURSE_ID_FILTERBY_COLLTYPE,
                   context.classId(), context.courseId(), this.collectionType, userID);
-        } else {
-          unitIDforCourse = AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_LEARNER_DISTINCT_UNIT_ID_FOR_COURSE_ID_FILTERBY_COLLTYPE,
-                  context.courseId(), this.collectionType, userID);
-        }
   
         if (!unitIDforCourse.isEmpty()) {
           LOGGER.debug("Got a list of Distinct unitIDs for this Course");
@@ -130,22 +122,11 @@ class StudentCoursePerfHandler implements DBHandler {
           unitIDforCourse.forEach(unit -> unitIds.add(unit.getString(AJEntityBaseReports.UNIT_GOORU_OID)));
           List<Map> assessmentKpi = null;
           if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
-            if (context.classId() != null) {
               assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_COURSE_PERF_FOR_COLLECTION, context.classId(), context.courseId(),
                       this.collectionType, userID, listToPostgresArrayString(unitIds), EventConstants.COLLECTION_PLAY);
-            } else {
-              assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_LEARNER_COURSE_PERF_FOR_COLLECTION, context.courseId(), this.collectionType,
-                      userID, listToPostgresArrayString(unitIds), EventConstants.COLLECTION_PLAY);
-            }
           } else {
-            if (context.classId() != null) {
               assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_COURSE_PERF_FOR_ASSESSMENT, context.classId(), context.courseId(),
                       this.collectionType, userID, listToPostgresArrayString(unitIds), EventConstants.COLLECTION_PLAY);
-            } else {
-              assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_LEARNER_COURSE_PERF_FOR_ASSESSMENT, context.classId(), context.courseId(),
-                      this.collectionType, userID, listToPostgresArrayString(unitIds), EventConstants.COLLECTION_PLAY);
-  
-            }
           }
           if (!assessmentKpi.isEmpty()) {
             assessmentKpi.forEach(m -> {
@@ -155,21 +136,11 @@ class StudentCoursePerfHandler implements DBHandler {
               if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
                 // FIXME: Score will not be useful in CUL if collection so could
                 // be incorrect from this below query.
-                if (context.classId() != null) {
                   completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLL_COUNT_FOREACH_UNIT_ID, context.classId(), context.courseId(),
                           unitId, this.collectionType, userID, EventConstants.COLLECTION_PLAY);
-                } else {
-                  completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLL_COUNT_FOREACH_LEARNER_UNIT_ID, context.courseId(), unitId,
-                          this.collectionType, userID, EventConstants.COLLECTION_PLAY);
-                }
               } else {
-                if (context.classId() != null) {
                   completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLLID_COUNT_FOREACH_UNIT_ID, context.classId(),
                           context.courseId(), unitId, this.collectionType, userID, EventConstants.COLLECTION_PLAY);
-                } else {
-                  completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLLID_COUNT_FOREACH_LEARNER_UNIT_ID, context.courseId(), unitId,
-                          this.collectionType, userID, EventConstants.COLLECTION_PLAY);
-                }
               }
               JsonObject unitData = ValueMapper.map(ResponseAttributeIdentifier.getCoursePerformanceAttributesMap(), m);
               completedCountMap.forEach(scoreCompletonMap -> {

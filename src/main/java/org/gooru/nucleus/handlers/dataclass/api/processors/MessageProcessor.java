@@ -98,19 +98,19 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_STUDENT_PERF_COURSE_COLLECTION:
                 result = getStudentPerfCourseCollections();    
                 break;
-            case MessageConstants.MSG_OP_LEARNER_INDEPENDENT_COURSE_PERF:
+            case MessageConstants.MSG_OP_INDEPENDENT_LEARNER_COURSE_PERF:
                 result = getUserIndepedentLearningPerfInCourse();   
                 break;
-            case MessageConstants.MSG_OP_LEARNER_INDEPENDENT_UNIT_PERF:
+            case MessageConstants.MSG_OP_INDEPENDENT_LEARNER_UNIT_PERF:
                 result = getUserIndepedentLearningPerfInUnit();
                 break;
-            case MessageConstants.MSG_OP_LEARNER_INDEPENDENT_LESSON_PERF:
+            case MessageConstants.MSG_OP_INDEPENDENT_LEARNER_LESSON_PERF:
                 result = getUserIndepedentLearningPerfInLesson();
                 break;
-            case MessageConstants.MSG_OP_LEARNER_INDEPENDENT_ASSESSMENT_PERF:
+            case MessageConstants.MSG_OP_INDEPENDENT_LEARNER_ASSESSMENT_PERF:
                 result = getUserIndepedentLearningPerfInAssessment();  
                 break;
-            case MessageConstants.MSG_OP_LEARNER_ASSESSMENT_PERF:
+            case MessageConstants.MSG_OP_INDEPENDENT_LEARNER_INDEPENDENT_ASSESSMENT_PERF:
                 result = getUserLearningPerfInIndepedentAssessment();
                 break;
             default:
@@ -371,7 +371,7 @@ class MessageProcessor implements Processor {
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid CourseId");
             }
             
-            return new RepoBuilder().buildReportRepo(context).getStudentPerformanceInCourse();
+            return new RepoBuilder().buildReportRepo(context).getLearnerPerformanceInCourse();
             
         } catch (Throwable t) {
             LOGGER.error("Exception while getting learner performance in Course", t);
@@ -394,7 +394,7 @@ class MessageProcessor implements Processor {
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid UnitId");
             }
             
-            return new RepoBuilder().buildReportRepo(context).getStudentPerformanceInUnit();
+            return new RepoBuilder().buildReportRepo(context).getLearnerPerformanceInUnit();
             
         } catch (Throwable t) {
             LOGGER.error("Exception while getting learner performance in Unit", t);
@@ -422,7 +422,7 @@ class MessageProcessor implements Processor {
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid LessonId");
             } 
             
-            return new RepoBuilder().buildReportRepo(context).getStudentPerformanceInLesson();
+            return new RepoBuilder().buildReportRepo(context).getLearnerPerformanceInLesson();
             
         } catch (Throwable t) {
             LOGGER.error("Exception while getting learner performance in Lesson", t);
@@ -453,7 +453,7 @@ class MessageProcessor implements Processor {
               LOGGER.error("AssessmentId not available to obtain Learner Performance. Aborting");
               return MessageResponseFactory.createInvalidRequestResponse("Invalid assessmentId");
             } 
-            return new RepoBuilder().buildReportRepo(context).getStudentPerformanceInAssessment();
+            return new RepoBuilder().buildReportRepo(context).getLearnerPerformanceInAssessment();
             
         } catch (Throwable t) {
             LOGGER.error("Exception while getting learner performance in assessment", t);
@@ -468,7 +468,7 @@ class MessageProcessor implements Processor {
               LOGGER.error("AssessmentId not available to obtain learner assessment performance. Aborting");
               return MessageResponseFactory.createInvalidRequestResponse("Invalid assessmentId");
             } 
-            return new RepoBuilder().buildReportRepo(context).getStudentPerformanceInAssessment();
+            return new RepoBuilder().buildReportRepo(context).getLearnerPerformanceInIndependentAssessment();
             
         } catch (Throwable t) {
             LOGGER.error("Exception while getting Learner performance in Lesson", t);
