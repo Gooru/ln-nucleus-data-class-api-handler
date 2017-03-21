@@ -78,6 +78,8 @@ public final class MessageConstants {
     public static final String MSG_OP_INDEPENDENT_LEARNER_LESSON_PERF = "independent.learner.lesson.performance";
     public static final String MSG_OP_INDEPENDENT_LEARNER_ASSESSMENT_PERF = "independent.learner.assessment.performance";
     public static final String MSG_OP_INDEPENDENT_LEARNER_INDEPENDENT_ASSESSMENT_PERF = "independent.learner.independent.assessment.performance";
+    public static final String MSG_OP_INDEPENDENT_LEARNER_COURSES = "independent.learner.courses";
+
     
     public static final String PORT = "port";
     public static final String HOST = "host";

@@ -113,6 +113,9 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_INDEPENDENT_LEARNER_INDEPENDENT_ASSESSMENT_PERF:
                 result = getUserLearningPerfInIndepedentAssessment();
                 break;
+            case MessageConstants.MSG_OP_INDEPENDENT_LEARNER_COURSES:
+                result = getIndependentLearnerCourses();
+                break;
             default:
                 LOGGER.error("Invalid operation type passed in, not able to handle");
                 return MessageResponseFactory
@@ -477,6 +480,18 @@ class MessageProcessor implements Processor {
 
     }
     
+    private MessageResponse getIndependentLearnerCourses() {
+      try {
+            ProcessorContext context = createContext();
+            return new RepoBuilder().buildReportRepo(context).getIndependentLearnerCourses();
+            
+        } catch (Throwable t) {
+            LOGGER.error("Exception while getting independent learner courses", t);
+            return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+        }
+
+    }
+
     //==========================================================================================================//
     private MessageResponse getStudentSummaryInCollection() {
     	try {

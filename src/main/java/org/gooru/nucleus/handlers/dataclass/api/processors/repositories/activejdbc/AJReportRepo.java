@@ -150,5 +150,10 @@ class AJReportRepo implements ReportRepo {
     public MessageResponse getLearnerPerformanceInIndependentAssessment() {
         return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildLearnerIndependentAssessmentPerfHandler(context));
     }
+    
+    @Override
+    public MessageResponse getIndependentLearnerCourses() {
+        return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildIndependentLearnerCourses(context));
+    }
   
 }
