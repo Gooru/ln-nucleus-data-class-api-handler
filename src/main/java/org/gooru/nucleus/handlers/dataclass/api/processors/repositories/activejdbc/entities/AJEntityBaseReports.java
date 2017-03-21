@@ -572,12 +572,9 @@ public class AJEntityBaseReports extends Model {
     
     //**********************************************************INDEPENDENT LEARNER QUERIES************************************//
 
-    public static final String GET_INDEPENDENT_LEARNER_COURSES = "SELECT DISTINCT course.course_id, course.updated_at FROM "
-            + "(SELECT FIRST_VALUE(updated_at) OVER (PARTITION BY course_id ORDER BY updated_at DESC) AS updated_at, "
-            + "course_id FROM base_reports WHERE class_id IS NULL AND course_id IS NOT NULL "
-            + "AND actor_id = ? "
-            + "AND event_name = 'collection.play' ) AS course "
-            + "ORDER BY updated_at DESC";
+    public static final String GET_INDEPENDENT_LEARNER_COURSES = "SELECT DISTINCT course_id "
+            + "FROM base_reports WHERE class_id IS NULL AND course_id IS NOT NULL "
+            + "AND actor_id = ? AND event_name = 'collection.play'";
    
     public static final String SELECT_INDEPENDENT_LEARNER_DISTINCT_UNIT_ID_FOR_COURSE_ID_FILTERBY_COLLTYPE =
             "SELECT DISTINCT(unit_id) FROM base_reports "

@@ -26,6 +26,7 @@ public class IndependentLearnerCoursesHandler implements DBHandler {
   private static final Logger LOGGER = LoggerFactory.getLogger(IndependentLearnerCoursesHandler.class);
   private final ProcessorContext context;
   private String userId;
+  private final String ATTR_TITLE = "title";
 
   public IndependentLearnerCoursesHandler(ProcessorContext context) {
     this.context = context;
@@ -63,7 +64,8 @@ public class IndependentLearnerCoursesHandler implements DBHandler {
       coursesList.forEach(course -> {
         JsonObject contentBody = new JsonObject();
         contentBody.put(AJEntityBaseReports.ATTR_COURSE_ID, course.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
-        contentBody.put(AJEntityBaseReports.ACTIVITY_DATE, course.get(AJEntityBaseReports.UPDATE_TIMESTAMP).toString());
+        //FIXME : Title should be taken from lookup table.
+        contentBody.put(ATTR_TITLE, "Coming soon...");
         resultarray.add(contentBody);
       });
     } else {
