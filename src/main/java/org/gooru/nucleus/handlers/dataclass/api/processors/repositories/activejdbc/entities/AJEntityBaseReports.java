@@ -517,8 +517,6 @@ public class AJEntityBaseReports extends Model {
     //Student Location in All Classes    
     public static final String GET_STUDENT_LOCATION_ALL_CLASSES = "select DISTINCT ON (class_id) class_id, course_id, unit_id, "
     		+ "lesson_id, collection_id, collection_type, session_id, updated_at FROM base_reports WHERE actor_id = ? AND class_id = ANY(?::varchar[]) "
-    		+ "AND course_id IS NOT NULL AND unit_id IS NOT NULL "
-    		+ "AND lesson_id IS NOT NULL "
     		+ "ORDER BY class_id, updated_at DESC";
     
     public static final String GET_COLLECTION_STATUS =  "SELECT event_name, event_type from base_reports WHERE session_id = ? "
