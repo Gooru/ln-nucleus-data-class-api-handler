@@ -166,12 +166,7 @@ public class AJEntityBaseReports extends Model {
     public static final String SELECT_STUDENT_EACH_UNIT_PERF_FOR_COLLECTION =
             "SELECT SUM(collectiontime_spent) AS time_spent, SUM(collectionViews) AS views, SUM(reaction) AS reaction, lesson_id FROM base_reports "
             + "WHERE lesson_id = ? AND actor_id = ? GROUP BY lesson_id";
-    
-/*    public static final String GET_COMPLETED_COLLID_COUNT_FOREACH_lesson_id = 
-    		"SELECT COUNT(collection_id) as completedCount, lesson_id from base_reports "
-    		+ "WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_type = ? "
-    		+ "AND actor_id = ? AND event_name = ? AND event_type = ? GROUP BY lesson_id";
-*/
+
     public static final String GET_COMPLETED_COLLID_COUNT_FOREACH_LESSON_ID = 
             "SELECT SUM(lessonData.completion) AS completedCount,ROUND(AVG(scoreInPercentage)) scoreInPercentage FROM "
             + "(SELECT DISTINCT ON (collection_id) CASE  WHEN (event_type = 'stop') THEN 1 ELSE 0 END AS completion, "
@@ -234,10 +229,6 @@ public class AJEntityBaseReports extends Model {
           + "WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ANY(?::varchar[]) AND actor_id = ? AND "
           + "event_name = ? ) AS agg "
           + "GROUP BY agg.collection_id";
-   /* public static final String SELECT_STUDENT_LESSON_PERF_FOR_COLLECTION =
-            "SELECT SUM(collectiontime_spent) AS time_spent, SUM(reaction) AS reaction, "
-            + "SUM(collectionViews) AS views, collection_id FROM base_reports "
-            + "WHERE collection_id = ANY(?::varchar[]) AND actor_id = ? GROUP BY collection_id";*/
     
     public static final String GET_COMPLETED_COLLID_COUNT = 
     		"SELECT COUNT(collection_id) as completedCount, collection_id as collectionId from base_reports "
@@ -490,12 +481,11 @@ public class AJEntityBaseReports extends Model {
     //CLASS DATA FOR A USER (attempts, time_spent)
     public static final String SELECT_STUDENT_ALL_CLASS_DATA = "SELECT SUM(time_spent) AS timeSpent,  SUM(views) AS attempts, class_id, course_id "
             + "FROM base_reports WHERE class_id = ANY(?::varchar[]) AND actor_id = ? "
-            + "AND event_name = 'collection.play' GROUP BY class_id,course_id";
+            + "AND collection_type = 'assessment' AND event_name = 'collection.play' GROUP BY class_id, course_id";
 
     //CLASS DATA FOR ALL USER(attempts, time_spent)
-    public static final String SELECT_ALL_STUDENT_ALL_CLASS_DATA = "SELECT SUM(time_spent) AS timeSpent,  SUM(views) AS attempts, class_id, course_id "
-            + "FROM base_reports WHERE class_id = ANY(?::varchar[]) "
-            + "AND event_name = 'collection.play' GROUP BY class_id,course_id";
+    public static final String SELECT_ALL_STUDENTS_CLASS_DATA = "SELECT SUM(time_spent) AS timeSpent,  SUM(views) AS attempts, class_id, course_id "
+            + "FROM base_reports WHERE class_id = ? AND collection_type = 'assessment' AND event_name = 'collection.play' GROUP BY class_id, course_id";
     
     //CLASS DATA FOR A USER(score, completion)
     public static final String SELECT_STUDENT_ALL_CLASS_COMPLETION_SCORE = "SELECT class_id, SUM(classData.completion) AS completedCount, ROUND(AVG(scoreInPercentage)) AS scoreInPercentage "
@@ -505,13 +495,19 @@ public class AJEntityBaseReports extends Model {
             + "AND event_name = 'collection.play' AND event_type = 'stop' AND collection_type = 'assessment' "
             + "ORDER BY collection_id, updated_at DESC) AS classData GROUP BY class_id";
 
-    //CLASS DATA FOR ALL USER(score, completion)
-    public static final String SELECT_ALL_STUDENT_ALL_CLASS_COMPLETION_SCORE = "SELECT class_id, SUM(classData.completion) AS completedCount, ROUND(AVG(scoreInPercentage)) AS scoreInPercentage "
-            + "FROM (SELECT DISTINCT ON (collection_id) CASE  WHEN (event_type = 'stop') THEN 1 ELSE 0 END AS completion, "
-            + "FIRST_VALUE(score) OVER (PARTITION BY collection_id,actor_id ORDER BY updated_at desc) AS scoreInPercentage, class_id "
-            + "FROM base_reports WHERE class_id = ? "
-            + "AND event_name = 'collection.play' AND event_type = 'stop' AND collection_type = 'assessment' "
-            + "ORDER BY collection_id, updated_at DESC) AS classData GROUP BY class_id";
+    public static final String GET_DISTINCT_USERS_IN_CLASS = "select distinct(actor_id) from base_reports where collection_type = 'assessment' "
+    		+ "AND class_id = ? and event_name =  'collection.play' and event_type = 'stop'";
+    
+    //Class Data for ALL Users (score, completion)		
+    public static final String SELECT_ALL_STUDENT_CLASS_COMPLETION_SCORE = "select class_id, SUM(compCount) AS completedCount, "
+    		+ "ROUND(AVG(scoreInPercentage)) AS scoreInPercentage FROM (SELECT class_id,actor_id, SUM(classData.completion) AS compCount, "
+    		+ "ROUND(AVG(scoreInPercentage)) AS scoreInPercentage FROM (SELECT DISTINCT ON (collection_id, actor_id) "
+    		+ "CASE  WHEN (event_type = 'stop') THEN 1 ELSE 0 END AS completion, FIRST_VALUE(score) OVER "
+    		+ "(PARTITION BY collection_id, actor_id ORDER BY updated_at desc) AS scoreInPercentage, class_id, actor_id "
+    		+ "FROM base_reports WHERE class_id = ? AND actor_id = ANY(?::varchar[]) AND event_name = 'collection.play' "
+    		+ "AND event_type = 'stop' AND collection_type = 'assessment' ORDER BY collection_id, actor_id, updated_at DESC) AS classData "
+    		+ "GROUP BY class_id, actor_id) AS studentdata "
+    		+ "GROUP BY class_id";
 
     //*************************************************************************************************************************    
     //Student Location in All Classes    
@@ -545,6 +541,9 @@ public class AJEntityBaseReports extends Model {
     public static final String GET_DISTINCT_COLLECTIONS = "SELECT distinct(collection_id) from base_reports where "
     		+ "actor_id = ? AND collection_type = ? AND course_id = ? ";
     
+    //*****************************************************************************************************************************
+    //Daily Class Activity
+    
     public static final String SELECT_DISTINCT_USERID_FOR_DAILY_CLASS_ACTIVITY =
             "SELECT DISTINCT(actor_id) FROM base_reports "
             + "WHERE class_id = ? AND collection_type = ?";
@@ -568,8 +567,7 @@ public class AJEntityBaseReports extends Model {
           + "event_name = ? AND event_type = 'stop') AS agg "
           + "GROUP BY agg.collection_id";
 
-    //*************************************************************************************************************************//
-    
+        
     //**********************************************************INDEPENDENT LEARNER QUERIES************************************//
 
     public static final String GET_INDEPENDENT_LEARNER_COURSES = "SELECT DISTINCT course_id "
