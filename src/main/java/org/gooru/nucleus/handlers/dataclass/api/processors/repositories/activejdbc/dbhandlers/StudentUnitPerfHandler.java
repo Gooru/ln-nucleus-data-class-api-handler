@@ -116,10 +116,9 @@ import io.vertx.core.json.JsonObject;
           JsonObject contentBody = new JsonObject();
           JsonArray UnitKpiArray = new JsonArray();
     
-          LazyList<AJEntityBaseReports> lessonIDforUnit =
-                  AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_LESSON_ID_FOR_UNIT_ID_FITLERBY_COLLTYPE, context.classId(),
+          LazyList<AJEntityBaseReports> lessonIDforUnit = null;
+            lessonIDforUnit = AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_LESSON_ID_FOR_UNIT_ID_FITLERBY_COLLTYPE, context.classId(),
                           context.courseId(), context.unitId(), this.collectionType, userID);
-    
           if (!lessonIDforUnit.isEmpty()) {
             LOGGER.debug("Got a list of Distinct lessonIDs for this Unit");
     
@@ -160,8 +159,8 @@ import io.vertx.core.json.JsonObject;
                   lessonData.remove(EventConstants.ATTEMPTS);
                 }
                 JsonArray assessmentArray = new JsonArray();
-                LazyList<AJEntityBaseReports> collIDforlesson =
-                        AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_COLLID_FOR_LESSON_ID_FILTERBY_COLLTYPE, context.classId(),
+                LazyList<AJEntityBaseReports> collIDforlesson = null;
+                  collIDforlesson =  AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_COLLID_FOR_LESSON_ID_FILTERBY_COLLTYPE, context.classId(),
                                 context.courseId(), context.unitId(), this.lessonId, this.collectionType, userID);
     
                 List<String> collIds = new ArrayList<>();
@@ -185,14 +184,16 @@ import io.vertx.core.json.JsonObject;
                     assData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
                     // FIXME: This logic to be revisited.
                     if (this.collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {
-                      List<Map> collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_QUESTION_COUNT, context.classId(),
+                      List<Map> collectionQuestionCount = null;
+                        collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_QUESTION_COUNT, context.classId(),
                               context.courseId(), context.unitId(), this.lessonId, assData.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID),this.userId);
                       collectionQuestionCount.forEach(qc -> {
                         this.questionCount = Integer.valueOf(qc.get(AJEntityBaseReports.QUESTION_COUNT).toString());
                       });
                       long scoreInPercent=0;
                       if(this.questionCount > 0){
-                        Object collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_SCORE, context.classId(),
+                        Object collectionScore = null;
+                          collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_SCORE, context.classId(),
                                 context.courseId(), context.unitId(), this.lessonId, assData.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID),this.userId);
                         if(collectionScore != null){
                           scoreInPercent =  Math.round(((double) Integer.valueOf(collectionScore.toString()) / this.questionCount) * 100);

@@ -98,6 +98,24 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_STUDENT_PERF_COURSE_COLLECTION:
                 result = getStudentPerfCourseCollections();    
                 break;
+            case MessageConstants.MSG_OP_INDEPENDENT_LEARNER_COURSE_PERF:
+                result = getUserIndepedentLearningPerfInCourse();   
+                break;
+            case MessageConstants.MSG_OP_INDEPENDENT_LEARNER_UNIT_PERF:
+                result = getUserIndepedentLearningPerfInUnit();
+                break;
+            case MessageConstants.MSG_OP_INDEPENDENT_LEARNER_LESSON_PERF:
+                result = getUserIndepedentLearningPerfInLesson();
+                break;
+            case MessageConstants.MSG_OP_INDEPENDENT_LEARNER_ASSESSMENT_PERF:
+                result = getUserIndepedentLearningPerfInAssessment();  
+                break;
+            case MessageConstants.MSG_OP_INDEPENDENT_LEARNER_INDEPENDENT_ASSESSMENT_PERF:
+                result = getUserLearningPerfInIndepedentAssessment();
+                break;
+            case MessageConstants.MSG_OP_INDEPENDENT_LEARNER_COURSES:
+                result = getIndependentLearnerCourses();
+                break;
             default:
                 LOGGER.error("Invalid operation type passed in, not able to handle");
                 return MessageResponseFactory
@@ -345,7 +363,136 @@ class MessageProcessor implements Processor {
         }
 
     }
+    //=================================User Independent Learning ===============================================//
+
     
+    private MessageResponse getUserIndepedentLearningPerfInCourse() {
+      try {
+            ProcessorContext context = createContext();
+            if (!checkCourseId(context)) {
+                LOGGER.error("CourseId not available to obtain Learner Performance. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid CourseId");
+            }
+            
+            return new RepoBuilder().buildReportRepo(context).getLearnerPerformanceInCourse();
+            
+        } catch (Throwable t) {
+            LOGGER.error("Exception while getting learner performance in Course", t);
+            return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+        }
+
+    }
+   
+    private MessageResponse getUserIndepedentLearningPerfInUnit() {
+      try {
+            ProcessorContext context = createContext();
+
+            if (!checkCourseId(context)) {
+                LOGGER.error("CourseId not available to obtain Learner Performance. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid CourseId");
+            }
+
+            if (!checkUnitId(context)) {
+                LOGGER.error("UnitId not available to obtain Learner Performance. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid UnitId");
+            }
+            
+            return new RepoBuilder().buildReportRepo(context).getLearnerPerformanceInUnit();
+            
+        } catch (Throwable t) {
+            LOGGER.error("Exception while getting learner performance in Unit", t);
+            return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+        }
+
+    }
+    
+    private MessageResponse getUserIndepedentLearningPerfInLesson() {
+      try {
+            ProcessorContext context = createContext();
+
+            if (!checkCourseId(context)) {
+                LOGGER.error("CourseId not available to obtain Learner Performance. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid CourseId");
+            }
+
+            if (!checkUnitId(context)) {
+                LOGGER.error("UnitId not available to obtain Learner Performance. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid UnitId");
+            }
+
+            if (!checkLessonId(context)) {
+                LOGGER.error("LessonId not available to obtain Learner Performance. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid LessonId");
+            } 
+            
+            return new RepoBuilder().buildReportRepo(context).getLearnerPerformanceInLesson();
+            
+        } catch (Throwable t) {
+            LOGGER.error("Exception while getting learner performance in Lesson", t);
+            return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+        }
+
+    }
+    
+    private MessageResponse getUserIndepedentLearningPerfInAssessment() {
+      try {
+            ProcessorContext context = createContext();
+          
+            if (!checkCourseId(context)) {
+                LOGGER.error("CourseId not available to obtain Learner Performance. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid CourseId");
+            }
+
+            if (!checkUnitId(context)) {
+                LOGGER.error("UnitId not available to obtain Learner Performance. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid UnitId");
+            }
+
+            if (!checkLessonId(context)) {
+                LOGGER.error("LessonId not available to obtain Learner Performance. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid LessonId");
+            } 
+            if (!checkCollectionId(context)) {
+              LOGGER.error("AssessmentId not available to obtain Learner Performance. Aborting");
+              return MessageResponseFactory.createInvalidRequestResponse("Invalid assessmentId");
+            } 
+            return new RepoBuilder().buildReportRepo(context).getLearnerPerformanceInAssessment();
+            
+        } catch (Throwable t) {
+            LOGGER.error("Exception while getting learner performance in assessment", t);
+            return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+        }
+
+    }
+    private MessageResponse getUserLearningPerfInIndepedentAssessment() {
+      try {
+            ProcessorContext context = createContext();
+            if (!checkCollectionId(context)) {
+              LOGGER.error("AssessmentId not available to obtain learner assessment performance. Aborting");
+              return MessageResponseFactory.createInvalidRequestResponse("Invalid assessmentId");
+            } 
+            return new RepoBuilder().buildReportRepo(context).getLearnerPerformanceInIndependentAssessment();
+            
+        } catch (Throwable t) {
+            LOGGER.error("Exception while getting Learner performance in Lesson", t);
+            return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+        }
+
+    }
+    
+    private MessageResponse getIndependentLearnerCourses() {
+      try {
+            ProcessorContext context = createContext();
+            return new RepoBuilder().buildReportRepo(context).getIndependentLearnerCourses();
+            
+        } catch (Throwable t) {
+            LOGGER.error("Exception while getting independent learner courses", t);
+            return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+        }
+
+    }
+
+    //==========================================================================================================//
     private MessageResponse getStudentSummaryInCollection() {
     	try {
             ProcessorContext context = createContext();

@@ -52,4 +52,16 @@ public interface ReportRepo {
     
     MessageResponse getStudPerfCourseAssessments();
 
+    MessageResponse getLearnerPerformanceInCourse();
+
+    MessageResponse getLearnerPerformanceInUnit();
+
+    MessageResponse getLearnerPerformanceInLesson();
+
+    MessageResponse getLearnerPerformanceInAssessment();
+
+    MessageResponse getLearnerPerformanceInIndependentAssessment();
+    
+    MessageResponse getIndependentLearnerCourses();
+
 }

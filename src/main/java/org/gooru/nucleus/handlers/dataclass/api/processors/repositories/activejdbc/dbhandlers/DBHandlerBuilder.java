@@ -101,4 +101,27 @@ public final class DBHandlerBuilder {
         return new StudPerfCourseAssessmentHandler(context);
       }
     
+    public static DBHandler buildLearnerCoursePerfHandler(ProcessorContext context) {
+      return new IndependentLearnerCoursePerfHandler(context);
+    }
+  
+    public static DBHandler buildLearnerUnitPerfHandler(ProcessorContext context) {
+      return new IndependentLearnerUnitPerfHandler(context);
+    }
+  
+    public static DBHandler buildLearnerLessonPerfHandler(ProcessorContext context) {
+      return new IndependentLearnerLessonPerfHandler(context);
+    }
+  
+    public static DBHandler buildLearnerAssessmentPerfHandler(ProcessorContext context) {
+      return new IndependentLearnerAssessmentPerfHandler(context);
+    }
+  
+    public static DBHandler buildLearnerIndependentAssessmentPerfHandler(ProcessorContext context) {
+      return new IndependentLearnerIndependentAssessmentPerfHandler(context);
+    }
+    
+    public static DBHandler buildIndependentLearnerCourses(ProcessorContext context) {
+      return new IndependentLearnerCoursesHandler(context);
+    }
 }

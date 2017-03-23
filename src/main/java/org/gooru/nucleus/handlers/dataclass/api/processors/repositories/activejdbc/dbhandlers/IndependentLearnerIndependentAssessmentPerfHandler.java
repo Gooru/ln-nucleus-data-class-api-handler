@@ -27,52 +27,39 @@ import io.vertx.core.json.JsonObject;
  * Created by daniel
  */
 
-public class StudentAssessmentPerfHandler implements DBHandler {
+public class IndependentLearnerIndependentAssessmentPerfHandler implements DBHandler {
 
-	  private static final Logger LOGGER = LoggerFactory.getLogger(StudentAssessmentPerfHandler.class);
-    private static final String REQUEST_USERID = "userUid";
-    private final ProcessorContext context;
-    private String collectionType;
-    private String userId;
+  private static final Logger LOGGER = LoggerFactory.getLogger(IndependentLearnerIndependentAssessmentPerfHandler.class);
+  private final ProcessorContext context;
+  private String collectionType;
+  private String userId;
 
-    public StudentAssessmentPerfHandler(ProcessorContext context) {
-        this.context = context;
+  public IndependentLearnerIndependentAssessmentPerfHandler(ProcessorContext context) {
+    this.context = context;
+  }
+
+  @Override
+  public ExecutionResult<MessageResponse> checkSanity() {
+    if (context.request() == null || context.request().isEmpty()) {
+      LOGGER.warn("invalid request received to fetch Student Performance in Assessment");
+      return new ExecutionResult<>(
+              MessageResponseFactory.createInvalidRequestResponse("Invalid data provided to fetch Student Performance in Assessment"),
+              ExecutionStatus.FAILED);
     }
 
-    @Override
-    public ExecutionResult<MessageResponse> checkSanity() {
-        if (context.request() == null || context.request().isEmpty()) {
-            LOGGER.warn("invalid request received to fetch Student Performance in Assessment");
-            return new ExecutionResult<>(
-                MessageResponseFactory.createInvalidRequestResponse("Invalid data provided to fetch Student Performance in Assessment"),
-                ExecutionStatus.FAILED);
-        }
+    LOGGER.debug("checkSanity() OK");
+    return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
+  }
 
-        LOGGER.debug("checkSanity() OK");
-        return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
-    }
+  @Override
+  @SuppressWarnings("rawtypes")
+  public ExecutionResult<MessageResponse> validateRequest() {
+    LOGGER.debug("validateRequest() OK");
+    return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
+  }
 
-    @Override
-    @SuppressWarnings("rawtypes")
-    public ExecutionResult<MessageResponse> validateRequest() {
-      //FIXME: to be reverted
-      /*if (context.getUserIdFromRequest() == null
-              || (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
-        List<Map> creator = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_CREATOR, this.context.classId(), this.context.userIdFromSession());
-        if (creator.isEmpty()) {
-          List<Map> collaborator = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_COLLABORATOR, this.context.classId(), this.context.userIdFromSession());
-          if (collaborator.isEmpty()) {
-            LOGGER.debug("validateRequest() FAILED");
-            return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"), ExecutionStatus.FAILED);
-          }
-        }
-      }*/
-      LOGGER.debug("validateRequest() OK");
-      return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
-    }
-
-    @Override
-    @SuppressWarnings("rawtypes")
+  @Override
+  @SuppressWarnings("rawtypes")
   public ExecutionResult<MessageResponse> executeRequest() {
     JsonObject resultBody = new JsonObject();
     JsonArray resultarray = new JsonArray();
@@ -88,30 +75,19 @@ public class StudentAssessmentPerfHandler implements DBHandler {
               ExecutionStatus.FAILED);
     }
 
-    this.userId = this.context.request().getString(REQUEST_USERID);
-
+    this.userId = this.context.userIdFromSession();
     List<String> userIds = new ArrayList<>();
 
-    // FIXME : userId can be added as GROUPBY in performance query. Not
-    // necessary to get distinct users.
-    if (this.context.classId() != null && StringUtil.isNullOrEmpty(userId)) {
-      LOGGER.warn("UserID is not in the request to fetch Student Performance in Lesson. Assume user is a teacher");
-      LazyList<AJEntityBaseReports> userIdforlesson =
-              AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_COLLECTION_ID_FILTERBY_COLLTYPE, context.classId(),
-                      context.courseId(), context.unitId(), context.lessonId(), context.collectionId(), this.collectionType);
-      userIdforlesson.forEach(coll -> userIds.add(coll.getString(AJEntityBaseReports.GOORUUID)));
-
-    } else {
-      userIds.add(this.userId);
-    }
+    userIds.add(this.userId);
 
     LOGGER.debug("UID is " + this.userId);
 
     for (String userID : userIds) {
       JsonObject contentBody = new JsonObject();
       List<Map> studentLatestAttempt = null;
-      studentLatestAttempt = Base.findAll(AJEntityBaseReports.GET_LATEST_COMPLETED_SESSION_ID, context.classId(), context.courseId(),
-              context.unitId(), context.lessonId(), context.collectionId(), userID);
+
+      studentLatestAttempt =
+              Base.findAll(AJEntityBaseReports.GET_INDEPENDENT_LEARNER_LATEST_ASS_COMPLETED_SESSION_ID, context.collectionId(), userID);
 
       if (!studentLatestAttempt.isEmpty()) {
         studentLatestAttempt.forEach(attempts -> {
@@ -142,10 +118,10 @@ public class StudentAssessmentPerfHandler implements DBHandler {
 
     return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
 
-  }   
+  }
 
-    @Override
-    public boolean handlerReadOnly() {
-        return false;
-    }
+  @Override
+  public boolean handlerReadOnly() {
+    return false;
+  }
 }
