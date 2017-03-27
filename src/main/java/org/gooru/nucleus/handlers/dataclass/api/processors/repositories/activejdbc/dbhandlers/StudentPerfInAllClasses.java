@@ -15,6 +15,7 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionRe
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
 import org.javalite.activejdbc.Base;
+import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,53 +66,102 @@ public class StudentPerfInAllClasses implements DBHandler {
               MessageResponseFactory.createInvalidRequestResponse("ClassIds is Missing. Cannot fetch Student Performance in Classes"),
               ExecutionStatus.FAILED);
     }
+    
+    List<String> clsIds = new ArrayList<>();
+    for (Object s : this.classIds) {
+      clsIds.add(s.toString());
+    }
 
     JsonObject result = new JsonObject();
     JsonArray ClassKpiArray = new JsonArray();
 
     // Getting timespent and attempts.
     List<Map> classPerfData = null;
+    
+    List<Map> classPerfList = null;
+    List<String> userList = new ArrayList<>();;
+    
+    // Student All Class Data
     if (!StringUtil.isNullOrEmpty(this.userId)) {
-      classPerfData = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_ALL_CLASS_DATA, listToPostgresArrayString(this.classIds), this.userId);
+    	classPerfData = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_ALL_CLASS_DATA, jArrayToPostgresArrayString(this.classIds), this.userId);
+    	
+    	if (!classPerfData.isEmpty()) {
+    	      classPerfData.forEach(classData -> {
+    	        JsonObject classKPI = new JsonObject();
+    	        classKPI.put(AJEntityBaseReports.ATTR_CLASS_ID, classData.get(AJEntityBaseReports.CLASS_GOORU_OID).toString());
+    	        classKPI.put(AJEntityBaseReports.ATTR_TIME_SPENT, Integer.valueOf(classData.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()));
+    	        classKPI.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 0);
+    	        classKPI.put(AJEntityBaseReports.ATTR_SCORE, 0);
+    	        Object classTotalCount = Base.firstCell(AJEntityCourseCollectionCount.GET_CLASS_ASSESSMENT_COUNT,
+    	                classData.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
+    	        classKPI.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, classTotalCount != null ? Integer.valueOf(classTotalCount.toString()) : 0);
+    	        //classKPI.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
+    	        List<Map> classScoreCompletion = null;
+    	        if (!StringUtil.isNullOrEmpty(this.userId)) {
+    	          classScoreCompletion = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_ALL_CLASS_COMPLETION_SCORE,
+    	                  classData.get(AJEntityBaseReports.CLASS_GOORU_OID).toString(), this.userId);
+    	        }
+    	        
+    	        if (!classScoreCompletion.isEmpty()) {
+    	          classScoreCompletion.forEach(scoreKPI -> {
+    	            LOGGER.debug("completedCount : {} ", scoreKPI.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT));
+    	            LOGGER.debug("score : {} ", scoreKPI.get(AJEntityBaseReports.ATTR_SCORE));
+    	            classKPI.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT,
+    	                    Integer.valueOf(scoreKPI.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
+    	            classKPI.put(AJEntityBaseReports.ATTR_SCORE, Integer.valueOf(scoreKPI.get(AJEntityBaseReports.ATTR_SCORE).toString()));
+    	          });
+    	        }
+    	        ClassKpiArray.add(classKPI);
+    	      });
+    	    }
+    } else if (StringUtil.isNullOrEmpty(this.userId)) { // TEACHER All Class Data
+    			
+		for (String clId : clsIds){    			
+			JsonObject classKPI = new JsonObject();
+			
+			classPerfData = Base.findAll(AJEntityBaseReports.SELECT_ALL_STUDENTS_CLASS_DATA, clId);    	
+	    	if (!classPerfData.isEmpty()) { 
+	    		classPerfData.forEach(classData -> {
+	    			classKPI.put(AJEntityBaseReports.ATTR_CLASS_ID, classData.get(AJEntityBaseReports.CLASS_GOORU_OID).toString());
+        	        classKPI.put(AJEntityBaseReports.ATTR_TIME_SPENT, Integer.valueOf(classData.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()));        	        
+        	        Object classTotalCount = Base.firstCell(AJEntityCourseCollectionCount.GET_CLASS_ASSESSMENT_COUNT, 
+        	        		classData.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
+        	        classKPI.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, classTotalCount != null ? Integer.valueOf(classTotalCount.toString()) : 0);
+        	        //classKPI.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
+	    	});   
+	      	        LazyList<AJEntityBaseReports> studClass =
+		              AJEntityBaseReports.findBySQL(AJEntityBaseReports.GET_DISTINCT_USERS_IN_CLASS, clId);
+		      studClass.forEach(users -> userList.add(users.getString(AJEntityBaseReports.GOORUUID)));
+		      
+		      
+		      classPerfList = Base.findAll(AJEntityBaseReports.SELECT_ALL_STUDENT_CLASS_COMPLETION_SCORE, clId,
+  					listToPostgresArrayString(userList));
+		      
+  	    	if (!classPerfList.isEmpty()) { 
+	    		classPerfList.forEach(scoData -> {
+    	            classKPI.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT,
+    	                    Integer.valueOf(scoData.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
+    	            classKPI.put(AJEntityBaseReports.ATTR_SCORE, Integer.valueOf(scoData.get(AJEntityBaseReports.ATTR_SCORE).toString()));
+	    	});   
+  	    	}
+	        
+		}
+	    	ClassKpiArray.add(classKPI);    			
+		}
+    	
     } else {
-      classPerfData = Base.findAll(AJEntityBaseReports.SELECT_ALL_STUDENT_ALL_CLASS_DATA, listToPostgresArrayString(this.classIds));
-    }
-    if (!classPerfData.isEmpty()) {
-      classPerfData.forEach(classData -> {
-        JsonObject classKPI = new JsonObject();
-        classKPI.put(AJEntityBaseReports.ATTR_CLASS_ID, classData.get(AJEntityBaseReports.CLASS_GOORU_OID).toString());
-        classKPI.put(AJEntityBaseReports.ATTR_TIME_SPENT, Integer.valueOf(classData.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()));
-        classKPI.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 0);
-        classKPI.put(AJEntityBaseReports.ATTR_SCORE, 0);
-        Object classTotalCount = Base.firstCell(AJEntityCourseCollectionCount.GET_CLASS_ASSESSMENT_COUNT,
-                classData.get(AJEntityBaseReports.CLASS_GOORU_OID).toString());
-        classKPI.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, classTotalCount != null ? Integer.valueOf(classTotalCount.toString()) : 0);
-        List<Map> classScoreCompletion = null;
-        if (!StringUtil.isNullOrEmpty(this.userId)) {
-          classScoreCompletion = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_ALL_CLASS_COMPLETION_SCORE,
-                  classData.get(AJEntityBaseReports.CLASS_GOORU_OID).toString(), this.userId);
-        } else {
-          classScoreCompletion = Base.findAll(AJEntityBaseReports.SELECT_ALL_STUDENT_ALL_CLASS_COMPLETION_SCORE,
-                  classData.get(AJEntityBaseReports.CLASS_GOORU_OID).toString());
-        }
-        if (!classScoreCompletion.isEmpty()) {
-          classScoreCompletion.forEach(scoreKPI -> {
-            LOGGER.debug("completedCount : {} ", scoreKPI.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT));
-            LOGGER.debug("score : {} ", scoreKPI.get(AJEntityBaseReports.ATTR_SCORE));
-            classKPI.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT,
-                    Integer.valueOf(scoreKPI.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
-            classKPI.put(AJEntityBaseReports.ATTR_SCORE, Integer.valueOf(scoreKPI.get(AJEntityBaseReports.ATTR_SCORE).toString()));
-          });
-        }
-        ClassKpiArray.add(classKPI);
-      });
-    } else {
-      LOGGER.info("Could not get Student Class Performance");
-    }
-
+        LOGGER.info("Could not get Student Class Performance");
+      }
+    
     // Form the required Json pass it on
-    result.put(JsonConstants.USAGE_DATA, ClassKpiArray).put(JsonConstants.USERID, this.userId);
-
+    result.put(JsonConstants.USAGE_DATA, ClassKpiArray);
+    
+    if (!StringUtil.isNullOrEmpty(this.userId)) {
+    	result.put(JsonConstants.USERID, this.userId);    	    	
+    } else if (StringUtil.isNullOrEmpty(this.userId)) {    	
+    	result.putNull(JsonConstants.USERID);
+    }
+    
     return new ExecutionResult<>(MessageResponseFactory.createGetResponse(result), ExecutionStatus.SUCCESSFUL);
   }
 
@@ -120,7 +170,7 @@ public class StudentPerfInAllClasses implements DBHandler {
     return false;
   }
 
-  private String listToPostgresArrayString(JsonArray inputArrary) {
+  private String jArrayToPostgresArrayString(JsonArray inputArrary) {
     List<String> input = new ArrayList<>();
     for (Object s : inputArrary) {
       input.add(s.toString());
@@ -142,4 +192,25 @@ public class StudentPerfInAllClasses implements DBHandler {
     }
   }
 
+  private String listToPostgresArrayString(List<String> input) {
+	    int approxSize = ((input.size() + 1) * 36); // Length of UUID is around
+	                                                // 36
+	                                                // chars
+	    Iterator<String> it = input.iterator();
+	    if (!it.hasNext()) {
+	      return "{}";
+	    }
+
+	    StringBuilder sb = new StringBuilder(approxSize);
+	    sb.append('{');
+	    for (;;) {
+	      String s = it.next();
+	      sb.append('"').append(s).append('"');
+	      if (!it.hasNext()) {
+	        return sb.append('}').toString();
+	      }
+	      sb.append(',');
+	    }
+
+	  }
 }
