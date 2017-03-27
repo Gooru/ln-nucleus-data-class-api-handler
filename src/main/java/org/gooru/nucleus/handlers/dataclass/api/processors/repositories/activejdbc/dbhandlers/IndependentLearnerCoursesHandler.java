@@ -6,6 +6,7 @@ import java.util.Map;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityContent;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
@@ -64,15 +65,15 @@ public class IndependentLearnerCoursesHandler implements DBHandler {
       coursesList.forEach(course -> {
         JsonObject contentBody = new JsonObject();
         contentBody.put(AJEntityBaseReports.ATTR_COURSE_ID, course.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
-        //FIXME : Title should be taken from lookup table.
-        contentBody.put(ATTR_TITLE, "Coming soon...");
+        Object title = Base.firstCell(AJEntityContent.SELECT_COURSE_TITLE, course.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
+        contentBody.put(ATTR_TITLE, title);
         resultarray.add(contentBody);
       });
     } else {
       // Return an empty resultBody instead of an Error
       LOGGER.debug("No data returned for independent learner courses");
     }
-    resultBody.put(JsonConstants.CONTENT, resultarray);;
+    resultBody.put(JsonConstants.CONTENT, resultarray);
 
     return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
 
