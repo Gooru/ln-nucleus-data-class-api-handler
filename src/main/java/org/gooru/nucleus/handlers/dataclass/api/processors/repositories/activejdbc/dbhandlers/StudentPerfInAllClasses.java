@@ -87,6 +87,7 @@ public class StudentPerfInAllClasses implements DBHandler {
     	
     	if (!classPerfData.isEmpty()) {
     	      classPerfData.forEach(classData -> {
+    	        if(classData.get(AJEntityBaseReports.COURSE_GOORU_OID) != null){
     	        JsonObject classKPI = new JsonObject();
     	        classKPI.put(AJEntityBaseReports.ATTR_CLASS_ID, classData.get(AJEntityBaseReports.CLASS_GOORU_OID).toString());
     	        classKPI.put(AJEntityBaseReports.ATTR_TIME_SPENT, Integer.valueOf(classData.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()));
@@ -112,6 +113,7 @@ public class StudentPerfInAllClasses implements DBHandler {
     	          });
     	        }
     	        ClassKpiArray.add(classKPI);
+    	      }
     	      });
     	    }
     } else if (StringUtil.isNullOrEmpty(this.userId)) { // TEACHER All Class Data

@@ -81,9 +81,9 @@ public class StudentCurrentLocationHandler implements DBHandler {
     	  CurrentLocMap.forEach(m -> {
           JsonObject loc = new JsonObject();
           loc.put(AJEntityBaseReports.ATTR_CLASS_ID, m.get(AJEntityBaseReports.CLASS_GOORU_OID).toString());
-          loc.put(AJEntityBaseReports.ATTR_COURSE_ID, m.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
-          loc.put(AJEntityBaseReports.ATTR_UNIT_ID, m.get(AJEntityBaseReports.UNIT_GOORU_OID).toString());
-          loc.put(AJEntityBaseReports.ATTR_LESSON_ID, m.get(AJEntityBaseReports.LESSON_GOORU_OID).toString());
+          loc.put(AJEntityBaseReports.ATTR_COURSE_ID, m.get(AJEntityBaseReports.COURSE_GOORU_OID) != null ? m.get(AJEntityBaseReports.COURSE_GOORU_OID).toString() :null);
+          loc.put(AJEntityBaseReports.ATTR_UNIT_ID, m.get(AJEntityBaseReports.UNIT_GOORU_OID) != null ? m.get(AJEntityBaseReports.UNIT_GOORU_OID).toString() : null);
+          loc.put(AJEntityBaseReports.ATTR_LESSON_ID, m.get(AJEntityBaseReports.LESSON_GOORU_OID) != null ? m.get(AJEntityBaseReports.LESSON_GOORU_OID).toString() : null);
           if (m.get(AJEntityBaseReports.COLLECTION_TYPE).equals(EventConstants.ASSESSMENT)) {
             loc.put(AJEntityBaseReports.ATTR_ASSESSMENT_ID, m.get(AJEntityBaseReports.COLLECTION_OID).toString());
           } else {
