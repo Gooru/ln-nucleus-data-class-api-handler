@@ -103,6 +103,7 @@ public class IndependentLearnerIndependentAssessmentPerfHandler implements DBHan
               qnData.put(JsonConstants.ANSWER_OBJECT, new JsonArray(questions.get(AJEntityBaseReports.ANSWER_OBECT).toString()));
               // FIXME :: it can be removed once we fix writer code.
               qnData.put(JsonConstants.RESOURCE_TYPE, JsonConstants.QUESTION);
+              qnData.put(JsonConstants.SCORE, Double.valueOf(questions.get(AJEntityBaseReports.SCORE).toString()));
               questionsArray.add(qnData);
             });
           }

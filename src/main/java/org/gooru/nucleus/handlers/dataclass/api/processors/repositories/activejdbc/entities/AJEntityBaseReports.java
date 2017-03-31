@@ -121,7 +121,7 @@ public class AJEntityBaseReports extends Model {
   
     
     public static final String GET_COMPLETED_COLLID_COUNT_FOREACH_UNIT_ID = 
-    		"SELECT SUM(unitData.completion) AS completedCount, ROUND(AVG(scoreInPercentage)) scoreInPercentage FROM "
+    		"SELECT SUM(unitData.completion) AS completedCount, (AVG(scoreInPercentage)) scoreInPercentage FROM "
     		+ "(SELECT DISTINCT ON (collection_id) CASE  WHEN (event_type = 'stop') THEN 1 ELSE 0 END AS completion,"
     		+ "FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage,"
     		+ "unit_id FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND "
@@ -129,7 +129,7 @@ public class AJEntityBaseReports extends Model {
     		+ "AS unitData GROUP BY unit_id;";
     
     public static final String GET_COMPLETED_COLL_COUNT_FOREACH_UNIT_ID = 
-            "SELECT SUM(unitData.completion) AS completedCount, ROUND(AVG(scoreInPercentage)) scoreInPercentage FROM "
+            "SELECT SUM(unitData.completion) AS completedCount, (AVG(scoreInPercentage)) scoreInPercentage FROM "
             + "(SELECT DISTINCT ON (collection_id) CASE  WHEN (event_type = 'stop') THEN 1 ELSE 0 END AS completion,"
             + "FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage,"
             + "unit_id FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND "
@@ -168,14 +168,14 @@ public class AJEntityBaseReports extends Model {
             + "WHERE lesson_id = ? AND actor_id = ? GROUP BY lesson_id";
 
     public static final String GET_COMPLETED_COLLID_COUNT_FOREACH_LESSON_ID = 
-            "SELECT SUM(lessonData.completion) AS completedCount,ROUND(AVG(scoreInPercentage)) scoreInPercentage FROM "
+            "SELECT SUM(lessonData.completion) AS completedCount,(AVG(scoreInPercentage)) scoreInPercentage FROM "
             + "(SELECT DISTINCT ON (collection_id) CASE  WHEN (event_type = 'stop') THEN 1 ELSE 0 END AS completion, "
             + "lesson_id, FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage "
             + "FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? "
             + " AND collection_type =? AND actor_id = ? AND event_name = ? AND event_type = 'stop' ORDER BY collection_id, updated_at DESC) "
             + "AS lessonData GROUP BY lesson_id;";
     public static final String GET_COMPLETED_COLL_COUNT_FOREACH_LESSON_ID = 
-            "SELECT SUM(lessonData.completion) AS completedCount,ROUND(AVG(scoreInPercentage)) scoreInPercentage FROM "
+            "SELECT SUM(lessonData.completion) AS completedCount,(AVG(scoreInPercentage)) scoreInPercentage FROM "
             + "(SELECT DISTINCT ON (collection_id) CASE  WHEN (event_type = 'stop') THEN 1 ELSE 0 END AS completion, "
             + "lesson_id, FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage "
             + "FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? "
@@ -214,7 +214,7 @@ public class AJEntityBaseReports extends Model {
                         + "WHERE collection_id = ANY(?::varchar[]) AND actor_id = ? GROUP BY collection_id";*/
     
     public static final String SELECT_STUDENT_LESSON_PERF_FOR_ASSESSMENT =
-            "SELECT SUM(agg.time_spent) as timeSpent, ROUND(AVG(agg.scoreInPercentage)) scoreInPercentage, "
+            "SELECT SUM(agg.time_spent) as timeSpent, (AVG(agg.scoreInPercentage)) scoreInPercentage, "
           + "SUM(agg.reaction) reaction, SUM(agg.attempts) attempts, agg.collection_id as collectionId, 'completed' AS attemptStatus "
           + "FROM (SELECT time_spent, FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) "
           + "AS scoreInPercentage, reaction AS reaction, views AS attempts, collection_id FROM base_reports "
@@ -222,7 +222,7 @@ public class AJEntityBaseReports extends Model {
           + "event_name = ? AND event_type = 'stop') AS agg "
           + "GROUP BY agg.collection_id";
     public static final String SELECT_STUDENT_LESSON_PERF_FOR_COLLECTION =
-            "SELECT SUM(agg.time_spent) as timeSpent, ROUND(AVG(agg.scoreInPercentage)) scoreInPercentage, "
+            "SELECT SUM(agg.time_spent) as timeSpent, (AVG(agg.scoreInPercentage)) scoreInPercentage, "
           + "SUM(agg.reaction) reaction, SUM(agg.attempts) attempts, agg.collection_id AS collectionId, 'completed' AS attemptStatus "
           + "FROM (SELECT time_spent, FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) "
           + "AS scoreInPercentage, reaction AS reaction, views AS attempts, collection_id FROM base_reports "
@@ -488,7 +488,7 @@ public class AJEntityBaseReports extends Model {
             + "FROM base_reports WHERE class_id = ? AND collection_type = 'assessment' AND event_name = 'collection.play' GROUP BY class_id, course_id";
     
     //CLASS DATA FOR A USER(score, completion)
-    public static final String SELECT_STUDENT_ALL_CLASS_COMPLETION_SCORE = "SELECT class_id, SUM(classData.completion) AS completedCount, ROUND(AVG(scoreInPercentage)) AS scoreInPercentage "
+    public static final String SELECT_STUDENT_ALL_CLASS_COMPLETION_SCORE = "SELECT class_id, SUM(classData.completion) AS completedCount, AVG(scoreInPercentage) AS scoreInPercentage "
             + "FROM (SELECT DISTINCT ON (collection_id) CASE  WHEN (event_type = 'stop') THEN 1 ELSE 0 END AS completion, "
             + "FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage, class_id "
             + "FROM base_reports WHERE class_id = ?  AND actor_id = ? "
@@ -500,8 +500,8 @@ public class AJEntityBaseReports extends Model {
     
     //Class Data for ALL Users (score, completion)		
     public static final String SELECT_ALL_STUDENT_CLASS_COMPLETION_SCORE = "select class_id, SUM(compCount) AS completedCount, "
-    		+ "ROUND(AVG(scoreInPercentage)) AS scoreInPercentage FROM (SELECT class_id,actor_id, SUM(classData.completion) AS compCount, "
-    		+ "ROUND(AVG(scoreInPercentage)) AS scoreInPercentage FROM (SELECT DISTINCT ON (collection_id, actor_id) "
+    		+ "AVG(scoreInPercentage) AS scoreInPercentage FROM (SELECT class_id,actor_id, SUM(classData.completion) AS compCount, "
+    		+ "(AVG(scoreInPercentage)) AS scoreInPercentage FROM (SELECT DISTINCT ON (collection_id, actor_id) "
     		+ "CASE  WHEN (event_type = 'stop') THEN 1 ELSE 0 END AS completion, FIRST_VALUE(score) OVER "
     		+ "(PARTITION BY collection_id, actor_id ORDER BY updated_at desc) AS scoreInPercentage, class_id, actor_id "
     		+ "FROM base_reports WHERE class_id = ? AND actor_id = ANY(?::varchar[]) AND event_name = 'collection.play' "
@@ -549,7 +549,7 @@ public class AJEntityBaseReports extends Model {
             + "WHERE class_id = ? AND collection_type = ?";
     
     public static final String GET_PERFORMANCE_FOR_CLASS_ASSESSMENTS = "SELECT SUM(agg.timeSpent) timeSpent, "
-            + "ROUND(AVG(agg.scoreInPercentage)) scoreInPercentage, SUM(agg.attempts) attempts, "
+            + "(AVG(agg.scoreInPercentage)) scoreInPercentage, SUM(agg.attempts) attempts, "
             + "agg.collectionId, agg.activityDate FROM (SELECT time_spent AS timeSpent, "
             + "FIRST_VALUE(score) OVER (PARTITION BY collection_id, DATE(updated_at) ORDER BY updated_at desc) "
             + "AS scoreInPercentage, views AS attempts, collection_id as collectionId,actor_id as actorId, DATE(updated_at) as activityDate FROM base_reports "
@@ -559,7 +559,7 @@ public class AJEntityBaseReports extends Model {
     
     
     public static final String GET_PERFORMANCE_FOR_ASSESSMENTS =
-            "SELECT SUM(agg.time_spent) timeSpent, ROUND(AVG(agg.scoreInPercentage)) scoreInPercentage, "
+            "SELECT SUM(agg.time_spent) timeSpent, (AVG(agg.scoreInPercentage)) scoreInPercentage, "
           + "SUM(agg.reaction) reaction, SUM(agg.attempts) attempts, agg.collection_id AS collectionId, 'completed' AS attemptStatus "
           + "FROM (SELECT time_spent, FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) "
           + "AS scoreInPercentage, reaction AS reaction, views AS attempts, collection_id FROM base_reports "
@@ -597,7 +597,7 @@ public class AJEntityBaseReports extends Model {
           + "GROUP BY agg.unit_id";
     
     public static final String GET_COMPLETED_COLLID_COUNT_FOREACH_INDEPENDENT_LEARNER_UNIT_ID = 
-            "SELECT SUM(unitData.completion) AS completedCount, ROUND(AVG(scoreInPercentage)) scoreInPercentage FROM "
+            "SELECT SUM(unitData.completion) AS completedCount, (AVG(scoreInPercentage)) scoreInPercentage FROM "
             + "(SELECT DISTINCT ON (collection_id) CASE  WHEN (event_type = 'stop') THEN 1 ELSE 0 END AS completion,"
             + "FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage,"
             + "unit_id FROM base_reports WHERE class_id IS NULL AND course_id = ? AND unit_id = ? AND "
@@ -605,7 +605,7 @@ public class AJEntityBaseReports extends Model {
             + "AS unitData GROUP BY unit_id;";
     
     public static final String GET_COMPLETED_COLL_COUNT_FOREACH_INDEPENDENT_LEARNER_UNIT_ID = 
-            "SELECT SUM(unitData.completion) AS completedCount, ROUND(AVG(scoreInPercentage)) scoreInPercentage FROM "
+            "SELECT SUM(unitData.completion) AS completedCount, (AVG(scoreInPercentage)) scoreInPercentage FROM "
             + "(SELECT DISTINCT ON (collection_id) CASE  WHEN (event_type = 'stop') THEN 1 ELSE 0 END AS completion,"
             + "FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage,"
             + "unit_id FROM base_reports WHERE class_id IS NULL AND course_id = ? AND unit_id = ? AND "
@@ -621,7 +621,7 @@ public class AJEntityBaseReports extends Model {
             + "WHERE class_id IS NULL AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_type =? AND actor_id = ?";
 
     public static final String GET_COMPLETED_COLLID_COUNT_FOREACH_INDEPENDENT_LEARNER_LESSON_ID = 
-            "SELECT SUM(lessonData.completion) AS completedCount,ROUND(AVG(scoreInPercentage)) scoreInPercentage FROM "
+            "SELECT SUM(lessonData.completion) AS completedCount,(AVG(scoreInPercentage)) scoreInPercentage FROM "
             + "(SELECT DISTINCT ON (collection_id) CASE  WHEN (event_type = 'stop') THEN 1 ELSE 0 END AS completion, "
             + "lesson_id, FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage "
             + "FROM base_reports WHERE class_id IS NULL AND course_id = ? AND unit_id = ? AND lesson_id = ? "
@@ -629,7 +629,7 @@ public class AJEntityBaseReports extends Model {
             + "AS lessonData GROUP BY lesson_id;";
     
     public static final String GET_COMPLETED_COLL_COUNT_FOREACH_INDEPENDENT_LEARNER_LESSON_ID = 
-            "SELECT SUM(lessonData.completion) AS completedCount,ROUND(AVG(scoreInPercentage)) scoreInPercentage FROM "
+            "SELECT SUM(lessonData.completion) AS completedCount,(AVG(scoreInPercentage)) scoreInPercentage FROM "
             + "(SELECT DISTINCT ON (collection_id) CASE  WHEN (event_type = 'stop') THEN 1 ELSE 0 END AS completion, "
             + "lesson_id, FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage "
             + "FROM base_reports WHERE class_id IS NULL AND course_id = ? AND unit_id = ? AND lesson_id = ? "
@@ -655,7 +655,7 @@ public class AJEntityBaseReports extends Model {
           + "GROUP BY agg.lessonId";
     
     public static final String SELECT_INDEPENDENT_LEARNER_LESSON_PERF_FOR_ASSESSMENT =
-            "SELECT SUM(agg.time_spent) as timeSpent, ROUND(AVG(agg.scoreInPercentage)) scoreInPercentage, "
+            "SELECT SUM(agg.time_spent) as timeSpent, (AVG(agg.scoreInPercentage)) scoreInPercentage, "
           + "SUM(agg.reaction) reaction, SUM(agg.attempts) attempts, agg.collection_id as collectionId, 'completed' AS attemptStatus "
           + "FROM (SELECT time_spent, FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) "
           + "AS scoreInPercentage, reaction AS reaction, views AS attempts, collection_id FROM base_reports "
@@ -664,7 +664,7 @@ public class AJEntityBaseReports extends Model {
           + "GROUP BY agg.collection_id";
     
     public static final String SELECT_INDEPENDENT_LEARNER_LESSON_PERF_FOR_COLLECTION =
-            "SELECT SUM(agg.time_spent) as timeSpent, ROUND(AVG(agg.scoreInPercentage)) scoreInPercentage, "
+            "SELECT SUM(agg.time_spent) as timeSpent, (AVG(agg.scoreInPercentage)) scoreInPercentage, "
           + "SUM(agg.reaction) reaction, SUM(agg.attempts) attempts, agg.collection_id AS collectionId, 'completed' AS attemptStatus "
           + "FROM (SELECT time_spent, FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) "
           + "AS scoreInPercentage, reaction AS reaction, views AS attempts, collection_id FROM base_reports "

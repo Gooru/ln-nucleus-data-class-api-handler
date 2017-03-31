@@ -153,7 +153,7 @@ public class StudPerfCourseAssessmentHandler implements DBHandler {
         	
         	if (!assessScore.isEmpty()){
         		assessScore.forEach(m -> {
-            		assessmentKpi.put(AJEntityBaseReports.ATTR_SCORE, Integer.parseInt(m.get(AJEntityBaseReports.ATTR_SCORE).toString()));
+            		assessmentKpi.put(AJEntityBaseReports.ATTR_SCORE, Double.valueOf(m.get(AJEntityBaseReports.ATTR_SCORE).toString()));
             		assessmentKpi.put(JsonConstants.STATUS, JsonConstants.COMPLETE);        
     	    		});
             	}

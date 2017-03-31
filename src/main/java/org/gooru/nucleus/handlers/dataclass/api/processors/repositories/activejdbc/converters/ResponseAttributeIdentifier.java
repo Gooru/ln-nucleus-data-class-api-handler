@@ -27,11 +27,11 @@ public class ResponseAttributeIdentifier {
   
   static {
     sessionAssessmentAttributes = new HashMap<>();
-    sessionAssessmentAttributes.put("score", "score");
+   // sessionAssessmentAttributes.put("score", "score");
     sessionAssessmentAttributes.put("collection_id", "gooruOId");
     sessionAssessmentAttributes.put("reaction", "reaction");
     sessionAssessmentAttributes.put("collectionTimeSpent", "timeSpent");
-    sessionAssessmentAttributes.put("updated_timestamp", "eventTime");
+    sessionAssessmentAttributes.put("updated_at", "eventTime");
     sessionAssessmentAttributes.put("session_id", "sessionId");
     sessionAssessmentAttributes.put("collection_type", "resourceType");
     sessionAssessmentAttributes.put("collectionViews", "attempts");
@@ -40,11 +40,11 @@ public class ResponseAttributeIdentifier {
   }
   static {
     sessionAssessmentQuestionAttributes = new HashMap<>();
-    sessionAssessmentQuestionAttributes.put("score", "score");
+    //sessionAssessmentQuestionAttributes.put("score", "score");
     sessionAssessmentQuestionAttributes.put("resource_id", "gooruOId");
     sessionAssessmentQuestionAttributes.put("reaction", "reaction");
     sessionAssessmentQuestionAttributes.put("resourceTimeSpent", "timeSpent");
-    sessionAssessmentQuestionAttributes.put("updated_timestamp", "eventTime");
+    sessionAssessmentQuestionAttributes.put("updated_at", "eventTime");
     sessionAssessmentQuestionAttributes.put("session_id", "sessionId");
     sessionAssessmentQuestionAttributes.put("resource_type", "resourceType");
     sessionAssessmentQuestionAttributes.put("question_type", "questionType");
@@ -54,7 +54,7 @@ public class ResponseAttributeIdentifier {
   
   static {
     sessionCollectionAttributes = new HashMap<>();
-    sessionCollectionAttributes.put("score", "score");
+    //sessionCollectionAttributes.put("score", "score");
     sessionCollectionAttributes.put("collection_id", "gooruOId");
     sessionCollectionAttributes.put("reaction", "reaction");
     sessionCollectionAttributes.put("collectionTimeSpent", "timeSpent");
@@ -67,11 +67,11 @@ public class ResponseAttributeIdentifier {
   }
   static {
     sessionCollectionResouceAttributes = new HashMap<>();
-    sessionCollectionResouceAttributes.put("score", "score");
+    //sessionCollectionResouceAttributes.put("score", "score");
     sessionCollectionResouceAttributes.put("resource_id", "gooruOId");
     sessionCollectionResouceAttributes.put("reaction", "reaction");
     sessionCollectionResouceAttributes.put("resourceTimeSpent", "timeSpent");
-    sessionCollectionResouceAttributes.put("created_timestamp", "eventTime");
+    sessionCollectionResouceAttributes.put("created_at", "eventTime");
     //sessionCollectionResouceAttributes.put("sessionid", "sessionId");
     sessionCollectionResouceAttributes.put("resource_type", "resourceType");
     sessionCollectionResouceAttributes.put("question_type", "questionType");
@@ -83,7 +83,7 @@ public class ResponseAttributeIdentifier {
     sessionTaxReportAggAttributes = new HashMap<>();
     sessionTaxReportAggAttributes.put("display_code", "displayCode");
     sessionTaxReportAggAttributes.put("time_spent", "timespent");
-    sessionTaxReportAggAttributes.put("score", "score");
+    //sessionTaxReportAggAttributes.put("score", "score");
     sessionTaxReportAggAttributes.put("reaction", "reaction");
 
   }
@@ -93,7 +93,7 @@ public class ResponseAttributeIdentifier {
     sessionTaxReportQuestionAttributes.put("resource_id", "questionId");
     sessionTaxReportQuestionAttributes.put("time_spent", "timespent");
     sessionTaxReportQuestionAttributes.put("views", "attempts");
-    sessionTaxReportQuestionAttributes.put("score", "score");
+    //sessionTaxReportQuestionAttributes.put("score", "score");
     sessionTaxReportQuestionAttributes.put("question_type", "questionType");
     sessionTaxReportQuestionAttributes.put("resource_attempt_status","answerStatus");
     sessionTaxReportQuestionAttributes.put("reaction", "reaction");
@@ -102,7 +102,7 @@ public class ResponseAttributeIdentifier {
   static {
     lessonPerformanceAttributes = new HashMap<>();
     lessonPerformanceAttributes.put("timeSpent", "timeSpent");
-    lessonPerformanceAttributes.put("scoreInPercentage", "scoreInPercentage");
+   // lessonPerformanceAttributes.put("scoreInPercentage", "scoreInPercentage");
     lessonPerformanceAttributes.put("attempts", "attempts");
     lessonPerformanceAttributes.put("reaction", "reaction");
     lessonPerformanceAttributes.put("collectionId", "assessmentId");
