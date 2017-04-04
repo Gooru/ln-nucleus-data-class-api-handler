@@ -99,7 +99,7 @@ public class SessionTaxonomyReportHandler implements DBHandler {
           JsonArray questionsArray = new JsonArray();
           sessionTaxonomyQuestionResults.stream().forEach(question -> {
             JsonObject questionData = ValueMapper.map(ResponseAttributeIdentifier.getSessionTaxReportQuestionAttributesMap(), question);
-            questionData.put(JsonConstants.SCORE, Double.valueOf(question.get(AJEntityBaseReports.SCORE).toString()));
+            questionData.put(JsonConstants.SCORE, Math.round(Double.valueOf(question.get(AJEntityBaseReports.SCORE).toString())));
             questionsArray.add(questionData);
           });
           aggResult.put(JsonConstants.QUESTIONS, questionsArray);

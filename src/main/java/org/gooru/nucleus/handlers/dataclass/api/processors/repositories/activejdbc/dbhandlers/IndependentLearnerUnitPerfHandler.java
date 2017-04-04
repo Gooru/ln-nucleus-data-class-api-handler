@@ -167,7 +167,7 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
                 // FIXME : revisit completed count and total count
                 assData.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 1);
                 assData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
-                assData.put(AJEntityBaseReports.ATTR_SCORE, Double.valueOf(ass.get(AJEntityBaseReports.ATTR_SCORE).toString()));
+                assData.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.valueOf(ass.get(AJEntityBaseReports.ATTR_SCORE).toString())));
                 // FIXME: This logic to be revisited.
                 if (this.collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {
                   List<Map> collectionQuestionCount = null;
@@ -187,7 +187,7 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
                       scoreInPercent = (((double) Double.valueOf(collectionScore.toString()) / this.questionCount) * 100);
                     }
                   }
-                  assData.put(AJEntityBaseReports.ATTR_SCORE, scoreInPercent);
+                  assData.put(AJEntityBaseReports.ATTR_SCORE, Math.round(scoreInPercent));
                   assData.put(AJEntityBaseReports.ATTR_COLLECTION_ID, assData.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID));
                   assData.remove(AJEntityBaseReports.ATTR_ASSESSMENT_ID);
                   assData.put(EventConstants.VIEWS, assData.getInteger(EventConstants.ATTEMPTS));

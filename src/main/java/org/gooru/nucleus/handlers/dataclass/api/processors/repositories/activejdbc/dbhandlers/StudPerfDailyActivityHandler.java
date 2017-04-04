@@ -155,7 +155,7 @@ public class StudPerfDailyActivityHandler implements DBHandler {
           JsonObject assessmentKpi = new JsonObject();
           assessmentKpi.put(AJEntityBaseReports.DATE, m.get(AJEntityBaseReports.ACTIVITY_DATE).toString());
           assessmentKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, m.get(AJEntityBaseReports.ATTR_COLLECTION_ID).toString());
-          assessmentKpi.put(AJEntityBaseReports.ATTR_SCORE, Double.valueOf(m.get(AJEntityBaseReports.ATTR_SCORE).toString()));
+          assessmentKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.valueOf(m.get(AJEntityBaseReports.ATTR_SCORE).toString())));
           assessmentKpi.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.parseLong(m.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()));
           assessmentKpi.put(AJEntityBaseReports.ATTR_ATTEMPTS, Integer.parseInt(m.get(AJEntityBaseReports.ATTR_ATTEMPTS).toString()));
           assessmentKpi.put(JsonConstants.STATUS, JsonConstants.COMPLETE);

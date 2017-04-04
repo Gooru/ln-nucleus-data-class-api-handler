@@ -93,7 +93,7 @@ public class StudentAssessmentSummaryHandler implements DBHandler {
           LOGGER.debug("Assessment Attributes obtained");
           assessmentKPI.stream().forEach(m -> {
             JsonObject assessmentData = ValueMapper.map(ResponseAttributeIdentifier.getSessionAssessmentAttributesMap(), m);
-            assessmentData.put(JsonConstants.SCORE, Double.valueOf(m.get(AJEntityBaseReports.SCORE).toString()));
+            assessmentData.put(JsonConstants.SCORE, Math.round(Double.valueOf(m.get(AJEntityBaseReports.SCORE).toString())));
             assessmentDataKPI.put(JsonConstants.ASSESSMENT, assessmentData);
           });
           
@@ -108,7 +108,7 @@ public class StudentAssessmentSummaryHandler implements DBHandler {
               JsonObject qnData = ValueMapper.map(ResponseAttributeIdentifier.getSessionAssessmentQuestionAttributesMap(), questions);
               //FIXME :: This is to be revisited. We should alter the schema column type from TEXT to JSONB. After this change we can remove this logic
               qnData.put(JsonConstants.ANSWER_OBJECT, new JsonArray(questions.get(AJEntityBaseReports.ANSWER_OBECT).toString()));
-              qnData.put(JsonConstants.SCORE, Double.valueOf(questions.get(AJEntityBaseReports.SCORE).toString()));
+              qnData.put(JsonConstants.SCORE, Math.round(Double.valueOf(questions.get(AJEntityBaseReports.SCORE).toString())));
               questionsArray.add(qnData);
             });
           }
