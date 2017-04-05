@@ -79,6 +79,15 @@ public final class MessageConstants {
     public static final String MSG_OP_INDEPENDENT_LEARNER_ASSESSMENT_PERF = "independent.learner.assessment.performance";
     public static final String MSG_OP_INDEPENDENT_LEARNER_INDEPENDENT_ASSESSMENT_PERF = "independent.learner.independent.assessment.performance";
     public static final String MSG_OP_INDEPENDENT_LEARNER_COURSES = "independent.learner.courses";
+    public static final String MSG_OP_IND_LEARNER_LOCATION_ALL_COURSES = "independent.learner.all.courses.location";
+    public static final String MSG_OP_IND_LEARNER_LOCATION_ALL_IND_ASSESSMENTS = "independent.learner.all.ind.assessments.location";
+    public static final String MSG_OP_IND_LEARNER_LOCATION_ALL_IND_COLLECTIONS = "independent.learner.all.ind.collections.location";
+    public static final String MSG_OP_IND_LEARNER_PERF_ALL_COURSES = "independent.learner.all.courses.performance";
+    public static final String MSG_OP_IND_LEARNER_PERF_ALL_IND_ASSESSMENTS = "independent.learner.all.ind.assessments.performance";
+    public static final String MSG_OP_IND_LEARNER_PERF_ALL_IND_COLLECTIONS = "independent.learner.all.ind.collections.performance";
+    public static final String MSG_OP_IND_LEARNER_COURSE_ALL_COLLECTIONS_PERF = "independent.learner.course.all.collections.performance";
+    public static final String MSG_OP_IND_LEARNER_COURSE_ALL_ASSESSMENTS_PERF = "independent.learner.course.all.assessments.performance";
+
 
     
     public static final String PORT = "port";
