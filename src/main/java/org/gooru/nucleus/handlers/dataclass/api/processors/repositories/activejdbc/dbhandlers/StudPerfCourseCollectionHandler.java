@@ -30,6 +30,7 @@ public class StudPerfCourseCollectionHandler implements DBHandler {
     private static final String REQUEST_USERID = "userId";
     private final ProcessorContext context;
     private String userId;
+    private String classId;
     private String courseId;
     private String unitId;
     private String lessonId;
@@ -75,13 +76,12 @@ public class StudPerfCourseCollectionHandler implements DBHandler {
     @SuppressWarnings("rawtypes")
     public ExecutionResult<MessageResponse> executeRequest() {
     	
+    	//NOTE: This code will need to be refactored going ahead. (based on changes/updates to Student Performance Reports)
+    	
         StringBuilder query = new StringBuilder(AJEntityBaseReports.GET_DISTINCT_COLLECTIONS);
         List<String> params = new ArrayList<>();
         JsonObject resultBody = new JsonObject();        
         JsonArray collectionArray = new JsonArray();
-
-    	this.userId = this.context.request().getString(REQUEST_USERID);        
-        LOGGER.debug("userId : {} ", userId);
 
       this.userId = this.context.request().getString(REQUEST_USERID);
         
@@ -96,6 +96,18 @@ public class StudPerfCourseCollectionHandler implements DBHandler {
       }
       
       params.add(AJEntityBaseReports.ATTR_COLLECTION);
+      
+      
+      this.classId = this.context.request().getString(MessageConstants.CLASS_ID);      
+      if (StringUtil.isNullOrEmpty(classId)) {
+          LOGGER.warn("ClassID is mandatory for fetching Student Performance in a Collection");
+          return new ExecutionResult<>(
+                  MessageResponseFactory.createInvalidRequestResponse("Class Id Missing. Cannot fetch Student Performance in Collection"),
+                  ExecutionStatus.FAILED);
+    
+        } else {
+        	params.add(classId);        	
+        }
       
       this.courseId = this.context.request().getString(MessageConstants.COURSE_ID);      
       if (StringUtil.isNullOrEmpty(courseId)) {
@@ -119,9 +131,6 @@ public class StudPerfCourseCollectionHandler implements DBHandler {
     	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.LESSON_ID);
     	  params.add(lessonId);    
         } 
-  
-      LOGGER.debug("UID is " + this.userId);
-      LOGGER.debug(query.toString());
       
       LazyList<AJEntityBaseReports> collectionList = AJEntityBaseReports.findBySQL(query.toString(), params.toArray());
       
@@ -137,7 +146,7 @@ public class StudPerfCourseCollectionHandler implements DBHandler {
         	JsonObject collectionKpi = new JsonObject();
             
         	//Find Timespent and Attempts
-        	collTSA = Base.findAll(AJEntityBaseReports.GET_PERFORMANCE_FOR_COLLECTION, 
+        	collTSA = Base.findAll(AJEntityBaseReports.GET_PERFORMANCE_FOR_COLLECTION, this.classId, this.courseId,
         			collId, AJEntityBaseReports.ATTR_COLLECTION, this.userId, EventConstants.COLLECTION_PLAY);
         	
         	if (!collTSA.isEmpty()) {

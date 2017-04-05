@@ -523,15 +523,15 @@ public class AJEntityBaseReports extends Model {
     //Student Performance for All Assessments/Collections in a Course
     public static final String GET_LATEST_SCORE_FOR_ASSESSMENT = "SELECT DISTINCT ON (collection_id) "
     		+ "FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage, "
-    		+ "collection_id from base_reports WHERE collection_id = ? AND collection_type = ? "
+    		+ "collection_id from base_reports WHERE class_id = ? AND course_id = ? AND collection_id = ? AND collection_type = ? "
     		+ "AND actor_id = ? AND event_name = ? AND event_type = ?";
     
     public static final String GET_TOTAL_TIME_SPENT_ATTEMPTS_FOR_ASSESSMENT = "SELECT SUM(time_spent) AS timeSpent, "
-    		+ "SUM(views) AS attempts, collection_id FROM base_reports WHERE collection_id = ? AND collection_type = ? "
+    		+ "SUM(views) AS attempts, collection_id FROM base_reports WHERE class_id = ? AND course_id = ? AND collection_id = ? AND collection_type = ? "
     		+ "AND actor_id = ? AND event_name = ? AND event_type = ? GROUP BY collection_id";
         
     public static final String GET_PERFORMANCE_FOR_COLLECTION = "SELECT SUM(time_spent) AS timeSpent, "
-    		+ "SUM(views) AS views, collection_id FROM base_reports WHERE collection_id = ? AND collection_type = ? AND actor_id = ? "
+    		+ "SUM(views) AS views, collection_id FROM base_reports WHERE class_id = ? AND course_id = ? AND collection_id = ? AND collection_type = ? AND actor_id = ? "
     		+ "AND event_name = ? GROUP BY collection_id";
     
     public static final String GET_PERFORMANCE_FOR_CLASS_COLLECTION = "SELECT SUM(time_spent) AS timeSpent, "
@@ -539,7 +539,7 @@ public class AJEntityBaseReports extends Model {
     		+ "AND event_name = ? GROUP BY collection_id";
 
     public static final String GET_DISTINCT_COLLECTIONS = "SELECT distinct(collection_id) from base_reports where "
-    		+ "actor_id = ? AND collection_type = ? AND course_id = ? ";
+    		+ "actor_id = ? AND collection_type = ? AND class_id = ? AND course_id = ? ";
     
     //*****************************************************************************************************************************
     //Daily Class Activity
@@ -692,7 +692,67 @@ public class AJEntityBaseReports extends Model {
             + "FROM base_reports WHERE class_id IS NULL AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND actor_id = ? AND "
             + "event_name = 'collection.resource.play' AND resource_type = 'question' AND resource_attempt_status <> 'skipped' ) AS agg "
             + "GROUP BY agg.collection_id";
-    //*************************************************************************************************************************//
+    //*************************************************************************************************************************
+    //Independent Learner Location
+    
+    public static final String GET_DISTINCT_COURSES_FOR_INDEPENDENT_LEARNER = "SELECT ce.course_id, ce.updated_at as last_updated FROM "
+    		+ "(SELECT distinct on (course_id) course_id,"
+    		+ "FIRST_VALUE(updated_at) OVER (PARTITION BY course_id ORDER BY updated_at desc) AS updated_at "
+    		+ "FROM base_reports where class_id IS NULL AND course_id IS NOT NULL "
+    		+ "AND unit_id IS NOT NULL AND lesson_id IS NOT NULL AND actor_id = ?) AS ce order by last_updated DESC";
+    
+    public static final String GET_INDEPENDENT_LEARNER_LOCATION_ALL_COURSES = "select DISTINCT ON (course_id) course_id, unit_id, "
+    		+ "lesson_id, collection_id, collection_type,"
+    		+ "FIRST_VALUE(updated_at) OVER (PARTITION BY course_id ORDER BY updated_at desc) AS lastAccessed, "
+    		+ "FIRST_VALUE(session_id) OVER (PARTITION BY course_id ORDER BY updated_at desc) AS session_id "
+    		+ "FROM base_reports WHERE class_id IS NULL AND actor_id = ? "
+    		+ "AND course_id = ANY(?::varchar[]) "
+    		+ "ORDER BY course_id, updated_at DESC";
+    
+    public static final String GET_DISTINCT_ASSESSMENT_FOR_INDEPENDENT_LEARNER = "SELECT asmt.collection_id as collection_id, asmt.updated_at as lastAccessed,"
+    		+ "asmt.session_id as session_id FROM "
+    		+ "(SELECT distinct on (collection_id) collection_id,"
+    		+ "FIRST_VALUE(updated_at) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS updated_at, "
+    		+ "FIRST_VALUE(session_id) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS session_id "
+    		+ "FROM base_reports where class_id IS NULL AND "
+    		+ "course_id IS NULL AND unit_id IS NULL and lesson_id IS NULL AND collection_type = 'assessment' AND actor_id = ?) "
+    		+ "AS asmt order by lastAccessed DESC";
+    
+    public static final String GET_DISTINCT_COLLECTION_FOR_INDEPENDENT_LEARNER = "SELECT coll.collection_id as collection_id, coll.updated_at as lastAccessed,"
+    		+ "coll.session_id as session_id FROM "
+    		+ "(SELECT distinct on (collection_id) collection_id,"
+    		+ "FIRST_VALUE(updated_at) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS updated_at, "
+    		+ "FIRST_VALUE(session_id) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS session_id "
+    		+ "FROM base_reports where class_id IS NULL AND "
+    		+ "course_id IS NULL AND unit_id IS NULL and lesson_id IS NULL AND collection_type = 'collection' AND actor_id = ?) "
+    		+ "AS coll order by lastAccessed DESC";
+    
+    public static final String GET_IL_COURSE_COLLECTION_STATUS =  "SELECT event_name, event_type from base_reports WHERE class_id IS NULL AND course_id = ? AND "
+    		+ "session_id = ? AND collection_id = ? AND event_name = ? AND event_type = ?";
+    
+    public static final String GET_IL_COLLECTION_STATUS =  "SELECT event_name, event_type from base_reports WHERE class_id IS NULL AND course_id IS NULL AND "
+    		+ "unit_id IS NULL AND lesson_id IS NULL AND session_id = ? AND collection_id = ? AND event_name = ? AND event_type = ?";
+    
+    //*************************************************************************************************************************
+    
+    //Student Performance for All Assessments/Collections in a Course
+    public static final String GET_IL_COURSE_ASSESSMENTS_SCORE = "SELECT DISTINCT ON (collection_id) "
+    		+ "FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage, "
+    		+ "collection_id from base_reports WHERE class_id IS NULL AND course_id = ? AND collection_id = ? AND collection_type = ? "
+    		+ "AND actor_id = ? AND event_name = ? AND event_type = ?";
+    
+    public static final String GET_IL_COURSE_ASSESSMENTS_TOTAL_TIME_SPENT_ATTEMPTS = "SELECT SUM(time_spent) AS timeSpent, "
+    		+ "SUM(views) AS attempts, collection_id FROM base_reports WHERE class_id IS NULL AND course_id = ? AND collection_id = ? AND collection_type = ? "
+    		+ "AND actor_id = ? AND event_name = ? AND event_type = ? GROUP BY collection_id";
+        
+    public static final String GET_IL_COURSE_COLLECTION_PERF = "SELECT SUM(time_spent) AS timeSpent, "
+    		+ "SUM(views) AS views, collection_id FROM base_reports WHERE class_id IS NULL AND course_id = ? AND collection_id = ? AND collection_type = ? AND actor_id = ? "
+    		+ "AND event_name = ? GROUP BY collection_id";
+        
+    public static final String GET_IL_COURSE_DISTINCT_COLLECTIONS = "SELECT distinct(collection_id) from base_reports where "
+    		+ "actor_id = ? AND collection_type = ? AND class_id IS NULL AND course_id = ? ";
+    
+    //*****************************************************************************************************************************
     public static final String UUID_TYPE = "uuid";
    
 }

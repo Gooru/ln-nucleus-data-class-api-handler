@@ -116,6 +116,21 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_INDEPENDENT_LEARNER_COURSES:
                 result = getIndependentLearnerCourses();
                 break;
+            case MessageConstants.MSG_OP_IND_LEARNER_LOCATION_ALL_COURSES:
+                result = getIndependentLearnerCoursesLoc();
+                break;
+            case MessageConstants.MSG_OP_IND_LEARNER_LOCATION_ALL_IND_ASSESSMENTS:
+                result = getIndependentLearnerAssessmentsLoc();                
+                break;
+            case MessageConstants.MSG_OP_IND_LEARNER_LOCATION_ALL_IND_COLLECTIONS:
+                result = getIndependentLearnerCollectionsLoc();
+                break;
+            case MessageConstants.MSG_OP_IND_LEARNER_COURSE_ALL_COLLECTIONS_PERF:
+                result = getIndependentLearnerCourseCollectionsPerf();
+                break;
+            case MessageConstants.MSG_OP_IND_LEARNER_COURSE_ALL_ASSESSMENTS_PERF:
+                result = getIndependentLearnerCourseAssessmentsPerf();
+                break;
             default:
                 LOGGER.error("Invalid operation type passed in, not able to handle");
                 return MessageResponseFactory
@@ -491,6 +506,66 @@ class MessageProcessor implements Processor {
         }
 
     }
+    
+    private MessageResponse getIndependentLearnerCoursesLoc() {
+        try {
+              ProcessorContext context = createContext();
+              return new RepoBuilder().buildReportRepo(context).getIndLearnerCoursesLocation();
+              
+          } catch (Throwable t) {
+              LOGGER.error("Exception while getting independent learner courses", t);
+              return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+          }
+
+      }
+
+    private MessageResponse getIndependentLearnerAssessmentsLoc() {
+        try {
+              ProcessorContext context = createContext();
+              return new RepoBuilder().buildReportRepo(context).getIndLearnerAssessmentsLocation();
+              
+          } catch (Throwable t) {
+              LOGGER.error("Exception while getting independent learner courses", t);
+              return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+          }
+
+      }
+    
+    private MessageResponse getIndependentLearnerCollectionsLoc() {
+        try {
+              ProcessorContext context = createContext();
+              return new RepoBuilder().buildReportRepo(context).getIndLearnerCollectionsLocation();
+              
+          } catch (Throwable t) {
+              LOGGER.error("Exception while getting independent learner courses", t);
+              return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+          }
+
+      }
+    
+    private MessageResponse getIndependentLearnerCourseCollectionsPerf() {
+        try {
+              ProcessorContext context = createContext();
+              return new RepoBuilder().buildReportRepo(context).getIndLearnerCourseCollectionsPerf();
+              
+          } catch (Throwable t) {
+              LOGGER.error("Exception while getting independent learner courses", t);
+              return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+          }
+
+      }
+    
+    private MessageResponse getIndependentLearnerCourseAssessmentsPerf() {
+        try {
+              ProcessorContext context = createContext();
+              return new RepoBuilder().buildReportRepo(context).getIndLearnerCourseAssessmentsPerf();
+              
+          } catch (Throwable t) {
+              LOGGER.error("Exception while getting independent learner courses", t);
+              return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+          }
+
+      }
 
     //==========================================================================================================//
     private MessageResponse getStudentSummaryInCollection() {

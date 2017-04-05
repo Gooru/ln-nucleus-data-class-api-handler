@@ -124,4 +124,25 @@ public final class DBHandlerBuilder {
     public static DBHandler buildIndependentLearnerCourses(ProcessorContext context) {
       return new IndependentLearnerCoursesHandler(context);
     }
+    
+    public static DBHandler buildIndLearnerCoursesLocationHandler(ProcessorContext context) {
+        return new IndLearnerAllCoursesLocationHandler(context);
+      }
+    
+    public static DBHandler buildIndLearnerAssessmentsLocationHandler(ProcessorContext context) {
+        return new IndLearnerAllIndAssessmentLocHandler(context);
+      }
+    
+    public static DBHandler buildIndLearnerCollectionsLocationHandler(ProcessorContext context) {
+        return new IndLearnerAllIndCollectionLocHandler(context);
+      }
+    
+    public static DBHandler buildIndLearnerCourseCollectionsPerfHandler(ProcessorContext context) {
+        return new IndLearnerCourseCollectionsPerfHandler(context);
+      }
+    
+    public static DBHandler buildIndLearnerCourseAssessmentssPerfHandler(ProcessorContext context) {
+        return new IndLearnerCourseAssessmentsPerfHandler(context);
+      }
+    
 }
