@@ -71,5 +71,8 @@ public class JsonConstants {
 	public static final String RESOURCE = "resource";
 
   public static final String ACTIVITY = "activity";
+  
+  public static final String DISPLAY_CODE = "displayCode";
+
 
 }
