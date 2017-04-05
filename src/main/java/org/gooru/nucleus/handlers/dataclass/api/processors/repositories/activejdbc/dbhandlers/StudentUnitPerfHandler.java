@@ -146,8 +146,8 @@ import io.vertx.core.json.JsonObject;
                 JsonObject lessonData = ValueMapper.map(ResponseAttributeIdentifier.getUnitPerformanceAttributesMap(), m);
                 completedCountMap.forEach( scoreCompletonMap -> {
                   lessonData.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, Integer.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
-                  lessonData.put(AJEntityBaseReports.ATTR_SCORE,  Integer.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE).toString()));
-                  LOGGER.debug("UnitID : {} - UserID : {} - Score : {}",lessonId,userID,Integer.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE).toString()));
+                  lessonData.put(AJEntityBaseReports.ATTR_SCORE,  Math.round(Double.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE).toString())));
+                  LOGGER.debug("UnitID : {} - UserID : {} - Score : {}",lessonId,userID, Math.round(Double.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE).toString())));
                   LOGGER.debug("UnitID : {} - UserID : {} - completedCount : {}",lessonId,userID,Integer.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
 
                 });
@@ -182,6 +182,7 @@ import io.vertx.core.json.JsonObject;
                     // FIXME : revisit completed count and total count
                     assData.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 1);
                     assData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
+                    assData.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.valueOf(ass.get(AJEntityBaseReports.ATTR_SCORE).toString())));
                     // FIXME: This logic to be revisited.
                     if (this.collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {
                       List<Map> collectionQuestionCount = null;
@@ -190,16 +191,16 @@ import io.vertx.core.json.JsonObject;
                       collectionQuestionCount.forEach(qc -> {
                         this.questionCount = Integer.valueOf(qc.get(AJEntityBaseReports.QUESTION_COUNT).toString());
                       });
-                      long scoreInPercent=0;
+                      double scoreInPercent=0;
                       if(this.questionCount > 0){
                         Object collectionScore = null;
                           collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_SCORE, context.classId(),
                                 context.courseId(), context.unitId(), this.lessonId, assData.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID),this.userId);
                         if(collectionScore != null){
-                          scoreInPercent =  Math.round(((double) Integer.valueOf(collectionScore.toString()) / this.questionCount) * 100);
+                          scoreInPercent =  (((double) Double.valueOf(collectionScore.toString()) / this.questionCount) * 100);
                         }
                       } 
-                      assData.put(AJEntityBaseReports.ATTR_SCORE, scoreInPercent);
+                      assData.put(AJEntityBaseReports.ATTR_SCORE, Math.round(scoreInPercent));
                       assData.put(AJEntityBaseReports.ATTR_COLLECTION_ID, assData.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID));
                       assData.remove(AJEntityBaseReports.ATTR_ASSESSMENT_ID);
                       assData.put(EventConstants.VIEWS, assData.getInteger(EventConstants.ATTEMPTS));
