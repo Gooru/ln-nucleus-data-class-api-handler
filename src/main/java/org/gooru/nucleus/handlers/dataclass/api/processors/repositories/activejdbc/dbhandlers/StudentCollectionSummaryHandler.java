@@ -113,7 +113,9 @@ public class StudentCollectionSummaryHandler implements DBHandler {
             assessmentData.put(EventConstants.EVENT_TIME, this.lastAccessedTime);
             assessmentData.put(EventConstants.SESSION_ID, EventConstants.NA);
             assessmentData.put(EventConstants.RESOURCE_TYPE, AJEntityBaseReports.ATTR_COLLECTION);
-            long scoreInPercent=0;
+            assessmentData.put(JsonConstants.SCORE, Math.round(Double.valueOf(m.get(AJEntityBaseReports.SCORE).toString())));
+
+            double scoreInPercent=0;
             int reaction=0;
             if(this.questionCount > 0){
               Object collectionScore = null;
@@ -123,11 +125,11 @@ public class StudentCollectionSummaryHandler implements DBHandler {
                collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_SCORE_,collectionId,this.userId);
               }
               if(collectionScore != null){
-                scoreInPercent =  Math.round(((double) Integer.valueOf(collectionScore.toString()) / this.questionCount) * 100);
+                scoreInPercent =  (((double) Double.valueOf(collectionScore.toString()) / this.questionCount) * 100);
               }
             }
-            LOGGER.debug("Collection score : {} - collectionId : {}" , scoreInPercent, collectionId);
-            assessmentData.put(AJEntityBaseReports.SCORE, (scoreInPercent)); 
+            LOGGER.debug("Collection score : {} - collectionId : {}" , Math.round(scoreInPercent), collectionId);
+            assessmentData.put(AJEntityBaseReports.SCORE, Math.round(scoreInPercent)); 
             Object collectionReaction = null;
             if (!StringUtil.isNullOrEmpty(classId) && !StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
               collectionReaction = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_REACTION, classId,courseId,unitId,lessonId,collectionId,this.userId);
@@ -162,6 +164,7 @@ public class StudentCollectionSummaryHandler implements DBHandler {
               if(qnData.getString(EventConstants.RESOURCE_TYPE).equalsIgnoreCase(EventConstants.QUESTION)){
                 qnData.put(EventConstants.ANSWERSTATUS, EventConstants.SKIPPED);
               }
+              qnData.put(JsonConstants.SCORE, Math.round(Double.valueOf(questions.get(AJEntityBaseReports.SCORE).toString())));
               if(this.questionCount > 0){
                 List<Map> questionScore = null;
                 if (!StringUtil.isNullOrEmpty(classId) && !StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
@@ -171,7 +174,7 @@ public class StudentCollectionSummaryHandler implements DBHandler {
                 }
                 if(!questionScore.isEmpty()){
                 questionScore.forEach(qs ->{
-                  qnData.put(JsonConstants.SCORE, Integer.valueOf(qs.get(AJEntityBaseReports.SCORE).toString()) * 100);
+                  qnData.put(JsonConstants.SCORE, Math.round(Double.valueOf(qs.get(AJEntityBaseReports.SCORE).toString()) * 100));
                   qnData.put(JsonConstants.ANSWER_OBJECT, new JsonArray(qs.get(AJEntityBaseReports.ANSWER_OBECT).toString()));
                   qnData.put(EventConstants.ANSWERSTATUS, qs.get(AJEntityBaseReports.ATTR_ATTEMPT_STATUS).toString());
                   LOGGER.debug("Question Score : {} - resourceId : {}" ,qs.get(AJEntityBaseReports.SCORE).toString(), questions.get(AJEntityBaseReports.RESOURCE_ID));

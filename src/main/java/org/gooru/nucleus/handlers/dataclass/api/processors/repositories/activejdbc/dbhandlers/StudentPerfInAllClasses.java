@@ -109,7 +109,7 @@ public class StudentPerfInAllClasses implements DBHandler {
     	            LOGGER.debug("score : {} ", scoreKPI.get(AJEntityBaseReports.ATTR_SCORE));
     	            classKPI.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT,
     	                    Integer.valueOf(scoreKPI.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
-    	            classKPI.put(AJEntityBaseReports.ATTR_SCORE, Integer.valueOf(scoreKPI.get(AJEntityBaseReports.ATTR_SCORE).toString()));
+    	            classKPI.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.valueOf(scoreKPI.get(AJEntityBaseReports.ATTR_SCORE).toString())));
     	          });
     	        }
     	        ClassKpiArray.add(classKPI);
@@ -143,7 +143,7 @@ public class StudentPerfInAllClasses implements DBHandler {
 	    		classPerfList.forEach(scoData -> {
     	            classKPI.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT,
     	                    Integer.valueOf(scoData.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
-    	            classKPI.put(AJEntityBaseReports.ATTR_SCORE, Integer.valueOf(scoData.get(AJEntityBaseReports.ATTR_SCORE).toString()));
+    	            classKPI.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.valueOf(scoData.get(AJEntityBaseReports.ATTR_SCORE).toString())));
 	    	});   
   	    	}
 	        

@@ -7,6 +7,7 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.converters.ResponseAttributeIdentifier;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntitySessionTaxonomyReport;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.converters.ValueMapper;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
@@ -94,10 +95,17 @@ public class SessionTaxonomyReportHandler implements DBHandler {
                 taxonomyRow.get(AJEntitySessionTaxonomyReport.STANDARD_ID), taxonomyRow.get(AJEntitySessionTaxonomyReport.LEARNING_TARGET_ID));
         
         // Generate questions array
-        JsonArray questionsArray =
-                ValueMapper.map(ResponseAttributeIdentifier.getSessionTaxReportQuestionAttributesMap(), sessionTaxonomyQuestionResults);
-        aggResult.put(JsonConstants.QUESTIONS, questionsArray);
-        taxonomyKpiArray.add(aggResult);
+        if(!sessionTaxonomyQuestionResults.isEmpty()){
+          JsonArray questionsArray = new JsonArray();
+          sessionTaxonomyQuestionResults.stream().forEach(question -> {
+            JsonObject questionData = ValueMapper.map(ResponseAttributeIdentifier.getSessionTaxReportQuestionAttributesMap(), question);
+            questionData.put(JsonConstants.SCORE, Math.round(Double.valueOf(question.get(AJEntityBaseReports.SCORE).toString())));
+            questionsArray.add(questionData);
+          });
+          aggResult.put(JsonConstants.QUESTIONS, questionsArray);
+          taxonomyKpiArray.add(aggResult);
+        }
+        
       });
     } else {
       LOGGER.info("No Records found for given session ID");

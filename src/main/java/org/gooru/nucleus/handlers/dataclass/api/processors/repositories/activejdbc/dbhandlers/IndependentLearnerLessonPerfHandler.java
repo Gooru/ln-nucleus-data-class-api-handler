@@ -116,6 +116,7 @@ public class IndependentLearnerLessonPerfHandler implements DBHandler {
           // FIXME : revisit completed count and total count
           lessonKpi.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 1);
           lessonKpi.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
+          lessonKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.valueOf(m.get(AJEntityBaseReports.ATTR_SCORE).toString())));
           // FIXME: This logic to be revisited.
           if (this.collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {
             List<Map> collectionQuestionCount = null;
@@ -126,7 +127,7 @@ public class IndependentLearnerLessonPerfHandler implements DBHandler {
             collectionQuestionCount.forEach(qc -> {
               this.questionCount = Integer.valueOf(qc.get(AJEntityBaseReports.QUESTION_COUNT).toString());
             });
-            long scoreInPercent = 0;
+            double scoreInPercent = 0;
             if (this.questionCount > 0) {
               Object collectionScore = null;
 
@@ -134,10 +135,10 @@ public class IndependentLearnerLessonPerfHandler implements DBHandler {
                       context.lessonId(), lessonKpi.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID), this.userId);
 
               if (collectionScore != null) {
-                scoreInPercent = Math.round(((double) Integer.valueOf(collectionScore.toString()) / this.questionCount) * 100);
+                scoreInPercent = ((double) Double.valueOf(collectionScore.toString()) / this.questionCount) * 100;
               }
             }
-            lessonKpi.put(AJEntityBaseReports.ATTR_SCORE, scoreInPercent);
+            lessonKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(scoreInPercent));
             lessonKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, lessonKpi.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID));
             lessonKpi.remove(AJEntityBaseReports.ATTR_ASSESSMENT_ID);
             lessonKpi.put(EventConstants.VIEWS, lessonKpi.getInteger(EventConstants.ATTEMPTS));
