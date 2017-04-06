@@ -37,13 +37,12 @@ public class AJEntityBaseReports extends Model {
     
     public static final String RESOURCE_VIEWS = "resourceViews";
     public static final String COLLECTION_VIEWS = "collectionViews";
-    public static final String RESOURCE_time_spent = "resourcetime_spent";
-    public static final String COLLECTION_time_spent = "collectiontime_spent";
     
     //Mukul - This has become redundant. Need to delete from Schema finally
     public static final String VIEWS = "views";
     public static final String REACTION = "reaction";
-    
+    public static final String TIME_SPENT = "time_spent";
+
     //Mukul - enum (correct / incorrect / skipped / unevaluated)​
     public static final String RESOURCE_ATTEMPT_STATUS = "resource_attempt_status";    
     public static final String SCORE = "score";

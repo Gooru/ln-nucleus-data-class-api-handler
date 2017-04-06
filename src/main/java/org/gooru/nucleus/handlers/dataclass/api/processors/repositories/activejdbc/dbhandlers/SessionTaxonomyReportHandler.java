@@ -3,12 +3,11 @@ package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activej
 import java.util.List;
 import java.util.Map;
 
-import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.converters.ResponseAttributeIdentifier;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
-import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntitySessionTaxonomyReport;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityCompetencyReport;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.converters.ValueMapper;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
@@ -42,29 +41,6 @@ public class SessionTaxonomyReportHandler implements DBHandler {
   @Override
   @SuppressWarnings("rawtypes")
   public ExecutionResult<MessageResponse> validateRequest() {
-    //FIXME: to be reverted
-    /*List<Map> baseResults = Base.findAll(AJEntityBaseReports.SELECT_CLASS_USER_BY_SESSION_ID, this.context.sessionId());
-    if (CollectionUtil.isNotEmpty(baseResults)) {
-      if (!context.userIdFromSession().equalsIgnoreCase(baseResults.get(0).get(AJEntityBaseReports.GOORUUID).toString())) {
-        LOGGER.debug("User ID in the session : {}", context.userIdFromSession());
-        String classId = baseResults.get(0).get(AJEntityBaseReports.CLASS_GOORU_OID).toString();
-        List<Map> creator = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_CREATOR, classId, this.context.userIdFromSession());
-        if (creator.isEmpty()) {
-          List<Map> collaborator = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_COLLABORATOR, classId, this.context.userIdFromSession());
-          if (collaborator.isEmpty()) {
-            LOGGER.debug("validateRequest() FAILED");
-            return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"),
-                    ExecutionStatus.FAILED);
-          }
-          LOGGER.debug("User is a collaborator of this class.");
-        }
-        LOGGER.debug("User is teacher of this class.");
-      } else {
-        LOGGER.debug("User is accessing his/her own data");
-      }
-    } else {
-      return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("Given sessionId/attemptId is not valid"), ExecutionStatus.FAILED);
-    }*/
     LOGGER.debug("validateRequest() OK");
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
   }
@@ -74,28 +50,36 @@ public class SessionTaxonomyReportHandler implements DBHandler {
   public ExecutionResult<MessageResponse> executeRequest() {
     JsonArray taxonomyKpiArray = new JsonArray();
     JsonObject result = new JsonObject();
-    List<Map> sessionTaxonomyResults = Base.findAll(AJEntitySessionTaxonomyReport.SELECT_TAXONOMY_REPORT_AGG_METRICS, this.context.sessionId());
+    List<Map> sessionTaxonomyResults = Base.findAll(AJEntityCompetencyReport.SELECT_BASE_REPORT_IDS, this.context.sessionId());
     if (!sessionTaxonomyResults.isEmpty()) {
       sessionTaxonomyResults.forEach(taxonomyRow -> {
         // Generate aggregate data object
-        JsonObject aggResult = ValueMapper.map(ResponseAttributeIdentifier.getSessionTaxReportAggAttributesMap(), taxonomyRow);
-        List<Map> sessionTaxonomyQuestionResults = null;
-       
-        //FIXME: writer code should be fixed against splitting taxonomy code. It can be single column in schema. eg : least_code.
-        if (taxonomyRow.get(AJEntitySessionTaxonomyReport.LEARNING_TARGET_ID) != null && !taxonomyRow.get(AJEntitySessionTaxonomyReport.LEARNING_TARGET_ID).equals(EventConstants.NA)) {
-          aggResult.put(JsonConstants.LEARNING_TARGET_ID, taxonomyRow.get(AJEntitySessionTaxonomyReport.LEARNING_TARGET_ID));
-         
+        JsonObject aggResult = new JsonObject();
+        aggResult.put(JsonConstants.DISPLAY_CODE, taxonomyRow.get(AJEntityCompetencyReport.DISPLAY_CODE));
+
+        if (taxonomyRow.get(AJEntityCompetencyReport.TAX_MICRO_STANDARD_ID) != null) {
+          aggResult.put(JsonConstants.LEARNING_TARGET_ID, taxonomyRow.get(AJEntityCompetencyReport.TAX_MICRO_STANDARD_ID));
         } else {
-          aggResult.put(JsonConstants.STANDARDS_ID,  taxonomyRow.get(AJEntitySessionTaxonomyReport.STANDARD_ID));
+          aggResult.put(JsonConstants.STANDARDS_ID, taxonomyRow.get(AJEntityCompetencyReport.TAX_STANDARD_ID));
         }
-        
-        sessionTaxonomyQuestionResults = Base.findAll(AJEntitySessionTaxonomyReport.SELECT_TAXONOMY_REPORT_BY_MICRO_STANDARDS,
-                this.context.sessionId(), taxonomyRow.get(AJEntitySessionTaxonomyReport.SUBJECT_ID),
-                taxonomyRow.get(AJEntitySessionTaxonomyReport.COURSE_ID), taxonomyRow.get(AJEntitySessionTaxonomyReport.DOMAIN_ID),
-                taxonomyRow.get(AJEntitySessionTaxonomyReport.STANDARD_ID), taxonomyRow.get(AJEntitySessionTaxonomyReport.LEARNING_TARGET_ID));
-        
+
+        LOGGER.debug("Base Reports IDS : {}", listToPostgresArrayInteger(taxonomyRow.get(AJEntityCompetencyReport.BASE_REPORT_ID).toString()));
+        List<Map> aggTaxonomyResults = Base.findAll(AJEntityCompetencyReport.GET_AGG_TAX_DATA,
+                listToPostgresArrayInteger(taxonomyRow.get(AJEntityCompetencyReport.BASE_REPORT_ID).toString()));
+
+        if (!aggTaxonomyResults.isEmpty()) {
+          aggTaxonomyResults.stream().forEach(aggData -> {
+            aggResult.put(JsonConstants.TIMESPENT, Long.valueOf(aggData.get(AJEntityBaseReports.TIME_SPENT).toString()));
+            aggResult.put(JsonConstants.REACTION, Integer.valueOf(aggData.get(AJEntityBaseReports.REACTION).toString()));
+            aggResult.put(JsonConstants.SCORE, Math.round(Double.valueOf(aggData.get(AJEntityBaseReports.SCORE).toString())));
+
+          });
+        }
+        List<Map> sessionTaxonomyQuestionResults = Base.findAll(AJEntityCompetencyReport.GET_QUESTIONS_TAX_PERF,
+                listToPostgresArrayInteger(taxonomyRow.get(AJEntityCompetencyReport.BASE_REPORT_ID).toString()));
+
         // Generate questions array
-        if(!sessionTaxonomyQuestionResults.isEmpty()){
+        if (!sessionTaxonomyQuestionResults.isEmpty()) {
           JsonArray questionsArray = new JsonArray();
           sessionTaxonomyQuestionResults.stream().forEach(question -> {
             JsonObject questionData = ValueMapper.map(ResponseAttributeIdentifier.getSessionTaxReportQuestionAttributesMap(), question);
@@ -105,7 +89,7 @@ public class SessionTaxonomyReportHandler implements DBHandler {
           aggResult.put(JsonConstants.QUESTIONS, questionsArray);
           taxonomyKpiArray.add(aggResult);
         }
-        
+
       });
     } else {
       LOGGER.info("No Records found for given session ID");
@@ -113,7 +97,19 @@ public class SessionTaxonomyReportHandler implements DBHandler {
     result.put(JsonConstants.CONTENT, taxonomyKpiArray);
     return new ExecutionResult<>(MessageResponseFactory.createGetResponse(result), ExecutionStatus.SUCCESSFUL);
   }
-  
+
+  private String listToPostgresArrayInteger(String in) {
+    if (in == null) {
+      return "{}";
+    } else {
+      int approxSize = (in.length() + 3);
+      StringBuilder sb = new StringBuilder(approxSize);
+      sb.append('{');
+      sb.append(in);
+      return sb.append('}').toString();
+    }
+  }
+
   @Override
   public boolean handlerReadOnly() {
     // TODO Auto-generated method stub

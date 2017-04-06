@@ -70,16 +70,18 @@ public class JsonConstants {
 	
 	public static final String RESOURCE = "resource";
 
-  public static final String ACTIVITY = "activity";
+  	public static final String ACTIVITY = "activity";
   
-  public static final String COURSE_TITLE = "courseTitle";
+  	public static final String DISPLAY_CODE = "displayCode";
+
+  	public static final String COURSE_TITLE = "courseTitle";
   
-  public static final String UNIT_TITLE = "unitTitle";
+ 	public static final String UNIT_TITLE = "unitTitle";
   
-  public static final String LESSON_TITLE = "lessonTitle";
+  	public static final String LESSON_TITLE = "lessonTitle";
   
-  public static final String COLLECTION_TITLE = "collectionTitle";
+	public static final String COLLECTION_TITLE = "collectionTitle";
   
-  public static final String LAST_ACCESSED = "lastAccessed";
+  	public static final String LAST_ACCESSED = "lastAccessed";
 
 }
