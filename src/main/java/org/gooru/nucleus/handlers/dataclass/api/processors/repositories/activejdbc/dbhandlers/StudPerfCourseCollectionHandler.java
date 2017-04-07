@@ -113,7 +113,7 @@ public class StudPerfCourseCollectionHandler implements DBHandler {
       if (StringUtil.isNullOrEmpty(courseId)) {
           LOGGER.warn("CourseID is mandatory for fetching Student Performance in a Collection");
           return new ExecutionResult<>(
-                  MessageResponseFactory.createInvalidRequestResponse("User Id Missing. Cannot fetch Student Performance in Collection"),
+                  MessageResponseFactory.createInvalidRequestResponse("Course Id Missing. Cannot fetch Student Performance in Collection"),
                   ExecutionStatus.FAILED);
     
         } else {
@@ -142,12 +142,11 @@ public class StudPerfCourseCollectionHandler implements DBHandler {
       
         for (String collId : collIds) {        	
         	List<Map> collTSA = null;
-        	LOGGER.debug("The collectionIds are" + collId);
         	JsonObject collectionKpi = new JsonObject();
             
         	//Find Timespent and Attempts
         	collTSA = Base.findAll(AJEntityBaseReports.GET_PERFORMANCE_FOR_COLLECTION, this.classId, this.courseId,
-        			collId, AJEntityBaseReports.ATTR_COLLECTION, this.userId, EventConstants.COLLECTION_PLAY);
+        			collId, AJEntityBaseReports.ATTR_COLLECTION, this.userId);
         	
         	if (!collTSA.isEmpty()) {
         	collTSA.forEach(m -> {
@@ -156,12 +155,11 @@ public class StudPerfCourseCollectionHandler implements DBHandler {
 	    		});
         	}
         		
-        	collectionKpi.put(AJEntityBaseReports.COLLECTION_OID, collId);
+        	collectionKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collId);
         	collectionArray.add(collectionKpi);        		
         	}
 
         resultBody.put(JsonConstants.USAGE_DATA, collectionArray).put(JsonConstants.USERUID, this.userId);
-        //resultBody.put("PERF", "WORK IN PROGRESS");
       
       return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);  
 

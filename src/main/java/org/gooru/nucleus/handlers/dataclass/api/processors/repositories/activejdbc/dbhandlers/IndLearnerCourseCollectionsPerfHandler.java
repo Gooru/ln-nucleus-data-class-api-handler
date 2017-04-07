@@ -99,7 +99,7 @@ public class IndLearnerCourseCollectionsPerfHandler implements DBHandler {
       if (StringUtil.isNullOrEmpty(courseId)) {
           LOGGER.warn("CourseID is mandatory for fetching Student Performance in a Collection");
           return new ExecutionResult<>(
-                  MessageResponseFactory.createInvalidRequestResponse("User Id Missing. Cannot fetch Student Performance in Collection"),
+                  MessageResponseFactory.createInvalidRequestResponse("Course Id Missing. Cannot fetch Student Performance in Collection"),
                   ExecutionStatus.FAILED);
     
         } else {
@@ -117,9 +117,6 @@ public class IndLearnerCourseCollectionsPerfHandler implements DBHandler {
     	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.LESSON_ID);
     	  params.add(lessonId);    
         } 
-  
-      LOGGER.debug("UID is " + this.userId);
-      LOGGER.debug(query.toString());
       
       LazyList<AJEntityBaseReports> collectionList = AJEntityBaseReports.findBySQL(query.toString(), params.toArray());
       
@@ -131,12 +128,11 @@ public class IndLearnerCourseCollectionsPerfHandler implements DBHandler {
       
         for (String collId : collIds) {        	
         	List<Map> collTSA = null;
-        	LOGGER.debug("The collectionIds are" + collId);
         	JsonObject collectionKpi = new JsonObject();
             
         	//Find Timespent and Attempts
         	collTSA = Base.findAll(AJEntityBaseReports.GET_IL_COURSE_COLLECTION_PERF, this.courseId,
-        			collId, AJEntityBaseReports.ATTR_COLLECTION, this.userId, EventConstants.COLLECTION_PLAY);
+        			collId, AJEntityBaseReports.ATTR_COLLECTION, this.userId);
         	
         	if (!collTSA.isEmpty()) {
         	collTSA.forEach(m -> {
@@ -145,7 +141,7 @@ public class IndLearnerCourseCollectionsPerfHandler implements DBHandler {
 	    		});
         	}
         		
-        	collectionKpi.put(AJEntityBaseReports.COLLECTION_OID, collId);
+        	collectionKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collId);
         	collectionArray.add(collectionKpi);        		
         	}
 
