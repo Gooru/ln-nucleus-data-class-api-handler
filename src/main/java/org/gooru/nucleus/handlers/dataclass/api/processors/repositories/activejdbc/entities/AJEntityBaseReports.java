@@ -596,7 +596,8 @@ public class AJEntityBaseReports extends Model {
     
     public static final String SELECT_INDEPENDENT_LEARNER_COURSE_PERF_FOR_COLLECTION =
             "SELECT SUM(CASE WHEN (agg.event_name = 'collection.resource.play') THEN agg.time_spent ELSE 0 END) AS timeSpent, "
-          + "SUM(agg.reaction) reaction, SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.attempts ELSE 0 END) AS attempts, "
+          + "ROUND(AVG(CASE WHEN (agg.event_name = 'collection.play') THEN agg.reaction ELSE 0 END)) reaction, "
+          + "SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.attempts ELSE 0 END) AS attempts, "
           + "agg.unit_id, 'completed' AS attemptStatus "
           + "FROM (SELECT time_spent, "
           + "reaction AS reaction, views AS attempts, unit_id, event_name FROM base_reports "
@@ -654,7 +655,7 @@ public class AJEntityBaseReports extends Model {
     
     public static final String SELECT_INDEPENDENT_LEARNER_UNIT_PERF_FOR_COLLECTION =
             "SELECT SUM(CASE WHEN (agg.event_name = 'collection.resource.play') THEN agg.time_spent ELSE 0 END) AS timeSpent, "
-          + "SUM(agg.reaction) reaction, SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.attempts ELSE 0 END) AS attempts, "
+          + "ROUND(AVG(CASE WHEN (agg.event_name = 'collection.play') THEN agg.reaction ELSE 0 END)) reaction, SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.attempts ELSE 0 END) AS attempts, "
           + "agg.lessonId, 'completed' AS attemptStatus "
           + "FROM (SELECT time_spent, "
           + "reaction AS reaction, views AS attempts, lesson_id AS lessonId, event_name FROM base_reports "
@@ -673,7 +674,7 @@ public class AJEntityBaseReports extends Model {
     public static final String SELECT_INDEPENDENT_LEARNER_LESSON_PERF_FOR_COLLECTION =
             "SELECT SUM(CASE WHEN (agg.event_name = 'collection.resource.play') THEN agg.time_spent ELSE 0 END) AS timeSpent, "
           + "(AVG(agg.scoreInPercentage)) scoreInPercentage, "
-          + "SUM(agg.reaction) reaction, SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.attempts ELSE 0 END) AS attempts, "
+          + "ROUND(AVG(CASE WHEN (agg.event_name = 'collection.play') THEN agg.reaction ELSE 0 END)) reaction, SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.attempts ELSE 0 END) AS attempts, "
           + "agg.collection_id AS collectionId, 'completed' AS attemptStatus "
           + "FROM (SELECT time_spent, FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) "
           + "AS scoreInPercentage, reaction AS reaction, views AS attempts, collection_id,event_name FROM base_reports "
