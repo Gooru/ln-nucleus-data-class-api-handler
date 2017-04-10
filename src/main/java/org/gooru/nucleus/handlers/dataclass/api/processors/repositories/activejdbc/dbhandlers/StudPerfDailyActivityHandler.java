@@ -149,7 +149,7 @@ public class StudPerfDailyActivityHandler implements DBHandler {
       JsonObject dateActivity = new JsonObject();
       LOGGER.debug("Fetching Performance for Assessments in Class");
       List<Map> assessmentPerf = Base.findAll(AJEntityBaseReports.GET_PERFORMANCE_FOR_CLASS_ASSESSMENTS, classId, listToPostgresArrayString(collIds),
-              userId, EventConstants.COLLECTION_PLAY, this.collectionType, startDate, endDate);
+              userId, this.collectionType, startDate, endDate);
       if (!assessmentPerf.isEmpty()) {
         assessmentPerf.forEach(m -> {
           JsonObject assessmentKpi = new JsonObject();

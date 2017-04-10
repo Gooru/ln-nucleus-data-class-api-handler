@@ -124,7 +124,7 @@ public class StudentLessonPerfHandler implements DBHandler {
       List<Map> assessmentKpi = null;
       if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
         assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF_FOR_COLLECTION, context.classId(), context.courseId(),
-                context.unitId(), context.lessonId(), listToPostgresArrayString(collIds), userID, EventConstants.COLLECTION_PLAY);
+                context.unitId(), context.lessonId(), listToPostgresArrayString(collIds), userID);
 
       } else {
         assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF_FOR_ASSESSMENT, context.classId(), context.courseId(),
