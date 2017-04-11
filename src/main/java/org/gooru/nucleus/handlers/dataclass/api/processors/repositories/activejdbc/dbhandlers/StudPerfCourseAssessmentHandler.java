@@ -146,7 +146,7 @@ public class StudPerfCourseAssessmentHandler implements DBHandler {
             
         	//Find Timespent and Attempts
         	assessTSA = Base.findAll(AJEntityBaseReports.GET_TOTAL_TIME_SPENT_ATTEMPTS_FOR_ASSESSMENT, this.classId, this.courseId,
-        			collId, AJEntityBaseReports.ATTR_ASSESSMENT, this.userId, EventConstants.STOP);
+        			collId, AJEntityBaseReports.ATTR_ASSESSMENT, AJEntityBaseReports.ATTR_CP_EVENTNAME, this.userId, EventConstants.STOP);
         	
         	if (!assessTSA.isEmpty()) {
         	assessTSA.forEach(m -> {
