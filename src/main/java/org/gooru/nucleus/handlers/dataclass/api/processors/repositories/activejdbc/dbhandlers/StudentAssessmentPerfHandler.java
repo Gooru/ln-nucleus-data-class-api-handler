@@ -117,6 +117,7 @@ public class StudentAssessmentPerfHandler implements DBHandler {
         studentLatestAttempt.forEach(attempts -> {
           List<Map> assessmentQuestionsKPI = Base.findAll(AJEntityBaseReports.SELECT_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSION_ID,
                   attempts.get(AJEntityBaseReports.SESSION_ID).toString(), AJEntityBaseReports.ATTR_CRP_EVENTNAME);
+          LOGGER.debug("latestSessionId : " + attempts.get(AJEntityBaseReports.SESSION_ID));
           JsonArray questionsArray = new JsonArray();
           if (!assessmentQuestionsKPI.isEmpty()) {
             assessmentQuestionsKPI.stream().forEach(questions -> {

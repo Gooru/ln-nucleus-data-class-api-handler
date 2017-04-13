@@ -124,7 +124,7 @@ public class StudentLessonPerfHandler implements DBHandler {
       List<Map> assessmentKpi = null;
       if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
         assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF_FOR_COLLECTION, context.classId(), context.courseId(),
-                context.unitId(), context.lessonId(), listToPostgresArrayString(collIds), userID, EventConstants.COLLECTION_PLAY);
+                context.unitId(), context.lessonId(), listToPostgresArrayString(collIds), userID);
 
       } else {
         assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF_FOR_ASSESSMENT, context.classId(), context.courseId(),
@@ -136,7 +136,6 @@ public class StudentLessonPerfHandler implements DBHandler {
           // FIXME : revisit completed count and total count
           lessonKpi.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 1);
           lessonKpi.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
-          lessonKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.valueOf(m.get(AJEntityBaseReports.ATTR_SCORE).toString())));
 
           // FIXME: This logic to be revisited.
           if (this.collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {
@@ -161,6 +160,8 @@ public class StudentLessonPerfHandler implements DBHandler {
             lessonKpi.remove(AJEntityBaseReports.ATTR_ASSESSMENT_ID);
             lessonKpi.put(EventConstants.VIEWS, lessonKpi.getInteger(EventConstants.ATTEMPTS));
             lessonKpi.remove(EventConstants.ATTEMPTS);
+          }else{
+            lessonKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.valueOf(m.get(AJEntityBaseReports.ATTR_SCORE).toString())));
           }
           LessonKpiArray.add(lessonKpi);
         });

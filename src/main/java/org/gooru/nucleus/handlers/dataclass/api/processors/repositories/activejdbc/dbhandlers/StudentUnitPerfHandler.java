@@ -126,7 +126,7 @@ import io.vertx.core.json.JsonObject;
             List<Map> lessonKpi = null;
             if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
               lessonKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_UNIT_PERF_FOR_COLLECTION, context.classId(), context.courseId(),
-                    context.unitId(), this.collectionType, userID, listToPostgresArrayString(lessonIds), EventConstants.COLLECTION_PLAY);
+                    context.unitId(), this.collectionType, userID, listToPostgresArrayString(lessonIds));
             }else{
               lessonKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_UNIT_PERF_FOR_ASSESSMENT, context.classId(), context.courseId(),
                       context.unitId(), this.collectionType, userID, listToPostgresArrayString(lessonIds), EventConstants.COLLECTION_PLAY);
@@ -171,7 +171,7 @@ import io.vertx.core.json.JsonObject;
                 List<Map> assessmentKpi = null;
                 if(this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)){
                   assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF_FOR_COLLECTION, context.classId(),
-                          context.courseId(), context.unitId(), this.lessonId, listToPostgresArrayString(collIds), userID, EventConstants.COLLECTION_PLAY);
+                          context.courseId(), context.unitId(), this.lessonId, listToPostgresArrayString(collIds), userID);
                 }else{
                   assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF_FOR_ASSESSMENT, context.classId(),
                         context.courseId(), context.unitId(), this.lessonId, listToPostgresArrayString(collIds), userID, EventConstants.COLLECTION_PLAY);

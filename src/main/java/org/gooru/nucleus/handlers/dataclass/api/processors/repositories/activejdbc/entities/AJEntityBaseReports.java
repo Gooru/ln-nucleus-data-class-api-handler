@@ -110,12 +110,12 @@ public class AJEntityBaseReports extends Model {
             + "GROUP BY agg.unit_id";
     
     public static final String SELECT_STUDENT_COURSE_PERF_FOR_COLLECTION =
-            "SELECT SUM(agg.time_spent) as timeSpent, "
-          + "SUM(agg.reaction) reaction, SUM(agg.attempts) attempts, agg.unit_id, 'completed' AS attemptStatus "
+            "SELECT SUM(CASE WHEN (agg.event_name = 'collection.resource.play') THEN agg.time_spent ELSE 0 END) as timeSpent, "
+          + "ROUND(AVG(CASE WHEN (agg.event_name = 'collection.play') THEN agg.reaction ELSE 0 END)) reaction, "
+          + "SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.attempts ELSE 0 END) AS attempts, agg.unit_id, 'completed' AS attemptStatus "
           + "FROM (SELECT time_spent, "
-          + "reaction AS reaction, views AS attempts, unit_id FROM base_reports "
-          + "WHERE class_id = ? AND course_id = ? AND collection_type =? AND actor_id = ? AND unit_id = ANY(?::varchar[]) AND "
-          + "event_name = ? ) AS agg "
+          + "reaction AS reaction, views AS attempts, unit_id,event_name FROM base_reports "
+          + "WHERE class_id = ? AND course_id = ? AND collection_type =? AND actor_id = ? AND unit_id = ANY(?::varchar[])) AS agg "
           + "GROUP BY agg.unit_id";
   
     
@@ -191,12 +191,11 @@ public class AJEntityBaseReports extends Model {
           + "GROUP BY agg.lesson_id";
   
     public static final String SELECT_STUDENT_UNIT_PERF_FOR_COLLECTION =
-            "SELECT SUM(agg.time_spent) timeSpent, "
-          + "SUM(agg.reaction) reaction, SUM(agg.attempts) attempts, agg.lessonId, 'completed' AS attemptStatus "
+            "SELECT SUM(CASE WHEN (agg.event_name = 'collection.resource.play') THEN agg.time_spent ELSE 0 END) AS timeSpent, "
+          + "SUM(agg.reaction) reaction,SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.attempts ELSE 0 END) AS attempts, agg.lessonId, 'completed' AS attemptStatus "
           + "FROM (SELECT time_spent, "
-          + "reaction AS reaction, views AS attempts, lesson_id AS lessonId FROM base_reports "
-          + "WHERE class_id = ? AND course_id = ? AND unit_id = ? AND collection_type =? AND actor_id = ? AND lesson_id = ANY(?::varchar[]) AND "
-          + "event_name = ?) AS agg "
+          + "reaction AS reaction, views AS attempts, lesson_id AS lessonId, event_name FROM base_reports "
+          + "WHERE class_id = ? AND course_id = ? AND unit_id = ? AND collection_type =? AND actor_id = ? AND lesson_id = ANY(?::varchar[])) AS agg "
           + "GROUP BY agg.lessonId";
     
     //*************************************************************************************************************************
@@ -221,12 +220,10 @@ public class AJEntityBaseReports extends Model {
           + "event_name = ? AND event_type = 'stop') AS agg "
           + "GROUP BY agg.collection_id";
     public static final String SELECT_STUDENT_LESSON_PERF_FOR_COLLECTION =
-            "SELECT SUM(agg.time_spent) as timeSpent, (AVG(agg.scoreInPercentage)) scoreInPercentage, "
-          + "SUM(agg.reaction) reaction, SUM(agg.attempts) attempts, agg.collection_id AS collectionId, 'completed' AS attemptStatus "
-          + "FROM (SELECT time_spent, FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) "
-          + "AS scoreInPercentage, reaction AS reaction, views AS attempts, collection_id FROM base_reports "
-          + "WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ANY(?::varchar[]) AND actor_id = ? AND "
-          + "event_name = ? ) AS agg "
+            "SELECT SUM(CASE WHEN (agg.event_name = 'collection.resource.play') THEN agg.time_spent ELSE 0 END) as timeSpent, (AVG(agg.scoreInPercentage)) scoreInPercentage, "
+          + "ROUND(AVG(CASE WHEN (agg.event_name = 'collection.play') THEN agg.reaction ELSE 0 END)) reaction, SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.attempts ELSE 0 END) AS attempts, agg.collection_id AS collectionId, 'completed' AS attemptStatus "
+          + "FROM (SELECT time_spent, reaction AS reaction, views AS attempts, collection_id,event_name FROM base_reports "
+          + "WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ANY(?::varchar[]) AND actor_id = ?) AS agg "
           + "GROUP BY agg.collection_id";
     
     public static final String GET_COMPLETED_COLLID_COUNT = 
@@ -239,14 +236,14 @@ public class AJEntityBaseReports extends Model {
     public static final String GET_LATEST_COMPLETED_SESSION_ID = "SELECT session_id FROM base_reports WHERE"
             +" class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND actor_id = ? AND"
             +" event_name = 'collection.play' AND event_type = 'stop'"
-            +" ORDER BY created_at ASC";
+            +" ORDER BY created_at DESC LIMIT 1";
     //*************************************************************************************************************************
     //String Constants and Queries for STUDENT PERFORMANCE REPORTS IN ASSESSMENTS    
     public static final String SELECT_ASSESSMENT_FOREACH_COLLID_AND_SESSION_ID =
             "select distinct on (collection_id) FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS score,"
             + "collection_id,FIRST_VALUE(reaction) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS reaction,"
             + "FIRST_VALUE(time_spent) OVER (PARTITION BY collection_id ORDER BY updated_at desc) as collectionTimeSpent,"
-            + "updated_at,session_id,collection_type,FIRST_VALUE(views) OVER (PARTITION BY collection_id ORDER BY updated_at asc) AS collectionViews "
+            + "updated_at,session_id,collection_type,FIRST_VALUE(views) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS collectionViews "
             + "from base_reports WHERE session_id = ? AND event_name = ? ";
     
     
@@ -275,12 +272,16 @@ public class AJEntityBaseReports extends Model {
     public static final String SELECT_COLLECTION_QUESTION_COUNT = "SELECT question_count,updated_at FROM base_reports "
             + "WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND actor_id = ? AND event_name = 'collection.play'"
             + " ORDER BY updated_at DESC LIMIT 1";
+    public static final String SELECT_CLASS_COLLECTION_QUESTION_COUNT = "SELECT question_count,updated_at FROM base_reports "
+            + "WHERE class_id = ? AND collection_id = ? AND actor_id = ? AND event_name = 'collection.play'"
+            + " ORDER BY updated_at DESC LIMIT 1";
     //Getting COLLECTION DATA (views, time_spent)
-    public static final String SELECT_COLLECTION_AGG_DATA = "SELECT SUM(agg.time_spent) AS collectionTimeSpent, SUM(agg.views) AS collectionViews,"
+    public static final String SELECT_COLLECTION_AGG_DATA = "SELECT SUM(CASE WHEN (agg.event_name = 'collection.resource.play') THEN agg.time_spent ELSE 0 END) AS collectionTimeSpent, "
+            + "SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.views ELSE 0 END) AS collectionViews,"
             + "agg.collection_id, agg.completionStatus, 0 AS score, 0 AS reaction FROM "
-            + "(SELECT collection_id,time_spent,session_id,views,"
+            + "(SELECT collection_id,time_spent,session_id,views, event_name, "
             + "CASE  WHEN (FIRST_VALUE(event_type) OVER (PARTITION BY collection_id ORDER BY updated_at desc) = 'stop') THEN 'completed' ELSE 'in-progress' END AS completionStatus "
-            + "FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND actor_id = ? AND event_name = 'collection.play' ) AS agg "
+            + "FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND actor_id = ? ) AS agg "
             + "GROUP BY agg.collection_id,agg.completionStatus";
     //Getting COLLECTION DATA (score)
     public static final String SELECT_COLLECTION_AGG_SCORE = "SELECT SUM(agg.score) AS score FROM "
@@ -323,11 +324,12 @@ public class AJEntityBaseReports extends Model {
             + " ORDER BY updated_at DESC LIMIT 1";
     
     //Getting COLLECTION DATA (views, time_spent)
-    public static final String SELECT_COLLECTION_AGG_DATA_ = "SELECT SUM(agg.time_spent) AS collectionTimeSpent, SUM(agg.views) AS collectionViews,"
+    public static final String SELECT_COLLECTION_AGG_DATA_ = "SELECT SUM(CASE WHEN (agg.event_name = 'collection.resource.play') THEN agg.time_spent ELSE 0 END) AS collectionTimeSpent, "
+            + "SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.views ELSE 0 END) AS collectionViews,"
             + "agg.collection_id, agg.completionStatus, 0 AS score, 0 AS reaction FROM "
-            + "(SELECT collection_id,time_spent,session_id,views,"
+            + "(SELECT collection_id,time_spent,session_id,views,event_name,"
             + "CASE  WHEN (FIRST_VALUE(event_type) OVER (PARTITION BY collection_id ORDER BY updated_at desc) = 'stop') THEN 'completed' ELSE 'in-progress' END AS completionStatus "
-            + "FROM base_reports WHERE class_id IS NULL AND course_id IS NULL AND unit_id IS NULL AND lesson_id IS NULL AND collection_id = ? AND actor_id = ? AND event_name = 'collection.play' ) AS agg "
+            + "FROM base_reports WHERE class_id IS NULL AND course_id IS NULL AND unit_id IS NULL AND lesson_id IS NULL AND collection_id = ? AND actor_id = ? ) AS agg "
             + "GROUP BY agg.collection_id,agg.completionStatus";
     //Getting COLLECTION DATA (score)
     public static final String SELECT_COLLECTION_AGG_SCORE_ = "SELECT SUM(agg.score) AS score FROM "
@@ -478,9 +480,10 @@ public class AJEntityBaseReports extends Model {
     //Student all classes performance
     
     //CLASS DATA FOR A USER (attempts, time_spent)
-    public static final String SELECT_STUDENT_ALL_CLASS_DATA = "SELECT SUM(time_spent) AS timeSpent,  SUM(views) AS attempts, class_id, course_id "
+    public static final String SELECT_STUDENT_ALL_CLASS_DATA = "SELECT SUM(CASE WHEN (event_name = 'collection.resource.play') THEN time_spent ELSE 0 END) AS timeSpent,  "
+            + "SUM(CASE WHEN (event_name = 'collection.play') THEN views ELSE 0 END) AS attempts, class_id, course_id "
             + "FROM base_reports WHERE class_id = ANY(?::varchar[]) AND actor_id = ? "
-            + "AND collection_type = 'assessment' AND event_name = 'collection.play' GROUP BY class_id, course_id";
+            + "AND collection_type = 'assessment' GROUP BY class_id, course_id";
 
     //CLASS DATA FOR ALL USER(attempts, time_spent)
     public static final String SELECT_ALL_STUDENTS_CLASS_DATA = "SELECT SUM(time_spent) AS timeSpent,  SUM(views) AS attempts, class_id, course_id "
@@ -527,7 +530,7 @@ public class AJEntityBaseReports extends Model {
     
     public static final String GET_TOTAL_TIME_SPENT_ATTEMPTS_FOR_ASSESSMENT = "SELECT SUM(time_spent) AS timeSpent, "
     		+ "SUM(views) AS attempts, collection_id FROM base_reports WHERE class_id = ? AND course_id = ? AND collection_id = ? AND collection_type = ? "
-    		+ "AND actor_id = ? AND event_name = ? AND event_type = ? GROUP BY collection_id";
+    		+ "AND event_name = ? AND actor_id = ? AND event_type = ? GROUP BY collection_id";
         
     //public static final String GET_PERFORMANCE_FOR_COLLECTION = "SELECT SUM(time_spent) AS timeSpent, "
     	//	+ "SUM(views) AS views, collection_id FROM base_reports WHERE class_id = ? AND course_id = ? AND collection_id = ? AND collection_type = ? AND actor_id = ? "
@@ -535,14 +538,14 @@ public class AJEntityBaseReports extends Model {
     
     // Update for collection Timespent
     public static final String GET_PERFORMANCE_FOR_COLLECTION = "SELECT SUM(CASE WHEN (event_name = 'collection.resource.play') "
-    		+ "THEN time_spent ELSE 0 END) AS timeSpent, "
-    		+ "SUM(CASE WHEN (event_name = 'collection.play') THEN views ELSE 0 END) AS views, "
-    		+ "collection_id from base_reports WHERE class_id = ? AND course_id = ? AND collection_id = ? AND collection_type = ? AND actor_id = ? "
-    		+ "GROUP BY collection_id";
+            + "THEN time_spent ELSE 0 END) AS timeSpent, "
+            + "SUM(CASE WHEN (event_name = 'collection.play') THEN views ELSE 0 END) AS views, "
+            + "collection_id from base_reports WHERE class_id IS NULL AND collection_id = ? AND collection_type = ? AND actor_id = ? "
+            + "GROUP BY collection_id";
     
-    public static final String GET_PERFORMANCE_FOR_CLASS_COLLECTION = "SELECT SUM(time_spent) AS timeSpent, "
-    		+ "SUM(views) AS views, collection_id FROM base_reports WHERE class_id = ? AND collection_id = ? AND collection_type = ? AND actor_id = ? "
-    		+ "AND event_name = ? GROUP BY collection_id";
+    public static final String GET_PERFORMANCE_FOR_CLASS_COLLECTION = "SELECT SUM(CASE WHEN (event_name = 'collection.resource.play') THEN time_spent ELSE 0 END) AS timeSpent, "
+    		+ "SUM(CASE WHEN (event_name = 'collection.play') THEN views ELSE 0 END) AS views, collection_id FROM base_reports WHERE class_id = ? AND collection_id = ? AND collection_type = ? AND actor_id = ? "
+    		+ "GROUP BY collection_id";
 
     public static final String GET_DISTINCT_COLLECTIONS = "SELECT distinct(collection_id) from base_reports where "
     		+ "actor_id = ? AND collection_type = ? AND class_id = ? AND course_id = ? ";
@@ -554,15 +557,29 @@ public class AJEntityBaseReports extends Model {
             "SELECT DISTINCT(actor_id) FROM base_reports "
             + "WHERE class_id = ? AND collection_type = ?";
     
-    public static final String GET_PERFORMANCE_FOR_CLASS_ASSESSMENTS = "SELECT SUM(agg.timeSpent) timeSpent, "
-            + "(AVG(agg.scoreInPercentage)) scoreInPercentage, SUM(agg.attempts) attempts, "
+    public static final String GET_PERFORMANCE_FOR_CLASS_ASSESSMENTS = "SELECT SUM(agg.time_spent) AS timeSpent, "
+            + "(AVG(agg.scoreInPercentage)) scoreInPercentage, SUM(agg.attempts) AS attempts, "
             + "agg.collectionId, agg.activityDate FROM (SELECT time_spent AS timeSpent, "
             + "FIRST_VALUE(score) OVER (PARTITION BY collection_id, DATE(updated_at) ORDER BY updated_at desc) "
-            + "AS scoreInPercentage, views AS attempts, collection_id as collectionId,actor_id as actorId, DATE(updated_at) as activityDate FROM base_reports "
-            + "WHERE class_id = ? AND collection_id = ANY(?::varchar[]) AND actor_id = ? AND event_name = ? AND collection_type = ? AND event_type = 'stop' "
+            + "AS scoreInPercentage, views AS attempts, collection_id as collectionId,actor_id as actorId,DATE(updated_at) as activityDate FROM base_reports "
+            + "WHERE class_id = ? AND collection_id = ANY(?::varchar[]) AND actor_id = ? AND collection_type = ? AND event_name = ? event_type = 'stop' "
             + "AND DATE(updated_at) BETWEEN ? AND ?) AS agg GROUP BY agg.collectionId, agg.activityDate "
             + "ORDER BY agg.activityDate DESC";
     
+    public static final String GET_PERFORMANCE_FOR_CLASS_COLLECTIONS = "SELECT SUM(CASE WHEN (agg.event_name = 'collection.resource.play') THEN agg.time_spent ELSE 0 END) AS timeSpent, "
+            + "SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.attempts ELSE 0 END) AS attempts, "
+            + "agg.collectionId, agg.activityDate FROM (SELECT time_spent AS timeSpent, "
+            + "views AS attempts, collection_id as collectionId,actor_id as actorId,event_name DATE(updated_at) as activityDate FROM base_reports "
+            + "WHERE class_id = ? AND collection_id = ANY(?::varchar[]) AND actor_id = ? AND collection_type = ? AND event_type = 'stop' "
+            + "AND DATE(updated_at) BETWEEN ? AND ?) AS agg GROUP BY agg.collectionId, agg.activityDate "
+            + "ORDER BY agg.activityDate DESC";
+    
+    public static final String GET_PERFORMANCE_FOR_CLASS_COLLECTIONS_SCORE = "SELECT SUM(agg.score) AS score FROM "
+            + "(SELECT DISTINCT ON (resource_id) collection_id, "
+            + "FIRST_VALUE(score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score "
+            + "FROM base_reports WHERE class_id = ? AND collection_id = ? AND actor_id = ? AND "
+            + "event_name = 'collection.resource.play' AND resource_type = 'question' AND resource_attempt_status <> 'skipped' ) AS agg "
+            + "GROUP BY agg.collection_id";
     
     public static final String GET_PERFORMANCE_FOR_ASSESSMENTS =
             "SELECT SUM(agg.time_spent) timeSpent, (AVG(agg.scoreInPercentage)) scoreInPercentage, "
@@ -594,12 +611,13 @@ public class AJEntityBaseReports extends Model {
           + "GROUP BY agg.unit_id";
     
     public static final String SELECT_INDEPENDENT_LEARNER_COURSE_PERF_FOR_COLLECTION =
-            "SELECT SUM(agg.time_spent) as timeSpent, "
-          + "SUM(agg.reaction) reaction, SUM(agg.attempts) attempts, agg.unit_id, 'completed' AS attemptStatus "
+            "SELECT SUM(CASE WHEN (agg.event_name = 'collection.resource.play') THEN agg.time_spent ELSE 0 END) AS timeSpent, "
+          + "ROUND(AVG(CASE WHEN (agg.event_name = 'collection.play') THEN agg.reaction ELSE 0 END)) reaction, "
+          + "SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.attempts ELSE 0 END) AS attempts, "
+          + "agg.unit_id, 'completed' AS attemptStatus "
           + "FROM (SELECT time_spent, "
-          + "reaction AS reaction, views AS attempts, unit_id FROM base_reports "
-          + "WHERE class_id IS NULL AND course_id = ? AND collection_type =? AND actor_id = ? AND unit_id = ANY(?::varchar[]) AND "
-          + "event_name = ? ) AS agg "
+          + "reaction AS reaction, views AS attempts, unit_id, event_name FROM base_reports "
+          + "WHERE class_id IS NULL AND course_id = ? AND collection_type =? AND actor_id = ? AND unit_id = ANY(?::varchar[])) AS agg "
           + "GROUP BY agg.unit_id";
     
     public static final String GET_COMPLETED_COLLID_COUNT_FOREACH_INDEPENDENT_LEARNER_UNIT_ID = 
@@ -652,12 +670,12 @@ public class AJEntityBaseReports extends Model {
           + "GROUP BY agg.lesson_id";
     
     public static final String SELECT_INDEPENDENT_LEARNER_UNIT_PERF_FOR_COLLECTION =
-            "SELECT SUM(agg.time_spent) timeSpent, "
-          + "SUM(agg.reaction) reaction, SUM(agg.attempts) attempts, agg.lessonId, 'completed' AS attemptStatus "
+            "SELECT SUM(CASE WHEN (agg.event_name = 'collection.resource.play') THEN agg.time_spent ELSE 0 END) AS timeSpent, "
+          + "ROUND(AVG(CASE WHEN (agg.event_name = 'collection.play') THEN agg.reaction ELSE 0 END)) reaction, SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.attempts ELSE 0 END) AS attempts, "
+          + "agg.lessonId, 'completed' AS attemptStatus "
           + "FROM (SELECT time_spent, "
-          + "reaction AS reaction, views AS attempts, lesson_id AS lessonId FROM base_reports "
-          + "WHERE class_id IS NULL AND course_id = ? AND unit_id = ? AND collection_type =? AND actor_id = ? AND lesson_id = ANY(?::varchar[]) AND "
-          + "event_name = ?) AS agg "
+          + "reaction AS reaction, views AS attempts, lesson_id AS lessonId, event_name FROM base_reports "
+          + "WHERE class_id IS NULL AND course_id = ? AND unit_id = ? AND collection_type =? AND actor_id = ? AND lesson_id = ANY(?::varchar[])) AS agg "
           + "GROUP BY agg.lessonId";
     
     public static final String SELECT_INDEPENDENT_LEARNER_LESSON_PERF_FOR_ASSESSMENT =
@@ -670,12 +688,13 @@ public class AJEntityBaseReports extends Model {
           + "GROUP BY agg.collection_id";
     
     public static final String SELECT_INDEPENDENT_LEARNER_LESSON_PERF_FOR_COLLECTION =
-            "SELECT SUM(agg.time_spent) as timeSpent, (AVG(agg.scoreInPercentage)) scoreInPercentage, "
-          + "SUM(agg.reaction) reaction, SUM(agg.attempts) attempts, agg.collection_id AS collectionId, 'completed' AS attemptStatus "
+            "SELECT SUM(CASE WHEN (agg.event_name = 'collection.resource.play') THEN agg.time_spent ELSE 0 END) AS timeSpent, "
+          + "(AVG(agg.scoreInPercentage)) scoreInPercentage, "
+          + "ROUND(AVG(CASE WHEN (agg.event_name = 'collection.play') THEN agg.reaction ELSE 0 END)) reaction, SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.attempts ELSE 0 END) AS attempts, "
+          + "agg.collection_id AS collectionId, 'completed' AS attemptStatus "
           + "FROM (SELECT time_spent, FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) "
-          + "AS scoreInPercentage, reaction AS reaction, views AS attempts, collection_id FROM base_reports "
-          + "WHERE class_id IS NULL AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ANY(?::varchar[]) AND actor_id = ? AND "
-          + "event_name = ? ) AS agg "
+          + "AS scoreInPercentage, reaction AS reaction, views AS attempts, collection_id,event_name FROM base_reports "
+          + "WHERE class_id IS NULL AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ANY(?::varchar[]) AND actor_id = ?) AS agg "
           + "GROUP BY agg.collection_id";
     
     public static final String GET_INDEPENDENT_LEARNER_LATEST_COMPLETED_SESSION_ID = "SELECT session_id FROM base_reports WHERE"

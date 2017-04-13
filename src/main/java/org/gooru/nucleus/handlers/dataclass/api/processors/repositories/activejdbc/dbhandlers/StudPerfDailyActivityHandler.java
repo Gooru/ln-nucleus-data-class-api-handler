@@ -6,7 +6,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
@@ -38,6 +37,7 @@ public class StudPerfDailyActivityHandler implements DBHandler {
   private String classId;
   private String collectionType;
   private JsonArray collectionIds;
+  private long questionCount;
 
   /*
    * JsonArray assessmentArray = new JsonArray();
@@ -148,22 +148,60 @@ public class StudPerfDailyActivityHandler implements DBHandler {
       JsonArray assessmentArray = new JsonArray();
       JsonObject dateActivity = new JsonObject();
       LOGGER.debug("Fetching Performance for Assessments in Class");
-      List<Map> assessmentPerf = Base.findAll(AJEntityBaseReports.GET_PERFORMANCE_FOR_CLASS_ASSESSMENTS, classId, listToPostgresArrayString(collIds),
-              userId, EventConstants.COLLECTION_PLAY, this.collectionType, startDate, endDate);
-      if (!assessmentPerf.isEmpty()) {
-        assessmentPerf.forEach(m -> {
-          JsonObject assessmentKpi = new JsonObject();
-          assessmentKpi.put(AJEntityBaseReports.DATE, m.get(AJEntityBaseReports.ACTIVITY_DATE).toString());
-          assessmentKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, m.get(AJEntityBaseReports.ATTR_COLLECTION_ID).toString());
-          assessmentKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.valueOf(m.get(AJEntityBaseReports.ATTR_SCORE).toString())));
-          assessmentKpi.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.parseLong(m.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()));
-          assessmentKpi.put(AJEntityBaseReports.ATTR_ATTEMPTS, Integer.parseInt(m.get(AJEntityBaseReports.ATTR_ATTEMPTS).toString()));
-          assessmentKpi.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
-          assessmentArray.add(assessmentKpi);
-        });
+      if (this.collectionType.equalsIgnoreCase(JsonConstants.ASSESSMENT)) {
+        List<Map> assessmentPerf = Base.findAll(AJEntityBaseReports.GET_PERFORMANCE_FOR_CLASS_ASSESSMENTS, classId,
+                listToPostgresArrayString(collIds), userId, this.collectionType, AJEntityBaseReports.ATTR_CP_EVENTNAME, startDate, endDate);
+        if (!assessmentPerf.isEmpty()) {
+          assessmentPerf.forEach(m -> {
+            JsonObject assessmentKpi = new JsonObject();
+            assessmentKpi.put(AJEntityBaseReports.DATE, m.get(AJEntityBaseReports.ACTIVITY_DATE).toString());
+            assessmentKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, m.get(AJEntityBaseReports.ATTR_COLLECTION_ID).toString());
+            assessmentKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.valueOf(m.get(AJEntityBaseReports.ATTR_SCORE).toString())));
+            assessmentKpi.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.parseLong(m.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()));
+            assessmentKpi.put(AJEntityBaseReports.ATTR_ATTEMPTS, Integer.parseInt(m.get(AJEntityBaseReports.ATTR_ATTEMPTS).toString()));
+            assessmentKpi.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
+            assessmentArray.add(assessmentKpi);
+          });
 
+        } else {
+          LOGGER.debug("No data available for ANY of the Assessments passed on to this endpoint");
+        }
       } else {
-        LOGGER.debug("No data available for ANY of the Assessments passed on to this endpoint");
+        LOGGER.debug("Fetching Performance for COLLECTION in Class");
+        List<Map> collectionPerf = Base.findAll(AJEntityBaseReports.GET_PERFORMANCE_FOR_CLASS_COLLECTIONS, classId,
+                listToPostgresArrayString(collIds), userId, this.collectionType, startDate, endDate);
+        if (!collectionPerf.isEmpty()) {
+          collectionPerf.forEach(m -> {
+            JsonObject collectionKpi = new JsonObject();
+            collectionKpi.put(AJEntityBaseReports.DATE, m.get(AJEntityBaseReports.ACTIVITY_DATE).toString());
+            collectionKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, m.get(AJEntityBaseReports.ATTR_COLLECTION_ID).toString());
+            collectionKpi.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.parseLong(m.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()));
+            collectionKpi.put(AJEntityBaseReports.ATTR_ATTEMPTS, Integer.parseInt(m.get(AJEntityBaseReports.ATTR_ATTEMPTS).toString()));
+            collectionKpi.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
+            List<Map> collectionQuestionCount = null;
+            collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_CLASS_COLLECTION_QUESTION_COUNT, classId,
+                    m.get(AJEntityBaseReports.ATTR_COLLECTION_ID).toString(), this.userId);
+
+            collectionQuestionCount.forEach(qc -> {
+              this.questionCount = Integer.valueOf(qc.get(AJEntityBaseReports.QUESTION_COUNT).toString());
+            });
+            double scoreInPercent = 0;
+            if (this.questionCount > 0) {
+              Object collectionScore = null;
+              collectionScore = Base.firstCell(AJEntityBaseReports.GET_PERFORMANCE_FOR_CLASS_COLLECTIONS_SCORE, classId,
+                      m.get(AJEntityBaseReports.ATTR_COLLECTION_ID).toString(), this.userId);
+              if (collectionScore != null) {
+                scoreInPercent = (((double) Integer.valueOf(collectionScore.toString()) / this.questionCount) * 100);
+              }
+            }
+            collectionKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(scoreInPercent));
+            assessmentArray.add(collectionKpi);
+          });
+
+        } else {
+          LOGGER.debug("No data available for ANY of the Collections passed on to this endpoint");
+        }
+
       }
       dateActivity.put(JsonConstants.ACTIVITY, assessmentArray);
       dateActivity.put(JsonConstants.USERID, userId);
