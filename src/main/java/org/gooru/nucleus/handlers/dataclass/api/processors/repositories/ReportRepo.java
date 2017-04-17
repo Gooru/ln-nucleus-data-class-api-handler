@@ -69,7 +69,13 @@ public interface ReportRepo {
     MessageResponse getIndLearnerAssessmentsLocation();
     
     MessageResponse getIndLearnerCollectionsLocation();
+
+    MessageResponse getIndLearnerAllCoursesPerf();
     
+    MessageResponse getIndLearnerIndAssessmentsPerf();
+    
+    MessageResponse getIndLearnerIndCollectionsPerf();
+
     MessageResponse getIndLearnerCourseCollectionsPerf();
     
     MessageResponse getIndLearnerCourseAssessmentsPerf();

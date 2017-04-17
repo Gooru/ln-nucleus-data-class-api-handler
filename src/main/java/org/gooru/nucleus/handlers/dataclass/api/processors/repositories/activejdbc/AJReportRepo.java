@@ -156,7 +156,6 @@ class AJReportRepo implements ReportRepo {
         return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildIndependentLearnerCourses(context));
     }
     
-    //Mukul
     @Override
     public MessageResponse getIndLearnerCoursesLocation() {
         return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildIndLearnerCoursesLocationHandler(context));
@@ -171,7 +170,22 @@ class AJReportRepo implements ReportRepo {
     public MessageResponse getIndLearnerCollectionsLocation() {
         return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildIndLearnerCollectionsLocationHandler(context));
     }
+
+    @Override
+    public MessageResponse getIndLearnerAllCoursesPerf() {
+        return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildIndLearnerAllCoursesPerfHandler(context));
+    }
     
+    @Override
+    public MessageResponse getIndLearnerIndAssessmentsPerf() {
+        return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildIndLearnerIndAssessmentsPerfHandler(context));
+    }
+    
+    @Override
+    public MessageResponse getIndLearnerIndCollectionsPerf() {
+        return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildIndLearnerIndCollectionsPerfHandler(context));
+    }
+
     @Override
     public MessageResponse getIndLearnerCourseCollectionsPerf() {
         return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildIndLearnerCourseCollectionsPerfHandler(context));
