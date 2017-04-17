@@ -125,6 +125,18 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_IND_LEARNER_LOCATION_ALL_IND_COLLECTIONS:
                 result = getIndependentLearnerCollectionsLoc();
                 break;
+            case MessageConstants.MSG_OP_IND_LEARNER_PERF_ALL_COURSES:
+                //Mukul: TODO
+            	result = getIndependentLearnerAllCoursesPerf();
+                break;
+            case MessageConstants.MSG_OP_IND_LEARNER_PERF_ALL_IND_ASSESSMENTS:
+                //Mukul: TODO
+                result = getIndependentLearnerIndAssessmentsPerf();                
+                break;
+            case MessageConstants.MSG_OP_IND_LEARNER_PERF_ALL_IND_COLLECTIONS:
+                //Mukul: TODO
+                result = getIndependentLearnerIndCollectionsPerf();
+                break;
             case MessageConstants.MSG_OP_IND_LEARNER_COURSE_ALL_COLLECTIONS_PERF:
                 result = getIndependentLearnerCourseCollectionsPerf();
                 break;
@@ -542,6 +554,45 @@ class MessageProcessor implements Processor {
           }
 
       }
+    //-------
+    
+    private MessageResponse getIndependentLearnerAllCoursesPerf() {
+        try {
+              ProcessorContext context = createContext();
+              return new RepoBuilder().buildReportRepo(context).getIndLearnerAllCoursesPerf();
+              
+          } catch (Throwable t) {
+              LOGGER.error("Exception while getting independent learner courses", t);
+              return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+          }
+
+      }
+
+    private MessageResponse getIndependentLearnerIndAssessmentsPerf() {
+        try {
+              ProcessorContext context = createContext();
+              return new RepoBuilder().buildReportRepo(context).getIndLearnerIndAssessmentsPerf();
+              
+          } catch (Throwable t) {
+              LOGGER.error("Exception while getting independent learner courses", t);
+              return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+          }
+
+      }
+    
+    private MessageResponse getIndependentLearnerIndCollectionsPerf() {
+        try {
+              ProcessorContext context = createContext();
+              return new RepoBuilder().buildReportRepo(context).getIndLearnerIndCollectionsPerf();
+              
+          } catch (Throwable t) {
+              LOGGER.error("Exception while getting independent learner courses", t);
+              return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+          }
+
+      }
+    
+    //----------------------
     
     private MessageResponse getIndependentLearnerCourseCollectionsPerf() {
         try {

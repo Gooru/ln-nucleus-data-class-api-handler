@@ -137,6 +137,19 @@ public final class DBHandlerBuilder {
         return new IndLearnerAllIndCollectionLocHandler(context);
       }
     
+    //Mukul
+    public static DBHandler buildIndLearnerAllCoursesPerfHandler(ProcessorContext context) {
+        return new IndLearnerAllCoursesPerfHandler(context);
+      }
+    
+    public static DBHandler buildIndLearnerIndAssessmentsPerfHandler(ProcessorContext context) {
+        return new IndLearnerAllIndAssessmentPerfHandler(context);
+      }
+    
+    public static DBHandler buildIndLearnerIndCollectionsPerfHandler(ProcessorContext context) {
+        return new IndLearnerAllIndCollectionPerfHandler(context);
+      }
+    
     public static DBHandler buildIndLearnerCourseCollectionsPerfHandler(ProcessorContext context) {
         return new IndLearnerCourseCollectionsPerfHandler(context);
       }

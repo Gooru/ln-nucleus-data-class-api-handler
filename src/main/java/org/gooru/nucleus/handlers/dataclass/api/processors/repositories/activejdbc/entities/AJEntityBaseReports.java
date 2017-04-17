@@ -540,7 +540,7 @@ public class AJEntityBaseReports extends Model {
     public static final String GET_PERFORMANCE_FOR_COLLECTION = "SELECT SUM(CASE WHEN (event_name = 'collection.resource.play') "
             + "THEN time_spent ELSE 0 END) AS timeSpent, "
             + "SUM(CASE WHEN (event_name = 'collection.play') THEN views ELSE 0 END) AS views, "
-            + "collection_id from base_reports WHERE class_id IS NULL AND collection_id = ? AND collection_type = ? AND actor_id = ? "
+            + "collection_id from base_reports WHERE class_id = ? AND course_id = ? AND collection_id = ? AND collection_type = ? AND actor_id = ? "
             + "GROUP BY collection_id";
     
     public static final String GET_PERFORMANCE_FOR_CLASS_COLLECTION = "SELECT SUM(CASE WHEN (event_name = 'collection.resource.play') THEN time_spent ELSE 0 END) AS timeSpent, "
