@@ -147,8 +147,9 @@ public class StudPerfDailyActivityHandler implements DBHandler {
     for (String userId : userIds) {
       JsonArray assessmentArray = new JsonArray();
       JsonObject dateActivity = new JsonObject();
-      LOGGER.debug("Fetching Performance for Assessments in Class");
+      
       if (this.collectionType.equalsIgnoreCase(JsonConstants.ASSESSMENT)) {
+    	LOGGER.debug("Fetching Performance for Assessments in Class");
         List<Map> assessmentPerf = Base.findAll(AJEntityBaseReports.GET_PERFORMANCE_FOR_CLASS_ASSESSMENTS, classId,
                 listToPostgresArrayString(collIds), userId, this.collectionType, AJEntityBaseReports.ATTR_CP_EVENTNAME, startDate, endDate);
         if (!assessmentPerf.isEmpty()) {
@@ -167,7 +168,7 @@ public class StudPerfDailyActivityHandler implements DBHandler {
           LOGGER.debug("No data available for ANY of the Assessments passed on to this endpoint");
         }
       } else {
-        LOGGER.debug("Fetching Performance for COLLECTION in Class");
+        LOGGER.debug("Fetching Performance for Collections in Class");
         List<Map> collectionPerf = Base.findAll(AJEntityBaseReports.GET_PERFORMANCE_FOR_CLASS_COLLECTIONS, classId,
                 listToPostgresArrayString(collIds), userId, this.collectionType, startDate, endDate);
         if (!collectionPerf.isEmpty()) {
