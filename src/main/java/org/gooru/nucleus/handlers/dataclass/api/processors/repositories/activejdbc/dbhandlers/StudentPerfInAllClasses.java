@@ -79,7 +79,7 @@ public class StudentPerfInAllClasses implements DBHandler {
     List<Map> classPerfData = null;
     
     List<Map> classPerfList = null;
-    List<String> userList = new ArrayList<>();;
+    List<String> userList = new ArrayList<>();
     
     // Student All Class Data
     if (!StringUtil.isNullOrEmpty(this.userId)) {

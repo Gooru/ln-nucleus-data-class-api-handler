@@ -478,22 +478,24 @@ public class AJEntityBaseReports extends Model {
 
     //*************************************************************************************************************************
     //Student all classes performance
+    //NOTE: Additional check has for course_id IS NOT NULL has been added to unblock FE for Study Player Development.
+    //Going ahead we may need to remove that check. 
     
     //CLASS DATA FOR A USER (attempts, time_spent)
     public static final String SELECT_STUDENT_ALL_CLASS_DATA = "SELECT SUM(CASE WHEN (event_name = 'collection.resource.play') THEN time_spent ELSE 0 END) AS timeSpent,  "
             + "SUM(CASE WHEN (event_name = 'collection.play') THEN views ELSE 0 END) AS attempts, class_id, course_id "
-            + "FROM base_reports WHERE class_id = ANY(?::varchar[]) AND actor_id = ? "
+            + "FROM base_reports WHERE class_id = ANY(?::varchar[]) AND course_id IS NOT NULL AND actor_id = ? "
             + "AND collection_type = 'assessment' GROUP BY class_id, course_id";
 
     //CLASS DATA FOR ALL USER(attempts, time_spent)
     public static final String SELECT_ALL_STUDENTS_CLASS_DATA = "SELECT SUM(time_spent) AS timeSpent,  SUM(views) AS attempts, class_id, course_id "
-            + "FROM base_reports WHERE class_id = ? AND collection_type = 'assessment' AND event_name = 'collection.play' GROUP BY class_id, course_id";
+            + "FROM base_reports WHERE class_id = ? AND course_id IS NOT NULL AND collection_type = 'assessment' AND event_name = 'collection.play' GROUP BY class_id, course_id";
     
     //CLASS DATA FOR A USER(score, completion)
     public static final String SELECT_STUDENT_ALL_CLASS_COMPLETION_SCORE = "SELECT class_id, SUM(classData.completion) AS completedCount, AVG(scoreInPercentage) AS scoreInPercentage "
             + "FROM (SELECT DISTINCT ON (collection_id) CASE  WHEN (event_type = 'stop') THEN 1 ELSE 0 END AS completion, "
             + "FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage, class_id "
-            + "FROM base_reports WHERE class_id = ?  AND actor_id = ? "
+            + "FROM base_reports WHERE class_id = ?  AND course_id IS NOT NULL AND actor_id = ? "
             + "AND event_name = 'collection.play' AND event_type = 'stop' AND collection_type = 'assessment' "
             + "ORDER BY collection_id, updated_at DESC) AS classData GROUP BY class_id";
 
@@ -502,11 +504,11 @@ public class AJEntityBaseReports extends Model {
     
     //Class Data for ALL Users (score, completion)		
     public static final String SELECT_ALL_STUDENT_CLASS_COMPLETION_SCORE = "select class_id, SUM(compCount) AS completedCount, "
-    		+ "AVG(scoreInPercentage) AS scoreInPercentage FROM (SELECT class_id,actor_id, SUM(classData.completion) AS compCount, "
+    		+ "AVG(scoreInPercentage) AS scoreInPercentage FROM (SELECT class_id, actor_id, SUM(classData.completion) AS compCount, "
     		+ "(AVG(scoreInPercentage)) AS scoreInPercentage FROM (SELECT DISTINCT ON (collection_id, actor_id) "
     		+ "CASE  WHEN (event_type = 'stop') THEN 1 ELSE 0 END AS completion, FIRST_VALUE(score) OVER "
     		+ "(PARTITION BY collection_id, actor_id ORDER BY updated_at desc) AS scoreInPercentage, class_id, actor_id "
-    		+ "FROM base_reports WHERE class_id = ? AND actor_id = ANY(?::varchar[]) AND event_name = 'collection.play' "
+    		+ "FROM base_reports WHERE class_id = ? AND course_id IS NOT NULL AND actor_id = ANY(?::varchar[]) AND event_name = 'collection.play' "
     		+ "AND event_type = 'stop' AND collection_type = 'assessment' ORDER BY collection_id, actor_id, updated_at DESC) AS classData "
     		+ "GROUP BY class_id, actor_id) AS studentdata "
     		+ "GROUP BY class_id";
