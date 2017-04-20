@@ -9,6 +9,7 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityContent;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityCourseCollectionCount;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
@@ -53,26 +54,49 @@ public class IndLearnerAllCoursesPerfHandler implements DBHandler {
 
 	  @Override
 	  @SuppressWarnings("rawtypes")
-	  public ExecutionResult<MessageResponse> executeRequest() {
-
-	    this.userId = this.context.request().getString(REQUEST_USERID); 
-	    	    
-	    JsonObject result = new JsonObject();
-	    JsonArray courseKpiArray = new JsonArray();
-	    
-	    // Form the required Json pass it on
-	    result.put(JsonConstants.USAGE_DATA, courseKpiArray);
-	    
-	    if (!StringUtil.isNullOrEmpty(this.userId)) {
-	    	result.put(JsonConstants.USERID, this.userId);    	    	
-	    } else if (StringUtil.isNullOrEmpty(this.userId)) {    	
-	    	result.putNull(JsonConstants.USERID);
-	    }
-	    
-	    result.put("ILCoursePerf", "Work in Progress");
-	    
-	    return new ExecutionResult<>(MessageResponseFactory.createGetResponse(result), ExecutionStatus.SUCCESSFUL);
-	  }
+    public ExecutionResult<MessageResponse> executeRequest() {
+  
+      this.userId = this.context.request().getString(REQUEST_USERID);
+  
+      if (StringUtil.isNullOrEmpty(this.userId)) {
+        // If user id is not present in the path, take user id from session token.
+        this.userId = this.context.userIdFromSession();
+      }
+  
+      JsonObject result = new JsonObject();
+      JsonArray courseKpiArray = new JsonArray();
+  
+      List<Map> courseTSKpi = Base.findAll(AJEntityBaseReports.GET_IL_ALL_COURSE_TIMESPENT, this.userId);
+      if (!courseTSKpi.isEmpty()) {
+        courseTSKpi.forEach(courseTS -> {
+          JsonObject courseDataObject = new JsonObject();
+          courseDataObject.put(AJEntityBaseReports.ATTR_COURSE_ID, courseTS.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
+          courseDataObject.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.parseLong(courseTS.get(AJEntityBaseReports.TIME_SPENT).toString()));
+          List<Map> courseCompletionKpi = Base.findAll(AJEntityBaseReports.GET_IL_ALL_COURSE_SCORE_COMPLETION, this.userId,
+                  courseTS.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
+          courseCompletionKpi.forEach(courseComplettion -> {
+            courseDataObject.put(AJEntityBaseReports.ATTR_SCORE,
+                    Math.round(Double.valueOf(courseComplettion.get(AJEntityBaseReports.ATTR_SCORE).toString())));
+            courseDataObject.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT,
+                    Integer.parseInt(courseComplettion.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
+          });
+          Object title = Base.firstCell(AJEntityContent.SELECT_COURSE_TITLE, courseTS.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
+          courseDataObject.put(JsonConstants.COURSE_TITLE, title);
+          Object courseTotalAssCount = Base.firstCell(AJEntityCourseCollectionCount.GET_COURSE_ASSESSMENT_COUNT,
+                  courseTS.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
+          courseDataObject.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, courseTotalAssCount != null ? Integer.valueOf(courseTotalAssCount.toString()) : 0);
+          courseKpiArray.add(courseDataObject);
+        });
+      } else {
+        LOGGER.info("NO data returned for indLearner all courses performance");
+      }
+      // Form the required Json pass it on
+      result.put(JsonConstants.USAGE_DATA, courseKpiArray);
+  
+      result.put(JsonConstants.USERID, this.userId);
+  
+      return new ExecutionResult<>(MessageResponseFactory.createGetResponse(result), ExecutionStatus.SUCCESSFUL);
+    }
 
 	  @Override
 	  public boolean handlerReadOnly() {
