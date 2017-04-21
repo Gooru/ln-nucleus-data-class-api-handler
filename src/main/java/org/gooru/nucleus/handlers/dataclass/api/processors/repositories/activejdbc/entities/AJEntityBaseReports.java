@@ -799,15 +799,15 @@ public class AJEntityBaseReports extends Model {
             + "(AVG(scoreInPercentage)) scoreInPercentage "
             + "FROM(SELECT DISTINCT ON (collection_id) CASE  WHEN (event_type = 'stop') THEN 1 ELSE 0 END AS completion,"
             + "FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage,"
-            + "course_id FROM base_reports WHERE actor_id = ?  AND class_id IS NOT NULL AND course_id = ? "
+            + "course_id FROM base_reports WHERE actor_id = ?  AND class_id IS NULL AND course_id = ? "
             + "AND collection_type = 'assessment' "
             + "AND event_name = 'collection.play' AND event_type = 'stop' "
             + "ORDER BY collection_id, updated_at DESC)AS courseData GROUP BY course_id";
  
     public static final String GET_IL_ALL_COURSE_TIMESPENT = "SELECT course_id , SUM(time_spent) AS time_spent "
-            + "FROM base_reports WHERE class_id IS NOT NULL AND course_id IS NOT NULL "
+            + "FROM base_reports WHERE class_id IS NULL AND course_id IS NOT NULL "
             + "AND event_name = 'collection.play' AND collection_type ='assessment' "
-            + "AND actor_id = ? GROUP BY course_id";
+            + "AND actor_id = ? GROUP BY course_id OFFSET ? ";
     
     //*****************************************************************************************************************************
 
