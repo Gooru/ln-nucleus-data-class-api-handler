@@ -814,6 +814,15 @@ public class AJEntityBaseReports extends Model {
             + "AND collection_type = 'assessment' AND event_name = 'collection.play' "
             + "ORDER BY collection_id, updated_at DESC";
     
+    //*****************************************************************************************************************************
+    public static final String GET_IL_ALL_COLLECTION_VIEWS_TIMESPENT = "SELECT SUM(CASE WHEN (agg.event_name = 'collection.resource.play') THEN agg.time_spent ELSE 0 END) AS time_spent, "
+            + "SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.views ELSE 0 END) AS views, "
+            + "agg.collection_id FROM  (SELECT collection_id,time_spent, views, event_name"
+            + " FROM base_reports WHERE class_id IS NULL AND course_id IS NULL AND unit_id IS NULL AND lesson_id IS NULL "
+            + "AND actor_id = ? AND collection_type = 'collection' ) AS agg GROUP BY agg.collection_id OFFSET ?";
+   
+    //*****************************************************************************************************************************
+
     public static final String UUID_TYPE = "uuid";
    
 }

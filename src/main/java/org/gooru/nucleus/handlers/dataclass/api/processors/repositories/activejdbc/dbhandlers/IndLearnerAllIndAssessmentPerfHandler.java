@@ -81,7 +81,7 @@ public class IndLearnerAllIndAssessmentPerfHandler implements DBHandler {
           } else {
             assesmentObject.put(AJEntityBaseReports.ATTR_SCORE, 0);
           }
-          Object title = Base.firstCell(AJEntityContent.SELECT_COURSE_TITLE, assessmentTsKpi.get(AJEntityBaseReports.COLLECTION_OID).toString());
+          Object title = Base.firstCell(AJEntityContent.GET_TITLE, assessmentTsKpi.get(AJEntityBaseReports.COLLECTION_OID).toString());
           assesmentObject.put(JsonConstants.COURSE_TITLE, title);
           assessmentKpiArray.add(assesmentObject);
         });

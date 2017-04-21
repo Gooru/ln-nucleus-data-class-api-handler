@@ -80,7 +80,7 @@ public class IndLearnerAllCoursesPerfHandler implements DBHandler {
           courseDataObject.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT,
                   Integer.parseInt(courseComplettion.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
         });
-        Object title = Base.firstCell(AJEntityContent.SELECT_COURSE_TITLE, courseTS.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
+        Object title = Base.firstCell(AJEntityContent.GET_TITLE, courseTS.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
         courseDataObject.put(JsonConstants.COURSE_TITLE, title);
         Object courseTotalAssCount = Base.firstCell(AJEntityCourseCollectionCount.GET_COURSE_ASSESSMENT_COUNT,
                 courseTS.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());

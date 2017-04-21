@@ -1,15 +1,17 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityContent;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
+import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
-import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
+import org.javalite.activejdbc.Base;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,75 +49,46 @@ public class IndLearnerAllIndCollectionPerfHandler implements DBHandler {
 
 	  @Override
 	  @SuppressWarnings("rawtypes")
-	  public ExecutionResult<MessageResponse> executeRequest() {
-
-	    this.userId = this.context.request().getString(REQUEST_USERID); 
-	    	    
-	    JsonObject result = new JsonObject();
-	    JsonArray assessmentKpiArray = new JsonArray();
-	    
-	    // Form the required Json pass it on
-	    result.put(JsonConstants.USAGE_DATA, assessmentKpiArray);
-	    
-	    if (!StringUtil.isNullOrEmpty(this.userId)) {
-	    	result.put(JsonConstants.USERID, this.userId);    	    	
-	    } else if (StringUtil.isNullOrEmpty(this.userId)) {    	
-	    	result.putNull(JsonConstants.USERID);
-	    }
-	    
-	    result.put("ILCollectionPerf", "Work in Progress");
-	    
-	    return new ExecutionResult<>(MessageResponseFactory.createGetResponse(result), ExecutionStatus.SUCCESSFUL);
-	  }
+    public ExecutionResult<MessageResponse> executeRequest() {
+      this.userId = this.context.request().getString(REQUEST_USERID);
+      String limitS = this.context.request().getString("limit");
+      String offsetS = this.context.request().getString("offset");
+  
+      if (StringUtil.isNullOrEmpty(this.userId)) {
+        // If user id is not present in the path, take user id from session token.
+        this.userId = this.context.userIdFromSession();
+      }
+  
+      JsonObject result = new JsonObject();
+      JsonArray collectionKpiArray = new JsonArray();
+      String query = StringUtil.isNullOrEmpty(limitS) ? AJEntityBaseReports.GET_IL_ALL_COLLECTION_VIEWS_TIMESPENT
+              : AJEntityBaseReports.GET_IL_ALL_COLLECTION_VIEWS_TIMESPENT + "LIMIT " + Long.valueOf(limitS);
+  
+      List<Map> collectionAggData = Base.findAll(query, this.userId, StringUtil.isNullOrEmpty(offsetS) ? 0L : Long.valueOf(offsetS));
+      if (!collectionAggData.isEmpty()) {
+        collectionAggData.forEach(collectionsKpi -> {
+          JsonObject collectionObj = new JsonObject();
+          collectionObj.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collectionsKpi.get(AJEntityBaseReports.COLLECTION_OID).toString());
+          collectionObj.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.parseLong(collectionsKpi.get(AJEntityBaseReports.TIME_SPENT).toString()));
+          collectionObj.put(AJEntityBaseReports.VIEWS, Long.parseLong(collectionsKpi.get(AJEntityBaseReports.VIEWS).toString()));
+          Object title = Base.firstCell(AJEntityContent.GET_TITLE, collectionsKpi.get(AJEntityBaseReports.COLLECTION_OID).toString());
+          collectionObj.put(JsonConstants.COLLECTION_TITLE, title);
+          collectionKpiArray.add(collectionObj);
+        });
+      } else {
+        LOGGER.info("No data returned for independant learner all collections performance");
+      }
+      // Form the required Json pass it on
+      result.put(JsonConstants.USAGE_DATA, collectionKpiArray);
+  
+      result.put(JsonConstants.USERID, this.userId);
+  
+      return new ExecutionResult<>(MessageResponseFactory.createGetResponse(result), ExecutionStatus.SUCCESSFUL);
+    }
 
 	  @Override
 	  public boolean handlerReadOnly() {
 	    return false;
 	  }
-
-	  private String jArrayToPostgresArrayString(JsonArray inputArrary) {
-	    List<String> input = new ArrayList<>();
-	    for (Object s : inputArrary) {
-	      input.add(s.toString());
-	    }
-	    int approxSize = ((input.size() + 1) * 36);
-	    Iterator<String> it = input.iterator();
-	    if (!it.hasNext()) {
-	      return "{}";
-	    }
-	    StringBuilder sb = new StringBuilder(approxSize);
-	    sb.append('{');
-	    for (;;) {
-	      String s = it.next();
-	      sb.append('"').append(s).append('"');
-	      if (!it.hasNext()) {
-	        return sb.append('}').toString();
-	      }
-	      sb.append(',');
-	    }
-	  }
-
-	  private String listToPostgresArrayString(List<String> input) {
-		    int approxSize = ((input.size() + 1) * 36); // Length of UUID is around
-		                                                // 36
-		                                                // chars
-		    Iterator<String> it = input.iterator();
-		    if (!it.hasNext()) {
-		      return "{}";
-		    }
-
-		    StringBuilder sb = new StringBuilder(approxSize);
-		    sb.append('{');
-		    for (;;) {
-		      String s = it.next();
-		      sb.append('"').append(s).append('"');
-		      if (!it.hasNext()) {
-		        return sb.append('}').toString();
-		      }
-		      sb.append(',');
-		    }
-
-		  }
-
 
 }
