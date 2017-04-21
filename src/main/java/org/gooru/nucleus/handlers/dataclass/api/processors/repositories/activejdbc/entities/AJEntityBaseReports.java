@@ -803,6 +803,17 @@ public class AJEntityBaseReports extends Model {
     
     //*****************************************************************************************************************************
 
+    public static final String GET_IL_ALL_ASSESSMENT_ATTEMPTS_TIMESPENT = "SELECT collection_id , SUM(time_spent) AS time_spent , SUM(views) AS attempts "
+            + "FROM base_reports WHERE class_id IS NULL AND course_id IS NULL AND unit_id IS NULL AND lesson_id IS NULL "
+            + "AND event_name = 'collection.play' AND collection_type ='assessment' "
+            + "AND actor_id = ? GROUP BY collection_id OFFSET ? ";
+    
+    public static final String GET_IL_ALL_ASSESSMENT_SCORE_COMPLETION = "SELECT DISTINCT ON (collection_id) CASE  WHEN (event_type = 'stop') THEN 'complete' ELSE 'in-progress' END AS completion , "
+            + "FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage "
+            + "FROM base_reports WHERE actor_id = ?  AND class_id IS NULL AND course_id IS NULL  AND unit_id IS NULL AND lesson_id IS NULL AND collection_id = ? "
+            + "AND collection_type = 'assessment' AND event_name = 'collection.play' "
+            + "ORDER BY collection_id, updated_at DESC";
+    
     public static final String UUID_TYPE = "uuid";
    
 }
