@@ -65,7 +65,7 @@ public class IndependentLearnerCoursesHandler implements DBHandler {
       coursesList.forEach(course -> {
         JsonObject contentBody = new JsonObject();
         contentBody.put(AJEntityBaseReports.ATTR_COURSE_ID, course.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
-        Object title = Base.firstCell(AJEntityContent.SELECT_COURSE_TITLE, course.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
+        Object title = Base.firstCell(AJEntityContent.GET_TITLE, course.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
         contentBody.put(ATTR_TITLE, title != null ? title.toString() : "NA");        
         resultarray.add(contentBody);
       });

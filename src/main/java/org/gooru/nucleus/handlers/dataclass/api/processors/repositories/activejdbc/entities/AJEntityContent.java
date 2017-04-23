@@ -17,6 +17,6 @@ public class AJEntityContent extends Model {
 
   public static final String UPDATED_AT = "updated_at";
 
-  public static final String SELECT_COURSE_TITLE = "SELECT title FROM content WHERE id = ?";
+  public static final String GET_TITLE = "SELECT title FROM content WHERE id = ?";
 
 }

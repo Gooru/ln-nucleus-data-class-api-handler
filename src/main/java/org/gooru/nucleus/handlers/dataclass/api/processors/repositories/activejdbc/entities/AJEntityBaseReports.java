@@ -786,6 +786,43 @@ public class AJEntityBaseReports extends Model {
     		+ "actor_id = ? AND collection_type = ? AND class_id IS NULL AND course_id = ? ";
     
     //*****************************************************************************************************************************
+   
+    public static final String GET_IL_ALL_COURSE_SCORE_COMPLETION = "SELECT SUM(courseData.completion) AS completedCount, "
+            + "(AVG(scoreInPercentage)) scoreInPercentage "
+            + "FROM(SELECT DISTINCT ON (collection_id) CASE  WHEN (event_type = 'stop') THEN 1 ELSE 0 END AS completion,"
+            + "FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage,"
+            + "course_id FROM base_reports WHERE actor_id = ?  AND class_id IS NULL AND course_id = ? "
+            + "AND collection_type = 'assessment' "
+            + "AND event_name = 'collection.play' AND event_type = 'stop' "
+            + "ORDER BY collection_id, updated_at DESC)AS courseData GROUP BY course_id";
+ 
+    public static final String GET_IL_ALL_COURSE_TIMESPENT = "SELECT course_id , SUM(time_spent) AS time_spent "
+            + "FROM base_reports WHERE class_id IS NULL AND course_id IS NOT NULL "
+            + "AND event_name = 'collection.play' AND collection_type ='assessment' "
+            + "AND actor_id = ? GROUP BY course_id OFFSET ? ";
+    
+    //*****************************************************************************************************************************
+
+    public static final String GET_IL_ALL_ASSESSMENT_ATTEMPTS_TIMESPENT = "SELECT collection_id , SUM(time_spent) AS time_spent , SUM(views) AS attempts "
+            + "FROM base_reports WHERE class_id IS NULL AND course_id IS NULL AND unit_id IS NULL AND lesson_id IS NULL "
+            + "AND event_name = 'collection.play' AND collection_type ='assessment' "
+            + "AND actor_id = ? GROUP BY collection_id OFFSET ? ";
+    
+    public static final String GET_IL_ALL_ASSESSMENT_SCORE_COMPLETION = "SELECT DISTINCT ON (collection_id) CASE  WHEN (event_type = 'stop') THEN 'complete' ELSE 'in-progress' END AS completion , "
+            + "FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage "
+            + "FROM base_reports WHERE actor_id = ?  AND class_id IS NULL AND course_id IS NULL  AND unit_id IS NULL AND lesson_id IS NULL AND collection_id = ? "
+            + "AND collection_type = 'assessment' AND event_name = 'collection.play' "
+            + "ORDER BY collection_id, updated_at DESC";
+    
+    //*****************************************************************************************************************************
+    public static final String GET_IL_ALL_COLLECTION_VIEWS_TIMESPENT = "SELECT SUM(CASE WHEN (agg.event_name = 'collection.resource.play') THEN agg.time_spent ELSE 0 END) AS time_spent, "
+            + "SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.views ELSE 0 END) AS views, "
+            + "agg.collection_id FROM  (SELECT collection_id,time_spent, views, event_name"
+            + " FROM base_reports WHERE class_id IS NULL AND course_id IS NULL AND unit_id IS NULL AND lesson_id IS NULL "
+            + "AND actor_id = ? AND collection_type = 'collection' ) AS agg GROUP BY agg.collection_id OFFSET ?";
+   
+    //*****************************************************************************************************************************
+
     public static final String UUID_TYPE = "uuid";
    
 }
