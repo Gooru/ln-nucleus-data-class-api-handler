@@ -106,7 +106,7 @@ import io.vertx.core.json.JsonObject;
           LOGGER.warn("UserID is not in the request to fetch Student Performance in Course. Asseume user is a teacher");
           LazyList<AJEntityBaseReports> userIdforUnit =
                   AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_UNIT_ID_FITLERBY_COLLTYPE, context.classId(),
-                          context.courseId(), context.unitId(), EventConstants.ASSESSMENT);
+                          context.courseId(), context.unitId(), this.collectionType);
           userIdforUnit.forEach(lesson -> userIds.add(lesson.getString(AJEntityBaseReports.GOORUUID)));
     
         } else {

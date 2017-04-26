@@ -130,6 +130,10 @@ public class StudPerfCourseAssessmentHandler implements DBHandler {
     	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.LESSON_ID);
     	  params.add(lessonId);    
         } 
+      query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.PATH_ID)
+      .append(AJEntityBaseReports.SPACE).append("IS NULL");
+      
+      LOGGER.debug("StudPerfCourseAssessmentHandler Query : {}", query.toString());
       
       LazyList<AJEntityBaseReports> collectionList = AJEntityBaseReports.findBySQL(query.toString(), params.toArray());
       
