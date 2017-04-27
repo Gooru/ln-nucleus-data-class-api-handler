@@ -49,15 +49,10 @@ public class StudentCurrentLocationHandler implements DBHandler {
     public ExecutionResult<MessageResponse> validateRequest() {
       if (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest())) {
         LOGGER.debug("User ID in the session : {}", context.userIdFromSession());
-        List<Map> creator = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_CREATOR, this.context.classId(), this.context.userIdFromSession());
-        if (creator.isEmpty()) {
-          List<Map> collaborator =
-                  Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_COLLABORATOR, this.context.classId(), this.context.userIdFromSession());
-          if (collaborator.isEmpty()) {
-            LOGGER.debug("validateRequest() FAILED");
-            return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"), ExecutionStatus.FAILED);
-          }
-          LOGGER.debug("User is a collaborator of this class.");
+        List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, this.context.classId(), this.context.userIdFromSession());
+        if (owner.isEmpty()) {
+          LOGGER.debug("validateRequest() FAILED");
+          return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"), ExecutionStatus.FAILED);
         }
         LOGGER.debug("User is teacher of this class.");
       }
