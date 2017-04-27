@@ -156,7 +156,7 @@ import io.vertx.core.json.JsonObject;
                 }
                 JsonArray assessmentArray = new JsonArray();
                 LazyList<AJEntityBaseReports> collIDforlesson = null;
-                  collIDforlesson =  AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_COLLID_FOR_LESSON_ID_FILTERBY_COLLTYPE, context.classId(),
+                  collIDforlesson =  AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_COLLID_FOR_LESSON_ID_FILTERBY_COLLTYPE_WO_PATH_ID, context.classId(),
                                 context.courseId(), context.unitId(), this.lessonId, this.collectionType, userID);
     
                 List<String> collIds = new ArrayList<>();
@@ -169,7 +169,7 @@ import io.vertx.core.json.JsonObject;
                   assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF_FOR_COLLECTION, context.classId(),
                           context.courseId(), context.unitId(), this.lessonId, listToPostgresArrayString(collIds), userID);
                 }else{
-                  assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF_FOR_ASSESSMENT, context.classId(),
+                  assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF_FOR_ASSESSMENT_WO_PATH_ID, context.classId(),
                         context.courseId(), context.unitId(), this.lessonId, listToPostgresArrayString(collIds), userID, EventConstants.COLLECTION_PLAY);
                 }
                 if (!assessmentKpi.isEmpty()) {
