@@ -49,7 +49,6 @@ public class IndLearnerAllIndCollectionLocHandler implements DBHandler {
 	  @Override
 	  public ExecutionResult<MessageResponse> validateRequest() {
 	    LOGGER.debug("validateRequest() OK");
-	    // TODO :: Teacher validation to be added.
 	    return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
 	  }
 

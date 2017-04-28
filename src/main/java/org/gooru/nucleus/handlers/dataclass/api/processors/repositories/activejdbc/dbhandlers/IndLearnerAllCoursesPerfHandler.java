@@ -44,7 +44,6 @@ public class IndLearnerAllCoursesPerfHandler implements DBHandler {
 	  @Override
 	  public ExecutionResult<MessageResponse> validateRequest() {
 	    LOGGER.debug("validateRequest() OK");
-	    // FIXME :: Teacher validation to be added.
 	    return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
 	  }
 
