@@ -570,7 +570,7 @@ public class AJEntityBaseReports extends Model {
     		+ "GROUP BY collection_id";
 
     public static final String GET_DISTINCT_COLLECTIONS = "SELECT distinct(collection_id) from base_reports where "
-    		+ "actor_id = ? AND collection_type = ? AND class_id = ? AND course_id = ? AND path_id IS NULL";
+    		+ "actor_id = ? AND collection_type = ? AND class_id = ? AND course_id = ? AND path_id IS NULL ";
     
     //*****************************************************************************************************************************
     //Daily Class Activity
