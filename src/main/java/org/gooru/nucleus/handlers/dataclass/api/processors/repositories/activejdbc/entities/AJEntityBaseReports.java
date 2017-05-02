@@ -614,9 +614,12 @@ public class AJEntityBaseReports extends Model {
         
     //**********************************************************INDEPENDENT LEARNER QUERIES************************************//
 
-    public static final String GET_INDEPENDENT_LEARNER_COURSES = "SELECT DISTINCT course_id "
+    public static final String GET_INDEPENDENT_LEARNER_COURSES = "SELECT DISTINCT course_id FROM user_tax_subject "
+            + "WHERE tax_subject_id = ? AND actor_id = ?";
+    
+    /*public static final String GET_INDEPENDENT_LEARNER_COURSES_ = "SELECT DISTINCT course_id "
             + "FROM base_reports WHERE class_id IS NULL AND course_id IS NOT NULL "
-            + "AND actor_id = ? AND event_name = 'collection.play'";
+            + "AND actor_id = ? AND event_name = 'collection.play'";*/
    
     public static final String SELECT_INDEPENDENT_LEARNER_DISTINCT_UNIT_ID_FOR_COURSE_ID_FILTERBY_COLLTYPE =
             "SELECT DISTINCT(unit_id) FROM base_reports "

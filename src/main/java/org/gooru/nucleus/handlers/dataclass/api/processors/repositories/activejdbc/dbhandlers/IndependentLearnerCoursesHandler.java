@@ -59,8 +59,14 @@ public class IndependentLearnerCoursesHandler implements DBHandler {
     JsonArray resultarray = new JsonArray();
     this.userId = this.context.userIdFromSession();
     LOGGER.debug("UID is " + this.userId);
+    String taxSubjectId = this.context.request().getString("taxSubjectId");
+    if(taxSubjectId == null){
+      return new ExecutionResult<>(
+              MessageResponseFactory.createInvalidRequestResponse("Taxonomy Subject ID is Mandatory Attribute"),
+              ExecutionStatus.FAILED);
+    }
     List<Map> coursesList = null;
-    coursesList = Base.findAll(AJEntityBaseReports.GET_INDEPENDENT_LEARNER_COURSES, this.userId);
+    coursesList = Base.findAll(AJEntityBaseReports.GET_INDEPENDENT_LEARNER_COURSES,taxSubjectId, this.userId);
     if (!coursesList.isEmpty()) {
       coursesList.forEach(course -> {
         JsonObject contentBody = new JsonObject();
