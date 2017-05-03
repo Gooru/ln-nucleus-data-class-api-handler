@@ -87,6 +87,7 @@ public final class MessageConstants {
     public static final String MSG_OP_IND_LEARNER_PERF_ALL_IND_COLLECTIONS = "independent.learner.all.ind.collections.performance";
     public static final String MSG_OP_IND_LEARNER_COURSE_ALL_COLLECTIONS_PERF = "independent.learner.course.all.collections.performance";
     public static final String MSG_OP_IND_LEARNER_COURSE_ALL_ASSESSMENTS_PERF = "independent.learner.course.all.assessments.performance";
+    public static final String MSG_OP_IND_LEARNER_TAX_SUBJECTS = "independent.learner.taxonomy.subjects";
 
 
     
