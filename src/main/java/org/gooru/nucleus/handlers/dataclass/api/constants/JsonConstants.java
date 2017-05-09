@@ -83,5 +83,9 @@ public class JsonConstants {
 	public static final String COLLECTION_TITLE = "collectionTitle";
   
   	public static final String LAST_ACCESSED = "lastAccessed";
+  	
+  	public static final String ALTERNATE_PATH = "alternatePath";
+  	
+  	public static final String PATH_ID = "pathId";
 
 }

@@ -154,7 +154,7 @@ public final class DBHandlerBuilder {
         return new IndLearnerCourseCollectionsPerfHandler(context);
       }
     
-    public static DBHandler buildIndLearnerCourseAssessmentssPerfHandler(ProcessorContext context) {
+    public static DBHandler buildIndLearnerCourseAssessmentsPerfHandler(ProcessorContext context) {
         return new IndLearnerCourseAssessmentsPerfHandler(context);
       }
     

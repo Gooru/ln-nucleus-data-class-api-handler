@@ -75,7 +75,9 @@ public class AJEntityBaseReports extends Model {
     public static final String ATTR_CLASS_ID = "classId";
     public static final String ATTR_COURSE_ID = "courseId";
     public static final String ATTR_UNIT_ID = "unitId";
-    public static final String ATTR_LESSON_ID = "lessonId";
+    public static final String ATTR_LESSON_ID = "lessonId";    
+    public static final String ATTR_RESOURCE_ID = "resourceId";
+    public static final String ATTR_PATH_ID = "pathId";
     public static final String ATTR_COLLECTION_TYPE = "collectionType";
 
     public static final String NA = "NA";
@@ -246,10 +248,16 @@ public class AJEntityBaseReports extends Model {
           + "FROM (SELECT time_spent,  FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage, reaction AS reaction, views AS attempts, collection_id,event_name FROM base_reports "
           + "WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ANY(?::varchar[]) AND actor_id = ?) AS agg "
           + "GROUP BY agg.collection_id";
+    
     public static final String GET_COMPLETED_COLLID_COUNT = 
-    		"SELECT COUNT(collection_id) as completedCount, collection_id as collectionId from base_reports "
-    		+ "WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND "
-    		+ "collection_type = ? AND actor_id = ? AND event_name = ? AND event_type = ? GROUP BY collection_id";
+    	"SELECT COUNT(collection_id) as completedCount, collection_id as collectionId from base_reports "
+    	+ "WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND "
+    	+ "collection_type = ? AND actor_id = ? AND event_name = ? AND event_type = ? GROUP BY collection_id";
+    
+    // NOTE: event_name is collection.resource.play
+    public static final String GET_RESOURCE_PERF = "SELECT SUM(time_spent) AS timeSpent, SUM(views) AS views, resource_id AS resourceId, "
+    		+ "path_id as pathId FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? "
+    		+ "AND actor_id = ? AND event_name = ? AND path_id IS NOT NULL AND collection_type IS NULL group by resource_id, path_id";
     
     //*************************************************************************************************************************
     //STUDENT PERFORMANCE in Assessment
@@ -579,7 +587,7 @@ public class AJEntityBaseReports extends Model {
             "SELECT DISTINCT(actor_id) FROM base_reports "
             + "WHERE class_id = ? AND collection_type = ?";
     
-    public static final String GET_PERFORMANCE_FOR_CLASS_ASSESSMENTS = "SELECT SUM(agg.time_spent) AS timeSpent, "
+    public static final String GET_PERFORMANCE_FOR_CLASS_ASSESSMENTS = "SELECT SUM(agg.timeSpent) AS timeSpent, "
             + "(AVG(agg.scoreInPercentage)) scoreInPercentage, SUM(agg.attempts) AS attempts, "
             + "agg.collectionId, agg.activityDate FROM (SELECT time_spent AS timeSpent, "
             + "FIRST_VALUE(score) OVER (PARTITION BY collection_id, DATE(updated_at) ORDER BY updated_at desc) "
@@ -847,5 +855,6 @@ public class AJEntityBaseReports extends Model {
     //*****************************************************************************************************************************
 
     public static final String UUID_TYPE = "uuid";
+	
    
 }
