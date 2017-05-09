@@ -108,10 +108,12 @@ public class IndLearnerCourseAssessmentsPerfHandler implements DBHandler {
         } 
       
       LazyList<AJEntityBaseReports> collectionList = AJEntityBaseReports.findBySQL(query.toString(), params.toArray());
+      LOGGER.debug("The query is" + query.toString());
       
       //Populate collIds from the Context in API
       List<String> collIds = new ArrayList<>();
       if (!collectionList.isEmpty()) {          
+    	  LOGGER.debug("Do I get here?");
           collectionList.forEach(c -> collIds.add(c.getString(AJEntityBaseReports.COLLECTION_OID)));
       }        
         for (String collId : collIds) {
@@ -137,13 +139,14 @@ public class IndLearnerCourseAssessmentsPerfHandler implements DBHandler {
         	
         	if (!assessScore.isEmpty()){
         		assessScore.forEach(m -> {
-            		assessmentKpi.put(AJEntityBaseReports.ATTR_SCORE, Integer.parseInt(m.get(AJEntityBaseReports.ATTR_SCORE).toString()));
+            		assessmentKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.valueOf(m.get(AJEntityBaseReports.ATTR_SCORE).toString())));
             		assessmentKpi.put(JsonConstants.STATUS, JsonConstants.COMPLETE);        
     	    		});
             	}
         		
         	assessmentKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collId);
-        	assessmentArray.add(assessmentKpi);        		
+        	assessmentArray.add(assessmentKpi);
+        	LOGGER.debug(assessmentArray.encodePrettily());
         	}
 
       resultBody.put(JsonConstants.USAGE_DATA, assessmentArray).put(JsonConstants.USERUID, this.userId);

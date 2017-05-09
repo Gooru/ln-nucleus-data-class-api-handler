@@ -39,6 +39,7 @@ public class StudentLessonPerfHandler implements DBHandler {
     private String collectionType;
     private String userId;
     private long questionCount;
+    private boolean isTeacher = false;
     
     public StudentLessonPerfHandler(ProcessorContext context) {
         this.context = context;
@@ -60,14 +61,14 @@ public class StudentLessonPerfHandler implements DBHandler {
     @Override
     @SuppressWarnings("rawtypes")
     public ExecutionResult<MessageResponse> validateRequest() {
-      if (context.getUserIdFromRequest() == null
-              || (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
-        List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, this.context.classId(), this.context.userIdFromSession());
-        if (owner.isEmpty()) {
-          LOGGER.debug("validateRequest() FAILED");
-          return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"), ExecutionStatus.FAILED);
-        }
-      }
+//      if (context.getUserIdFromRequest() == null
+//              || (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
+//        List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, this.context.classId(), this.context.userIdFromSession());
+//        if (owner.isEmpty()) {
+//          LOGGER.debug("validateRequest() FAILED");
+//          return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"), ExecutionStatus.FAILED);
+//        }
+//      }
       LOGGER.debug("validateRequest() OK");
       return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
     }
@@ -95,12 +96,14 @@ public class StudentLessonPerfHandler implements DBHandler {
     // necessary to get distinct users.
     if (context.classId() != null && StringUtil.isNullOrEmpty(userId)) {
       LOGGER.warn("UserID is not in the request to fetch Student Performance in Lesson. Assume user is a teacher");
+      isTeacher = true;
       LazyList<AJEntityBaseReports> userIdforlesson =
               AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_LESSON_ID_FILTERBY_COLLTYPE, context.classId(),
                       context.courseId(), context.unitId(), context.lessonId(), this.collectionType);
       userIdforlesson.forEach(coll -> userIds.add(coll.getString(AJEntityBaseReports.GOORUUID)));
 
     } else {
+      isTeacher = false;	
       userIds.add(this.userId);
     }
 
@@ -109,6 +112,8 @@ public class StudentLessonPerfHandler implements DBHandler {
     for (String userID : userIds) {
       JsonObject contentBody = new JsonObject();
       JsonArray LessonKpiArray = new JsonArray();
+      JsonArray altPathArray = new JsonArray();
+      
       LazyList<AJEntityBaseReports> collIDforlesson = null;
       collIDforlesson = AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_COLLID_FOR_LESSON_ID_FILTERBY_COLLTYPE, context.classId(),
               context.courseId(), context.unitId(), context.lessonId(), this.collectionType, userID);
@@ -130,12 +135,15 @@ public class StudentLessonPerfHandler implements DBHandler {
       if (!assessmentKpi.isEmpty()) {
         assessmentKpi.forEach(m -> {
           JsonObject lessonKpi = ValueMapper.map(ResponseAttributeIdentifier.getLessonPerformanceAttributesMap(), m);
+          String cId = m.get(AJEntityBaseReports.ATTR_COLLECTION_ID).toString();
+          LOGGER.info("CollectionId is " + cId);          
           // FIXME : revisit completed count and total count
           lessonKpi.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 1);
           lessonKpi.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
-
+          
           // FIXME: This logic to be revisited.
           if (this.collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {
+        	  LOGGER.info("Mukul - Do I get here if collectionType is assessment");
             List<Map> collectionQuestionCount = null;
             collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_QUESTION_COUNT, context.classId(), context.courseId(),
                     context.unitId(), context.lessonId(), lessonKpi.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID), this.userId);
@@ -159,14 +167,33 @@ public class StudentLessonPerfHandler implements DBHandler {
             lessonKpi.remove(EventConstants.ATTEMPTS);
           }else{
             lessonKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.valueOf(m.get(AJEntityBaseReports.ATTR_SCORE).toString())));
+            if (!isTeacher){
+            	List<Map> resourceKpi = null;
+                LOGGER.info("CollectionId is " + cId);            
+                resourceKpi = Base.findAll(AJEntityBaseReports.GET_RESOURCE_PERF, context.classId(), context.courseId(),
+                        context.unitId(), context.lessonId(), cId, userID, EventConstants.COLLECTION_RESOURCE_PLAY);            
+                if (!resourceKpi.isEmpty()) {
+                    resourceKpi.forEach(res -> {
+                    	JsonObject resKpi = new JsonObject();
+                    	resKpi.put(AJEntityBaseReports.ATTR_ASSESSMENT_ID, cId);
+                    	resKpi.put(AJEntityBaseReports.ATTR_PATH_ID, res.get(AJEntityBaseReports.ATTR_PATH_ID).toString());
+                    	resKpi.put(AJEntityBaseReports.ATTR_RESOURCE_ID, res.get(AJEntityBaseReports.ATTR_RESOURCE_ID).toString());
+                		resKpi.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.parseLong(res.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()));
+                		resKpi.put(AJEntityBaseReports.VIEWS, Integer.parseInt(res.get(AJEntityBaseReports.VIEWS).toString()));
+                		altPathArray.add(resKpi);                		
+                      });            	
+                }            	
+            }
+            
           }
-          LessonKpiArray.add(lessonKpi);
+          LessonKpiArray.add(lessonKpi);          
+          LOGGER.info(LessonKpiArray.encodePrettily());
         });
       } else {
         // Return an empty resultBody instead of an Error
         LOGGER.debug("No data returned for Student Perf in Assessment");
       }
-      contentBody.put(JsonConstants.USAGE_DATA, LessonKpiArray).put(JsonConstants.USERUID, userID);
+      contentBody.put(JsonConstants.USAGE_DATA, LessonKpiArray).put(JsonConstants.ALTERNATE_PATH, altPathArray).put(JsonConstants.USERUID, userID);
       resultarray.add(contentBody);
     }
     resultBody.put(JsonConstants.CONTENT, resultarray).putNull(JsonConstants.MESSAGE).putNull(JsonConstants.PAGINATE);
