@@ -158,4 +158,8 @@ public final class DBHandlerBuilder {
         return new IndLearnerCourseAssessmentsPerfHandler(context);
       }
     
+    public static DBHandler buildIndLearnerTaxSubjectHandler(ProcessorContext context) {
+      return new IndependentLearnerTaxonomySubjectHandler(context);
+    }
+    
 }
