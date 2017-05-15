@@ -9,7 +9,7 @@ import java.util.Map;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
-import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityDailyClassActivity;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
@@ -129,9 +129,9 @@ public class StudPerfDailyActivityHandler implements DBHandler {
     List<String> userIds = new ArrayList<>();
     if (StringUtil.isNullOrEmpty(userId)) {
       LOGGER.warn("UserID is not in the request to fetch Student Performance in Course. Asseume user is a teacher");
-      LazyList<AJEntityBaseReports> userIdOfClass =
-              AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_DAILY_CLASS_ACTIVITY, this.classId, this.collectionType);
-      userIdOfClass.forEach(users -> userIds.add(users.getString(AJEntityBaseReports.GOORUUID)));
+      LazyList<AJEntityDailyClassActivity> userIdOfClass =
+    		  AJEntityDailyClassActivity.findBySQL(AJEntityDailyClassActivity.SELECT_DISTINCT_USERID_FOR_DAILY_CLASS_ACTIVITY, this.classId, this.collectionType);
+      userIdOfClass.forEach(users -> userIds.add(users.getString(AJEntityDailyClassActivity.GOORUUID)));
 
     } else {
       userIds.add(this.userId);
@@ -143,16 +143,16 @@ public class StudPerfDailyActivityHandler implements DBHandler {
       
       if (this.collectionType.equalsIgnoreCase(JsonConstants.ASSESSMENT)) {
     	LOGGER.debug("Fetching Performance for Assessments in Class");
-        List<Map> assessmentPerf = Base.findAll(AJEntityBaseReports.GET_PERFORMANCE_FOR_CLASS_ASSESSMENTS, classId,
-                listToPostgresArrayString(collIds), userId, this.collectionType, AJEntityBaseReports.ATTR_CP_EVENTNAME, startDate, endDate);
+        List<Map> assessmentPerf = Base.findAll(AJEntityDailyClassActivity.GET_PERFORMANCE_FOR_CLASS_ASSESSMENTS, classId,
+                listToPostgresArrayString(collIds), userId, this.collectionType, AJEntityDailyClassActivity.ATTR_CP_EVENTNAME, startDate, endDate);
         if (!assessmentPerf.isEmpty()) {
           assessmentPerf.forEach(m -> {
             JsonObject assessmentKpi = new JsonObject();
-            assessmentKpi.put(AJEntityBaseReports.DATE, m.get(AJEntityBaseReports.ACTIVITY_DATE).toString());
-            assessmentKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, m.get(AJEntityBaseReports.ATTR_COLLECTION_ID).toString());
-            assessmentKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.valueOf(m.get(AJEntityBaseReports.ATTR_SCORE).toString())));
-            assessmentKpi.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.parseLong(m.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()));
-            assessmentKpi.put(AJEntityBaseReports.ATTR_ATTEMPTS, Integer.parseInt(m.get(AJEntityBaseReports.ATTR_ATTEMPTS).toString()));
+            assessmentKpi.put(AJEntityDailyClassActivity.DATE, m.get(AJEntityDailyClassActivity.ACTIVITY_DATE).toString());
+            assessmentKpi.put(AJEntityDailyClassActivity.ATTR_COLLECTION_ID, m.get(AJEntityDailyClassActivity.ATTR_COLLECTION_ID).toString());
+            assessmentKpi.put(AJEntityDailyClassActivity.ATTR_SCORE, Math.round(Double.valueOf(m.get(AJEntityDailyClassActivity.ATTR_SCORE).toString())));
+            assessmentKpi.put(AJEntityDailyClassActivity.ATTR_TIME_SPENT, Long.parseLong(m.get(AJEntityDailyClassActivity.ATTR_TIME_SPENT).toString()));
+            assessmentKpi.put(AJEntityDailyClassActivity.ATTR_ATTEMPTS, Integer.parseInt(m.get(AJEntityDailyClassActivity.ATTR_ATTEMPTS).toString()));
             assessmentKpi.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
             assessmentArray.add(assessmentKpi);
           });
@@ -162,33 +162,33 @@ public class StudPerfDailyActivityHandler implements DBHandler {
         }
       } else {
         LOGGER.debug("Fetching Performance for Collections in Class");
-        List<Map> collectionPerf = Base.findAll(AJEntityBaseReports.GET_PERFORMANCE_FOR_CLASS_COLLECTIONS, classId,
+        List<Map> collectionPerf = Base.findAll(AJEntityDailyClassActivity.GET_PERFORMANCE_FOR_CLASS_COLLECTIONS, classId,
                 listToPostgresArrayString(collIds), userId, this.collectionType, startDate, endDate);
         if (!collectionPerf.isEmpty()) {
           collectionPerf.forEach(m -> {
             JsonObject collectionKpi = new JsonObject();
-            collectionKpi.put(AJEntityBaseReports.DATE, m.get(AJEntityBaseReports.ACTIVITY_DATE).toString());
-            collectionKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, m.get(AJEntityBaseReports.ATTR_COLLECTION_ID).toString());
-            collectionKpi.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.parseLong(m.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()));
-            collectionKpi.put(AJEntityBaseReports.ATTR_ATTEMPTS, Integer.parseInt(m.get(AJEntityBaseReports.ATTR_ATTEMPTS).toString()));
+            collectionKpi.put(AJEntityDailyClassActivity.DATE, m.get(AJEntityDailyClassActivity.ACTIVITY_DATE).toString());
+            collectionKpi.put(AJEntityDailyClassActivity.ATTR_COLLECTION_ID, m.get(AJEntityDailyClassActivity.ATTR_COLLECTION_ID).toString());
+            collectionKpi.put(AJEntityDailyClassActivity.ATTR_TIME_SPENT, Long.parseLong(m.get(AJEntityDailyClassActivity.ATTR_TIME_SPENT).toString()));
+            collectionKpi.put(AJEntityDailyClassActivity.ATTR_ATTEMPTS, Integer.parseInt(m.get(AJEntityDailyClassActivity.ATTR_ATTEMPTS).toString()));
             collectionKpi.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
             List<Map> collectionQuestionCount = null;
-            collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_CLASS_COLLECTION_QUESTION_COUNT, classId,
-                    m.get(AJEntityBaseReports.ATTR_COLLECTION_ID).toString(), this.userId);
+            collectionQuestionCount = Base.findAll(AJEntityDailyClassActivity.SELECT_CLASS_COLLECTION_QUESTION_COUNT, classId,
+                    m.get(AJEntityDailyClassActivity.ATTR_COLLECTION_ID).toString(), this.userId);
 
             collectionQuestionCount.forEach(qc -> {
-              this.questionCount = Integer.valueOf(qc.get(AJEntityBaseReports.QUESTION_COUNT).toString());
+              this.questionCount = Integer.valueOf(qc.get(AJEntityDailyClassActivity.QUESTION_COUNT).toString());
             });
             double scoreInPercent = 0;
             if (this.questionCount > 0) {
               Object collectionScore = null;
-              collectionScore = Base.firstCell(AJEntityBaseReports.GET_PERFORMANCE_FOR_CLASS_COLLECTIONS_SCORE, classId,
-                      m.get(AJEntityBaseReports.ATTR_COLLECTION_ID).toString(), this.userId);
+              collectionScore = Base.firstCell(AJEntityDailyClassActivity.GET_PERFORMANCE_FOR_CLASS_COLLECTIONS_SCORE, classId,
+                      m.get(AJEntityDailyClassActivity.ATTR_COLLECTION_ID).toString(), this.userId);
               if (collectionScore != null) {
                 scoreInPercent = (((double) Integer.valueOf(collectionScore.toString()) / this.questionCount) * 100);
               }
             }
-            collectionKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(scoreInPercent));
+            collectionKpi.put(AJEntityDailyClassActivity.ATTR_SCORE, Math.round(scoreInPercent));
             assessmentArray.add(collectionKpi);
           });
 

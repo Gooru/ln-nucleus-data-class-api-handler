@@ -137,10 +137,12 @@ public class IndLearnerCourseAssessmentsPerfHandler implements DBHandler {
       
       LOGGER.debug("Query : " + query.toString());
       LazyList<AJEntityBaseReports> collectionList = AJEntityBaseReports.findBySQL(query.toString(), params.toArray());
+      LOGGER.debug("The query is" + query.toString());
       
       //Populate collIds from the Context in API
       List<String> collIds = new ArrayList<>();
       if (!collectionList.isEmpty()) {          
+    	  LOGGER.debug("Do I get here?");
           collectionList.forEach(c -> collIds.add(c.getString(AJEntityBaseReports.COLLECTION_OID)));
       }        
         for (String collId : collIds) {
@@ -185,7 +187,7 @@ public class IndLearnerCourseAssessmentsPerfHandler implements DBHandler {
            if (!StringUtil.isNullOrEmpty(endDate)) {
              assessScoreQuery.append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.UPDATDED_AT_LESS_THAN_OR_EQUAL);
            }
-           LOGGER.debug("assessScore Query : ", assessTSAQuery.toString());
+           LOGGER.debug("assessScore Query :{} ", assessTSAQuery.toString());
         	//Get the latest Score
         	assessScore = Base.findAll(assessScoreQuery.toString(),assessTSAParams.toArray());
         	
@@ -197,7 +199,7 @@ public class IndLearnerCourseAssessmentsPerfHandler implements DBHandler {
             	}
         		
         	assessmentKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collId);
-        	assessmentArray.add(assessmentKpi);        		
+        	assessmentArray.add(assessmentKpi);
         	}
 
       resultBody.put(JsonConstants.USAGE_DATA, assessmentArray).put(JsonConstants.USERUID, this.userId);
