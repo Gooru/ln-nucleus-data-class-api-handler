@@ -4,7 +4,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
@@ -15,7 +14,6 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionRe
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
-import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -146,7 +144,7 @@ public class IndLearnerCourseAssessmentsPerfHandler implements DBHandler {
           collectionList.forEach(c -> collIds.add(c.getString(AJEntityBaseReports.COLLECTION_OID)));
       }        
         for (String collId : collIds) {
-        	List<Map> assessScore = null;
+          LazyList<AJEntityBaseReports> assessScore = null;
         	LazyList<AJEntityBaseReports> assessTSA = null;
         	LOGGER.debug("The collectionIds are" + collId);
         	JsonObject assessmentKpi = new JsonObject();
@@ -189,7 +187,7 @@ public class IndLearnerCourseAssessmentsPerfHandler implements DBHandler {
            }
            LOGGER.debug("assessScore Query :{} ", assessTSAQuery.toString());
         	//Get the latest Score
-        	assessScore = Base.findAll(assessScoreQuery.toString(),assessTSAParams.toArray());
+        	assessScore = AJEntityBaseReports.findBySQL(assessScoreQuery.toString(),assessTSAParams.toArray());
         	
         	if (!assessScore.isEmpty()){
         		assessScore.forEach(m -> {
