@@ -9,6 +9,7 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassMember;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityCourseCollectionCount;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
@@ -119,7 +120,9 @@ public class StudentPerfInAllClasses implements DBHandler {
     			
 		for (String clId : clsIds){    			
 			JsonObject classKPI = new JsonObject();
-			
+			Object activeUsersCountObj = Base.firstCell(AJEntityClassMember.SELECT_ACTIVE_USERS_COUNT, clId);
+			//FIXME: It should not be null or 0. If activeUsersCount is null or 0, look at sync job is working..
+			int activeUsersCount = activeUsersCountObj == null ? 0 : Integer.valueOf(activeUsersCountObj.toString());
 			classPerfData = Base.findAll(AJEntityBaseReports.SELECT_ALL_STUDENTS_CLASS_DATA, clId);    	
 	    	if (!classPerfData.isEmpty()) { 
 	    		classPerfData.forEach(classData -> {
@@ -127,7 +130,7 @@ public class StudentPerfInAllClasses implements DBHandler {
         	        classKPI.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.valueOf(classData.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()));        	        
         	        Object classTotalCount = Base.firstCell(AJEntityCourseCollectionCount.GET_COURSE_ASSESSMENT_COUNT, 
         	        		classData.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
-        	        classKPI.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, classTotalCount != null ? Integer.valueOf(classTotalCount.toString()) : 0);
+        	        classKPI.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, classTotalCount != null ? (Integer.valueOf(classTotalCount.toString()) * activeUsersCount) : 0);
         	        //classKPI.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
 	    	});   
 	      	        LazyList<AJEntityBaseReports> studClass =
