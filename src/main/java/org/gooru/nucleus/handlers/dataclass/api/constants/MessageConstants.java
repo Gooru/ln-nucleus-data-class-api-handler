@@ -45,6 +45,8 @@ public final class MessageConstants {
     public static final String COLLECTION_IDS = "collectionIds";
     public static final String SESSION_ID = "sessionId";
     public static final String RESP_JSON_KEY_RESOURCES = "resources";
+    public static final String START_DATE = "startDate";
+    public static final String END_DATE = "endDate";
     
     // Read API Constants
     public static final String MSG_OP_COURSE_PEERS = "student.peers.in.course";    

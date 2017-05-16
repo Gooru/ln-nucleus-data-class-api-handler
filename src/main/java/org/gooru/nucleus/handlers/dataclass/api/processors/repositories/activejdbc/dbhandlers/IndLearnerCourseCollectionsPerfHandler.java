@@ -1,19 +1,18 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
-import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
+import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
-import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
-import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +26,7 @@ public class IndLearnerCourseCollectionsPerfHandler implements DBHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(IndLearnerCourseCollectionsPerfHandler.class);
     private static final String REQUEST_USERID = "userId";
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
     private final ProcessorContext context;
     private String userId;
     private String courseId;
@@ -106,6 +106,31 @@ public class IndLearnerCourseCollectionsPerfHandler implements DBHandler {
     	  params.add(lessonId);    
         } 
       
+      String startDate = this.context.request().getString(MessageConstants.START_DATE);
+      if (!StringUtil.isNullOrEmpty(startDate)&&!isValidFormat(startDate)) {
+        LOGGER.error("Invalid startDate");
+        return new ExecutionResult<>(
+                MessageResponseFactory.createInvalidRequestResponse("Invalid startDate. Cannot fetch Student Performance in Collection"),
+                ExecutionStatus.FAILED);
+  
+      }
+      if (!StringUtil.isNullOrEmpty(startDate)) {
+        query.append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.UPDATDED_AT_GREATER_THAN_OR_EQUAL);
+        params.add(startDate);
+      }
+      String endDate = this.context.request().getString(MessageConstants.END_DATE);
+      if (!StringUtil.isNullOrEmpty(endDate)&&!isValidFormat(endDate)) {
+        LOGGER.error("Invalid endDate");
+        return new ExecutionResult<>(
+                MessageResponseFactory.createInvalidRequestResponse("Invalid endDate. Cannot fetch Student Performance in Collection"),
+                ExecutionStatus.FAILED);
+  
+      }
+      if (!StringUtil.isNullOrEmpty(endDate)) {
+        query.append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.UPDATDED_AT_LESS_THAN_OR_EQUAL);
+        params.add(endDate);
+      }
+      LOGGER.debug("Query : " + query.toString());
       LazyList<AJEntityBaseReports> collectionList = AJEntityBaseReports.findBySQL(query.toString(), params.toArray());
       
       //Populate collIds from the Context in API
@@ -115,16 +140,31 @@ public class IndLearnerCourseCollectionsPerfHandler implements DBHandler {
       }
       
         for (String collId : collIds) {        	
-        	List<Map> collTSA = null;
+          LazyList<AJEntityBaseReports> collTSA = null;
         	JsonObject collectionKpi = new JsonObject();
-            
+          List<String> collTSAParams = new ArrayList<>();
+          collTSAParams.add(this.courseId);
+          collTSAParams.add(collId);
+          collTSAParams.add(AJEntityBaseReports.ATTR_COLLECTION);
+          collTSAParams.add(this.userId);
+
+          StringBuilder collTSAQuery = new StringBuilder(AJEntityBaseReports.GET_IL_COURSE_COLLECTION_PERF);
+          if (!StringUtil.isNullOrEmpty(startDate)) {
+            collTSAQuery.append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.UPDATDED_AT_GREATER_THAN_OR_EQUAL);
+            collTSAParams.add(startDate);
+          }
+          if (!StringUtil.isNullOrEmpty(endDate)) {
+            collTSAQuery.append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.UPDATDED_AT_LESS_THAN_OR_EQUAL);
+            collTSAParams.add(endDate);
+          }
+          collTSAQuery.append(" GROUP BY collection_id");
+          LOGGER.debug("collTSAQuery : " + collTSAQuery.toString());
         	//Find Timespent and Attempts
-        	collTSA = Base.findAll(AJEntityBaseReports.GET_IL_COURSE_COLLECTION_PERF, this.courseId,
-        			collId, AJEntityBaseReports.ATTR_COLLECTION, this.userId);
+        	collTSA = AJEntityBaseReports.findBySQL(collTSAQuery.toString(),collTSAParams.toArray());
         	
         	if (!collTSA.isEmpty()) {
         	collTSA.forEach(m -> {
-        		collectionKpi.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.parseLong(m.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()));
+        		collectionKpi.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.parseLong(m.get(AJEntityBaseReports.TIME_SPENT).toString()));
         		collectionKpi.put(AJEntityBaseReports.VIEWS, Integer.parseInt(m.get(AJEntityBaseReports.VIEWS).toString()));
 	    		});
         	}
@@ -139,6 +179,18 @@ public class IndLearnerCourseCollectionsPerfHandler implements DBHandler {
 
       }       
       
+    public boolean isValidFormat(String value) {
+      Date date = null;
+      try {
+        date = sdf.parse(value);
+        if (!value.equals(sdf.format(date))) {
+          date = null;
+        }
+      } catch (Exception ex) {
+        LOGGER.error("Invalid date format...");
+      }
+      return date != null;
+    }
 
     @Override
     public boolean handlerReadOnly() {

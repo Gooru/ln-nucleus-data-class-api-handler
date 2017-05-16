@@ -94,7 +94,9 @@ public class AJEntityBaseReports extends Model {
     public static final String CLASS_ID = "class_id = ? ";
     public static final String DATE = "date";
     public static final String ACTIVITY_DATE = "activityDate";
-    
+    public static final String UPDATDED_AT_LESS_THAN_OR_EQUAL = "updated_at <= ?::timestamp";
+    public static final String UPDATDED_AT_GREATER_THAN_OR_EQUAL = "updated_at >= ?::timestamp";
+
     
     public static final String SELECT_BASEREPORT_MAX_SEQUENCE_ID =
             "SELECT max(sequence_id) FROM base_reports";
@@ -794,23 +796,22 @@ public class AJEntityBaseReports extends Model {
     
     //Student Performance for All Assessments/Collections in a Course
     public static final String GET_IL_COURSE_ASSESSMENTS_SCORE = "SELECT DISTINCT ON (collection_id) "
-    		+ "FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage, "
+    		+ "FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS score, "
     		+ "collection_id from base_reports WHERE class_id IS NULL AND course_id = ? AND collection_id = ? AND collection_type = ? "
     		+ "AND actor_id = ? AND event_name = ? AND event_type = ?";
     
-    public static final String GET_IL_COURSE_ASSESSMENTS_TOTAL_TIME_SPENT_ATTEMPTS = "SELECT SUM(time_spent) AS timeSpent, "
-    		+ "SUM(views) AS attempts, collection_id FROM base_reports WHERE class_id IS NULL AND course_id = ? AND collection_id = ? AND collection_type = ? "
-    		+ "AND actor_id = ? AND event_name = ? AND event_type = ? GROUP BY collection_id";
+    public static final String GET_IL_COURSE_ASSESSMENTS_TOTAL_TIME_SPENT_ATTEMPTS = "SELECT SUM(time_spent) AS time_spent, "
+    		+ "SUM(views) AS views, collection_id FROM base_reports WHERE class_id IS NULL AND course_id = ? AND collection_id = ? AND collection_type = ? "
+    		+ "AND actor_id = ? AND event_name = ? AND event_type = ? ";
         
     //public static final String GET_IL_COURSE_COLLECTION_PERF = "SELECT SUM(time_spent) AS timeSpent, "
     	//	+ "SUM(views) AS views, collection_id FROM base_reports WHERE class_id IS NULL AND course_id = ? AND collection_id = ? AND collection_type = ? AND actor_id = ? "
     		//+ "AND event_name = ? GROUP BY collection_id";
     
     public static final String GET_IL_COURSE_COLLECTION_PERF = "SELECT SUM(CASE WHEN (event_name = 'collection.resource.play') "
-    		+ "THEN time_spent ELSE 0 END) AS timeSpent, "
+    		+ "THEN time_spent ELSE 0 END) AS time_spent, "
     		+ "SUM(CASE WHEN (event_name = 'collection.play') THEN views ELSE 0 END) AS views, "
-    		+ "collection_id from base_reports WHERE class_id IS NULL AND course_id = ? AND collection_id = ? AND collection_type = ? AND actor_id = ? "
-    		+ "GROUP BY collection_id";
+    		+ "collection_id from base_reports WHERE class_id IS NULL AND course_id = ? AND collection_id = ? AND collection_type = ? AND actor_id = ? ";
 
         
     public static final String GET_IL_COURSE_DISTINCT_COLLECTIONS = "SELECT distinct(collection_id) from base_reports where "

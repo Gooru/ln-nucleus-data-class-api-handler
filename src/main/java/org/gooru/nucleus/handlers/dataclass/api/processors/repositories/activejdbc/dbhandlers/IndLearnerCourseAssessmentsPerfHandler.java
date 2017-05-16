@@ -1,8 +1,9 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
@@ -10,10 +11,9 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
+import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
-import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
-import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +33,7 @@ public class IndLearnerCourseAssessmentsPerfHandler implements DBHandler {
     private String courseId;
     private String unitId;
     private String lessonId;
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
     
     public IndLearnerCourseAssessmentsPerfHandler(ProcessorContext context) {
@@ -106,7 +107,33 @@ public class IndLearnerCourseAssessmentsPerfHandler implements DBHandler {
     	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.LESSON_ID);
     	  params.add(lessonId);    
         } 
+      String startDate = this.context.request().getString(MessageConstants.START_DATE);
+    
+      if (!StringUtil.isNullOrEmpty(startDate)&&!isValidFormat(startDate)) {
+        LOGGER.error("Invalid startDate");
+        return new ExecutionResult<>(
+                MessageResponseFactory.createInvalidRequestResponse("Invalid startDate. Cannot fetch Student Performance in Assessment"),
+                ExecutionStatus.FAILED);
+  
+      }
+      if (!StringUtil.isNullOrEmpty(startDate)) {
+        query.append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.UPDATDED_AT_GREATER_THAN_OR_EQUAL);
+        params.add(startDate);
+      }
+      String endDate = this.context.request().getString(MessageConstants.END_DATE);
+      if (!StringUtil.isNullOrEmpty(endDate)&&!isValidFormat(endDate)) {
+        LOGGER.error("Invalid endDate");
+        return new ExecutionResult<>(
+                MessageResponseFactory.createInvalidRequestResponse("Invalid endDate. Cannot fetch Student Performance in Assessment"),
+                ExecutionStatus.FAILED);
+  
+      }
+      if (!StringUtil.isNullOrEmpty(endDate)) {
+        query.append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.UPDATDED_AT_LESS_THAN_OR_EQUAL);
+        params.add(endDate);
+      }
       
+      LOGGER.debug("Query : " + query.toString());
       LazyList<AJEntityBaseReports> collectionList = AJEntityBaseReports.findBySQL(query.toString(), params.toArray());
       LOGGER.debug("The query is" + query.toString());
       
@@ -117,36 +144,60 @@ public class IndLearnerCourseAssessmentsPerfHandler implements DBHandler {
           collectionList.forEach(c -> collIds.add(c.getString(AJEntityBaseReports.COLLECTION_OID)));
       }        
         for (String collId : collIds) {
-        	List<Map> assessScore = null;
-        	List<Map> assessTSA = null;
+          LazyList<AJEntityBaseReports> assessScore = null;
+        	LazyList<AJEntityBaseReports> assessTSA = null;
         	LOGGER.debug("The collectionIds are" + collId);
         	JsonObject assessmentKpi = new JsonObject();
-            
-        	//Find Timespent and Attempts
-        	assessTSA = Base.findAll(AJEntityBaseReports.GET_IL_COURSE_ASSESSMENTS_TOTAL_TIME_SPENT_ATTEMPTS, this.courseId,
-        			collId, AJEntityBaseReports.ATTR_ASSESSMENT, this.userId, EventConstants.COLLECTION_PLAY, EventConstants.STOP);
+          List<String> assessTSAParams = new ArrayList<>();
+          
+          StringBuilder assessTSAQuery = new StringBuilder(AJEntityBaseReports.GET_IL_COURSE_ASSESSMENTS_TOTAL_TIME_SPENT_ATTEMPTS);
+          assessTSAParams.add(this.courseId);
+          assessTSAParams.add(collId);
+          assessTSAParams.add(AJEntityBaseReports.ATTR_ASSESSMENT);
+          assessTSAParams.add(this.userId);
+          assessTSAParams.add(EventConstants.COLLECTION_PLAY);
+          assessTSAParams.add(EventConstants.STOP);
+          if (!StringUtil.isNullOrEmpty(startDate)) {
+            assessTSAQuery.append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.UPDATDED_AT_GREATER_THAN_OR_EQUAL);
+            assessTSAParams.add(startDate);
+          }
+          if (!StringUtil.isNullOrEmpty(endDate)) {
+            assessTSAQuery.append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.UPDATDED_AT_LESS_THAN_OR_EQUAL);
+            assessTSAParams.add(endDate);
+          }
+          assessTSAQuery.append(" GROUP BY collection_id");
+          LOGGER.debug("assessTSA Query : ", assessTSAQuery.toString());
+          //Find Timespent and Attempts
+        	assessTSA = AJEntityBaseReports.findBySQL(assessTSAQuery.toString(), assessTSAParams.toArray());
         	
         	if (!assessTSA.isEmpty()) {
         	assessTSA.forEach(m -> {
-        		assessmentKpi.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.parseLong(m.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()));
-        		assessmentKpi.put(AJEntityBaseReports.ATTR_ATTEMPTS, Integer.parseInt(m.get(AJEntityBaseReports.ATTR_ATTEMPTS).toString()));
+        		assessmentKpi.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.parseLong(m.get(AJEntityBaseReports.TIME_SPENT).toString()));
+        		assessmentKpi.put(AJEntityBaseReports.ATTR_ATTEMPTS, Integer.parseInt(m.get(AJEntityBaseReports.VIEWS).toString()));
 	    		});
         	}
         	
+        	StringBuilder assessScoreQuery = new StringBuilder(AJEntityBaseReports.GET_IL_COURSE_ASSESSMENTS_SCORE);
+        	
+        	 if (!StringUtil.isNullOrEmpty(startDate)) {
+        	   assessScoreQuery.append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.UPDATDED_AT_GREATER_THAN_OR_EQUAL);
+           }
+           if (!StringUtil.isNullOrEmpty(endDate)) {
+             assessScoreQuery.append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.UPDATDED_AT_LESS_THAN_OR_EQUAL);
+           }
+           LOGGER.debug("assessScore Query :{} ", assessTSAQuery.toString());
         	//Get the latest Score
-        	assessScore = Base.findAll(AJEntityBaseReports.GET_IL_COURSE_ASSESSMENTS_SCORE, this.courseId,
-            		collId, AJEntityBaseReports.ATTR_ASSESSMENT, this.userId, EventConstants.COLLECTION_PLAY, EventConstants.STOP);
+        	assessScore = AJEntityBaseReports.findBySQL(assessScoreQuery.toString(),assessTSAParams.toArray());
         	
         	if (!assessScore.isEmpty()){
         		assessScore.forEach(m -> {
-            		assessmentKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.valueOf(m.get(AJEntityBaseReports.ATTR_SCORE).toString())));
+            		assessmentKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.valueOf((m.get(AJEntityBaseReports.SCORE).toString()))));
             		assessmentKpi.put(JsonConstants.STATUS, JsonConstants.COMPLETE);        
     	    		});
             	}
         		
         	assessmentKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collId);
         	assessmentArray.add(assessmentKpi);
-        	LOGGER.debug(assessmentArray.encodePrettily());
         	}
 
       resultBody.put(JsonConstants.USAGE_DATA, assessmentArray).put(JsonConstants.USERUID, this.userId);
@@ -155,7 +206,18 @@ public class IndLearnerCourseAssessmentsPerfHandler implements DBHandler {
 
       }       
       
-
+    public boolean isValidFormat(String value) {
+      Date date = null;
+      try {
+        date = sdf.parse(value);
+        if (!value.equals(sdf.format(date))) {
+          date = null;
+        }
+      } catch (Exception ex) {
+        LOGGER.error("Invalid date format...");
+      }
+      return date != null;
+    }
     @Override
     public boolean handlerReadOnly() {
       return false;
