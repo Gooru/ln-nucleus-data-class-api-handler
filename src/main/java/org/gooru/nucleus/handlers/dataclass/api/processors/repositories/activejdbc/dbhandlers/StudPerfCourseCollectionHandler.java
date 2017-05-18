@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
@@ -29,6 +30,7 @@ public class StudPerfCourseCollectionHandler implements DBHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(StudPerfCourseCollectionHandler.class);
     private static final String REQUEST_USERID = "userId";
     private final ProcessorContext context;
+    private int questionCount;
     private String userId;
     private String classId;
     private String courseId;
@@ -150,18 +152,39 @@ public class StudPerfCourseCollectionHandler implements DBHandler {
         		collectionKpi.put(AJEntityBaseReports.VIEWS, Integer.parseInt(m.get(AJEntityBaseReports.VIEWS).toString()));
 	    		});
         	}
-        		
-        	collectionKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collId);
-        	collectionArray.add(collectionKpi);        		
+        	
+            //**********************************************************************************************
+      	  
+            List<Map> collectionQuestionCount = null;
+            collectionQuestionCount = Base.findAll(AJEntityBaseReports.GET_COLLECTION_QUESTION_COUNT, this.classId, this.courseId,
+                    collId, this.userId);
+
+            collectionQuestionCount.forEach(qc -> {
+              this.questionCount = Integer.valueOf(qc.get(AJEntityBaseReports.QUESTION_COUNT).toString());
+            });
+            double scoreInPercent = 0;
+            if (this.questionCount > 0) {
+              Object collectionScore = null;
+              collectionScore = Base.firstCell(AJEntityBaseReports.GET_COLLECTION_SCORE, this.classId, this.courseId,
+                      collId, this.userId);
+              if (collectionScore != null) {
+                scoreInPercent = (((Double.valueOf(collectionScore.toString())) / this.questionCount) * 100);
+              }
+            }
+            collectionKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(scoreInPercent));
+            collectionKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collId);        	
+
+           //**********************************************************************************************            
+            collectionArray.add(collectionKpi);
+
         	}
 
         resultBody.put(JsonConstants.USAGE_DATA, collectionArray).put(JsonConstants.USERUID, this.userId);
       
       return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);  
 
-      }       
-      
-
+      }
+    
     @Override
     public boolean handlerReadOnly() {
       return false;
