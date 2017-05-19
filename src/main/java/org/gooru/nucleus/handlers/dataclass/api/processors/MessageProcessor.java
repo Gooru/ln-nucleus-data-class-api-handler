@@ -146,6 +146,9 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_IND_LEARNER_TAX_SUBJECTS:
                 result = getIndependentLearnerTaxSubjects();
                 break;
+            case MessageConstants.MSG_OP_LEARNER_COURSES:
+                result = getLearnerCourses();
+                break;
             default:
                 LOGGER.error("Invalid operation type passed in, not able to handle");
                 return MessageResponseFactory
@@ -522,6 +525,17 @@ class MessageProcessor implements Processor {
 
     }
     
+    private MessageResponse getLearnerCourses() {
+      try {
+            ProcessorContext context = createContext();
+            return new RepoBuilder().buildReportRepo(context).getLearnerCourses();
+            
+        } catch (Throwable t) {
+            LOGGER.error("Exception while getting learner courses", t);
+            return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+        }
+
+    }
     private MessageResponse getIndependentLearnerCoursesLoc() {
         try {
               ProcessorContext context = createContext();
