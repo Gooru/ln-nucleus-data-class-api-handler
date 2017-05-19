@@ -162,4 +162,7 @@ public final class DBHandlerBuilder {
       return new IndependentLearnerTaxonomySubjectHandler(context);
     }
     
+    public static DBHandler buildLearnerCourses(ProcessorContext context) {
+      return new LearnerCoursesHandler(context);
+    }
 }
