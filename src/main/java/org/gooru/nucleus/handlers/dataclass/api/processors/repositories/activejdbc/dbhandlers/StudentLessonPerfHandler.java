@@ -154,7 +154,7 @@ public class StudentLessonPerfHandler implements DBHandler {
               collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_SCORE, context.classId(), context.courseId(),
                       context.unitId(), context.lessonId(), lessonKpi.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID), this.userId);
               if (collectionScore != null) {
-                scoreInPercent = (((double) Integer.valueOf(collectionScore.toString()) / this.questionCount) * 100);
+                scoreInPercent = (((Double.valueOf(collectionScore.toString())) / this.questionCount) * 100);
               }
             }
             lessonKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(scoreInPercent));

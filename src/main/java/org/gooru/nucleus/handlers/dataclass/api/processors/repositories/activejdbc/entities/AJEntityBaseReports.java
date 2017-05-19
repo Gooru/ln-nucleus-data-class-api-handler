@@ -575,6 +575,18 @@ public class AJEntityBaseReports extends Model {
             + "collection_id from base_reports WHERE class_id = ? AND course_id = ? AND collection_id = ? AND collection_type = ? AND actor_id = ? "
             + "GROUP BY collection_id";
     
+    public static final String GET_COLLECTION_QUESTION_COUNT = "SELECT question_count, updated_at FROM base_reports "
+            + "WHERE class_id = ? AND course_id = ? AND collection_id = ? AND actor_id = ? AND event_name = 'collection.play'"
+            + " ORDER BY updated_at DESC LIMIT 1";
+    
+    public static final String GET_COLLECTION_SCORE = "SELECT SUM(coll.score) AS score FROM "
+            + "(SELECT DISTINCT ON (resource_id) collection_id, "
+            + "FIRST_VALUE(score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score "
+            + "FROM base_reports WHERE class_id = ? AND course_id = ? AND collection_id = ? AND actor_id = ? AND "
+            + "event_name = 'collection.resource.play' AND resource_type = 'question' AND resource_attempt_status <> 'skipped' ) AS coll "
+            + "GROUP BY coll.collection_id";
+
+    
     public static final String GET_PERFORMANCE_FOR_CLASS_COLLECTION = "SELECT SUM(CASE WHEN (event_name = 'collection.resource.play') THEN time_spent ELSE 0 END) AS timeSpent, "
     		+ "SUM(CASE WHEN (event_name = 'collection.play') THEN views ELSE 0 END) AS views, collection_id FROM base_reports WHERE class_id = ? AND collection_id = ? AND collection_type = ? AND actor_id = ? "
     		+ "GROUP BY collection_id";
