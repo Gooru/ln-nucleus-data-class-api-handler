@@ -172,6 +172,7 @@ public class StudPerfCourseCollectionHandler implements DBHandler {
               }
             }
             collectionKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(scoreInPercent));
+            collectionKpi.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
             collectionKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collId);        	
 
            //**********************************************************************************************            
