@@ -31,6 +31,17 @@ public class AJEntityUserTaxonomySubject extends Model {
   
   public static final String GET_SUBJECT_TITLE = "SELECT  title FROM taxonomy_subject WHERE id = ?";
   
+  public static final String GET_INDEPENDENT_LEARNER_COURSES = "SELECT DISTINCT course_id FROM user_tax_subject "
+          + "WHERE actor_id = ?";
+  
+  public static final String GET_INDEPENDENT_LEARNER_ALL_COURSES = "SELECT DISTINCT course_id FROM user_tax_subject "
+          + "WHERE actor_id = ?";
+  
+  public static final String GET_LEARNER_COURSES = "SELECT DISTINCT course_id,class_id FROM user_tax_subject "
+          + "WHERE tax_subject_id = ? AND actor_id = ?";
+  
+  public static final String GET_LEARNER_ALL_COURSES = "SELECT DISTINCT course_id,class_id FROM user_tax_subject "
+          + "WHERE actor_id = ?";
   public AJEntityUserTaxonomySubject() {
     // Turning off create_at and updated_at columns are getting updated by
     // activeJDBC.

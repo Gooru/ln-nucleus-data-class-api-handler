@@ -20,24 +20,24 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 /**
- * Created by daniel
+ * @author daniel
  */
 
-public class IndependentLearnerCoursesHandler implements DBHandler {
+public class LearnerCoursesHandler implements DBHandler {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(IndependentLearnerCoursesHandler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(LearnerCoursesHandler.class);
   private final ProcessorContext context;
   private String userId;
-  private final String ATTR_TITLE = "title";
+  private String nullVal = null;
 
-  public IndependentLearnerCoursesHandler(ProcessorContext context) {
+  public LearnerCoursesHandler(ProcessorContext context) {
     this.context = context;
   }
 
   @Override
   public ExecutionResult<MessageResponse> checkSanity() {
     if (context.request() == null || context.request().isEmpty()) {
-      LOGGER.warn("invalid request received to fetch independent learner courses");
+      LOGGER.warn("invalid request received to fetch learner courses");
       return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Invalid data provided to fetch independent learner courses"),
               ExecutionStatus.FAILED);
     }
@@ -63,21 +63,34 @@ public class IndependentLearnerCoursesHandler implements DBHandler {
     String taxSubjectId = this.context.request().getString("taxSubjectId");
     List<Map> coursesList = null;
     if (taxSubjectId == null || (taxSubjectId != null && (taxSubjectId.equalsIgnoreCase("all") || taxSubjectId.equals("*")))) {
-      coursesList = Base.findAll(AJEntityUserTaxonomySubject.GET_INDEPENDENT_LEARNER_ALL_COURSES, this.userId);
+      coursesList = Base.findAll(AJEntityUserTaxonomySubject.GET_LEARNER_ALL_COURSES, this.userId);
     } else {
-      coursesList = Base.findAll(AJEntityUserTaxonomySubject.GET_INDEPENDENT_LEARNER_COURSES, taxSubjectId, this.userId);
+      coursesList = Base.findAll(AJEntityUserTaxonomySubject.GET_LEARNER_COURSES, taxSubjectId, this.userId);
     }
     if (!coursesList.isEmpty()) {
       coursesList.forEach(course -> {
         JsonObject contentBody = new JsonObject();
         contentBody.put(AJEntityBaseReports.ATTR_COURSE_ID, course.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
         Object title = Base.firstCell(AJEntityContent.GET_TITLE, course.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
-        contentBody.put(ATTR_TITLE, title != null ? title.toString() : "NA");        
+        contentBody.put(AJEntityContent.ATTR_COURSE_TITLE, title);
+        if (course.get(AJEntityBaseReports.CLASS_GOORU_OID) != null) {
+          contentBody.put(AJEntityBaseReports.ATTR_CLASS_ID, course.get(AJEntityBaseReports.CLASS_GOORU_OID).toString());
+          List<Map> classInfo = Base.findAll(AJEntityContent.GET_CLASS_TITLE_CODE, course.get(AJEntityBaseReports.CLASS_GOORU_OID).toString());
+          classInfo.forEach(classData -> {
+            contentBody.put(AJEntityContent.ATTR_CLASS_CODE, AJEntityContent.CLASS_CODE);
+            contentBody.put(AJEntityContent.ATTR_CLASS_TITLE, AJEntityContent.TITLE);
+
+          });
+        } else {
+          contentBody.put(AJEntityBaseReports.ATTR_CLASS_ID, nullVal);
+          contentBody.put(AJEntityContent.ATTR_CLASS_CODE, nullVal);
+          contentBody.put(AJEntityContent.ATTR_CLASS_TITLE, nullVal);
+        }
         resultarray.add(contentBody);
       });
     } else {
       // Return an empty resultBody instead of an Error
-      LOGGER.debug("No data returned for independent learner courses");
+      LOGGER.debug("No data returned for learner courses");
     }
     resultBody.put(JsonConstants.CONTENT, resultarray);
 

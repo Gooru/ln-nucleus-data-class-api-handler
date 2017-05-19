@@ -81,5 +81,7 @@ public interface ReportRepo {
     MessageResponse getIndLearnerCourseAssessmentsPerf();
 
     MessageResponse getIndLearnerTaxSubjects();
-
+    
+    MessageResponse getLearnerCourses();
+    
 }

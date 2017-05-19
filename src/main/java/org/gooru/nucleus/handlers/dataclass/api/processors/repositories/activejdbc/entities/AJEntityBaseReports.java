@@ -636,8 +636,6 @@ public class AJEntityBaseReports extends Model {
         
     //**********************************************************INDEPENDENT LEARNER QUERIES************************************//
 
-    public static final String GET_INDEPENDENT_LEARNER_COURSES = "SELECT DISTINCT course_id FROM user_tax_subject "
-            + "WHERE tax_subject_id = ? AND actor_id = ?";
     
     /*public static final String GET_INDEPENDENT_LEARNER_COURSES_ = "SELECT DISTINCT course_id "
             + "FROM base_reports WHERE class_id IS NULL AND course_id IS NOT NULL "
