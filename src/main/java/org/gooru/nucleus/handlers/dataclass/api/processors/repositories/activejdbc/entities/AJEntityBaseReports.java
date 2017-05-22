@@ -394,10 +394,12 @@ public class AJEntityBaseReports extends Model {
             + "AND actor_id = ? AND event_name = 'collection.resource.play' AND reaction <> 0";
       
   //*************************************************************************************************************************
-      // GET CURRENT STUDENT LOCATITON
+    // GET CURRENT STUDENT LOCATITON
+    // For NU, Suggestions can also be a resource. However, currently we will not point to the Suggested Resource as location.
+    // (additional check collection_type IS NOT NULL added)
     public static final String GET_STUDENT_LOCATION = 
     		"select class_id, course_id, unit_id, lesson_id, collection_id,collection_type, created_at, updated_at from base_reports "
-    		+ " WHERE class_id = ? AND actor_id = ? ORDER BY updated_at DESC LIMIT 1";
+    		+ " WHERE class_id = ? AND actor_id = ? AND collection_type IS NOT NULL ORDER BY updated_at DESC LIMIT 1";
     
  // GET STUDENT's PEERS IN COURSE
     public static final String GET_PEERS_COUNT_IN_COURSE = 
@@ -544,10 +546,12 @@ public class AJEntityBaseReports extends Model {
     		+ "GROUP BY class_id";
 
     //*************************************************************************************************************************    
-    //Student Location in All Classes    
+    //Student Location in All Classes 
+    // For NU, Suggestions can also be a resource. However, currently we will not point to the Suggested Resource as location.
+    // (additional check collection_type IS NOT NULL added)
     public static final String GET_STUDENT_LOCATION_ALL_CLASSES = "select DISTINCT ON (class_id) class_id, course_id, unit_id, "
     		+ "lesson_id, collection_id, collection_type, session_id, updated_at FROM base_reports WHERE actor_id = ? AND class_id = ANY(?::varchar[]) "
-    		+ "ORDER BY class_id, updated_at DESC";
+    		+ "AND collection_type is NOT NULL ORDER BY class_id, updated_at DESC";
     
     public static final String GET_COLLECTION_STATUS =  "SELECT event_name, event_type from base_reports WHERE session_id = ? "
     		+ " AND collection_id = ? AND event_name = ? AND event_type = ?";
