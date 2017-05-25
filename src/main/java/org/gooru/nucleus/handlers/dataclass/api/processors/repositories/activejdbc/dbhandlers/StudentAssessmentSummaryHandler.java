@@ -60,14 +60,14 @@ public class StudentAssessmentSummaryHandler implements DBHandler {
     @SuppressWarnings("rawtypes")
     public ExecutionResult<MessageResponse> validateRequest() {
       if (context.getUserIdFromRequest() == null
-              || (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
+              || (!context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
         LOGGER.debug("Request by Teacher/collaborator....");
         this.sessionId = this.context.request().getString(REQUEST_SESSION_ID);
         Object classID = Base.firstCell(AJEntityBaseReports.SELECT_CLASS_BY_SESSION_ID, sessionId);
         LOGGER.debug("classID : {}", classID);
         if (classID == null) {
           LOGGER.debug("validateRequest() FAILED");
-          return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("Independent Learner data can't fetch by teacher/collaborator"),
+          return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("Independent Learner data can't be fetched by teacher/collaborator"),
                   ExecutionStatus.FAILED);
         } else {
           List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER,classID, this.context.userIdFromSession());

@@ -59,11 +59,11 @@ public class StudentCollectionSummaryHandler implements DBHandler {
     @SuppressWarnings("rawtypes")
     public ExecutionResult<MessageResponse> validateRequest() {
       if (context.getUserIdFromRequest() == null
-              || (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
+              || (!context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
         String classId = context.request().getString(EventConstants.CLASS_GOORU_OID);
         if (classId == null) {
           LOGGER.debug("validateRequest() FAILED");
-          return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("Independent Learner data can't fetch by teacher/collaborator"),
+          return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("Independent Learner data can't be fetched by teacher/collaborator"),
                   ExecutionStatus.FAILED);
         } else {
           List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, classId, this.context.userIdFromSession());
