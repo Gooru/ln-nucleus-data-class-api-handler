@@ -38,6 +38,7 @@ public class StudentAssessmentSummaryHandler implements DBHandler {
   
     private String userId;
     
+    private String sessionId;
     public StudentAssessmentSummaryHandler(ProcessorContext context) {
         this.context = context;
     }
@@ -60,10 +61,20 @@ public class StudentAssessmentSummaryHandler implements DBHandler {
     public ExecutionResult<MessageResponse> validateRequest() {
       if (context.getUserIdFromRequest() == null
               || (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
-        List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, this.context.classId(), this.context.userIdFromSession());
-        if (owner.isEmpty()) {
+        LOGGER.debug("Request by Teacher/collaborator....");
+        this.sessionId = this.context.request().getString(REQUEST_SESSION_ID);
+        Object classID = Base.firstCell(AJEntityBaseReports.SELECT_CLASS_BY_SESSION_ID, sessionId);
+        LOGGER.debug("classID : {}", classID);
+        if (classID == null) {
           LOGGER.debug("validateRequest() FAILED");
-          return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"), ExecutionStatus.FAILED);
+          return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("Independent Learner data can't fetch by teacher/collaborator"),
+                  ExecutionStatus.FAILED);
+        } else {
+          List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER,classID, this.context.userIdFromSession());
+          if (owner.isEmpty()) {
+            LOGGER.debug("validateRequest() FAILED");
+            return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"), ExecutionStatus.FAILED);
+          }
         }
       }
       LOGGER.debug("validateRequest() OK");
@@ -78,7 +89,7 @@ public class StudentAssessmentSummaryHandler implements DBHandler {
 
       this.userId = context.userIdFromSession();
       LOGGER.debug("UID is " + this.userId);
-      String sessionId = this.context.request().getString(REQUEST_SESSION_ID);
+      this.sessionId = this.context.request().getString(REQUEST_SESSION_ID);
       JsonArray contentArray = new JsonArray();
       // STUDENT PERFORMANCE REPORTS IN ASSESSMENTS when SessionID NOT NULL
       if (!StringUtil.isNullOrEmpty(sessionId)) {

@@ -60,10 +60,17 @@ public class StudentCollectionSummaryHandler implements DBHandler {
     public ExecutionResult<MessageResponse> validateRequest() {
       if (context.getUserIdFromRequest() == null
               || (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
-        List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, this.context.classId(), this.context.userIdFromSession());
-        if (owner.isEmpty()) {
+        String classId = context.request().getString(EventConstants.CLASS_GOORU_OID);
+        if (classId == null) {
           LOGGER.debug("validateRequest() FAILED");
-          return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"), ExecutionStatus.FAILED);
+          return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("Independent Learner data can't fetch by teacher/collaborator"),
+                  ExecutionStatus.FAILED);
+        } else {
+          List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, classId, this.context.userIdFromSession());
+          if (owner.isEmpty()) {
+            LOGGER.debug("validateRequest() FAILED");
+            return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"), ExecutionStatus.FAILED);
+          }
         }
       }
       LOGGER.debug("validateRequest() OK");
