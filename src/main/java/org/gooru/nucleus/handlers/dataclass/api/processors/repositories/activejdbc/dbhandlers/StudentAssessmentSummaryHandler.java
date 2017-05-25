@@ -48,7 +48,7 @@ public class StudentAssessmentSummaryHandler implements DBHandler {
         if (context.request() == null || context.request().isEmpty()) {
             LOGGER.warn("invalid request received to fetch Student Performance in Assessments");
             return new ExecutionResult<>(
-                MessageResponseFactory.createInvalidRequestResponse("Invalid data provided to fetch Student Performance in Units"),
+                MessageResponseFactory.createInvalidRequestResponse("Invalid data provided to fetch Student Performance in Assessments"),
                 ExecutionStatus.FAILED);
         }
 

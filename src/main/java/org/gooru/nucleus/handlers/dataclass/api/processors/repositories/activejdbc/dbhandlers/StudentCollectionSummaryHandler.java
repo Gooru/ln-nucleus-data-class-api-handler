@@ -45,9 +45,9 @@ public class StudentCollectionSummaryHandler implements DBHandler {
     @Override
     public ExecutionResult<MessageResponse> checkSanity() {
         if (context.request() == null || context.request().isEmpty()) {
-            LOGGER.warn("invalid request received to fetch Student Performance in Assessments");
+            LOGGER.warn("invalid request received to fetch Student Performance in Collections");
             return new ExecutionResult<>(
-                MessageResponseFactory.createInvalidRequestResponse("Invalid data provided to fetch Student Performance in Units"),
+                MessageResponseFactory.createInvalidRequestResponse("Invalid data provided to fetch Student Performance in Collections"),
                 ExecutionStatus.FAILED);
         }
 
