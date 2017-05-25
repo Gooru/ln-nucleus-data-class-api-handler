@@ -508,6 +508,8 @@ public class AJEntityBaseReports extends Model {
     
     public static final String SELECT_CLASS_USER_BY_SESSION_ID = "SELECT class_id,actor_id FROM base_reports WHERE session_id = ? LIMIT 1";
 
+    public static final String SELECT_CLASS_BY_SESSION_ID = "SELECT class_id FROM base_reports WHERE session_id = ? AND class_id IS NOT NULL LIMIT 1";
+
     //*************************************************************************************************************************
     //Student all classes performance
     //NOTE: Additional check has for course_id IS NOT NULL has been added to unblock FE for Study Player Development.
