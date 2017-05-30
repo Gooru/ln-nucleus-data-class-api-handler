@@ -116,6 +116,12 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_INDEPENDENT_LEARNER_COURSES:
                 result = getIndependentLearnerCourses();
                 break;
+            case MessageConstants.MSG_OP_IND_LEARNER_LOCATION_ALL:
+                result = getIndependentLearnerLoc();
+                break;                    
+            case MessageConstants.MSG_OP_IND_LEARNER_PERFORMANCE_ALL:
+                result = getIndependentLearnerPerf();
+                break;
             case MessageConstants.MSG_OP_IND_LEARNER_LOCATION_ALL_COURSES:
                 result = getIndependentLearnerCoursesLoc();
                 break;
@@ -125,16 +131,13 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_IND_LEARNER_LOCATION_ALL_IND_COLLECTIONS:
                 result = getIndependentLearnerCollectionsLoc();
                 break;
-            case MessageConstants.MSG_OP_IND_LEARNER_PERF_ALL_COURSES:
-                //Mukul: TODO
+            case MessageConstants.MSG_OP_IND_LEARNER_PERF_ALL_COURSES:                
             	result = getIndependentLearnerAllCoursesPerf();
                 break;
-            case MessageConstants.MSG_OP_IND_LEARNER_PERF_ALL_IND_ASSESSMENTS:
-                //Mukul: TODO
+            case MessageConstants.MSG_OP_IND_LEARNER_PERF_ALL_IND_ASSESSMENTS:                
                 result = getIndependentLearnerIndAssessmentsPerf();                
                 break;
-            case MessageConstants.MSG_OP_IND_LEARNER_PERF_ALL_IND_COLLECTIONS:
-                //Mukul: TODO
+            case MessageConstants.MSG_OP_IND_LEARNER_PERF_ALL_IND_COLLECTIONS:                
                 result = getIndependentLearnerIndCollectionsPerf();
                 break;
             case MessageConstants.MSG_OP_IND_LEARNER_COURSE_ALL_COLLECTIONS_PERF:
@@ -536,6 +539,31 @@ class MessageProcessor implements Processor {
         }
 
     }
+    
+    private MessageResponse getIndependentLearnerLoc() {
+        try {
+              ProcessorContext context = createContext();
+              return new RepoBuilder().buildReportRepo(context).getIndependentLearnerLocation();
+              
+          } catch (Throwable t) {
+              LOGGER.error("Exception while getting Independent Learner Location", t);
+              return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+          }
+
+      }
+    
+    private MessageResponse getIndependentLearnerPerf() {
+        try {
+              ProcessorContext context = createContext();
+              return new RepoBuilder().buildReportRepo(context).getIndependentLearnerPerformance();
+              
+          } catch (Throwable t) {
+              LOGGER.error("Exception while getting Independent Learner Performance", t);
+              return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+          }
+
+      }
+    
     private MessageResponse getIndependentLearnerCoursesLoc() {
         try {
               ProcessorContext context = createContext();
@@ -571,8 +599,7 @@ class MessageProcessor implements Processor {
           }
 
       }
-    //-------
-    
+     
     private MessageResponse getIndependentLearnerAllCoursesPerf() {
         try {
               ProcessorContext context = createContext();
