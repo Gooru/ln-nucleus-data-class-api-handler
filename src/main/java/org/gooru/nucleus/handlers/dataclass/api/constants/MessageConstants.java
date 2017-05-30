@@ -47,6 +47,9 @@ public final class MessageConstants {
     public static final String RESP_JSON_KEY_RESOURCES = "resources";
     public static final String START_DATE = "startDate";
     public static final String END_DATE = "endDate";
+    public static final String COURSE = "course";
+    public static final String ASSESSMENT = "assessment";
+    public static final String COLLECTION = "collection";
     
     // Read API Constants
     public static final String MSG_OP_COURSE_PEERS = "student.peers.in.course";    
@@ -81,6 +84,8 @@ public final class MessageConstants {
     public static final String MSG_OP_INDEPENDENT_LEARNER_ASSESSMENT_PERF = "independent.learner.assessment.performance";
     public static final String MSG_OP_INDEPENDENT_LEARNER_INDEPENDENT_ASSESSMENT_PERF = "independent.learner.independent.assessment.performance";
     public static final String MSG_OP_INDEPENDENT_LEARNER_COURSES = "independent.learner.courses";
+    public static final String MSG_OP_IND_LEARNER_LOCATION_ALL = "independent.learner.all.location";
+    public static final String MSG_OP_IND_LEARNER_PERFORMANCE_ALL = "independent.learner.all.performance";
     public static final String MSG_OP_IND_LEARNER_LOCATION_ALL_COURSES = "independent.learner.all.courses.location";
     public static final String MSG_OP_IND_LEARNER_LOCATION_ALL_IND_ASSESSMENTS = "independent.learner.all.ind.assessments.location";
     public static final String MSG_OP_IND_LEARNER_LOCATION_ALL_IND_COLLECTIONS = "independent.learner.all.ind.collections.location";

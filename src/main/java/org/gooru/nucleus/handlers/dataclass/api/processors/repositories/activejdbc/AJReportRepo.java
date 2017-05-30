@@ -157,6 +157,16 @@ class AJReportRepo implements ReportRepo {
     }
     
     @Override
+    public MessageResponse getIndependentLearnerLocation() {
+        return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildIndLearnerLocationHandler(context));
+    }
+
+    @Override
+    public MessageResponse getIndependentLearnerPerformance() {
+        return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildIndLearnerPerformanceHandler(context));
+    }
+
+    @Override
     public MessageResponse getIndLearnerCoursesLocation() {
         return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildIndLearnerCoursesLocationHandler(context));
     }
