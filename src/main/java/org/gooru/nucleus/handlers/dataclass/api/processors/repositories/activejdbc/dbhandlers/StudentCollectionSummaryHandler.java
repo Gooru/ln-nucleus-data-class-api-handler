@@ -83,8 +83,8 @@ public class StudentCollectionSummaryHandler implements DBHandler {
       JsonObject resultBody = new JsonObject();
       JsonObject assessmentDataKPI = new JsonObject();
 
-      this.userId = context.userIdFromSession();
-      LOGGER.debug("UID is " + this.userId);
+      this.userId = context.getUserIdFromRequest();
+      LOGGER.debug("User ID is " + this.userId);
       String classId = context.request().getString(EventConstants.CLASS_GOORU_OID);
       String courseId = context.request().getString(EventConstants.COURSE_GOORU_OID);
       String unitId = context.request().getString(EventConstants.UNIT_GOORU_OID);
@@ -92,7 +92,7 @@ public class StudentCollectionSummaryHandler implements DBHandler {
       String collectionId = context.collectionId();
       JsonArray contentArray = new JsonArray();
       
-      LOGGER.info("cID : {} , ClassID : {} ", collectionId, classId);  
+      LOGGER.debug("cID : {} , ClassID : {} ", collectionId, classId);  
         //Getting Question Count 
         List<Map> collectionQuestionCount = null;
         if (!StringUtil.isNullOrEmpty(classId) && !StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
