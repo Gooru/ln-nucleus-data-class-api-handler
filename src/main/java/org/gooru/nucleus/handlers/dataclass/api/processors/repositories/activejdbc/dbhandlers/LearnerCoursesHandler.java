@@ -65,13 +65,13 @@ public class LearnerCoursesHandler implements DBHandler {
     List<Map> coursesList = null;
     if (taxSubjectId == null || (taxSubjectId != null && (taxSubjectId.equalsIgnoreCase("all") || taxSubjectId.equals("*")))) {
       // TODO : IL represents IndependentLearner. This can be changed later.
-      if (userType.equalsIgnoreCase("IL")) {
+      if (userType != null && userType.equalsIgnoreCase("IL")) {
         coursesList = Base.findAll(AJEntityUserTaxonomySubject.GET_INDEPENDENT_LEARNER_ALL_COURSES, this.userId);
       } else {
         coursesList = Base.findAll(AJEntityUserTaxonomySubject.GET_LEARNER_ALL_COURSES, this.userId);
       }
     } else {
-      if (userType.equalsIgnoreCase("IL")) {
+      if (userType != null && userType.equalsIgnoreCase("IL")) {
         coursesList = Base.findAll(AJEntityUserTaxonomySubject.GET_INDEPENDENT_LEARNER_COURSES, taxSubjectId, this.userId);
 
       } else {
