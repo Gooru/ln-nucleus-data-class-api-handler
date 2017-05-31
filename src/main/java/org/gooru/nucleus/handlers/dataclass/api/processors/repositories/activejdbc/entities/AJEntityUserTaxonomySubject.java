@@ -27,8 +27,10 @@ public class AJEntityUserTaxonomySubject extends Model {
   public static final String ATTR_TAX_SUBJECT_TITLE = "taxSubjectTitle";
   
   //******GET LIST OF SUBJECTS STUDIED BY THE USER*******************************************************************************
-  public static final String GET_IL_TAX_SUBJECTS = "SELECT DISTINCT tax_subject_id FROM user_tax_subject WHERE actor_id = ?";
+  public static final String GET_IL_TAX_SUBJECTS = "SELECT DISTINCT tax_subject_id FROM user_tax_subject WHERE class_id IS NULL AND actor_id = ?";
   
+  public static final String GET_LEARNER_TAX_SUBJECTS = "SELECT DISTINCT tax_subject_id FROM user_tax_subject WHERE actor_id = ?";
+
   public static final String GET_SUBJECT_TITLE = "SELECT  title FROM taxonomy_subject WHERE id = ?";
   
   public static final String GET_INDEPENDENT_LEARNER_COURSES = "SELECT DISTINCT course_id FROM user_tax_subject "
