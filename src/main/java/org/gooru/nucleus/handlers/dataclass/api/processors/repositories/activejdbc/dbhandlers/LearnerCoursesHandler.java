@@ -95,9 +95,9 @@ public class LearnerCoursesHandler implements DBHandler {
 
           });
         } else {
-          contentBody.put(AJEntityBaseReports.ATTR_CLASS_ID, nullVal);
-          contentBody.put(AJEntityContent.ATTR_CLASS_CODE, nullVal);
-          contentBody.put(AJEntityContent.ATTR_CLASS_TITLE, nullVal);
+          contentBody.putNull(AJEntityBaseReports.ATTR_CLASS_ID);
+          contentBody.putNull(AJEntityContent.ATTR_CLASS_CODE);
+          contentBody.putNull(AJEntityContent.ATTR_CLASS_TITLE);
         }
         resultarray.add(contentBody);
       });
