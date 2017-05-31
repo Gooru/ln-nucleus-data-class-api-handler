@@ -16,6 +16,8 @@ import org.javalite.activejdbc.Base;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.hazelcast.util.StringUtil;
+
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -63,15 +65,15 @@ public class LearnerCoursesHandler implements DBHandler {
     String taxSubjectId = this.context.request().getString("taxSubjectId");
     String userType = this.context.request().getString("userType");
     List<Map> coursesList = null;
-    if (taxSubjectId == null || (taxSubjectId != null && (taxSubjectId.equalsIgnoreCase("all") || taxSubjectId.equals("*")))) {
+    if (StringUtil.isNullOrEmpty(taxSubjectId) || ((taxSubjectId.equalsIgnoreCase("all") || taxSubjectId.equals("*")))) {
       // TODO : IL represents IndependentLearner. This can be changed later.
-      if (userType != null && userType.equalsIgnoreCase("IL")) {
+      if (!StringUtil.isNullOrEmpty(userType) && userType.equalsIgnoreCase("IL")) {
         coursesList = Base.findAll(AJEntityUserTaxonomySubject.GET_INDEPENDENT_LEARNER_ALL_COURSES, this.userId);
       } else {
         coursesList = Base.findAll(AJEntityUserTaxonomySubject.GET_LEARNER_ALL_COURSES, this.userId);
       }
     } else {
-      if (userType != null && userType.equalsIgnoreCase("IL")) {
+      if (!StringUtil.isNullOrEmpty(userType) && userType.equalsIgnoreCase("IL")) {
         coursesList = Base.findAll(AJEntityUserTaxonomySubject.GET_INDEPENDENT_LEARNER_COURSES, taxSubjectId, this.userId);
 
       } else {
