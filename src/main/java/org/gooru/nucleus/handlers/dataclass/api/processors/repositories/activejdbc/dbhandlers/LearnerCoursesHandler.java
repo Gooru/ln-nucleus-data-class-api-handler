@@ -16,6 +16,8 @@ import org.javalite.activejdbc.Base;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.hazelcast.util.StringUtil;
+
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -61,11 +63,22 @@ public class LearnerCoursesHandler implements DBHandler {
     this.userId = this.context.userIdFromSession();
     LOGGER.debug("UID is " + this.userId);
     String taxSubjectId = this.context.request().getString("taxSubjectId");
+    String userType = this.context.request().getString("userType");
     List<Map> coursesList = null;
-    if (taxSubjectId == null || (taxSubjectId != null && (taxSubjectId.equalsIgnoreCase("all") || taxSubjectId.equals("*")))) {
-      coursesList = Base.findAll(AJEntityUserTaxonomySubject.GET_LEARNER_ALL_COURSES, this.userId);
+    if (StringUtil.isNullOrEmpty(taxSubjectId) || ((taxSubjectId.equalsIgnoreCase("all") || taxSubjectId.equals("*")))) {
+      // TODO : IL represents IndependentLearner. This can be changed later.
+      if (!StringUtil.isNullOrEmpty(userType) && userType.equalsIgnoreCase("IL")) {
+        coursesList = Base.findAll(AJEntityUserTaxonomySubject.GET_INDEPENDENT_LEARNER_ALL_COURSES, this.userId);
+      } else {
+        coursesList = Base.findAll(AJEntityUserTaxonomySubject.GET_LEARNER_ALL_COURSES, this.userId);
+      }
     } else {
-      coursesList = Base.findAll(AJEntityUserTaxonomySubject.GET_LEARNER_COURSES, taxSubjectId, this.userId);
+      if (!StringUtil.isNullOrEmpty(userType) && userType.equalsIgnoreCase("IL")) {
+        coursesList = Base.findAll(AJEntityUserTaxonomySubject.GET_INDEPENDENT_LEARNER_COURSES, taxSubjectId, this.userId);
+
+      } else {
+        coursesList = Base.findAll(AJEntityUserTaxonomySubject.GET_LEARNER_COURSES, taxSubjectId, this.userId);
+      }
     }
     if (!coursesList.isEmpty()) {
       coursesList.forEach(course -> {
@@ -82,9 +95,9 @@ public class LearnerCoursesHandler implements DBHandler {
 
           });
         } else {
-          contentBody.put(AJEntityBaseReports.ATTR_CLASS_ID, nullVal);
-          contentBody.put(AJEntityContent.ATTR_CLASS_CODE, nullVal);
-          contentBody.put(AJEntityContent.ATTR_CLASS_TITLE, nullVal);
+          contentBody.putNull(AJEntityBaseReports.ATTR_CLASS_ID);
+          contentBody.putNull(AJEntityContent.ATTR_CLASS_CODE);
+          contentBody.putNull(AJEntityContent.ATTR_CLASS_TITLE);
         }
         resultarray.add(contentBody);
       });

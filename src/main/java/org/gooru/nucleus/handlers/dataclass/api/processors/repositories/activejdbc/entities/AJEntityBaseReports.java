@@ -89,6 +89,7 @@ public class AJEntityBaseReports extends Model {
     public static final String NA = "NA";
     public static final String AND = "AND";
     public static final String SPACE = " ";
+    public static final String COURSE_ID = "course_id = ? ";
     public static final String UNIT_ID = "unit_id = ? ";
     public static final String LESSON_ID = "lesson_id = ?";
     public static final String CLASS_ID = "class_id = ? ";
@@ -831,7 +832,7 @@ public class AJEntityBaseReports extends Model {
 
         
     public static final String GET_IL_COURSE_DISTINCT_COLLECTIONS = "SELECT distinct(collection_id) from base_reports where "
-    		+ "actor_id = ? AND collection_type = ? AND class_id IS NULL AND course_id = ? ";
+    		+ "actor_id = ? AND collection_type = ? ";
     
     //*****************************************************************************************************************************
    

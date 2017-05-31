@@ -121,10 +121,6 @@ public final class DBHandlerBuilder {
       return new IndependentLearnerIndependentAssessmentPerfHandler(context);
     }
     
-    public static DBHandler buildIndependentLearnerCourses(ProcessorContext context) {
-      return new IndependentLearnerCoursesHandler(context);
-    }
-    
     public static DBHandler buildIndLearnerLocationHandler(ProcessorContext context) {
         return new IndependentLearnerLocationHandler(context);
       }

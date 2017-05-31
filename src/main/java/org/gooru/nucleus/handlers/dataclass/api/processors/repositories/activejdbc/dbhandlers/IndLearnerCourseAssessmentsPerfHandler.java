@@ -29,6 +29,7 @@ public class IndLearnerCourseAssessmentsPerfHandler implements DBHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(IndLearnerCourseAssessmentsPerfHandler.class);
     private static final String REQUEST_USERID = "userId";
     private final ProcessorContext context;
+    private String classId;    
     private String userId;    
     private String courseId;
     private String unitId;
@@ -85,6 +86,13 @@ public class IndLearnerCourseAssessmentsPerfHandler implements DBHandler {
       
       params.add(AJEntityBaseReports.ATTR_ASSESSMENT);          
       
+      this.classId = this.context.request().getString(MessageConstants.CLASS_ID); 
+      if(StringUtil.isNullOrEmpty(this.classId)){
+        query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append("class_id IS NULL");
+      } else{
+        query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.CLASS_ID);
+        params.add(classId);  
+      }
       this.courseId = this.context.request().getString(MessageConstants.COURSE_ID);      
       if (StringUtil.isNullOrEmpty(courseId)) {
           LOGGER.warn("CourseID is mandatory for fetching Student Performance in a Collection");
@@ -93,6 +101,7 @@ public class IndLearnerCourseAssessmentsPerfHandler implements DBHandler {
                   ExecutionStatus.FAILED);
     
         } else {
+          query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.COURSE_ID);
         	params.add(courseId);        	
         }
 
