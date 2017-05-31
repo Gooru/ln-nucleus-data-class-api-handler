@@ -32,6 +32,7 @@ public class IndLearnerCourseCollectionsPerfHandler implements DBHandler {
     private String courseId;
     private String unitId;
     private String lessonId;
+    private String classId;
 
     
     public IndLearnerCourseCollectionsPerfHandler(ProcessorContext context) {
@@ -83,6 +84,14 @@ public class IndLearnerCourseCollectionsPerfHandler implements DBHandler {
       
       params.add(AJEntityBaseReports.ATTR_COLLECTION);
       
+      this.classId = this.context.request().getString(MessageConstants.CLASS_ID); 
+      if(StringUtil.isNullOrEmpty(this.classId)){
+        query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append("class_id IS NULL");
+      } else{
+        query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.CLASS_ID);
+        params.add(classId);  
+      }
+      
       this.courseId = this.context.request().getString(MessageConstants.COURSE_ID);      
       if (StringUtil.isNullOrEmpty(courseId)) {
           LOGGER.warn("CourseID is mandatory for fetching Student Performance in a Collection");
@@ -91,6 +100,7 @@ public class IndLearnerCourseCollectionsPerfHandler implements DBHandler {
                   ExecutionStatus.FAILED);
     
         } else {
+          query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.COURSE_ID);
         	params.add(courseId);        	
         }
 
