@@ -61,9 +61,7 @@ public interface ReportRepo {
     MessageResponse getLearnerPerformanceInAssessment();
 
     MessageResponse getLearnerPerformanceInIndependentAssessment();
-    
-    MessageResponse getIndependentLearnerCourses();
-    
+        
     MessageResponse getIndependentLearnerLocation();
 
     MessageResponse getIndependentLearnerPerformance();

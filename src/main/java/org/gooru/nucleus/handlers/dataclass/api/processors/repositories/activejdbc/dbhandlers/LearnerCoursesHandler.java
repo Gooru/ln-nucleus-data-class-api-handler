@@ -61,11 +61,22 @@ public class LearnerCoursesHandler implements DBHandler {
     this.userId = this.context.userIdFromSession();
     LOGGER.debug("UID is " + this.userId);
     String taxSubjectId = this.context.request().getString("taxSubjectId");
+    String userType = this.context.request().getString("userType");
     List<Map> coursesList = null;
     if (taxSubjectId == null || (taxSubjectId != null && (taxSubjectId.equalsIgnoreCase("all") || taxSubjectId.equals("*")))) {
-      coursesList = Base.findAll(AJEntityUserTaxonomySubject.GET_LEARNER_ALL_COURSES, this.userId);
+      // TODO : IL represents IndependentLearner. This can be changed later.
+      if (userType.equalsIgnoreCase("IL")) {
+        coursesList = Base.findAll(AJEntityUserTaxonomySubject.GET_INDEPENDENT_LEARNER_ALL_COURSES, this.userId);
+      } else {
+        coursesList = Base.findAll(AJEntityUserTaxonomySubject.GET_LEARNER_ALL_COURSES, this.userId);
+      }
     } else {
-      coursesList = Base.findAll(AJEntityUserTaxonomySubject.GET_LEARNER_COURSES, taxSubjectId, this.userId);
+      if (userType.equalsIgnoreCase("IL")) {
+        coursesList = Base.findAll(AJEntityUserTaxonomySubject.GET_INDEPENDENT_LEARNER_COURSES, taxSubjectId, this.userId);
+
+      } else {
+        coursesList = Base.findAll(AJEntityUserTaxonomySubject.GET_LEARNER_COURSES, taxSubjectId, this.userId);
+      }
     }
     if (!coursesList.isEmpty()) {
       coursesList.forEach(course -> {
