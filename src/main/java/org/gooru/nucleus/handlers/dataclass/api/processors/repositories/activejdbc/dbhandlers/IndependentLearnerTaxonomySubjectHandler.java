@@ -67,7 +67,7 @@ public class IndependentLearnerTaxonomySubjectHandler implements DBHandler {
     JsonArray subjectArray = new JsonArray();
 
     List<Map> taxSubjects = null;
-    if(StringUtil.isNullOrEmpty(userType) || userType.equalsIgnoreCase("IL")){      
+    if(!StringUtil.isNullOrEmpty(userType) || userType.equalsIgnoreCase("IL")){      
       taxSubjects = Base.findAll(AJEntityUserTaxonomySubject.GET_IL_TAX_SUBJECTS, this.userId);
     }else{
       taxSubjects = Base.findAll(AJEntityUserTaxonomySubject.GET_LEARNER_TAX_SUBJECTS, this.userId);      
