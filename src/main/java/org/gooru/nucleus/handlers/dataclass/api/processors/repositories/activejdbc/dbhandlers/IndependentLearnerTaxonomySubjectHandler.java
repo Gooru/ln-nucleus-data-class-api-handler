@@ -57,7 +57,8 @@ public class IndependentLearnerTaxonomySubjectHandler implements DBHandler {
   public ExecutionResult<MessageResponse> executeRequest() {
 
     this.userId = this.context.request().getString(REQUEST_USERID);
-
+    String userType = this.context.request().getString("userType");
+    
     if (StringUtil.isNullOrEmpty(userId)) {
       this.userId = this.context.userIdFromSession();
     }
@@ -66,7 +67,11 @@ public class IndependentLearnerTaxonomySubjectHandler implements DBHandler {
     JsonArray subjectArray = new JsonArray();
 
     List<Map> taxSubjects = null;
-    taxSubjects = Base.findAll(AJEntityUserTaxonomySubject.GET_IL_TAX_SUBJECTS, this.userId);
+    if(StringUtil.isNullOrEmpty(userType) || userType.equalsIgnoreCase("IL")){      
+      taxSubjects = Base.findAll(AJEntityUserTaxonomySubject.GET_IL_TAX_SUBJECTS, this.userId);
+    }else{
+      taxSubjects = Base.findAll(AJEntityUserTaxonomySubject.GET_LEARNER_TAX_SUBJECTS, this.userId);      
+    }
     if (!taxSubjects.isEmpty()) {
       taxSubjects.forEach(m -> {
         JsonObject subjectsInfo = new JsonObject();
