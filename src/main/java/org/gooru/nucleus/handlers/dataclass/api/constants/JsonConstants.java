@@ -81,6 +81,8 @@ public class JsonConstants {
   	public static final String LESSON_TITLE = "lessonTitle";
   
 	public static final String COLLECTION_TITLE = "collectionTitle";
+	
+	public static final String ASSESSMENT_TITLE = "assessmentTitle";
   
   	public static final String LAST_ACCESSED = "lastAccessed";
   	
