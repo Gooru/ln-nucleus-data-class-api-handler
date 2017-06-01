@@ -81,7 +81,7 @@ public class IndependentLearnerPerformanceHandler implements DBHandler {
             JsonObject courseDataObject = new JsonObject();
             courseDataObject.put(AJEntityBaseReports.ATTR_COURSE_ID, courseTS.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
             Object title = Base.firstCell(AJEntityContent.GET_TITLE, courseTS.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
-            courseDataObject.put(JsonConstants.COURSE_TITLE, title);
+            courseDataObject.put(JsonConstants.COURSE_TITLE, (title != null ? title.toString() : "NA"));
             courseDataObject.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.parseLong(courseTS.get(AJEntityBaseReports.TIME_SPENT).toString()));
             List<Map> courseCompletionKpi = Base.findAll(AJEntityBaseReports.GET_IL_ALL_COURSE_SCORE_COMPLETION, this.userId,
                     courseTS.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
@@ -126,7 +126,7 @@ public class IndependentLearnerPerformanceHandler implements DBHandler {
               assesmentObject.put(AJEntityBaseReports.ATTR_SCORE, 0);
             }
             Object title = Base.firstCell(AJEntityContent.GET_TITLE, assessmentTsKpi.get(AJEntityBaseReports.COLLECTION_OID).toString());
-            assesmentObject.put(JsonConstants.COLLECTION_TITLE, title);
+            assesmentObject.put(JsonConstants.COLLECTION_TITLE, (title != null ? title.toString() : "NA"));
             assesmentObject.putNull(AJEntityBaseReports.ATTR_COURSE_ID);
             assesmentObject.putNull(JsonConstants.COURSE_TITLE);
             assesmentObject.putNull(AJEntityBaseReports.ATTR_COMPLETED_COUNT);
@@ -170,7 +170,7 @@ public class IndependentLearnerPerformanceHandler implements DBHandler {
             }
             collectionObj.put(AJEntityBaseReports.ATTR_SCORE, Math.round(scoreInPercent));
             Object title = Base.firstCell(AJEntityContent.GET_TITLE, collectionsKpi.get(AJEntityBaseReports.COLLECTION_OID).toString());
-            collectionObj.put(JsonConstants.COLLECTION_TITLE, title);
+            collectionObj.put(JsonConstants.COLLECTION_TITLE, (title != null ? title.toString() : "NA"));
             collectionObj.putNull(AJEntityBaseReports.ATTR_COURSE_ID);
             collectionObj.putNull(JsonConstants.COURSE_TITLE);
             collectionObj.putNull(AJEntityBaseReports.ATTR_COMPLETED_COUNT);
