@@ -137,7 +137,9 @@ public class StudentLessonPerfHandler implements DBHandler {
           String cId = m.get(AJEntityBaseReports.ATTR_COLLECTION_ID).toString();                    
           // FIXME : revisit completed count and total count
           lessonKpi.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 1);
-          lessonKpi.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
+          //In Gooru 3.0, total_count was hardcoded to 1 at this last mile, assessment/collection level
+          //Replicating the same here.
+          lessonKpi.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 1);
           
           // FIXME: This logic to be revisited.
           if (this.collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {        	  
