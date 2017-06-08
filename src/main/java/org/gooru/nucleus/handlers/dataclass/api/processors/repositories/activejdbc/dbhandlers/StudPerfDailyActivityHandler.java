@@ -10,6 +10,7 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityDailyClassActivity;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
@@ -187,8 +188,11 @@ public class StudPerfDailyActivityHandler implements DBHandler {
               if (collectionScore != null) {
                 scoreInPercent = (((double) Integer.valueOf(collectionScore.toString()) / this.questionCount) * 100);
               }
-            }
-            collectionKpi.put(AJEntityDailyClassActivity.ATTR_SCORE, Math.round(scoreInPercent));
+              collectionKpi.put(AJEntityDailyClassActivity.ATTR_SCORE, Math.round(scoreInPercent));
+            } else {
+            	//If Collections have No Questions then score should be NULL
+            	collectionKpi.putNull(AJEntityBaseReports.ATTR_SCORE);
+            }            
             assessmentArray.add(collectionKpi);
           });
 

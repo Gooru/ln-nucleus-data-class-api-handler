@@ -91,8 +91,8 @@ public class StudentPerfInAllClasses implements DBHandler {
     	        JsonObject classKPI = new JsonObject();
     	        classKPI.put(AJEntityBaseReports.ATTR_CLASS_ID, classData.get(AJEntityBaseReports.CLASS_GOORU_OID).toString());
     	        classKPI.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.valueOf(classData.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()));
-    	        classKPI.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 0);
-    	        classKPI.put(AJEntityBaseReports.ATTR_SCORE, 0);
+    	        //classKPI.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 0);
+    	        //classKPI.put(AJEntityBaseReports.ATTR_SCORE, 0);
     	        Object classTotalCount = Base.firstCell(AJEntityCourseCollectionCount.GET_COURSE_ASSESSMENT_COUNT,
     	                classData.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
     	        classKPI.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, classTotalCount != null ? Integer.valueOf(classTotalCount.toString()) : 0);
@@ -111,6 +111,9 @@ public class StudentPerfInAllClasses implements DBHandler {
     	                    Integer.valueOf(scoreKPI.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
     	            classKPI.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.valueOf(scoreKPI.get(AJEntityBaseReports.ATTR_SCORE).toString())));
     	          });
+    	        } else {
+        	        classKPI.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 0);
+        	        classKPI.putNull(AJEntityBaseReports.ATTR_SCORE);
     	        }
     	        ClassKpiArray.add(classKPI);
     	      }
@@ -146,14 +149,16 @@ public class StudentPerfInAllClasses implements DBHandler {
     	                    Integer.valueOf(scoData.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
     	            classKPI.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.valueOf(scoData.get(AJEntityBaseReports.ATTR_SCORE).toString())));
 	    	});   
-  	    	}
-	        
+  	    	}else {
+    	        classKPI.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 0);
+    	        classKPI.putNull(AJEntityBaseReports.ATTR_SCORE);
+	        }	        
 		}
 	    	ClassKpiArray.add(classKPI);    			
 		}
     	
     } else {
-        LOGGER.info("Could not get Student Class Performance");
+        LOGGER.info("Could not get Student All Class Performance data");
       }
     
     // Form the required Json pass it on

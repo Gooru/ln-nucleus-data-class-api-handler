@@ -517,10 +517,10 @@ public class AJEntityBaseReports extends Model {
     //Going ahead we may need to remove that check. 
     
     //CLASS DATA FOR A USER (attempts, time_spent)
-    public static final String SELECT_STUDENT_ALL_CLASS_DATA = "SELECT SUM(CASE WHEN (event_name = 'collection.resource.play') THEN time_spent ELSE 0 END) AS timeSpent,  "
-            + "SUM(CASE WHEN (event_name = 'collection.play') THEN views ELSE 0 END) AS attempts, class_id, course_id "
+    public static final String SELECT_STUDENT_ALL_CLASS_DATA = "SELECT SUM(time_spent) AS timeSpent,  "
+            + "SUM(views) AS attempts, class_id, course_id "
             + "FROM base_reports WHERE class_id = ANY(?::varchar[]) AND course_id IS NOT NULL AND actor_id = ? "
-            + "AND collection_type = 'assessment' AND path_id IS NULL GROUP BY class_id, course_id";
+            + "AND collection_type = 'assessment' AND path_id IS NULL AND event_name = 'collection.play' GROUP BY class_id, course_id";
 
     //CLASS DATA FOR ALL USER(attempts, time_spent)
     public static final String SELECT_ALL_STUDENTS_CLASS_DATA = "SELECT SUM(time_spent) AS timeSpent,  SUM(views) AS attempts, class_id, course_id "

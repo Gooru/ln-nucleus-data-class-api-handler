@@ -185,9 +185,12 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
 
                     if (collectionScore != null) {
                       scoreInPercent = (((double) Double.valueOf(collectionScore.toString()) / this.questionCount) * 100);
-                    }
-                  }
-                  assData.put(AJEntityBaseReports.ATTR_SCORE, Math.round(scoreInPercent));
+                    }                    
+                    assData.put(AJEntityBaseReports.ATTR_SCORE, Math.round(scoreInPercent));
+                  } else {
+                  	//If Collections have No Questions then score should be NULL
+                  	assData.putNull(AJEntityBaseReports.ATTR_SCORE);
+                  }                  
                   assData.put(AJEntityBaseReports.ATTR_COLLECTION_ID, assData.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID));
                   assData.remove(AJEntityBaseReports.ATTR_ASSESSMENT_ID);
                   assData.put(EventConstants.VIEWS, assData.getInteger(EventConstants.ATTEMPTS));
