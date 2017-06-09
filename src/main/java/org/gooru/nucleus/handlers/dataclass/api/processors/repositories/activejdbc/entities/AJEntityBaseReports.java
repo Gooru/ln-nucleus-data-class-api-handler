@@ -422,7 +422,7 @@ public class AJEntityBaseReports extends Model {
     //@NU Resource as Suggestions (include event_name = 'collection.play')
     public static final String GET_PEERS_IN_LESSON = "SELECT collection_id, actor_id, collection_type, updated_at "
             + "FROM (SELECT DISTINCT ON (actor_id) collection_id, course_id, lesson_id, unit_id as unit_id, actor_id , collection_type, updated_at "
-            + "FROM base_reports where class_id = ? AND actor_id <> ? and event_name = 'collection.play' ORDER BY actor_id, updated_at DESC) AS DS "
+            + "FROM base_reports where class_id = ? AND actor_id <> ? and event_name = 'collection.play' and path_id IS NULL ORDER BY actor_id, updated_at DESC) AS DS "
             + "WHERE DS.course_id = ? AND DS.unit_id = ?  AND lesson_id = ?";
 
     public static final String GET_DISTINCT_USERS_FOR_COLLECTION_FILTERBY_COLLTYPE =
