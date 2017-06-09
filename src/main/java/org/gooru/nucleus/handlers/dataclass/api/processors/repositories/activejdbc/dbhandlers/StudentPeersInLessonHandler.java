@@ -60,6 +60,7 @@ import io.vertx.core.json.JsonObject;
       JsonArray peerArray = new JsonArray();
   
       // If CollectionType is Assessment
+      //@NU Resource as Suggestions - include event_name = 'collection.play' to ensure peers at C/A level
       LazyList<AJEntityBaseReports> collIDforAssessment =
               AJEntityBaseReports.findBySQL(AJEntityBaseReports.GET_PEERS_IN_LESSON, context.classId(),this.context.userIdFromSession(),
                       context.courseId(), context.unitId(), context.lessonId());
