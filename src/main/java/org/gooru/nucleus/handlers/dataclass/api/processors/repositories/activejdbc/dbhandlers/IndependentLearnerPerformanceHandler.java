@@ -167,8 +167,11 @@ public class IndependentLearnerPerformanceHandler implements DBHandler {
               if (collectionScore != null) {
                 scoreInPercent = (((Double.valueOf(collectionScore.toString())) / questionCount) * 100);
               }
-            }
-            collectionObj.put(AJEntityBaseReports.ATTR_SCORE, Math.round(scoreInPercent));
+              collectionObj.put(AJEntityBaseReports.ATTR_SCORE, Math.round(scoreInPercent));
+            }else {
+            	//If Collections have No Questions then score should be NULL
+            	collectionObj.putNull(AJEntityBaseReports.ATTR_SCORE);
+            }            
             Object title = Base.firstCell(AJEntityContent.GET_TITLE, collectionsKpi.get(AJEntityBaseReports.COLLECTION_OID).toString());
             collectionObj.put(JsonConstants.COLLECTION_TITLE, (title != null ? title.toString() : "NA"));
             collectionObj.putNull(AJEntityBaseReports.ATTR_COURSE_ID);

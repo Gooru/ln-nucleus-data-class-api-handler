@@ -158,8 +158,11 @@ public class StudentLessonPerfHandler implements DBHandler {
               if (collectionScore != null) {
                 scoreInPercent = (((Double.valueOf(collectionScore.toString())) / this.questionCount) * 100);
               }
-            }
-            lessonKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(scoreInPercent));
+              lessonKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(scoreInPercent));
+            } else {
+            	//If Collections have No Questions then score should be NULL
+            	lessonKpi.putNull(AJEntityBaseReports.ATTR_SCORE);
+            }            
             lessonKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, lessonKpi.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID));
             lessonKpi.remove(AJEntityBaseReports.ATTR_ASSESSMENT_ID);
             lessonKpi.put(EventConstants.VIEWS, lessonKpi.getInteger(EventConstants.ATTEMPTS));

@@ -153,7 +153,6 @@ public class StudPerfCourseCollectionHandler implements DBHandler {
 	    		});
         	}
         	
-            //**********************************************************************************************
       	  
             List<Map> collectionQuestionCount = null;
             collectionQuestionCount = Base.findAll(AJEntityBaseReports.GET_COLLECTION_QUESTION_COUNT, this.classId, this.courseId,
@@ -170,12 +169,14 @@ public class StudPerfCourseCollectionHandler implements DBHandler {
               if (collectionScore != null) {
                 scoreInPercent = (((Double.valueOf(collectionScore.toString())) / this.questionCount) * 100);
               }
-            }
-            collectionKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(scoreInPercent));
+              collectionKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(scoreInPercent));
+            } else {
+            	//If Collections have No Questions then score should be NULL
+            	collectionKpi.putNull(AJEntityBaseReports.ATTR_SCORE);
+            }            
             collectionKpi.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
             collectionKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collId);        	
-
-           //**********************************************************************************************            
+            
             collectionArray.add(collectionKpi);
 
         	}
