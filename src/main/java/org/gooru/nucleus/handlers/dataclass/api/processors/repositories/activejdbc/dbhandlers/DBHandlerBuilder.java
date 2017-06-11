@@ -168,4 +168,18 @@ public final class DBHandlerBuilder {
     public static DBHandler buildLearnerCourses(ProcessorContext context) {
       return new LearnerCoursesHandler(context);
     }
+    
+    //Rubric Grading
+    
+    public static DBHandler buildRubricQuesToGradeHandler(ProcessorContext context) {
+    	return new QuestionsToGradeHandler(context);
+    }
+    
+    public static DBHandler buildStudentsForRubricQuestionHandler(ProcessorContext context) {
+    	return new StudentsForRubricQuestionsHandler(context);
+    }
+    
+    public static DBHandler buildStudAnsForRubricQuesHandler(ProcessorContext context) {
+    	return new StudentAnsForRubricQuesHandler(context);
+    }
 }

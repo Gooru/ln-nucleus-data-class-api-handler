@@ -86,4 +86,12 @@ public interface ReportRepo {
     
     MessageResponse getLearnerCourses();
     
+    //Rubric Grading
+    
+    MessageResponse getRubricQuesToGrade();
+    
+    MessageResponse getStudentsForRubricQuestion();
+    
+    MessageResponse getStudentAnswersForRubricQuestion();
+        
 }
