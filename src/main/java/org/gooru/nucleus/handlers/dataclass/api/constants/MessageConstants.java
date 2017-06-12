@@ -102,7 +102,10 @@ public final class MessageConstants {
     public static final String PORT = "port";
     public static final String HOST = "host";
     public static final String REDIS = "redis.config";
-  
+    public static final String REDIS_MAX_SIZE = "max.size";
+    public static final String REDIS_MAX_IDLE = "max.idle";
+    public static final String REDIS_MIN_IDLE = "min.idle";
+    public static final String REDIS_MAX_WAIT_MILLIS = "max.wait.millis";
 
     private MessageConstants() {
         throw new AssertionError();

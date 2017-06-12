@@ -25,10 +25,10 @@ public class RedisClient implements Initializer, Finalizer {
     JsonObject redisConfig = config.getJsonObject(MessageConstants.REDIS);
     LOGGER.debug("redis host : {} - port : {} ", redisConfig.getString(MessageConstants.HOST), redisConfig.getInteger(MessageConstants.PORT));
     JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
-    jedisPoolConfig.setMaxTotal(1000);
-    jedisPoolConfig.setMaxIdle(10);
-    jedisPoolConfig.setMinIdle(1);
-    jedisPoolConfig.setMaxWaitMillis(30000);
+    jedisPoolConfig.setMaxTotal(redisConfig.getInteger(MessageConstants.REDIS_MAX_SIZE));
+    jedisPoolConfig.setMaxIdle(redisConfig.getInteger(MessageConstants.REDIS_MAX_IDLE));
+    jedisPoolConfig.setMinIdle(redisConfig.getInteger(MessageConstants.REDIS_MIN_IDLE));
+    jedisPoolConfig.setMaxWaitMillis(redisConfig.getInteger(MessageConstants.REDIS_MAX_WAIT_MILLIS));
     jedisPoolConfig.setTestOnBorrow(true);
     try {
       pool = new JedisPool(jedisPoolConfig, redisConfig.getString(MessageConstants.HOST), redisConfig.getInteger(MessageConstants.PORT));
