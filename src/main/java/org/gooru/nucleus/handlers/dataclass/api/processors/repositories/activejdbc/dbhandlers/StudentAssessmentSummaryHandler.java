@@ -63,7 +63,7 @@ public class StudentAssessmentSummaryHandler implements DBHandler {
               || (!context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
         LOGGER.debug("Request by Teacher/collaborator....");
         this.sessionId = this.context.request().getString(REQUEST_SESSION_ID);
-        Object classID = Base.firstCell(AJEntityBaseReports.SELECT_CLASS_BY_SESSION_ID, sessionId);
+        Object classID = Base.firstCell(AJEntityBaseReports.SELECT_CLASS_BY_SESSION_ID,context.collectionId(), sessionId);
         LOGGER.debug("classID : {}", classID);
         if (classID == null) {
           LOGGER.debug("validateRequest() FAILED");
@@ -93,7 +93,7 @@ public class StudentAssessmentSummaryHandler implements DBHandler {
       JsonArray contentArray = new JsonArray();
       // STUDENT PERFORMANCE REPORTS IN ASSESSMENTS when SessionID NOT NULL
       if (!StringUtil.isNullOrEmpty(sessionId)) {
-        List<Map> assessmentKPI = Base.findAll(AJEntityBaseReports.SELECT_ASSESSMENT_FOREACH_COLLID_AND_SESSION_ID, sessionId , AJEntityBaseReports.ATTR_CP_EVENTNAME);
+        List<Map> assessmentKPI = Base.findAll(AJEntityBaseReports.SELECT_ASSESSMENT_FOREACH_COLLID_AND_SESSION_ID, context.collectionId(), sessionId , AJEntityBaseReports.ATTR_CP_EVENTNAME);
   
         LOGGER.info("cID : {} , SID : {} ", context.collectionId(), sessionId);
         if (!assessmentKPI.isEmpty()) {
@@ -106,7 +106,7 @@ public class StudentAssessmentSummaryHandler implements DBHandler {
           
           LOGGER.debug("Assessment question Attributes started");
 
-          List<Map> assessmentQuestionsKPI = Base.findAll(AJEntityBaseReports.SELECT_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSION_ID,
+          List<Map> assessmentQuestionsKPI = Base.findAll(AJEntityBaseReports.SELECT_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSION_ID,context.collectionId(),
                   sessionId, AJEntityBaseReports.ATTR_CRP_EVENTNAME);
           
           JsonArray questionsArray = new JsonArray();
