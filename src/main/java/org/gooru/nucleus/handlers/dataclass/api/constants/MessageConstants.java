@@ -50,6 +50,9 @@ public final class MessageConstants {
     public static final String COURSE = "course";
     public static final String ASSESSMENT = "assessment";
     public static final String COLLECTION = "collection";
+    //Rubric Grading
+    public static final String STUDENT_ID = "studentId";
+    public static final String QUESTION_ID = "questionId";
     
     // Read API Constants
     public static final String MSG_OP_COURSE_PEERS = "student.peers.in.course";    
@@ -97,6 +100,13 @@ public final class MessageConstants {
     public static final String MSG_OP_IND_LEARNER_TAX_SUBJECTS = "independent.learner.taxonomy.subjects";
     public static final String MSG_OP_LEARNER_COURSES = "learner.courses";
 
+    //Rubric Grading
+    public static final String MSG_OP_RUBRICS_QUESTIONS_TO_GRADE = "rubric.questions.to.grade";
+    public static final String MSG_OP_RUBRIC_QUESTIONS_STUDENTS_LIST = "rubric.questions.students.list";
+    public static final String MSG_OP_RUBRIC_QUESTIONS_STUDENT_ANSWERS = "rubric.questions.student.answers";
+    
+    
+    
 
     
     public static final String PORT = "port";

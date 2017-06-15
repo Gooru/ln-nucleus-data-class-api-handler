@@ -150,6 +150,16 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_IND_LEARNER_TAX_SUBJECTS:
                 result = getIndependentLearnerTaxSubjects();
                 break;
+                //Rubric Grading
+            case MessageConstants.MSG_OP_RUBRICS_QUESTIONS_TO_GRADE:
+                result = getRubricQuestionsToGrade();
+                break;
+            case MessageConstants.MSG_OP_RUBRIC_QUESTIONS_STUDENTS_LIST:
+                result = getStudentsForRubricQue();
+                break;
+            case MessageConstants.MSG_OP_RUBRIC_QUESTIONS_STUDENT_ANSWERS:
+                result = getStudAnswersForRubricQue();
+                break;
             default:
                 LOGGER.error("Invalid operation type passed in, not able to handle");
                 return MessageResponseFactory
@@ -162,8 +172,65 @@ class MessageProcessor implements Processor {
             return MessageResponseFactory.createInternalErrorResponse();
         }
     }
-    
 
+    //**************************************************************************************************************
+    
+    private MessageResponse getRubricQuestionsToGrade() {
+    	try {
+            ProcessorContext context = createContext();
+            
+            return new RepoBuilder().buildReportRepo(context).getRubricQuesToGrade();
+            
+        } catch (Throwable t) {
+            LOGGER.error("Exception while getting Student peers in Course", t);
+            return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+        }
+
+    }
+
+    private MessageResponse getStudentsForRubricQue() {
+    	try {
+            ProcessorContext context = createContext();
+            
+            if (!checkQuestionId(context)) {
+                LOGGER.error("QuestionId not available to obtain Student Ids. Aborting!");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid ClassId");
+            }
+            
+            return new RepoBuilder().buildReportRepo(context).getStudentsForRubricQuestion();
+            
+        } catch (Throwable t) {
+            LOGGER.error("Exception while getting Student peers in Course", t);
+            return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+        }
+
+    }
+    
+    private MessageResponse getStudAnswersForRubricQue() {
+    	try {
+            ProcessorContext context = createContext();
+            
+            if (!checkQuestionId(context)) {
+                LOGGER.error("QuestionId not available to obtain answers. Aborting!");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid ClassId");
+            }
+
+            if (!checkStudentId(context)) {
+                LOGGER.error("StudentId not available to obtain answers. Aborting!");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid ClassId");
+            }
+
+            
+            return new RepoBuilder().buildReportRepo(context).getStudentAnswersForRubricQuestion();
+            
+        } catch (Throwable t) {
+            LOGGER.error("Exception while getting Student peers in Course", t);
+            return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+        }
+
+    }
+    
+    //**************************************************************************************************************
     
     private MessageResponse getStudentPeersInCourse() {
     	try {
@@ -868,11 +935,13 @@ class MessageProcessor implements Processor {
         String userId =  (request).getString(MessageConstants._USER_ID);
         /* user id from api request */
         String userUId = (request).getString(MessageConstants.USER_UID);
-        userUId = userUId == null ? (request).getString(MessageConstants.USER_ID) : userUId; 
-        LOGGER.debug("User ID from session :" + userId + " User ID From request : " + userUId);
+        userUId = userUId == null ? (request).getString(MessageConstants.USER_ID) : userUId;        
         String sessionId = message.headers().get(MessageConstants.SESSION_ID);
-        LOGGER.debug(sessionId);
-        return new ProcessorContext(request, userId,userUId, classId, courseId, unitId, lessonId, collectionId, sessionId);
+        String studentId = message.headers().get(MessageConstants.STUDENT_ID);
+        String questionId = message.headers().get(MessageConstants.QUESTION_ID);
+        
+        return new ProcessorContext(request, userId,userUId, classId, courseId, unitId, lessonId, collectionId, 
+        		sessionId, studentId, questionId);
     }
 
     //This is just the first level validation. Each Individual Handler would need to do more validation based on the
@@ -930,6 +999,16 @@ class MessageProcessor implements Processor {
     private boolean checkSessionId(ProcessorContext context) {
         return validateId(context.sessionId());
     }
+    
+    private boolean checkQuestionId(ProcessorContext context) {
+        return validateId(context.questionId());
+    }
+    
+    private boolean checkStudentId(ProcessorContext context) {
+        return validateId(context.studentId());
+    }
+
+
  
     private boolean validateUser(String userId) {
         return !(userId == null || userId.isEmpty()
