@@ -2,15 +2,19 @@
   "comment": "This is bundled JSON file. Idea is that we should externalize this also as part of build. Currently this is going to hold the dev env information",
   "defaultDataSource": {
     "nucleus.ds.type": "hikari",
-    "username": "nucleus",
+    "username": "reports_user",
     "password": "nucleus",
     "autoCommit": false,
-    "jdbcUrl": "jdbc:postgresql://localhost:5432/nucleus",
+    "jdbcUrl": "jdbc:postgresql://localhost:5432/reports_db",
     "maximumPoolSize": 5
  },
  "redis.config": {
     "host": "localhost",
-    "port": 6379
+    "port": 6379,
+    "max.size":50,
+    "max.idle":10,
+    "min.idle":1,
+    "max.wait.millis":30000
   },
   "org.gooru.nucleus.handlers.dataclass.api.bootstrap.AuthVerticle":{},
   "org.gooru.nucleus.handlers.dataclass.api.bootstrap.DataClassReadApiVerticle":{}

@@ -275,7 +275,7 @@ public class AJEntityBaseReports extends Model {
             + "collection_id,FIRST_VALUE(reaction) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS reaction,"
             + "FIRST_VALUE(time_spent) OVER (PARTITION BY collection_id ORDER BY updated_at desc) as collectionTimeSpent,"
             + "updated_at,session_id,collection_type,FIRST_VALUE(views) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS collectionViews "
-            + "from base_reports WHERE session_id = ? AND event_name = ? ";
+            + "from base_reports WHERE collection_id = ? AND session_id = ? AND event_name = ? ";
     
     
     public static final String SELECT_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSION_ID =
@@ -286,7 +286,7 @@ public class AJEntityBaseReports extends Model {
             + "FIRST_VALUE(views) OVER (PARTITION BY resource_id ORDER BY updated_at asc) AS resourceViews, "
             + "resource_type,question_type,"
             + "FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) as answer_object "
-            + "from base_reports WHERE session_id = ? AND event_name = ? ";
+            + "from base_reports WHERE collection_id = ? AND session_id = ? AND event_name = ? ";
     
     public static final String SELECT_COLLECTION_FOREACH_COLLID_AND_SESSION_ID =
             "SELECT distinct on (collection_id) score,collection_id,reaction,time_spent AS collectiontime_spent,created_at,session_id,collection_type,views AS collectionviews from base_reports"
@@ -510,7 +510,7 @@ public class AJEntityBaseReports extends Model {
     
     public static final String SELECT_CLASS_USER_BY_SESSION_ID = "SELECT class_id,actor_id FROM base_reports WHERE session_id = ? LIMIT 1";
 
-    public static final String SELECT_CLASS_BY_SESSION_ID = "SELECT class_id FROM base_reports WHERE session_id = ? AND class_id IS NOT NULL LIMIT 1";
+    public static final String SELECT_CLASS_BY_SESSION_ID = "SELECT class_id FROM base_reports WHERE collection_id = ? AND session_id = ? AND class_id IS NOT NULL LIMIT 1";
 
     //*************************************************************************************************************************
     //Student all classes performance
