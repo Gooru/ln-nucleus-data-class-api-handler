@@ -27,7 +27,8 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
     
     /**
-     * Created by mukul@gooru Modified by daniel
+     * Created by mukul@gooru 
+     * Modified by daniel
      */
     
     public class StudentUnitPerfHandler implements DBHandler {
@@ -184,8 +185,14 @@ import io.vertx.core.json.JsonObject;
                       List<Map> collectionQuestionCount = null;
                         collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_QUESTION_COUNT, context.classId(),
                               context.courseId(), context.unitId(), this.lessonId, assData.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID),this.userId);
+                        //If questions are not present then Question Count is always zero, however this additional check needs to be added
+                        //since during migration of data from 3.0 chances are that QC may be null instead of zero
                       collectionQuestionCount.forEach(qc -> {
-                        this.questionCount = Integer.valueOf(qc.get(AJEntityBaseReports.QUESTION_COUNT).toString());
+                      	if (qc.get(AJEntityBaseReports.QUESTION_COUNT).toString() != null) {
+                      		this.questionCount = Integer.valueOf(qc.get(AJEntityBaseReports.QUESTION_COUNT).toString());
+                      	} else {
+                      		this.questionCount = 0;
+                      	}                        
                       });
                       double scoreInPercent=0;
                       if(this.questionCount > 0){
