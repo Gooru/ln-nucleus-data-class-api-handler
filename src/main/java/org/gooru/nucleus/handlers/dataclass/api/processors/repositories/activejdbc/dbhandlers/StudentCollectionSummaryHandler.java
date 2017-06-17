@@ -100,8 +100,15 @@ public class StudentCollectionSummaryHandler implements DBHandler {
         }else{
           collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_QUESTION_COUNT_, collectionId,this.userId);
         }
+
+        //If questions are not present then Question Count is always zero, however this additional check needs to be added
+        //since during migration of data from 3.0 chances are that QC may be null instead of zero
         collectionQuestionCount.forEach(qc -> {
-          this.questionCount = Integer.valueOf(qc.get(AJEntityBaseReports.QUESTION_COUNT).toString());
+        	if (qc.get(AJEntityBaseReports.QUESTION_COUNT).toString() != null) {
+        		this.questionCount = Integer.valueOf(qc.get(AJEntityBaseReports.QUESTION_COUNT).toString());
+        	} else {
+        		this.questionCount = 0;
+        	}
           this.lastAccessedTime = Timestamp.valueOf(qc.get(AJEntityBaseReports.UPDATE_TIMESTAMP).toString()).getTime();
         });
         List<Map> collectionData = null;
