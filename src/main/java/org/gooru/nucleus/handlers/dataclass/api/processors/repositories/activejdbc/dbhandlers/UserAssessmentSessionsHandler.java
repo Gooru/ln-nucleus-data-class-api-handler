@@ -119,13 +119,19 @@ public class UserAssessmentSessionsHandler implements DBHandler {
         			
         			sessionStatusMap.forEach(sess -> {
         				if (sess.get(AJEntityBaseReports.EVENTTYPE).toString().equals(EventConstants.START)){
-        	   				sessionObj.put(JsonConstants.EVENT_TIME, sess.get(AJEntityBaseReports.CREATE_TIMESTAMP).toString())
+        	   				sessionObj.put(JsonConstants.EVENT_TIME, sess.get(AJEntityBaseReports.UPDATE_TIMESTAMP).toString())
         	   				.put(JsonConstants.SESSIONID, sessionId);
         	   						
         	   			}
         	   			
         				if (sess.get(AJEntityBaseReports.EVENTTYPE).toString().equals(EventConstants.STOP)){
+        					//Specific Change related to Migration (3.0 -> 4.0)
+        					if (!sessionObj.isEmpty()) {
+        						sessionObj.clear();
+        					}
         					closedSeq++;
+        					sessionObj.put(JsonConstants.EVENT_TIME, sess.get(AJEntityBaseReports.UPDATE_TIMESTAMP).toString())
+        	   				.put(JsonConstants.SESSIONID, sessionId);
         					sessionObj.put(JsonConstants.SEQUENCE, closedSeq.toString());
         	   				isStop = true;
         					closedSessionArray.add(sessionObj);
@@ -161,23 +167,5 @@ public class UserAssessmentSessionsHandler implements DBHandler {
     @Override
     public boolean handlerReadOnly() {
         return false;
-    }
-    
-    private boolean validateOptionalParams(ProcessorContext context) {
-    	
-
-    	JsonArray classId_array = this.context.request().getJsonArray(REQUEST_CLASS_ID);
-    	JsonArray courseId_array = this.context.request().getJsonArray(REQUEST_COURSE_ID);
-    	JsonArray unitId_array = this.context.request().getJsonArray(REQUEST_UNIT_ID);
-    	JsonArray lessonId_array = this.context.request().getJsonArray(REQUEST_LESSON_ID);
-    	
-    	if ((classId_array != null) && (courseId_array != null) && (unitId_array != null) && (lessonId_array != null)){
-    		this.classId = classId_array.getString(0);
-    		this.courseId = courseId_array.getString(0);
-    		this.unitId = unitId_array.getString(0);
-    		this.lessonId = lessonId_array.getString(0);
-    		
-    		return true;    		
-    	} else return false;
     }
 }

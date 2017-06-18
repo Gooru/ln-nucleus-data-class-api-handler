@@ -434,11 +434,9 @@ public class AJEntityBaseReports extends Model {
     		+ " WHERE lesson_id = ? AND collection_id = ? AND collection_type =? AND actor_id = ? ORDER BY updated_at DESC LIMIT 1";
 
   //*************************************************************************************************************************    
-    //GET SESSION STATUS    
-    /**public static final String GET_SESSION_STATUS =  "SELECT count(*) from base_reports WHERE session_id = ? "
-    		+ " AND collection_id = ? AND event_type = ? AND event_name = ? "; **/
+    //GET SESSION STATUS
     
-    public static final String GET_SESSION_STATUS =  "SELECT event_name, event_type, created_at from base_reports WHERE session_id = ? "
+    public static final String GET_SESSION_STATUS =  "SELECT event_name, event_type, updated_at from base_reports WHERE session_id = ? "
 	+ " AND collection_id = ? AND event_name = ? ";
     
     //GET USER ALL SESSIONS FROM ASSESSMENT    
