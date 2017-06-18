@@ -46,22 +46,33 @@ public class IndependentLearnerLocationHandler implements DBHandler {
 
 	  @Override
 	  public ExecutionResult<MessageResponse> validateRequest() {
+	      if (context.getUserIdFromRequest() == null
+	              || (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
+	          LOGGER.debug("validateRequest() FAILED");
+	          return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User validation failed"), ExecutionStatus.FAILED);	        
+	      }
+
 	    LOGGER.debug("validateRequest() OK");
 	    return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
 	  }
 
 	  @Override
 	  @SuppressWarnings("rawtypes")
-	  public ExecutionResult<MessageResponse> executeRequest() {
+	  public ExecutionResult<MessageResponse> executeRequest() {		  	  
 
 	    String userId = this.context.request().getString(REQUEST_USERID);
 	    if (StringUtil.isNullOrEmpty(userId)) {
-	        // If user id is not present in the path, take user id from session token.
-	        userId = this.context.userIdFromSession();
+	        userId = this.context.request().getString(REQUEST_USERID);
+	        if (StringUtil.isNullOrEmpty(userId)) {
+	            LOGGER.error("userId is Mandatory to fetch Independent Learner's performance");
+	            return new ExecutionResult<>(
+	                    MessageResponseFactory.createInvalidRequestResponse("userId Missing. Cannot fetch Independent Learner's Performance"),
+	                    ExecutionStatus.FAILED);
+	          }
 	      }
-	    String limitS = this.context.request().getString("limit");
+	    String limitS = this.context.request().getString("limit");	    
 	    String offsetS = this.context.request().getString("offset");
-       		
+	           		
 	    JsonObject result = new JsonObject();
 	    JsonArray locArray = new JsonArray();	    	    
 	    List<String> courseIds = new ArrayList<>();
@@ -69,7 +80,7 @@ public class IndependentLearnerLocationHandler implements DBHandler {
 	    
 	    String contentType = this.context.request().getString(REQUEST_CONTENTTYPE);
 	  
-	    if (StringUtil.isNullOrEmpty(contentType) && contentType.equalsIgnoreCase(MessageConstants.COURSE)){
+	    if (!StringUtil.isNullOrEmpty(contentType) && contentType.equalsIgnoreCase(MessageConstants.COURSE)){
 	       
 			LazyList<AJEntityBaseReports> ILCourses = AJEntityBaseReports.findBySQL(AJEntityBaseReports.GET_DISTINCT_COURSES_FOR_INDEPENDENT_LEARNER, userId);
 		  	ILCourses.forEach(course -> courseIds.add(course.getString(AJEntityBaseReports.COURSE_GOORU_OID)));	  
@@ -80,10 +91,10 @@ public class IndependentLearnerLocationHandler implements DBHandler {
 
 		    ILlocMap = Base.findAll(AJEntityBaseReports.GET_INDEPENDENT_LEARNER_LOCATION_ALL_COURSES, userId, listToPostgresArrayString(courseIds));
 	    	
-	    } else if (StringUtil.isNullOrEmpty(contentType) && contentType.equalsIgnoreCase(MessageConstants.ASSESSMENT)) {
+	    } else if (!StringUtil.isNullOrEmpty(contentType) && contentType.equalsIgnoreCase(MessageConstants.ASSESSMENT)) {
 	    	ILlocMap = Base.findAll(AJEntityBaseReports.GET_DISTINCT_ASSESSMENT_FOR_INDEPENDENT_LEARNER, userId);
 	    	
-	    } else if (StringUtil.isNullOrEmpty(contentType) && contentType.equalsIgnoreCase(MessageConstants.COLLECTION)) {
+	    } else if (!StringUtil.isNullOrEmpty(contentType) && contentType.equalsIgnoreCase(MessageConstants.COLLECTION)) {
 	    	 ILlocMap = Base.findAll(AJEntityBaseReports.GET_DISTINCT_COLLECTION_FOR_INDEPENDENT_LEARNER, userId);
 	    	
 	    }

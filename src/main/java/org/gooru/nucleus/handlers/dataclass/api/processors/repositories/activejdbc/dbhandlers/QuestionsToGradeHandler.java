@@ -61,7 +61,7 @@ public ExecutionResult<MessageResponse> executeRequest() {
   JsonObject resultBody = new JsonObject();
   JsonArray resultarray = new JsonArray();
 
-  resultBody.put("Rubrics" , "WORK IN PROGRESS");
+  resultBody.put("Rubrics - QuestionsToGrade" , "WORK IN PROGRESS");
 
   return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
 
