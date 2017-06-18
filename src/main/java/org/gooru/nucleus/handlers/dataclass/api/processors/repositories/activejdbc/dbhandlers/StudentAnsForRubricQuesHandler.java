@@ -50,7 +50,7 @@ public class StudentAnsForRubricQuesHandler implements DBHandler {
 	  JsonObject resultBody = new JsonObject();
 	  JsonArray resultarray = new JsonArray();
 
-	  resultBody.put("Rubrics" , "WORK IN PROGRESS");
+	  resultBody.put("Rubrics - Answers" , "WORK IN PROGRESS");
 
 	  return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
 

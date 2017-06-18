@@ -117,10 +117,10 @@ class MessageProcessor implements Processor {
                 //result = getIndependentLearnerCourses();
                 result = getLearnerCourses();
                 break;
-            case MessageConstants.MSG_OP_IND_LEARNER_LOCATION_ALL:
+            case MessageConstants.MSG_OP_IND_LEARNER_ALL_LOCATION:
                 result = getIndependentLearnerLoc();
                 break;                    
-            case MessageConstants.MSG_OP_IND_LEARNER_PERFORMANCE_ALL:
+            case MessageConstants.MSG_OP_IND_LEARNER_ALL_PERFORMANCE:
                 result = getIndependentLearnerPerf();
                 break;
             case MessageConstants.MSG_OP_IND_LEARNER_LOCATION_ALL_COURSES:
@@ -194,7 +194,7 @@ class MessageProcessor implements Processor {
             
             if (!checkQuestionId(context)) {
                 LOGGER.error("QuestionId not available to obtain Student Ids. Aborting!");
-                return MessageResponseFactory.createInvalidRequestResponse("Invalid ClassId");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid QuestionId");
             }
             
             return new RepoBuilder().buildReportRepo(context).getStudentsForRubricQuestion();
@@ -212,12 +212,12 @@ class MessageProcessor implements Processor {
             
             if (!checkQuestionId(context)) {
                 LOGGER.error("QuestionId not available to obtain answers. Aborting!");
-                return MessageResponseFactory.createInvalidRequestResponse("Invalid ClassId");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid QuestionId");
             }
 
             if (!checkStudentId(context)) {
                 LOGGER.error("StudentId not available to obtain answers. Aborting!");
-                return MessageResponseFactory.createInvalidRequestResponse("Invalid ClassId");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid StudentId");
             }
 
             

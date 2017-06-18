@@ -14,7 +14,6 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResp
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.javalite.activejdbc.Base;
-import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,8 +30,7 @@ public class IndependentLearnerPerformanceHandler implements DBHandler {
 	  private final ProcessorContext context;
 	  private static final String REQUEST_USERID = "userId";
 	  private static final String REQUEST_CONTENTTYPE = "contentType";
-	  private static final int MAX_LIMIT = 20;
-	  private String userId;
+	  private static final int MAX_LIMIT = 20;	  
 	  int questionCount;
 	  
 	  IndependentLearnerPerformanceHandler(ProcessorContext context) {
@@ -41,14 +39,25 @@ public class IndependentLearnerPerformanceHandler implements DBHandler {
 
 	  @Override
 	  public ExecutionResult<MessageResponse> checkSanity() {
-	    // No Sanity Check required since, no params are being passed in Request
-	    // Body
+	        if (context.request() == null || context.request().isEmpty()) {
+	            LOGGER.warn("Invalid request received to fetch Independent Learner's Location");
+	            return new ExecutionResult<>(
+	                MessageResponseFactory.createInvalidRequestResponse("Invalid data provided to fetch Student Performance in Assessments"),
+	                ExecutionStatus.FAILED);
+	        }
+
 	    LOGGER.debug("checkSanity() OK");
 	    return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
 	  }
 
 	  @Override
 	  public ExecutionResult<MessageResponse> validateRequest() {
+	      if (context.getUserIdFromRequest() == null
+	              || (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
+	          LOGGER.debug("validateRequest() FAILED");
+	          return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User validation failed"), ExecutionStatus.FAILED);	        
+	      }
+
 	    LOGGER.debug("validateRequest() OK");
 	    return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
 	  }
@@ -57,25 +66,38 @@ public class IndependentLearnerPerformanceHandler implements DBHandler {
 	  @SuppressWarnings("rawtypes")
   public ExecutionResult<MessageResponse> executeRequest() {
 
-    this.userId = this.context.request().getString(REQUEST_USERID);
-    if (StringUtil.isNullOrEmpty(this.userId)) {
-        // If user id is not present in the path, take user id from session token.
-        this.userId = this.context.userIdFromSession();
+    String userId = this.context.request().getString(REQUEST_USERID);
+    if (StringUtil.isNullOrEmpty(userId)) {
+        LOGGER.error("userId is Mandatory to fetch Independent Learner's performance");
+        return new ExecutionResult<>(
+                MessageResponseFactory.createInvalidRequestResponse("userId Missing. Cannot fetch Independent Learner's Performance"),
+                ExecutionStatus.FAILED);
       }
+      
+    
+    String contentType = this.context.request().getString(REQUEST_CONTENTTYPE);
+    
+    if (StringUtil.isNullOrEmpty(contentType)) {
+        LOGGER.error("contentType is Mandatory to fetch Independent Learner's performance");
+        return new ExecutionResult<>(
+                MessageResponseFactory.createInvalidRequestResponse("contentType Missing. Cannot fetch Independent Learner's Performance"),
+                ExecutionStatus.FAILED);
+      }
+
+    
     String limitS = this.context.request().getString("limit");
     String offsetS = this.context.request().getString("offset");
     
     JsonObject result = new JsonObject();
-    JsonArray ILPerfArray = new JsonArray();
+    JsonArray ILPerfArray = new JsonArray();    
     
-    String contentType = this.context.request().getString(REQUEST_CONTENTTYPE);
 	  
-    if (StringUtil.isNullOrEmpty(contentType) && contentType.equalsIgnoreCase(MessageConstants.COURSE)){
+    if (!StringUtil.isNullOrEmpty(contentType) && contentType.equalsIgnoreCase(MessageConstants.COURSE)){
     	
         String query = StringUtil.isNullOrEmpty(limitS) ? AJEntityBaseReports.GET_IL_ALL_COURSE_TIMESPENT
                 : AJEntityBaseReports.GET_IL_ALL_COURSE_TIMESPENT + "LIMIT " + Long.valueOf(limitS);
 
-        List<Map> courseTSKpi = Base.findAll(query, this.userId, StringUtil.isNullOrEmpty(offsetS) ? 0L : Long.valueOf(offsetS));
+        List<Map> courseTSKpi = Base.findAll(query, userId, StringUtil.isNullOrEmpty(offsetS) ? 0L : Long.valueOf(offsetS));
         if (!courseTSKpi.isEmpty()) {
           courseTSKpi.forEach(courseTS -> {
             JsonObject courseDataObject = new JsonObject();
@@ -83,7 +105,7 @@ public class IndependentLearnerPerformanceHandler implements DBHandler {
             Object title = Base.firstCell(AJEntityContent.GET_TITLE, courseTS.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
             courseDataObject.put(JsonConstants.COURSE_TITLE, (title != null ? title.toString() : "NA"));
             courseDataObject.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.parseLong(courseTS.get(AJEntityBaseReports.TIME_SPENT).toString()));
-            List<Map> courseCompletionKpi = Base.findAll(AJEntityBaseReports.GET_IL_ALL_COURSE_SCORE_COMPLETION, this.userId,
+            List<Map> courseCompletionKpi = Base.findAll(AJEntityBaseReports.GET_IL_ALL_COURSE_SCORE_COMPLETION, userId,
                     courseTS.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
             courseCompletionKpi.forEach(courseComplettion -> {
               courseDataObject.put(AJEntityBaseReports.ATTR_SCORE,
@@ -103,19 +125,19 @@ public class IndependentLearnerPerformanceHandler implements DBHandler {
           LOGGER.info("No data returned for Independent Learner for All Courses");
         }
     	
-    } else if (StringUtil.isNullOrEmpty(contentType) && contentType.equalsIgnoreCase(MessageConstants.ASSESSMENT)) {
+    } else if (!StringUtil.isNullOrEmpty(contentType) && contentType.equalsIgnoreCase(MessageConstants.ASSESSMENT)) {
     	
         String query = StringUtil.isNullOrEmpty(limitS) ? AJEntityBaseReports.GET_IL_ALL_ASSESSMENT_ATTEMPTS_TIMESPENT
                 : AJEntityBaseReports.GET_IL_ALL_ASSESSMENT_ATTEMPTS_TIMESPENT + "LIMIT " + Long.valueOf(limitS);
     
-        List<Map> assessmentTS = Base.findAll(query, this.userId, StringUtil.isNullOrEmpty(offsetS) ? 0L : Long.valueOf(offsetS));
+        List<Map> assessmentTS = Base.findAll(query, userId, StringUtil.isNullOrEmpty(offsetS) ? 0L : Long.valueOf(offsetS));
         if (!assessmentTS.isEmpty()) {
           assessmentTS.forEach(assessmentTsKpi -> {
             JsonObject assesmentObject = new JsonObject();
             assesmentObject.put(AJEntityBaseReports.ATTR_COLLECTION_ID, assessmentTsKpi.get(AJEntityBaseReports.COLLECTION_OID).toString());
             assesmentObject.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.parseLong(assessmentTsKpi.get(AJEntityBaseReports.TIME_SPENT).toString()));
             assesmentObject.put(AJEntityBaseReports.ATTR_ATTEMPTS, Long.parseLong(assessmentTsKpi.get(AJEntityBaseReports.ATTR_ATTEMPTS).toString()));
-            List<Map> assessmentCompletionKpi = Base.findAll(AJEntityBaseReports.GET_IL_ALL_ASSESSMENT_SCORE_COMPLETION, this.userId,
+            List<Map> assessmentCompletionKpi = Base.findAll(AJEntityBaseReports.GET_IL_ALL_ASSESSMENT_SCORE_COMPLETION, userId,
                     assessmentTsKpi.get(AJEntityBaseReports.COLLECTION_OID).toString());
             if (!assessmentCompletionKpi.isEmpty()) {
               assessmentCompletionKpi.forEach(courseComplettion -> {
@@ -138,12 +160,12 @@ public class IndependentLearnerPerformanceHandler implements DBHandler {
         }
 
     	
-    } else if (StringUtil.isNullOrEmpty(contentType) && contentType.equalsIgnoreCase(MessageConstants.COLLECTION)) {    	
+    } else if (!StringUtil.isNullOrEmpty(contentType) && contentType.equalsIgnoreCase(MessageConstants.COLLECTION)) {    	
     	
         String query = StringUtil.isNullOrEmpty(limitS) ? AJEntityBaseReports.GET_IL_ALL_COLLECTION_VIEWS_TIMESPENT
                 : AJEntityBaseReports.GET_IL_ALL_COLLECTION_VIEWS_TIMESPENT + "LIMIT " + Long.valueOf(limitS);
     
-        List<Map> collectionAggData = Base.findAll(query, this.userId, StringUtil.isNullOrEmpty(offsetS) ? 0L : Long.valueOf(offsetS));
+        List<Map> collectionAggData = Base.findAll(query, userId, StringUtil.isNullOrEmpty(offsetS) ? 0L : Long.valueOf(offsetS));
         if (!collectionAggData.isEmpty()) {
           collectionAggData.forEach(collectionsKpi -> {
             JsonObject collectionObj = new JsonObject();
@@ -154,7 +176,7 @@ public class IndependentLearnerPerformanceHandler implements DBHandler {
             
             List<Map> collectionQuestionCount = null;
             collectionQuestionCount = Base.findAll(AJEntityBaseReports.GET_COLLECTION_QUESTION_COUNT, null, null,
-                    collId, this.userId);
+                    collId, userId);
 
             //If questions are not present then Question Count is always zero, however this additional check needs to be added
             //since during migration of data from 3.0 chances are that QC may be null instead of zero
@@ -170,7 +192,7 @@ public class IndependentLearnerPerformanceHandler implements DBHandler {
             if (questionCount > 0) {
               Object collectionScore = null;
               collectionScore = Base.firstCell(AJEntityBaseReports.GET_COLLECTION_SCORE, null, null,
-                      collId, this.userId);
+                      collId, userId);
               if (collectionScore != null) {
                 scoreInPercent = (((Double.valueOf(collectionScore.toString())) / questionCount) * 100);
               }
@@ -193,7 +215,7 @@ public class IndependentLearnerPerformanceHandler implements DBHandler {
     }
     
     // Form the required Json pass it on
-    result.put(JsonConstants.USAGE_DATA, ILPerfArray).put(JsonConstants.USERID, this.userId);
+    result.put(JsonConstants.USAGE_DATA, ILPerfArray).put(JsonConstants.USERID, userId);
 
     return new ExecutionResult<>(MessageResponseFactory.createGetResponse(result), ExecutionStatus.SUCCESSFUL);
   }
