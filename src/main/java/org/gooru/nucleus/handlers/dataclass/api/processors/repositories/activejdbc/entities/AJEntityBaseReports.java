@@ -406,7 +406,7 @@ public class AJEntityBaseReports extends Model {
     public static final String GET_PEERS_COUNT_IN_COURSE = 
         "SELECT count(aId) AS peerCount, unit_id FROM "
         + "(SELECT DISTINCT ON (actor_id) collection_id, course_id, lesson_id, unit_id as unit_id, actor_id as aId, "
-        + "updated_at FROM base_reports where class_id = ? AND actor_id <> ? "
+        + "updated_at FROM base_reports where class_id = ? AND actor_id <> ? and event_name = 'collection.play' and path_id IS NULL "
         + "ORDER BY actor_id, updated_at DESC) AS DS "
         + "WHERE DS.course_id = ?  GROUP BY unit_id;";
 
@@ -414,7 +414,7 @@ public class AJEntityBaseReports extends Model {
     public static final String GET_PEERS_COUNT_IN_UNIT= 
         "SELECT count(aId) AS peerCount, lesson_id FROM "
         + "(SELECT DISTINCT ON (actor_id) collection_id, course_id, lesson_id, unit_id as unit_id, actor_id as aId, "
-        + "updated_at FROM base_reports where class_id = ? AND actor_id <> ? "
+        + "updated_at FROM base_reports where class_id = ? AND actor_id <> ? and event_name = 'collection.play' and path_id IS NULL "
         + "ORDER BY actor_id, updated_at DESC) AS DS "
         + "WHERE  DS.course_id = ? AND DS.unit_id = ?  GROUP BY lesson_id";
 
