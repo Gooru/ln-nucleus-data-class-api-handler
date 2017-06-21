@@ -86,9 +86,6 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_STUDENT_LOC_ALL_CLASSES:
                 result = getStudentLocInAllClasses();    
                 break;
-            case MessageConstants.MSG_OP_STUDENT_PERF_DAILY_CLASS_ACTIVITY:
-                result = getStudentPerfDailyClassActivity();    
-                break;
             case MessageConstants.MSG_OP_STUDENT_PERF_MULT_COLLECTION:
                 result = getStudentPerfMultipleCollections();    
                 break;
@@ -160,6 +157,19 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_RUBRIC_QUESTIONS_STUDENT_ANSWERS:
                 result = getStudAnswersForRubricQue();
                 break;
+                //DCA
+            case MessageConstants.MSG_OP_STUDENT_PERF_DAILY_CLASS_ACTIVITY:
+                result = getStudentPerfDailyClassActivity();    
+                break;
+            case MessageConstants.MSG_OP_DCA_STUDENT_COLLECTION_SUMMARY:
+            	result = getStudentSummaryInDCACollection();
+                break;
+            case MessageConstants.MSG_OP_DCA_STUDENT_ASSESSMENT_SUMMARY:
+            	result = getStudentSummaryInDCAAssessment();            	
+                break;
+            case MessageConstants.MSG_OP_DCA_SESSION_TAXONOMY_REPORT:
+                result = getDCASessionTaxonomyReport();              
+                  break;
             default:
                 LOGGER.error("Invalid operation type passed in, not able to handle");
                 return MessageResponseFactory
@@ -172,8 +182,77 @@ class MessageProcessor implements Processor {
             return MessageResponseFactory.createInternalErrorResponse();
         }
     }
+    
+    //************ DAILY CLASS ACTIVITY ******************************************************************************************
+    
+    private MessageResponse getStudentSummaryInDCACollection() {
+    	try {
+            ProcessorContext context = createContext();
+                        
+            if (!checkCollectionId(context)) {
+                LOGGER.error("Collection id not available to obtain Student Performance. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid collectionId");
+            }
+             
+            if (!validateUser(context.userIdFromSession())) {
+                LOGGER.error("Invalid User ID. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid userId");
+            }
+            
+            return new RepoBuilder().buildReportRepo(context).getStudentSummaryInDCACollection();
+            
+        } catch (Throwable t) {
+            LOGGER.error("Exception while getting Student performance in Course", t);
+            return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+        }
 
-    //**************************************************************************************************************
+    }
+
+    
+    private MessageResponse getStudentSummaryInDCAAssessment() {
+    	try {
+            ProcessorContext context = createContext();
+                        
+            if (!checkCollectionId(context)) {
+                LOGGER.error("Collection id not available to obtain Student Performance. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid collectionId");
+            }
+             
+            if (!validateUser(context.userIdFromSession())) {
+                LOGGER.error("Invalid User ID. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid userId");
+            }
+            
+            return new RepoBuilder().buildReportRepo(context).getStudentSummaryInDCAAssessment();
+            
+        } catch (Throwable t) {
+            LOGGER.error("Exception while getting Student performance in Course", t);
+            return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+        }
+
+    }
+    
+    private MessageResponse getDCASessionTaxonomyReport() {
+        try {
+              ProcessorContext context = createContext();
+          
+              if (!checkSessionId(context)) {
+                  LOGGER.error("Session id not available in the request. Aborting");
+                  return MessageResponseFactory.createInvalidRequestResponse("Invalid sessionId");
+              }
+              
+              return new RepoBuilder().buildReportRepo(context).getDCASessionTaxonomyReport();
+              
+          } catch (Throwable t) {
+              LOGGER.error("Exception while getting Student performance in Unit", t);
+              return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+          }
+
+      }
+
+    
+
+    //************ RUBRIC GRADING ******************************************************************************************
     
     private MessageResponse getRubricQuestionsToGrade() {
     	try {
