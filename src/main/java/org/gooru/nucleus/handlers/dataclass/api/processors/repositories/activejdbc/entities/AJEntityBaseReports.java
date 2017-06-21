@@ -37,8 +37,7 @@ public class AJEntityBaseReports extends Model {
     
     public static final String RESOURCE_VIEWS = "resourceViews";
     public static final String COLLECTION_VIEWS = "collectionViews";
-    
-    //Mukul - This has become redundant. Need to delete from Schema finally
+        
     public static final String VIEWS = "views";
     public static final String REACTION = "reaction";
     public static final String TIME_SPENT = "time_spent";
@@ -276,7 +275,6 @@ public class AJEntityBaseReports extends Model {
             + "FIRST_VALUE(time_spent) OVER (PARTITION BY collection_id ORDER BY updated_at desc) as collectionTimeSpent,"
             + "updated_at,session_id,collection_type,FIRST_VALUE(views) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS collectionViews "
             + "from base_reports WHERE collection_id = ? AND session_id = ? AND event_name = ? ";
-    
     
     public static final String SELECT_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSION_ID =
             "select  distinct on (resource_id) FIRST_VALUE(score * 100) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score,"

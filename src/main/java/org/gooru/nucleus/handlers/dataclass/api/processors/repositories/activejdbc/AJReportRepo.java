@@ -104,12 +104,7 @@ class AJReportRepo implements ReportRepo {
     @Override
     public MessageResponse getStudentLocationInAllClasses() {
         return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildStudentLocAllClassesHandler(context));
-    }
-    
-    @Override
-    public MessageResponse getStudPerfDailyClassActivity() {
-    	return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildStudPerfDailyClassActivityHandler(context));
-    }
+    }   
     
     @Override
     public MessageResponse getStudPerfMultipleCollections() {
@@ -226,5 +221,27 @@ class AJReportRepo implements ReportRepo {
     public MessageResponse getStudentAnswersForRubricQuestion(){
     	return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildStudAnsForRubricQuesHandler(context));
     }
+    
+    //DCA    
+    @Override
+    public MessageResponse getStudPerfDailyClassActivity() {
+    	return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildStudPerfDailyClassActivityHandler(context));
+    }
+
+    @Override
+    public MessageResponse getStudentSummaryInDCACollection() {
+        return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildStudentDCACollectionSummaryHandler(context));
+    }
+    
+    @Override
+    public MessageResponse getStudentSummaryInDCAAssessment() {
+        return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildStudentDCAAssessmentSummaryHandler(context));
+    }
+
+    @Override
+    public MessageResponse getDCASessionTaxonomyReport() {
+      return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildDCASessionTaxonomyReportHandler(context));
+    }
+
   
 }

@@ -46,8 +46,6 @@ public interface ReportRepo {
     
     MessageResponse getStudPerfMultipleCollections();
     
-    MessageResponse getStudPerfDailyClassActivity();
-    
     MessageResponse getStudPerfCourseCollections();
     
     MessageResponse getStudPerfCourseAssessments();
@@ -93,5 +91,16 @@ public interface ReportRepo {
     MessageResponse getStudentsForRubricQuestion();
     
     MessageResponse getStudentAnswersForRubricQuestion();
+    
+    //DCA
+    MessageResponse getStudPerfDailyClassActivity();
+    
+    MessageResponse getStudentSummaryInDCACollection();
+	
+	MessageResponse getStudentSummaryInDCAAssessment();
+	
+	MessageResponse getDCASessionTaxonomyReport();
+
+    
         
 }

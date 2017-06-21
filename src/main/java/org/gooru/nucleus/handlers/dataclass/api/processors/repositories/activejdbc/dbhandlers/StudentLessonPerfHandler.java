@@ -82,9 +82,9 @@ public class StudentLessonPerfHandler implements DBHandler {
     // CollectionType is a Mandatory Parameter
     this.collectionType = this.context.request().getString(REQUEST_COLLECTION_TYPE);
     if (StringUtil.isNullOrEmpty(collectionType)) {
-      LOGGER.warn("CollectionType is mandatory to fetch Student Performance in Course");
+      LOGGER.warn("CollectionType is mandatory to fetch Student Performance in a Lesson");
       return new ExecutionResult<>(
-              MessageResponseFactory.createInvalidRequestResponse("CollectionType Missing. Cannot fetch Student Performance in course"),
+              MessageResponseFactory.createInvalidRequestResponse("CollectionType Missing. Cannot fetch Student Performance in Lesson"),
               ExecutionStatus.FAILED);
     }    
 

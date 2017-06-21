@@ -64,14 +64,14 @@ public class StudPerfDailyActivityHandler implements DBHandler {
   @Override
   @SuppressWarnings("rawtypes")
   public ExecutionResult<MessageResponse> validateRequest() {
-    if (context.getUserIdFromRequest() == null
-            || (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
-      List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, this.context.classId(), this.context.userIdFromSession());
-      if (owner.isEmpty()) {
-        LOGGER.debug("validateRequest() FAILED");
-        return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"), ExecutionStatus.FAILED);
-      }
-    }
+//    if (context.getUserIdFromRequest() == null
+//            || (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
+//      List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, this.context.classId(), this.context.userIdFromSession());
+//      if (owner.isEmpty()) {
+//        LOGGER.debug("validateRequest() FAILED");
+//        return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"), ExecutionStatus.FAILED);
+//      }
+//    }
     LOGGER.debug("validateRequest() OK");
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
   }
@@ -152,6 +152,7 @@ public class StudPerfDailyActivityHandler implements DBHandler {
             assessmentKpi.put(AJEntityDailyClassActivity.DATE, m.get(AJEntityDailyClassActivity.ACTIVITY_DATE).toString());
             assessmentKpi.put(AJEntityDailyClassActivity.ATTR_COLLECTION_ID, m.get(AJEntityDailyClassActivity.ATTR_COLLECTION_ID).toString());
             assessmentKpi.put(AJEntityDailyClassActivity.ATTR_SCORE, Math.round(Double.valueOf(m.get(AJEntityDailyClassActivity.ATTR_SCORE).toString())));
+            assessmentKpi.put(AJEntityDailyClassActivity.ATTR_LAST_SESSION_ID, m.get(AJEntityDailyClassActivity.ATTR_LAST_SESSION_ID).toString());
             assessmentKpi.put(AJEntityDailyClassActivity.ATTR_TIME_SPENT, Long.parseLong(m.get(AJEntityDailyClassActivity.ATTR_TIME_SPENT).toString()));
             assessmentKpi.put(AJEntityDailyClassActivity.ATTR_ATTEMPTS, Integer.parseInt(m.get(AJEntityDailyClassActivity.ATTR_ATTEMPTS).toString()));
             assessmentKpi.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
@@ -171,6 +172,7 @@ public class StudPerfDailyActivityHandler implements DBHandler {
             collectionKpi.put(AJEntityDailyClassActivity.DATE, m.get(AJEntityDailyClassActivity.ACTIVITY_DATE).toString());
             collectionKpi.put(AJEntityDailyClassActivity.ATTR_COLLECTION_ID, m.get(AJEntityDailyClassActivity.ATTR_COLLECTION_ID).toString());
             collectionKpi.put(AJEntityDailyClassActivity.ATTR_TIME_SPENT, Long.parseLong(m.get(AJEntityDailyClassActivity.ATTR_TIME_SPENT).toString()));
+            collectionKpi.put(AJEntityDailyClassActivity.ATTR_LAST_SESSION_ID, AJEntityDailyClassActivity.NA);
             collectionKpi.put(AJEntityDailyClassActivity.ATTR_ATTEMPTS, Integer.parseInt(m.get(AJEntityDailyClassActivity.ATTR_ATTEMPTS).toString()));
             collectionKpi.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
             List<Map> collectionQuestionCount = null;
@@ -214,7 +216,7 @@ public class StudPerfDailyActivityHandler implements DBHandler {
 
   @Override
   public boolean handlerReadOnly() {
-    return false;
+    return true;
   }
 
   private String listToPostgresArrayString(List<String> input) {

@@ -1,6 +1,8 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.transactions.TransactionExecutor;
+import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 
 /**
  * Created by mukul@gooru
@@ -82,12 +84,7 @@ public final class DBHandlerBuilder {
     
     public static DBHandler buildStudentLocAllClassesHandler(ProcessorContext context) {
         return new StudentLocationAllClassesHandler(context);
-      }
-    
-    
-    public static DBHandler buildStudPerfDailyClassActivityHandler(ProcessorContext context) {
-        return new StudPerfDailyActivityHandler(context);
-      }
+      }    
 
     public static DBHandler buildStudPerfMultipleCollectionHandler(ProcessorContext context) {
         return new StudPerfMultipleCollectionHandler(context);
@@ -182,4 +179,23 @@ public final class DBHandlerBuilder {
     public static DBHandler buildStudAnsForRubricQuesHandler(ProcessorContext context) {
     	return new StudentAnsForRubricQuesHandler(context);
     }
+    
+    //DCA
+        
+    public static DBHandler buildStudPerfDailyClassActivityHandler(ProcessorContext context) {
+        return new StudPerfDailyActivityHandler(context);
+      }
+    
+    public static DBHandler buildStudentDCACollectionSummaryHandler(ProcessorContext context) {
+    	return new StudDCACollectionSummaryHandler(context);
+    }
+
+    public static DBHandler buildStudentDCAAssessmentSummaryHandler(ProcessorContext context) {
+    	return new StudDCAAssessmentSummaryHandler(context);
+    }
+    
+    public static DBHandler buildDCASessionTaxonomyReportHandler(ProcessorContext context) {
+    	return new DCASessionTaxonomyReportHandler(context);
+    }
 }
+
