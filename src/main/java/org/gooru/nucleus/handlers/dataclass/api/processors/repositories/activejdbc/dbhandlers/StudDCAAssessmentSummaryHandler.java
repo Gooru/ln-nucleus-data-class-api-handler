@@ -76,7 +76,7 @@ public class StudDCAAssessmentSummaryHandler implements DBHandler {
 	      LOGGER.debug("UID is " + this.userId);
 	      this.sessionId = this.context.request().getString(REQUEST_SESSION_ID);
 	      JsonArray contentArray = new JsonArray();
-	      // STUDENT PERFORMANCE REPORTS IN ASSESSMENTS when SessionID NOT NULL
+	      
 	      if (!StringUtil.isNullOrEmpty(sessionId)) {
 	        List<Map> assessmentKPI = Base.findAll(AJEntityDailyClassActivity.SELECT_ASSESSMENT_FOREACH_COLLID_AND_SESSION_ID, context.collectionId(), sessionId , AJEntityDailyClassActivity.ATTR_CP_EVENTNAME);
 	  
@@ -84,7 +84,7 @@ public class StudDCAAssessmentSummaryHandler implements DBHandler {
 	        if (!assessmentKPI.isEmpty()) {
 	          LOGGER.debug("Assessment Attributes obtained");
 	          assessmentKPI.stream().forEach(m -> {
-	            JsonObject assessmentData = ValueMapper.map(ResponseAttributeIdentifier.getSessionAssessmentAttributesMap(), m);
+	            JsonObject assessmentData = ValueMapper.map(ResponseAttributeIdentifier.getSessionDCAAssessmentAttributesMap(), m);
 	            assessmentData.put(JsonConstants.SCORE, Math.round(Double.valueOf(m.get(AJEntityDailyClassActivity.SCORE).toString())));
 	            assessmentDataKPI.put(JsonConstants.ASSESSMENT, assessmentData);
 	          });
@@ -97,30 +97,25 @@ public class StudDCAAssessmentSummaryHandler implements DBHandler {
 	          JsonArray questionsArray = new JsonArray();
 	          if(!assessmentQuestionsKPI.isEmpty()){
 	            assessmentQuestionsKPI.stream().forEach(questions -> {
-	              JsonObject qnData = ValueMapper.map(ResponseAttributeIdentifier.getSessionAssessmentQuestionAttributesMap(), questions);
-	              //FIXME :: This is to be revisited. We should alter the schema column type from TEXT to JSONB. After this change we can remove this logic
+	              JsonObject qnData = ValueMapper.map(ResponseAttributeIdentifier.getSessionDCAAssessmentQuestionAttributesMap(), questions);
 	              qnData.put(JsonConstants.ANSWER_OBJECT, new JsonArray(questions.get(AJEntityDailyClassActivity.ANSWER_OBJECT).toString()));
 	              qnData.put(JsonConstants.SCORE, Math.round(Double.valueOf(questions.get(AJEntityDailyClassActivity.SCORE).toString())));
 	              questionsArray.add(qnData);
 	            });
 	          }
-	          //JsonArray questionsArray = ValueMapper.map(ResponseAttributeIdentifier.getSessionAssessmentQuestionAttributesMap(), assessmentQuestionsKPI);
 	          assessmentDataKPI.put(JsonConstants.QUESTIONS, questionsArray);
 	          LOGGER.debug("Assessment question Attributes obtained");
 	          contentArray.add(assessmentDataKPI);
 	          LOGGER.debug("Done");
 	        } else {
 	          LOGGER.info("Assessment Attributes cannot be obtained");
-	          // Return empty resultBody object instead of an error
-	          // return new
-	          // ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(),
-	          // ExecutionStatus.FAILED);
+
 	        }
 	        resultBody.put(JsonConstants.CONTENT, contentArray);
 	        return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
 	      } else {
 	        LOGGER.info("SessionID Missing, Cannot Obtain Student Lesson Perf data");
-	        // Return empty resultBody object instead of an error
+
 	        return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
 	      }
 	    }   // End ExecuteRequest()

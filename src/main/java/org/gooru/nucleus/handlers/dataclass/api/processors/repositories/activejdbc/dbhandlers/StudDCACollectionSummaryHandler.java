@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
+import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.converters.ResponseAttributeIdentifier;
 
@@ -71,10 +72,10 @@ public class StudDCACollectionSummaryHandler implements DBHandler {
 
     this.userId = context.getUserIdFromRequest();
     LOGGER.debug("User ID is " + this.userId);
-    String classId = context.request().getString(EventConstants.CLASS_GOORU_OID);
-    String courseId = context.request().getString(EventConstants.COURSE_GOORU_OID);
-    String unitId = context.request().getString(EventConstants.UNIT_GOORU_OID);
-    String lessonId = context.request().getString(EventConstants.LESSON_GOORU_OID);
+    String classId = context.request().getString(MessageConstants.CLASS_ID);
+    String courseId = context.request().getString(MessageConstants.COURSE_ID);
+    String unitId = context.request().getString(MessageConstants.UNIT_ID);
+    String lessonId = context.request().getString(MessageConstants.LESSON_ID);
     String collectionId = context.collectionId();
     JsonArray contentArray = new JsonArray();
     
@@ -107,10 +108,11 @@ public class StudDCACollectionSummaryHandler implements DBHandler {
       if (!collectionData.isEmpty()) {
         LOGGER.debug("Collection Attributes obtained");
         collectionData.stream().forEach(m -> {
-          JsonObject assessmentData = ValueMapper.map(ResponseAttributeIdentifier.getSessionCollectionAttributesMap(), m);
+          JsonObject assessmentData = ValueMapper.map(ResponseAttributeIdentifier.getSessionDCACollectionAttributesMap(), m);
           assessmentData.put(EventConstants.EVENT_TIME, this.lastAccessedTime);
           assessmentData.put(EventConstants.SESSION_ID, EventConstants.NA);
-          assessmentData.put(EventConstants.RESOURCE_TYPE, AJEntityDailyClassActivity.ATTR_COLLECTION);
+          //Update this to be COLLECTION_TYPE in response
+          assessmentData.put(EventConstants.COLLECTION_TYPE, AJEntityDailyClassActivity.ATTR_COLLECTION);
           assessmentData.put(JsonConstants.SCORE, Math.round(Double.valueOf(m.get(AJEntityDailyClassActivity.SCORE).toString())));
 
           double scoreInPercent=0;
@@ -143,8 +145,7 @@ public class StudDCACollectionSummaryHandler implements DBHandler {
         JsonArray questionsArray = new JsonArray();
         if(!assessmentQuestionsKPI.isEmpty()){
           assessmentQuestionsKPI.stream().forEach(questions -> {
-            JsonObject qnData = ValueMapper.map(ResponseAttributeIdentifier.getSessionCollectionResourceAttributesMap(), questions);
-            //FIXME :: This is to be revisited. We should alter the schema column type from TEXT to JSONB. After this change we can remove this logic
+            JsonObject qnData = ValueMapper.map(ResponseAttributeIdentifier.getSessionDCACollectionResourceAttributesMap(), questions);
             if(questions.get(AJEntityDailyClassActivity.ANSWER_OBJECT) != null){
               qnData.put(JsonConstants.ANSWER_OBJECT, new JsonArray(questions.get(AJEntityDailyClassActivity.ANSWER_OBJECT).toString()));
             }
@@ -178,17 +179,12 @@ public class StudDCACollectionSummaryHandler implements DBHandler {
             questionsArray.add(qnData);
           });
         }
-        //JsonArray questionsArray = ValueMapper.map(ResponseAttributeIdentifier.getSessionAssessmentQuestionAttributesMap(), assessmentQuestionsKPI);
         assessmentDataKPI.put(JsonConstants.RESOURCES, questionsArray);
         LOGGER.debug("Collection Attributes obtained");
         contentArray.add(assessmentDataKPI);
         LOGGER.debug("Done");
       } else {
         LOGGER.info("Collection Attributes cannot be obtained");
-        // Return empty resultBody object instead of an error
-        // return new
-        // ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(),
-        // ExecutionStatus.FAILED);
       }
       resultBody.put(JsonConstants.CONTENT, contentArray);
       return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);

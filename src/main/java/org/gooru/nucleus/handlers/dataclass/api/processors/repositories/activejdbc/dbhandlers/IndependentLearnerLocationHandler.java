@@ -128,7 +128,7 @@ public class IndependentLearnerLocationHandler implements DBHandler {
         	Object title = Base.firstCell(AJEntityContent.GET_TITLE, collectionId);
             ILloc.put(JsonConstants.COLLECTION_TITLE, (title != null ? title.toString() : "NA"));
             ILloc.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collectionId);
-        	ILloc.put(AJEntityBaseReports.ATTR_COLLECTION_TYPE, m.get(AJEntityBaseReports.COLLECTION_TYPE).toString());
+        	ILloc.put(AJEntityBaseReports.ATTR_COLLECTION_TYPE, AJEntityBaseReports.ATTR_ASSESSMENT);
         	if (!Base.findAll(AJEntityBaseReports.GET_IL_COLLECTION_STATUS, sessionId, collectionId, EventConstants.COLLECTION_PLAY, EventConstants.STOP).isEmpty()){
             	  ILloc.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
               } else {
@@ -141,12 +141,14 @@ public class IndependentLearnerLocationHandler implements DBHandler {
         	Object title = Base.firstCell(AJEntityContent.GET_TITLE, collectionId);
             ILloc.put(JsonConstants.COLLECTION_TITLE, (title != null ? title.toString() : "NA"));
             ILloc.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collectionId);
-        	ILloc.put(AJEntityBaseReports.ATTR_COLLECTION_TYPE, m.get(AJEntityBaseReports.COLLECTION_TYPE).toString());
-        	if (!Base.findAll(AJEntityBaseReports.GET_IL_COLLECTION_STATUS, sessionId, collectionId, EventConstants.COLLECTION_PLAY, EventConstants.STOP).isEmpty()){
-            	  ILloc.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
-              } else {
-            	  ILloc.put(JsonConstants.STATUS, JsonConstants.IN_PROGRESS);
-              }        	
+        	ILloc.put(AJEntityBaseReports.ATTR_COLLECTION_TYPE, AJEntityBaseReports.ATTR_COLLECTION);
+        	//Status for collection will always be Complete.
+        	ILloc.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
+//        	if (!Base.findAll(AJEntityBaseReports.GET_IL_COLLECTION_STATUS, sessionId, collectionId, EventConstants.COLLECTION_PLAY, EventConstants.STOP).isEmpty()){
+//            	  ILloc.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
+//              } else {
+//            	  ILloc.put(JsonConstants.STATUS, JsonConstants.IN_PROGRESS);
+//              }        	
         }        
 
         ILloc.put(JsonConstants.LAST_ACCESSED, m.get(JsonConstants.LAST_ACCESSED).toString());
