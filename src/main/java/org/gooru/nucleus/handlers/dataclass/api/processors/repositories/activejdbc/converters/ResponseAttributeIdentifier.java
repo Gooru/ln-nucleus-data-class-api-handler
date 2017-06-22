@@ -14,10 +14,16 @@ public class ResponseAttributeIdentifier {
   private static final Map<String, String> sessionTaxReportQuestionAttributes;
 
   private static final Map<String, String> sessionAssessmentAttributes;
+  private static final Map<String, String> sessionDCAAssessmentAttributes;
+  
   private static final Map<String, String> sessionAssessmentQuestionAttributes;
+  private static final Map<String, String> sessionDCAAssessmentQuestionAttributes;
 
   private static final Map<String, String> sessionCollectionAttributes;
+  private static final Map<String, String> sessionDCACollectionAttributes;
+  
   private static final Map<String, String> sessionCollectionResouceAttributes;
+  private static final Map<String, String> sessionDCACollectionResouceAttributes;
   
   private static final Map<String, String> coursePerformanceAttributes;
   
@@ -34,10 +40,22 @@ public class ResponseAttributeIdentifier {
     sessionAssessmentAttributes.put("updated_at", "eventTime");
     sessionAssessmentAttributes.put("session_id", "sessionId");
     sessionAssessmentAttributes.put("collection_type", "resourceType");
-    sessionAssessmentAttributes.put("collectionViews", "attempts");
-
-    
+    sessionAssessmentAttributes.put("collectionViews", "attempts");    
   }
+  
+  //DCA
+  static {
+	    sessionDCAAssessmentAttributes = new HashMap<>();
+	   // sessionAssessmentAttributes.put("score", "score");
+	    sessionDCAAssessmentAttributes.put("collection_id", "assessmentId");
+	    sessionDCAAssessmentAttributes.put("reaction", "reaction");
+	    sessionDCAAssessmentAttributes.put("collectionTimeSpent", "timeSpent");
+	    sessionDCAAssessmentAttributes.put("updated_at", "eventTime");
+	    sessionDCAAssessmentAttributes.put("session_id", "sessionId");
+	    sessionDCAAssessmentAttributes.put("collection_type", "collectionType");
+	    sessionDCAAssessmentAttributes.put("collectionViews", "attempts");    
+	  }
+  
   static {
     sessionAssessmentQuestionAttributes = new HashMap<>();
     //sessionAssessmentQuestionAttributes.put("score", "score");
@@ -49,8 +67,20 @@ public class ResponseAttributeIdentifier {
     sessionAssessmentQuestionAttributes.put("resource_type", "resourceType");
     sessionAssessmentQuestionAttributes.put("question_type", "questionType");
     sessionAssessmentQuestionAttributes.put("resourceViews", "views");
-
   }
+  
+  //DCA
+  static {
+	    sessionDCAAssessmentQuestionAttributes = new HashMap<>();	    
+	    sessionDCAAssessmentQuestionAttributes.put("resource_id", "questionId");
+	    sessionDCAAssessmentQuestionAttributes.put("reaction", "reaction");
+	    sessionDCAAssessmentQuestionAttributes.put("resourceTimeSpent", "timeSpent");
+	    sessionDCAAssessmentQuestionAttributes.put("updated_at", "eventTime");
+	    sessionDCAAssessmentQuestionAttributes.put("session_id", "sessionId");
+	    sessionDCAAssessmentQuestionAttributes.put("resource_type", "resourceType");
+	    sessionDCAAssessmentQuestionAttributes.put("question_type", "questionType");
+	    sessionDCAAssessmentQuestionAttributes.put("resourceViews", "views");
+	  }
   
   static {
     sessionCollectionAttributes = new HashMap<>();
@@ -61,10 +91,19 @@ public class ResponseAttributeIdentifier {
    // sessionCollectionAttributes.put("updatetimestamp", "eventTime");
   //  sessionCollectionAttributes.put("sessionid", "sessionId");
    // sessionCollectionAttributes.put("collectiontype", "resourceType");
-    sessionCollectionAttributes.put("collectionViews", "views");
-
-    
+    sessionCollectionAttributes.put("collectionViews", "views");    
   }
+  
+  //DCA
+  static {
+	    sessionDCACollectionAttributes = new HashMap<>();
+	    sessionDCACollectionAttributes.put("collection_id", "collectionId");
+	    sessionDCACollectionAttributes.put("reaction", "reaction");
+	    sessionDCACollectionAttributes.put("collectionTimeSpent", "timeSpent");
+	    sessionDCACollectionAttributes.put("collectionViews", "views");    
+	  }
+  
+  
   static {
     sessionCollectionResouceAttributes = new HashMap<>();
     //sessionCollectionResouceAttributes.put("score", "score");
@@ -76,8 +115,20 @@ public class ResponseAttributeIdentifier {
     sessionCollectionResouceAttributes.put("resource_type", "resourceType");
     sessionCollectionResouceAttributes.put("question_type", "questionType");
     sessionCollectionResouceAttributes.put("resourceViews", "views");
+  }  
+  
+  //DCA
+  static {
+	    sessionDCACollectionResouceAttributes = new HashMap<>();	    
+	    sessionDCACollectionResouceAttributes.put("resource_id", "resourceId");
+	    sessionDCACollectionResouceAttributes.put("reaction", "reaction");
+	    sessionDCACollectionResouceAttributes.put("resourceTimeSpent", "timeSpent");
+	    sessionDCACollectionResouceAttributes.put("created_at", "eventTime");	    
+	    sessionDCACollectionResouceAttributes.put("resource_type", "resourceType");
+	    sessionDCACollectionResouceAttributes.put("question_type", "questionType");
+	    sessionDCACollectionResouceAttributes.put("resourceViews", "views");
 
-  }
+	  }
   
   static {
     sessionTaxReportAggAttributes = new HashMap<>();
@@ -142,10 +193,32 @@ public class ResponseAttributeIdentifier {
   
   public static Map<String, String> getSessionCollectionAttributesMap() {
     return sessionCollectionAttributes;
-  }
+  }  
+  
   public static Map<String, String> getSessionCollectionResourceAttributesMap() {
     return sessionCollectionResouceAttributes;
   }
+  
+  //DCA
+  public static Map<String, String> getSessionDCAAssessmentAttributesMap() {
+	    return sessionDCAAssessmentAttributes;
+  }
+  
+  //DCA
+  public static Map<String, String> getSessionDCAAssessmentQuestionAttributesMap() {
+	    return sessionDCAAssessmentQuestionAttributes;
+  }	  
+  
+  //DCA
+  public static Map<String, String> getSessionDCACollectionAttributesMap() {
+	    return sessionDCACollectionAttributes;
+  }
+
+  //DCA
+  public static Map<String, String> getSessionDCACollectionResourceAttributesMap() {
+	    return sessionDCACollectionResouceAttributes;
+	  }
+  
   public static Map<String, String> getCoursePerformanceAttributesMap() {
     return coursePerformanceAttributes;
   }

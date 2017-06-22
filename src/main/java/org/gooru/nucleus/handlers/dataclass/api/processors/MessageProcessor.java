@@ -202,7 +202,7 @@ class MessageProcessor implements Processor {
             return new RepoBuilder().buildReportRepo(context).getStudentSummaryInDCACollection();
             
         } catch (Throwable t) {
-            LOGGER.error("Exception while getting Student performance in Course", t);
+            LOGGER.error("Exception while getting Student DCA Collection Summary Report", t);
             return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
         }
 
@@ -226,7 +226,7 @@ class MessageProcessor implements Processor {
             return new RepoBuilder().buildReportRepo(context).getStudentSummaryInDCAAssessment();
             
         } catch (Throwable t) {
-            LOGGER.error("Exception while getting Student performance in Course", t);
+            LOGGER.error("Exception while getting Student DCA Assessment Summary Report", t);
             return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
         }
 
@@ -244,7 +244,7 @@ class MessageProcessor implements Processor {
               return new RepoBuilder().buildReportRepo(context).getDCASessionTaxonomyReport();
               
           } catch (Throwable t) {
-              LOGGER.error("Exception while getting Student performance in Unit", t);
+              LOGGER.error("Exception while getting Student DCA Session Taxonomy Report", t);
               return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
           }
 
@@ -261,7 +261,7 @@ class MessageProcessor implements Processor {
             return new RepoBuilder().buildReportRepo(context).getRubricQuesToGrade();
             
         } catch (Throwable t) {
-            LOGGER.error("Exception while getting Student peers in Course", t);
+            LOGGER.error("Exception while getting Questions pending Grading", t);
             return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
         }
 
@@ -279,7 +279,7 @@ class MessageProcessor implements Processor {
             return new RepoBuilder().buildReportRepo(context).getStudentsForRubricQuestion();
             
         } catch (Throwable t) {
-            LOGGER.error("Exception while getting Student peers in Course", t);
+            LOGGER.error("Exception while getting Student List for Rubric Grading", t);
             return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
         }
 
@@ -303,7 +303,7 @@ class MessageProcessor implements Processor {
             return new RepoBuilder().buildReportRepo(context).getStudentAnswersForRubricQuestion();
             
         } catch (Throwable t) {
-            LOGGER.error("Exception while getting Student peers in Course", t);
+            LOGGER.error("Exception while getting Student answers for Rubric Grading", t);
             return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
         }
 
