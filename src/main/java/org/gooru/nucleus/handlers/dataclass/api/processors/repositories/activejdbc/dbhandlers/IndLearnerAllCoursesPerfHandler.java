@@ -103,7 +103,7 @@ public class IndLearnerAllCoursesPerfHandler implements DBHandler {
     	        courseKPI.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.valueOf(courseData.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()));
     	        Object courseTotalCount = Base.firstCell(AJEntityCourseCollectionCount.GET_IL_COURSE_ASSESSMENT_COUNT,
     	                courseData.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
-
+    	        
     	        courseKPI.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, courseTotalCount != null ? Integer.valueOf(courseTotalCount.toString()) : 0);
     	        List<Map> cScoreCompletion = null;
     	        if (!StringUtil.isNullOrEmpty(this.userId)) {
@@ -123,6 +123,7 @@ public class IndLearnerAllCoursesPerfHandler implements DBHandler {
         	        courseKPI.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 0);
         	        courseKPI.putNull(AJEntityBaseReports.ATTR_SCORE);
     	        }
+    	        courseKPI.put(AJEntityBaseReports.ATTR_COURSE_ID, courseData.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
     	        CourseKpiArray.add(courseKPI);
     	      }
     	      });
