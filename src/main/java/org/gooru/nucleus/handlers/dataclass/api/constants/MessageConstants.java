@@ -39,6 +39,7 @@ public final class MessageConstants {
     public static final String USER_UID = "userUid";
     public static final String CLASS_ID = "classId";
     public static final String COURSE_ID = "courseId";
+    public static final String COURSE_IDS = "courseIds";
     public static final String UNIT_ID = "unitId";
     public static final String LESSON_ID = "lessonId";
     public static final String COLLECTION_ID = "collectionId";
@@ -90,14 +91,17 @@ public final class MessageConstants {
     public static final String MSG_OP_IND_LEARNER_ALL_PERFORMANCE = "independent.learner.all.performance";
     public static final String MSG_OP_IND_LEARNER_LOCATION_ALL_COURSES = "independent.learner.all.courses.location";
     public static final String MSG_OP_IND_LEARNER_LOCATION_ALL_IND_ASSESSMENTS = "independent.learner.all.ind.assessments.location";
-    public static final String MSG_OP_IND_LEARNER_LOCATION_ALL_IND_COLLECTIONS = "independent.learner.all.ind.collections.location";
-    public static final String MSG_OP_IND_LEARNER_PERF_ALL_COURSES = "independent.learner.all.courses.performance";
+    public static final String MSG_OP_IND_LEARNER_LOCATION_ALL_IND_COLLECTIONS = "independent.learner.all.ind.collections.location";    
+    public static final String MSG_OP_IND_LEARNER_PERF_ALL_COURSES = "il.all.courses.perf";
     public static final String MSG_OP_IND_LEARNER_PERF_ALL_IND_ASSESSMENTS = "independent.learner.all.ind.assessments.performance";
     public static final String MSG_OP_IND_LEARNER_PERF_ALL_IND_COLLECTIONS = "independent.learner.all.ind.collections.performance";
     public static final String MSG_OP_IND_LEARNER_COURSE_ALL_COLLECTIONS_PERF = "independent.learner.course.all.collections.performance";
     public static final String MSG_OP_IND_LEARNER_COURSE_ALL_ASSESSMENTS_PERF = "independent.learner.course.all.assessments.performance";
     public static final String MSG_OP_IND_LEARNER_TAX_SUBJECTS = "independent.learner.taxonomy.subjects";
     public static final String MSG_OP_LEARNER_COURSES = "learner.courses";
+    public static final String MSG_OP_IND_LEARNER_CURRENT_LOC = "independent.learner.current.loc";
+    public static final String MSG_OP_IND_LEARNER_ALL_COURSES_PERF = "independent.learner.all.courses.performance";
+
 
     //Rubric Grading
     public static final String MSG_OP_RUBRICS_QUESTIONS_TO_GRADE = "rubric.questions.to.grade";

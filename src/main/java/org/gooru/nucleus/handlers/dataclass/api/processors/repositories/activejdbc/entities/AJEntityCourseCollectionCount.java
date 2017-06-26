@@ -22,5 +22,7 @@ public class AJEntityCourseCollectionCount extends Model {
   public static final String ATTR_COLLECTION = "collection";
   
   public static final String GET_COURSE_ASSESSMENT_COUNT = "SELECT SUM(assessment_count) as totalCount FROM course_collection_count WHERE course_id = ? GROUP BY course_id";
+  
+  public static final String GET_IL_COURSE_ASSESSMENT_COUNT = "SELECT SUM(assessment_count) as totalCount FROM course_collection_count WHERE class_id IS NULL AND course_id = ? GROUP BY course_id";
 
 }

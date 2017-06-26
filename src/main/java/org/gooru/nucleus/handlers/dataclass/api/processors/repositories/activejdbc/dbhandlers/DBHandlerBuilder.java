@@ -127,7 +127,7 @@ public final class DBHandlerBuilder {
       }
 
     public static DBHandler buildIndLearnerCoursesLocationHandler(ProcessorContext context) {
-        return new IndLearnerAllCoursesLocationHandler(context);
+        return new IndLearnerCourseCurrentLocationHandler(context);
       }
     
     public static DBHandler buildIndLearnerAssessmentsLocationHandler(ProcessorContext context) {

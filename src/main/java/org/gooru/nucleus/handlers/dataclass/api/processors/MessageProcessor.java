@@ -119,8 +119,8 @@ class MessageProcessor implements Processor {
                 break;                    
             case MessageConstants.MSG_OP_IND_LEARNER_ALL_PERFORMANCE:
                 result = getIndependentLearnerPerf();
-                break;
-            case MessageConstants.MSG_OP_IND_LEARNER_LOCATION_ALL_COURSES:
+                break;                
+            case MessageConstants.MSG_OP_IND_LEARNER_CURRENT_LOC:
                 result = getIndependentLearnerCoursesLoc();
                 break;
             case MessageConstants.MSG_OP_IND_LEARNER_LOCATION_ALL_IND_ASSESSMENTS:
@@ -128,8 +128,8 @@ class MessageProcessor implements Processor {
                 break;
             case MessageConstants.MSG_OP_IND_LEARNER_LOCATION_ALL_IND_COLLECTIONS:
                 result = getIndependentLearnerCollectionsLoc();
-                break;
-            case MessageConstants.MSG_OP_IND_LEARNER_PERF_ALL_COURSES:                
+                break;                
+            case MessageConstants.MSG_OP_IND_LEARNER_ALL_COURSES_PERF:                
             	result = getIndependentLearnerAllCoursesPerf();
                 break;
             case MessageConstants.MSG_OP_IND_LEARNER_PERF_ALL_IND_ASSESSMENTS:                
