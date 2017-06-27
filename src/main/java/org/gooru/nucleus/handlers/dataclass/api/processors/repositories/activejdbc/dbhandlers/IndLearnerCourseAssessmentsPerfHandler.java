@@ -88,9 +88,9 @@ public class IndLearnerCourseAssessmentsPerfHandler implements DBHandler {
       
       this.classId = this.context.request().getString(MessageConstants.CLASS_ID); 
       if(StringUtil.isNullOrEmpty(this.classId)){
-        query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append("class_id IS NULL");
+        query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append("class_id IS NULL").append(AJEntityBaseReports.SPACE);
       } else{
-        query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.CLASS_ID);
+        query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.CLASS_ID).append(AJEntityBaseReports.SPACE);
         params.add(classId);  
       }
       this.courseId = this.context.request().getString(MessageConstants.COURSE_ID);      
@@ -209,7 +209,7 @@ public class IndLearnerCourseAssessmentsPerfHandler implements DBHandler {
         	assessmentArray.add(assessmentKpi);
         	}
 
-      resultBody.put(JsonConstants.USAGE_DATA, assessmentArray).put(JsonConstants.USERUID, this.userId);
+      resultBody.put(JsonConstants.USAGE_DATA, assessmentArray).put(JsonConstants.USERID, this.userId);
       
       return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);  
 

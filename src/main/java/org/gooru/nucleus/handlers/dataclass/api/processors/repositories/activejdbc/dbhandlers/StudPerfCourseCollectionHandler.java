@@ -187,7 +187,7 @@ public class StudPerfCourseCollectionHandler implements DBHandler {
 
         	}
 
-        resultBody.put(JsonConstants.USAGE_DATA, collectionArray).put(JsonConstants.USERUID, this.userId);
+        resultBody.put(JsonConstants.USAGE_DATA, collectionArray).put(JsonConstants.USERID, this.userId);
       
       return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);  
 
