@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
@@ -13,6 +14,7 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionRe
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
+import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +30,7 @@ public class IndLearnerCourseCollectionsPerfHandler implements DBHandler {
     private static final String REQUEST_USERID = "userId";
     private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
     private final ProcessorContext context;
+    private int questionCount;
     private String userId;
     private String courseId;
     private String unitId;
@@ -86,9 +89,9 @@ public class IndLearnerCourseCollectionsPerfHandler implements DBHandler {
       
       this.classId = this.context.request().getString(MessageConstants.CLASS_ID); 
       if(StringUtil.isNullOrEmpty(this.classId)){
-        query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append("class_id IS NULL");
+        query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append("class_id IS NULL").append(AJEntityBaseReports.SPACE);
       } else{
-        query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.CLASS_ID);
+        query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.CLASS_ID).append(AJEntityBaseReports.SPACE);
         params.add(classId);  
       }
       
@@ -178,12 +181,42 @@ public class IndLearnerCourseCollectionsPerfHandler implements DBHandler {
         		collectionKpi.put(AJEntityBaseReports.VIEWS, Integer.parseInt(m.get(AJEntityBaseReports.VIEWS).toString()));
 	    		});
         	}
-        		
+        	
+            List<Map> collectionQuestionCount = null;
+            collectionQuestionCount = Base.findAll(AJEntityBaseReports.GET_IL_COLLECTION_QUESTION_COUNT, this.courseId,
+                    collId, this.userId);
+
+            //If questions are not present then Question Count is always zero, however this additional check needs to be added
+            //since during migration of data from 3.0 chances are that QC may be null instead of zero
+            collectionQuestionCount.forEach(qc -> {
+            	if (qc.get(AJEntityBaseReports.QUESTION_COUNT) != null) {
+            		this.questionCount = Integer.valueOf(qc.get(AJEntityBaseReports.QUESTION_COUNT).toString());
+            	} else {
+            		this.questionCount = 0;
+            	}
+            });
+            double scoreInPercent = 0;
+            if (this.questionCount > 0) {
+              Object collectionScore = null;
+              collectionScore = Base.firstCell(AJEntityBaseReports.GET_IL_COLLECTION_SCORE, this.courseId,
+                      collId, this.userId);
+              if (collectionScore != null) {
+                scoreInPercent = (((Double.valueOf(collectionScore.toString())) / this.questionCount) * 100);
+              }
+              collectionKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(scoreInPercent));
+            } else {
+            	//If Collections have No Questions then score should be NULL
+            	collectionKpi.putNull(AJEntityBaseReports.ATTR_SCORE);
+            }
+            
+            //As per the current philosophy in Gooru (3.0/4.0) as soon as a collection is viewed, it is assumed to be completed.
+            //So whenever we have an entry of a collection_id in Analytics, it is by default complete.
+            collectionKpi.put(JsonConstants.STATUS, JsonConstants.COMPLETE);        		
         	collectionKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collId);
         	collectionArray.add(collectionKpi);        		
         	}
 
-        resultBody.put(JsonConstants.USAGE_DATA, collectionArray).put(JsonConstants.USERUID, this.userId);
+        resultBody.put(JsonConstants.USAGE_DATA, collectionArray).put(JsonConstants.USERID, this.userId);
       
       return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);  
 

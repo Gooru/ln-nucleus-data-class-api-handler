@@ -831,6 +831,18 @@ public class AJEntityBaseReports extends Model {
     public static final String GET_IL_COURSE_DISTINCT_COLLECTIONS = "SELECT distinct(collection_id) from base_reports where "
     		+ "actor_id = ? AND collection_type = ? ";
     
+    public static final String GET_IL_COLLECTION_QUESTION_COUNT = "SELECT question_count, updated_at FROM base_reports "
+            + "WHERE class_id IS NULL AND course_id = ? AND collection_id = ? AND actor_id = ? AND event_name = 'collection.play'"
+            + " ORDER BY updated_at DESC LIMIT 1";
+    
+    public static final String GET_IL_COLLECTION_SCORE = "SELECT SUM(coll.score) AS score FROM "
+            + "(SELECT DISTINCT ON (resource_id) collection_id, "
+            + "FIRST_VALUE(score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score "
+            + "FROM base_reports WHERE class_id IS NULL AND course_id = ? AND collection_id = ? AND actor_id = ? AND "
+            + "event_name = 'collection.resource.play' AND resource_type = 'question' AND resource_attempt_status <> 'skipped' ) AS coll "
+            + "GROUP BY coll.collection_id";
+
+    
     //*****************************************************************************************************************************
    
     public static final String GET_IL_ALL_COURSE_SCORE_COMPLETION = "SELECT SUM(courseData.completion) AS completedCount, "

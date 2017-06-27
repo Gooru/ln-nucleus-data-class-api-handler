@@ -169,7 +169,7 @@ public class StudPerfCourseAssessmentHandler implements DBHandler {
         	assessmentArray.add(assessmentKpi);        		
         	}
 
-      resultBody.put(JsonConstants.USAGE_DATA, assessmentArray).put(JsonConstants.USERUID, this.userId);
+      resultBody.put(JsonConstants.USAGE_DATA, assessmentArray).put(JsonConstants.USERID, this.userId);
       
       return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);  
 
