@@ -31,6 +31,20 @@ public class AJEntityDCACompetencyReport extends Model {
 	  public static final String BASE_REPORT_ID = "base_report_id";
 	  public static final String CREATED_AT = "created_at";
 	  public static final String UPDATED_AT = "updated_at";  
+	  
+	  // Get Session wise taxonomy report from competency table..
+	  public static final String SELECT_DCA_REPORT_IDS =
+	          "SELECT tax_subject_id,tax_course_id,tax_domain_id,tax_standard_id,tax_micro_standard_id,display_code,string_agg(base_report_id||'', ',') AS base_report_id "
+	                  + "FROM dca_competency_report WHERE session_id = ? " + "AND resource_type = 'question' "
+	                  + "GROUP BY tax_subject_id,tax_course_id,tax_domain_id," + "tax_standard_id,tax_micro_standard_id,display_code";
+
+	  public static final String GET_DCA_AGG_TAX_DATA = "SELECT sum(time_spent) AS time_spent, (AVG(score * 100)) AS score,"
+	          + "ROUND(AVG(reaction)) AS reaction " + "FROM daily_class_activity WHERE id = ANY (?::integer[]) GROUP BY session_id";
+
+	  public static final String GET_DCA_QUESTIONS_TAX_PERF =
+	          "SELECT SUM(time_spent) AS time_spent, (SUM(score)*100) AS score ," + "SUM(reaction) AS reaction, SUM(views) AS views, question_type, "
+	                  + "resource_id, MAX(resource_attempt_status) AS resource_attempt_status "
+	                  + "FROM daily_class_activity WHERE id = ANY (?::integer[]) GROUP BY resource_id,question_type;";
 
 
 }

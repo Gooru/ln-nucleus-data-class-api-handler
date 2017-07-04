@@ -90,4 +90,9 @@ public class JsonConstants {
   	
   	public static final String PATH_ID = "pathId";
 
+  	public static final String STUDENT_COUNT = "studentCount";
+  	
+  	public static final String GRADE_ITEMS = "gradeItems";
+  	
+  	public static final String STUDENTS = "students";
 }

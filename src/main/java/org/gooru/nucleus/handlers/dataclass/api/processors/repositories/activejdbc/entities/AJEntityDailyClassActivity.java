@@ -53,6 +53,13 @@ public class AJEntityDailyClassActivity extends Model{
     public static final String MAX_SCORE = "max_score";
     public static final String PATH_ID = "path_id";
 
+    public static final String EVENT_ID = "event_id";
+    public static final String TIME_ZONE = "time_zone";
+    public static final String DATE_IN_TIME_ZONE = "date_in_time_zone";
+    public static final String IS_GRADED = "is_graded";
+    public static final String CONTENT_SOURCE = "content_source";
+
+
     
     public static final String ATTR_TIME_SPENT = "timeSpent";
     public static final String ATTR_SCORE = "scoreInPercentage";

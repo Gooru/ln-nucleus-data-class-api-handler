@@ -8,9 +8,9 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
-import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
+import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.javalite.activejdbc.Base;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,20 +20,19 @@ import com.hazelcast.util.StringUtil;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
-/**
- * Created by mukul@gooru
- */
-public class UserCollectionSessionsHandler implements DBHandler {
+public class IndLearnerAssessmentSessionsHandler implements DBHandler {
 	
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(UserCollectionSessionsHandler.class);
-	
+	private static final Logger LOGGER = LoggerFactory.getLogger(IndLearnerAssessmentSessionsHandler.class);
+		
+    private static final String REQUEST_COURSE_ID = "courseGooruId";
+    private static final String REQUEST_UNIT_ID = "unitGooruId";
+    private static final String REQUEST_LESSON_ID = "lessonGooruId";
     private static final String REQUEST_OPEN_SESSION = "openSession";
     private static final String REQUEST_USERID = "userUid";
     
-    private final ProcessorContext context;
+	private final ProcessorContext context;
+    private AJEntityBaseReports baseReport;
 
-    private String classId;
     private String courseId;
     private String unitId;
     private String lessonId;
@@ -46,7 +45,7 @@ public class UserCollectionSessionsHandler implements DBHandler {
     private String openSession = new String("false");
     boolean isStop = false;
         
-    public UserCollectionSessionsHandler(ProcessorContext context) {
+    public IndLearnerAssessmentSessionsHandler(ProcessorContext context) {
         this.context = context;
     }
 
@@ -72,60 +71,61 @@ public class UserCollectionSessionsHandler implements DBHandler {
     	JsonArray closedSessionArray = new JsonArray();
     	JsonArray openSessionArray = new JsonArray();
     	    	
+    	baseReport = new AJEntityBaseReports();
     
-        this.collectionId = context.collectionId();
-        this.classId = context.request().getString(EventConstants.CLASS_GOORU_OID);
+        this.collectionId = context.collectionId();   
         this.courseId = context.request().getString(EventConstants.COURSE_GOORU_OID);
         this.unitId = context.request().getString(EventConstants.UNIT_GOORU_OID);
         this.lessonId = context.request().getString(EventConstants.LESSON_GOORU_OID);
         this.openSession = this.context.request().getString(REQUEST_OPEN_SESSION);
         this.userId = this.context.request().getString(REQUEST_USERID);
-       LOGGER.debug("classId :{} , userId : {} and collectionId:{}",this.classId, this.userId, this.collectionId);;
-      	if (StringUtil.isNullOrEmpty(openSession)) {
-      		this.openSession = "false";
-              LOGGER.info("By Default OpenSession is assumed to be false");            
-          }
-          
-          this.userId = this.context.request().getString(REQUEST_USERID);
-          if (StringUtil.isNullOrEmpty(userId)) {
-              LOGGER.warn("UserID is mandatory to fetch Session Information");
-              return new ExecutionResult<>(
-                  MessageResponseFactory.createInvalidRequestResponse("UserID Missing. Cannot fetch Session Information"),
-                  ExecutionStatus.FAILED);
-          }
-          LOGGER.debug("UID is " + this.userId);
-          List<Map> distinctSessionsList = null;
-          if(!StringUtil.isNullOrEmpty(this.classId)){
-            distinctSessionsList = Base.findAll( AJEntityBaseReports.GET_USER_SESSIONS_FOR_COLLID,this.classId,this.courseId,this.unitId,this.lessonId, 
-            this.collectionId, EventConstants.ASSESSMENT, this.userId);
-          }else{
-            distinctSessionsList = Base.findAll( AJEntityBaseReports.GET_USER_SESSIONS_FOR_COLLID_, 
-                    this.collectionId, EventConstants.ASSESSMENT, this.userId);
-          }
-          
-    	if (!distinctSessionsList.isEmpty()) {
-    		
+       
+    	if (StringUtil.isNullOrEmpty(openSession)) {
+    		this.openSession = "false";
+            LOGGER.info("By Default OpenSession is assumed to be false");            
+        }
+        
+        if (StringUtil.isNullOrEmpty(userId)) {
+            LOGGER.warn("UserID is mandatory to fetch Session Information");
+            return new ExecutionResult<>(
+                MessageResponseFactory.createInvalidRequestResponse("UserID Missing. Cannot fetch Session Information"),
+                ExecutionStatus.FAILED);
+        }
+        List<Map> distinctSessionsList = null;
+        if(!StringUtil.isNullOrEmpty(this.courseId)){
+          distinctSessionsList = Base.findAll( AJEntityBaseReports.GET_IL_SESSIONS_FOR_COLLID, this.courseId,this.unitId,this.lessonId, 
+    			this.collectionId, EventConstants.ASSESSMENT, this.userId);
+        }else{
+          distinctSessionsList = Base.findAll( AJEntityBaseReports.GET_IL_SESSIONS_FOR_STANDALONE_COLLID, 
+                  this.collectionId, EventConstants.ASSESSMENT, this.userId);
+        }
+    	if (!distinctSessionsList.isEmpty()) {    		
     		distinctSessionsList.forEach(m -> {    		
         		sessionId = m.get(AJEntityBaseReports.SESSION_ID).toString();
         		LOGGER.debug(sessionId.toString());        		
         		isStop = false;
         		JsonObject sessionObj = new JsonObject();
         		
-        		List<Map> sessionStatusMap = Base.findAll( AJEntityBaseReports.GET_SESSION_STATUS, 
+        		List<Map> sessionStatusMap = Base.findAll( AJEntityBaseReports.GET_IL_SESSION_STATUS, 
         	   			 sessionId, this.collectionId, EventConstants.COLLECTION_PLAY);
-        	   	 
-        		//TODO: Covert TimeStamp, also ORDER BY DESC so that the higher sequence number will mean latest sessions
+
         		if (!sessionStatusMap.isEmpty()){
         			
         			sessionStatusMap.forEach(sess -> {
-        				if (sess.get(EventConstants.EVENT_TYPE).toString().equals(EventConstants.START)){
-        	   				sessionObj.put(JsonConstants.EVENT_TIME, sess.get(AJEntityBaseReports.CREATE_TIMESTAMP).toString())
+        				if (sess.get(AJEntityBaseReports.EVENTTYPE).toString().equals(EventConstants.START)){
+        	   				sessionObj.put(JsonConstants.EVENT_TIME, sess.get(AJEntityBaseReports.UPDATE_TIMESTAMP).toString())
         	   				.put(JsonConstants.SESSIONID, sessionId);
         	   						
         	   			}
         	   			
-        				if (sess.get(EventConstants.EVENT_TYPE).toString().equals(EventConstants.STOP)){
+        				if (sess.get(AJEntityBaseReports.EVENTTYPE).toString().equals(EventConstants.STOP)){
+        					//Specific Change related to Migration (3.0 -> 4.0)
+        					if (!sessionObj.isEmpty()) {
+        						sessionObj.clear();
+        					}
         					closedSeq++;
+        					sessionObj.put(JsonConstants.EVENT_TIME, sess.get(AJEntityBaseReports.UPDATE_TIMESTAMP).toString())
+        	   				.put(JsonConstants.SESSIONID, sessionId);
         					sessionObj.put(JsonConstants.SEQUENCE, closedSeq.toString());
         	   				isStop = true;
         					closedSessionArray.add(sessionObj);
@@ -142,6 +142,8 @@ public class UserCollectionSessionsHandler implements DBHandler {
 
     	
     		
+    	}else{
+    	  LOGGER.debug("No sessions data found for given assessment");
     	}
     	    	
     	if (openSession.equalsIgnoreCase("false")) {
@@ -158,7 +160,8 @@ public class UserCollectionSessionsHandler implements DBHandler {
 
     @Override
     public boolean handlerReadOnly() {
-        return false;
+        return true;
     }
-     
+
+
 }
