@@ -216,10 +216,6 @@ public class StudentCollectionSummaryHandler implements DBHandler {
           LOGGER.debug("Done");
         } else {
           LOGGER.info("Collection Attributes cannot be obtained");
-          // Return empty resultBody object instead of an error
-          // return new
-          // ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(),
-          // ExecutionStatus.FAILED);
         }
         resultBody.put(JsonConstants.CONTENT, contentArray);
         return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);

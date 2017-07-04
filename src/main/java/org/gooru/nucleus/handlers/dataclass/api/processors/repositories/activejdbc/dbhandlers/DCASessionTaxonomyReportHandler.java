@@ -7,7 +7,8 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.converters.ResponseAttributeIdentifier;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityDailyClassActivity;
-import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityCompetencyReport;
+
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityDCACompetencyReport;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.converters.ValueMapper;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
@@ -49,22 +50,22 @@ public class DCASessionTaxonomyReportHandler implements DBHandler {
 	  public ExecutionResult<MessageResponse> executeRequest() {
 	    JsonArray taxonomyKpiArray = new JsonArray();
 	    JsonObject result = new JsonObject();
-	    List<Map> sessionTaxonomyResults = Base.findAll(AJEntityCompetencyReport.SELECT_BASE_REPORT_IDS, this.context.sessionId());
+	    List<Map> sessionTaxonomyResults = Base.findAll(AJEntityDCACompetencyReport.SELECT_DCA_REPORT_IDS, this.context.sessionId());
 	    if (!sessionTaxonomyResults.isEmpty()) {
 	      sessionTaxonomyResults.forEach(taxonomyRow -> {
 	        // Generate aggregate data object
 	        JsonObject aggResult = new JsonObject();
-	        aggResult.put(JsonConstants.DISPLAY_CODE, taxonomyRow.get(AJEntityCompetencyReport.DISPLAY_CODE));
+	        aggResult.put(JsonConstants.DISPLAY_CODE, taxonomyRow.get(AJEntityDCACompetencyReport.DISPLAY_CODE));
 
-	        if (taxonomyRow.get(AJEntityCompetencyReport.TAX_MICRO_STANDARD_ID) != null) {
-	          aggResult.put(JsonConstants.LEARNING_TARGET_ID, taxonomyRow.get(AJEntityCompetencyReport.TAX_MICRO_STANDARD_ID));
+	        if (taxonomyRow.get(AJEntityDCACompetencyReport.TAX_MICRO_STANDARD_ID) != null) {
+	          aggResult.put(JsonConstants.LEARNING_TARGET_ID, taxonomyRow.get(AJEntityDCACompetencyReport.TAX_MICRO_STANDARD_ID));
 	        } else {
-	          aggResult.put(JsonConstants.STANDARDS_ID, taxonomyRow.get(AJEntityCompetencyReport.TAX_STANDARD_ID));
+	          aggResult.put(JsonConstants.STANDARDS_ID, taxonomyRow.get(AJEntityDCACompetencyReport.TAX_STANDARD_ID));
 	        }
 
-	        LOGGER.debug("Base Reports IDS : {}", listToPostgresArrayInteger(taxonomyRow.get(AJEntityCompetencyReport.BASE_REPORT_ID).toString()));
-	        List<Map> aggTaxonomyResults = Base.findAll(AJEntityCompetencyReport.GET_AGG_TAX_DATA,
-	                listToPostgresArrayInteger(taxonomyRow.get(AJEntityCompetencyReport.BASE_REPORT_ID).toString()));
+	        LOGGER.debug("Base Reports IDS : {}", listToPostgresArrayInteger(taxonomyRow.get(AJEntityDCACompetencyReport.BASE_REPORT_ID).toString()));
+	        List<Map> aggTaxonomyResults = Base.findAll(AJEntityDCACompetencyReport.GET_DCA_AGG_TAX_DATA,
+	                listToPostgresArrayInteger(taxonomyRow.get(AJEntityDCACompetencyReport.BASE_REPORT_ID).toString()));
 
 	        if (!aggTaxonomyResults.isEmpty()) {
 	          aggTaxonomyResults.stream().forEach(aggData -> {
@@ -74,8 +75,8 @@ public class DCASessionTaxonomyReportHandler implements DBHandler {
 
 	          });
 	        }
-	        List<Map> sessionTaxonomyQuestionResults = Base.findAll(AJEntityCompetencyReport.GET_QUESTIONS_TAX_PERF,
-	                listToPostgresArrayInteger(taxonomyRow.get(AJEntityCompetencyReport.BASE_REPORT_ID).toString()));
+	        List<Map> sessionTaxonomyQuestionResults = Base.findAll(AJEntityDCACompetencyReport.GET_DCA_QUESTIONS_TAX_PERF,
+	                listToPostgresArrayInteger(taxonomyRow.get(AJEntityDCACompetencyReport.BASE_REPORT_ID).toString()));
 
 	        // Generate questions array
 	        if (!sessionTaxonomyQuestionResults.isEmpty()) {
@@ -110,8 +111,7 @@ public class DCASessionTaxonomyReportHandler implements DBHandler {
 	  }
 
 	  @Override
-	  public boolean handlerReadOnly() {
-	    // TODO Auto-generated method stub
-	    return false;
+	  public boolean handlerReadOnly() {	    
+	    return true;
 	  }
 }
