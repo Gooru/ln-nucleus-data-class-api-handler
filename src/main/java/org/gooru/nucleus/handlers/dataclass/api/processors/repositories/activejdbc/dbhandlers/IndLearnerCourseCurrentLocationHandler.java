@@ -62,10 +62,7 @@ public class IndLearnerCourseCurrentLocationHandler implements DBHandler {
 	  @SuppressWarnings("rawtypes")
 	  public ExecutionResult<MessageResponse> executeRequest() {
 		  
-		  LOGGER.debug("Mukul: Inside IL Current Location Handler");
-
-	    	JsonObject resultBody = new JsonObject();
-	       	
+		    JsonObject resultBody = new JsonObject();	       	
 	    	JsonArray CurrentLocArray = new JsonArray();
 	    	baseReport = new AJEntityBaseReports();
 	    

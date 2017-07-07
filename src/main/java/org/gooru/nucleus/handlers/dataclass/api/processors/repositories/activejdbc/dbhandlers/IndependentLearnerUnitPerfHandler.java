@@ -156,7 +156,7 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
             if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
 
               assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_LESSON_PERF_FOR_COLLECTION, context.courseId(), context.unitId(),
-                      this.lessonId, listToPostgresArrayString(collIds), userID, EventConstants.COLLECTION_PLAY);
+                      this.lessonId, listToPostgresArrayString(collIds), userID);
             } else {
               assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_LESSON_PERF_FOR_ASSESSMENT, context.courseId(), context.unitId(),
                       this.lessonId, listToPostgresArrayString(collIds), userID, EventConstants.COLLECTION_PLAY);

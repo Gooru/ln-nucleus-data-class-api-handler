@@ -166,6 +166,22 @@ public final class DBHandlerBuilder {
       return new LearnerCoursesHandler(context);
     }
     
+    public static DBHandler buildIndLearnerCollectionSummaryHandler(ProcessorContext context) {
+        return new IndLearnerCollectionSummaryHandler(context);
+    }
+    
+    public static DBHandler buildIndLearnerAssessmentSummaryHandler(ProcessorContext context) {
+        return new IndLearnerAssessmentSummaryHandler(context);
+    }
+    
+    public static DBHandler buildIndLearnerAssessmentSessionsHandler(ProcessorContext context) {
+        return new IndLearnerAssessmentSessionsHandler(context);
+    }
+    
+    public static DBHandler buildIndLearnerCollectionSessionsHandler(ProcessorContext context) {
+        return new IndLearnerCollectionSessionsHandler(context);
+    }
+    
     //Rubric Grading
     
     public static DBHandler buildRubricQuesToGradeHandler(ProcessorContext context) {
