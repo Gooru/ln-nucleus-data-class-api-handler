@@ -115,7 +115,7 @@ public class IndependentLearnerLessonPerfHandler implements DBHandler {
           JsonObject lessonKpi = ValueMapper.map(ResponseAttributeIdentifier.getLessonPerformanceAttributesMap(), m);
           // FIXME : revisit completed count and total count
           lessonKpi.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 1);
-          lessonKpi.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
+          lessonKpi.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 1);
           lessonKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.valueOf(m.get(AJEntityBaseReports.ATTR_SCORE).toString())));
           // FIXME: This logic to be revisited.
           if (this.collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {
