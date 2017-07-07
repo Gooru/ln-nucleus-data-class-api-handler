@@ -101,7 +101,7 @@ public class IndLearnerAllCoursesPerfHandler implements DBHandler {
     	        if(courseData.get(AJEntityBaseReports.COURSE_GOORU_OID) != null){
     	        JsonObject courseKPI = new JsonObject();    	        
     	        courseKPI.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.valueOf(courseData.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()));
-    	        Object courseTotalCount = Base.firstCell(AJEntityCourseCollectionCount.GET_IL_COURSE_ASSESSMENT_COUNT,
+    	        Object courseTotalCount = Base.firstCell(AJEntityCourseCollectionCount.GET_COURSE_ASSESSMENT_COUNT,
     	                courseData.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
     	        
     	        courseKPI.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, courseTotalCount != null ? Integer.valueOf(courseTotalCount.toString()) : 0);

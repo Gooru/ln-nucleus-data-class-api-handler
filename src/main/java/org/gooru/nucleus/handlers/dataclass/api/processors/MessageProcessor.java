@@ -147,6 +147,19 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_IND_LEARNER_TAX_SUBJECTS:
                 result = getIndependentLearnerTaxSubjects();
                 break;
+            case MessageConstants.MSG_OP_IND_LEARNER_COLLECTION_SUMMARY:
+            	result = getIndependentLearnerSummaryInCollection();
+                break;
+            case MessageConstants.MSG_OP_IND_LEARNER_ASSESSMENT_SUMMARY:
+            	result = getIndependentLearnerSummaryInAssessment();            	
+                break;
+            case MessageConstants.MSG_OP_IND_LEARNER_ALL_ASSESSMENT_SESSIONS:
+            	result = getIndependentLearnerAssessmentSessions();            	
+                break;
+            case MessageConstants.MSG_OP_IND_LEARNER_ALL_COLLECTION_SESSIONS:
+            	result = getIndependentLearnerCollectionSessions();            	
+                break;
+
                 //Rubric Grading
             case MessageConstants.MSG_OP_RUBRICS_QUESTIONS_TO_GRADE:
                 result = getRubricQuestionsToGrade();
@@ -543,6 +556,131 @@ class MessageProcessor implements Processor {
         }
 
     }
+    
+    private MessageResponse getStudentSummaryInCollection() {
+    	try {
+            ProcessorContext context = createContext();
+                        
+            if (!checkCollectionId(context)) {
+                LOGGER.error("Collection id not available to obtain Student Performance. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid collectionId");
+            }
+             
+            if (!validateUser(context.userIdFromSession())) {
+                LOGGER.error("Invalid User ID. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid userId");
+            }
+            
+            return new RepoBuilder().buildReportRepo(context).getStudentSummaryInCollection();
+            
+        } catch (Throwable t) {
+            LOGGER.error("Exception while getting Student Collection Summary", t);
+            return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+        }
+
+    }
+
+    
+    private MessageResponse getStudentSummaryInAssessment() {
+    	try {
+            ProcessorContext context = createContext();
+                        
+            if (!checkCollectionId(context)) {
+                LOGGER.error("Collection id not available to obtain Student Performance. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid collectionId");
+            }
+             
+            if (!validateUser(context.userIdFromSession())) {
+                LOGGER.error("Invalid User ID. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid userId");
+            }
+            
+            return new RepoBuilder().buildReportRepo(context).getStudentSummaryInAssessment();
+            
+        } catch (Throwable t) {
+            LOGGER.error("Exception while getting Student Assessment Summary", t);
+            return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+        }
+
+    }
+    
+    private MessageResponse getSessionStatus() {
+    	try {
+            ProcessorContext context = createContext();
+            
+            if (!checkSessionId(context)) {
+                LOGGER.error("SessionId not available. Aborting!");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid SessionId");
+            }
+            
+            if (!checkCollectionId(context)) {
+                LOGGER.error("CollectionId not available to get Session Status. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid CollectionId");
+            }
+            
+            return new RepoBuilder().buildReportRepo(context).getSessionStatus();
+            
+        } catch (Throwable t) {
+            LOGGER.error("Exception while getting Student peers in Unit", t);
+            return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+        }
+
+    }
+    
+    private MessageResponse getUserAssessmentSessions() {
+    	try {
+            ProcessorContext context = createContext();
+            
+            if (!checkCollectionId(context)) {
+                LOGGER.error("Collection id not available to obtain User Sessions. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid collectionId");
+            }
+            
+            return new RepoBuilder().buildReportRepo(context).getUserAssessmentSessions();
+            
+        } catch (Throwable t) {
+            LOGGER.error("Exception while getting User Sessions for Assessment", t);
+            return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+        }
+
+    }
+    
+    private MessageResponse getUserCollectionSessions() {
+    	try {
+            ProcessorContext context = createContext();
+            
+            if (!checkCollectionId(context)) {
+                LOGGER.error("Collection id not available to obtain User Sessions. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid collectionId");
+            }
+            
+            return new RepoBuilder().buildReportRepo(context).getUserCollectionSessions();
+            
+        } catch (Throwable t) {
+            LOGGER.error("Exception while getting User Sessions for Collection", t);
+            return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+        }
+
+    }
+ 
+    private MessageResponse getSessionWiseTaxonomyReport() {
+      try {
+            ProcessorContext context = createContext();
+        
+            if (!checkSessionId(context)) {
+                LOGGER.error("Session id not available in the request. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid sessionId");
+            }
+            
+            return new RepoBuilder().buildReportRepo(context).getSessionWiseTaxonmyReport();
+            
+        } catch (Throwable t) {
+            LOGGER.error("Exception while getting Student performance in Unit", t);
+            return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+        }
+
+    }
+
     //=================================User Independent Learning ===============================================//
 
     
@@ -805,13 +943,16 @@ class MessageProcessor implements Processor {
         }
 
     }
-    //==========================================================================================================//
-    private MessageResponse getStudentSummaryInCollection() {
+    
+     //Mukul 
+    //*********************************************************************************************************************
+    
+    private MessageResponse getIndependentLearnerSummaryInCollection() {
     	try {
             ProcessorContext context = createContext();
                         
             if (!checkCollectionId(context)) {
-                LOGGER.error("Collection id not available to obtain Student Performance. Aborting");
+                LOGGER.error("Collection id not available to obtain Independent Learner Performance. Aborting");
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid collectionId");
             }
              
@@ -820,22 +961,22 @@ class MessageProcessor implements Processor {
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid userId");
             }
             
-            return new RepoBuilder().buildReportRepo(context).getStudentSummaryInCollection();
+            return new RepoBuilder().buildReportRepo(context).getIndLearnerSummaryInCollection();
             
         } catch (Throwable t) {
-            LOGGER.error("Exception while getting Student performance in Course", t);
+            LOGGER.error("Exception while getting Independent Learner Collection Summary", t);
             return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
         }
 
     }
 
     
-    private MessageResponse getStudentSummaryInAssessment() {
+    private MessageResponse getIndependentLearnerSummaryInAssessment() {
     	try {
             ProcessorContext context = createContext();
                         
             if (!checkCollectionId(context)) {
-                LOGGER.error("Collection id not available to obtain Student Performance. Aborting");
+                LOGGER.error("Collection id not available to obtain Independent Learner Performance. Aborting");
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid collectionId");
             }
              
@@ -844,91 +985,53 @@ class MessageProcessor implements Processor {
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid userId");
             }
             
-            return new RepoBuilder().buildReportRepo(context).getStudentSummaryInAssessment();
+            return new RepoBuilder().buildReportRepo(context).getIndLearnerSummaryInAssessment();
             
         } catch (Throwable t) {
-            LOGGER.error("Exception while getting Student performance in Course", t);
+            LOGGER.error("Exception while getting Independent Learner Assessment Summary", t);
             return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
         }
 
     }
     
-    private MessageResponse getSessionStatus() {
-    	try {
-            ProcessorContext context = createContext();
-            
-            if (!checkSessionId(context)) {
-                LOGGER.error("SessionId not available. Aborting!");
-                return MessageResponseFactory.createInvalidRequestResponse("Invalid SessionId");
-            }
-            
-            if (!checkCollectionId(context)) {
-                LOGGER.error("CollectionId not available to get Session Status. Aborting");
-                return MessageResponseFactory.createInvalidRequestResponse("Invalid CollectionId");
-            }
-            
-            return new RepoBuilder().buildReportRepo(context).getSessionStatus();
-            
-        } catch (Throwable t) {
-            LOGGER.error("Exception while getting Student peers in Unit", t);
-            return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
-        }
-
-    }
     
-    private MessageResponse getUserAssessmentSessions() {
+    private MessageResponse getIndependentLearnerAssessmentSessions() {
     	try {
             ProcessorContext context = createContext();
             
             if (!checkCollectionId(context)) {
-                LOGGER.error("Collection id not available to obtain User Sessions. Aborting");
+                LOGGER.error("Collection id not available to obtain Independent Learner Sessions. Aborting");
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid collectionId");
             }
             
-            return new RepoBuilder().buildReportRepo(context).getUserAssessmentSessions();
+            return new RepoBuilder().buildReportRepo(context).getIndLearnerAssessmentSessions();
             
         } catch (Throwable t) {
-            LOGGER.error("Exception while getting User Sessions for Assessment", t);
+            LOGGER.error("Exception while getting Independent Learner Sessions for Assessment", t);
             return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
         }
 
     }
     
-    private MessageResponse getUserCollectionSessions() {
+    private MessageResponse getIndependentLearnerCollectionSessions() {
     	try {
             ProcessorContext context = createContext();
             
             if (!checkCollectionId(context)) {
-                LOGGER.error("Collection id not available to obtain User Sessions. Aborting");
+                LOGGER.error("Collection id not available to obtain Independent Learner Sessions. Aborting");
                 return MessageResponseFactory.createInvalidRequestResponse("Invalid collectionId");
             }
             
-            return new RepoBuilder().buildReportRepo(context).getUserCollectionSessions();
+            return new RepoBuilder().buildReportRepo(context).getIndLearnerCollectionSessions();
             
         } catch (Throwable t) {
-            LOGGER.error("Exception while getting User Sessions for Collection", t);
+            LOGGER.error("Exception while getting Independent Learner Sessions for Collection", t);
             return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
         }
 
     }
- 
-    private MessageResponse getSessionWiseTaxonomyReport() {
-      try {
-            ProcessorContext context = createContext();
-        
-            if (!checkSessionId(context)) {
-                LOGGER.error("Session id not available in the request. Aborting");
-                return MessageResponseFactory.createInvalidRequestResponse("Invalid sessionId");
-            }
-            
-            return new RepoBuilder().buildReportRepo(context).getSessionWiseTaxonmyReport();
-            
-        } catch (Throwable t) {
-            LOGGER.error("Exception while getting Student performance in Unit", t);
-            return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
-        }
-
-    }
+    
+    //*********************************************************************************************************************
     
     private MessageResponse getStudentPerfInAllClasses() {
       try {

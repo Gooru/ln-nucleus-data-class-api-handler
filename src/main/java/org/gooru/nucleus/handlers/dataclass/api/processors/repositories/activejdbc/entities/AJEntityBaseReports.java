@@ -99,6 +99,7 @@ public class AJEntityBaseReports extends Model {
     public static final String UNIT_ID = "unit_id = ? ";
     public static final String LESSON_ID = "lesson_id = ?";
     public static final String CLASS_ID = "class_id = ? ";
+    public static final String ASSESSMENT_ID = "collection_id";
     public static final String DATE = "date";
     public static final String ACTIVITY_DATE = "activityDate";
     public static final String UPDATDED_AT_LESS_THAN_OR_EQUAL = "updated_at <= ?::timestamp";
@@ -929,9 +930,6 @@ public class AJEntityBaseReports extends Model {
             + " AND collection_type = ? AND actor_id = ? ) AS s ORDER BY s.updated_at ASC";
     
   //*************************************************************************************************************************
-    
-    //*************************************************************************************************************************
-    //String Constants and Queries for STUDENT PERFORMANCE REPORTS IN ASSESSMENTS    
     public static final String SELECT_IL_ASSESSMENT_FOREACH_COLLID_AND_SESSION_ID =
             "select distinct on (collection_id) FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS score,"
             + "collection_id,FIRST_VALUE(reaction) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS reaction,"
@@ -1041,7 +1039,8 @@ public class AJEntityBaseReports extends Model {
             + "FROM base_reports WHERE class_id IS NULL AND course_id IS NULL AND unit_id IS NULL AND lesson_id IS NULL AND collection_id = ? AND resource_id = ? "
             + "AND actor_id = ? AND event_name = 'collection.resource.play' AND reaction <> 0";
       
-  //*************************************************************************************************************************
+    //*************************************************************************************************************************
+
 
     //Rubric Grading
     

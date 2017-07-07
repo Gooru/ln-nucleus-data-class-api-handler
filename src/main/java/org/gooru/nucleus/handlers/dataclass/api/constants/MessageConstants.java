@@ -102,6 +102,10 @@ public final class MessageConstants {
     public static final String MSG_OP_IND_LEARNER_CURRENT_LOC = "independent.learner.current.loc";
     public static final String MSG_OP_IND_LEARNER_ALL_COURSES_PERF = "independent.learner.all.courses.performance";
 
+    public static final String MSG_OP_IND_LEARNER_ASSESSMENT_SUMMARY = "independent.learner.assessment.summary";
+    public static final String MSG_OP_IND_LEARNER_COLLECTION_SUMMARY = "independent.learner.collection.summary";
+    public static final String MSG_OP_IND_LEARNER_ALL_ASSESSMENT_SESSIONS = "independent.learner.all.assessment.sessions";
+    public static final String MSG_OP_IND_LEARNER_ALL_COLLECTION_SESSIONS = "independent.learner.all.collection.sessions";
 
     //Rubric Grading
     public static final String MSG_OP_RUBRICS_QUESTIONS_TO_GRADE = "rubric.questions.to.grade";

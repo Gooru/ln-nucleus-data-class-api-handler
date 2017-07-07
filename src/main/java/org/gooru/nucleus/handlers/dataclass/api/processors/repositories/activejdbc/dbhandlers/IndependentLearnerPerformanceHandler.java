@@ -1,11 +1,13 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityILBookmarkContent;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityContent;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityCourseCollectionCount;
@@ -14,6 +16,7 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResp
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.javalite.activejdbc.Base;
+import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,10 +93,21 @@ public class IndependentLearnerPerformanceHandler implements DBHandler {
     
     JsonObject result = new JsonObject();
     JsonArray ILPerfArray = new JsonArray();    
+    List<String> courseIds = new ArrayList<>();
+    List<String> assessmentIds = new ArrayList<>();
+    List<String> collectionIds = new ArrayList<>();
     
 	  
     if (!StringUtil.isNullOrEmpty(contentType) && contentType.equalsIgnoreCase(MessageConstants.COURSE)){
     	
+//		@NILE-1329
+//    	LazyList<AJEntityBaseReports> ILCourses = AJEntityBaseReports.findBySQL(AJEntityILBookmarkContent.SELECT_DISTINCT_IL_CONTENTID, userId, AJEntityILBookmarkContent.ATTR.COURSE);
+//	  	ILCourses.forEach(course -> courseIds.add(course.getString(AJEntityBaseReports.COURSE_GOORU_OID)));	  
+//	  	
+//	  	for (String c : courseIds){
+//	  		LOGGER.info("Course Ids are" + c);	  		
+//	  	}
+	  	
         String query = StringUtil.isNullOrEmpty(limitS) ? AJEntityBaseReports.GET_IL_ALL_COURSE_TIMESPENT
                 : AJEntityBaseReports.GET_IL_ALL_COURSE_TIMESPENT + "LIMIT " + Long.valueOf(limitS);
 
@@ -126,6 +140,14 @@ public class IndependentLearnerPerformanceHandler implements DBHandler {
         }
     	
     } else if (!StringUtil.isNullOrEmpty(contentType) && contentType.equalsIgnoreCase(MessageConstants.ASSESSMENT)) {
+    	
+//		@NILE-1329
+//    	LazyList<AJEntityBaseReports> ILAssessments = AJEntityBaseReports.findBySQL(AJEntityILBookmarkContent.SELECT_DISTINCT_IL_CONTENTID, userId, AJEntityILBookmarkContent.ATTR.ASSESSMENT);
+//	  	ILAssessments.forEach(a -> assessmentIds.add(a.getString(AJEntityBaseReports.ASSESSMENT_ID)));	  
+//	  	
+//	  	for (String c : assessmentIds){
+//	  		LOGGER.info("Assessment Ids are" + c);	  		
+//	  	}
     	
         String query = StringUtil.isNullOrEmpty(limitS) ? AJEntityBaseReports.GET_IL_ALL_ASSESSMENT_ATTEMPTS_TIMESPENT
                 : AJEntityBaseReports.GET_IL_ALL_ASSESSMENT_ATTEMPTS_TIMESPENT + "LIMIT " + Long.valueOf(limitS);
@@ -160,7 +182,15 @@ public class IndependentLearnerPerformanceHandler implements DBHandler {
         }
 
     	
-    } else if (!StringUtil.isNullOrEmpty(contentType) && contentType.equalsIgnoreCase(MessageConstants.COLLECTION)) {    	
+    } else if (!StringUtil.isNullOrEmpty(contentType) && contentType.equalsIgnoreCase(MessageConstants.COLLECTION)) {
+    	
+//		@NILE-1329
+//    	LazyList<AJEntityBaseReports> ILCollections = AJEntityBaseReports.findBySQL(AJEntityILBookmarkContent.SELECT_DISTINCT_IL_CONTENTID, userId, AJEntityILBookmarkContent.ATTR.COLLECTION);
+//	  	ILCollections.forEach(a -> collectionIds.add(a.getString(AJEntityBaseReports.COLLECTION_OID)));	  
+//	  	
+//	  	for (String c : collectionIds){
+//	  		LOGGER.info("Collection Ids are" + c);	  		
+//	  	}
     	
         String query = StringUtil.isNullOrEmpty(limitS) ? AJEntityBaseReports.GET_IL_ALL_COLLECTION_VIEWS_TIMESPENT
                 : AJEntityBaseReports.GET_IL_ALL_COLLECTION_VIEWS_TIMESPENT + "LIMIT " + Long.valueOf(limitS);

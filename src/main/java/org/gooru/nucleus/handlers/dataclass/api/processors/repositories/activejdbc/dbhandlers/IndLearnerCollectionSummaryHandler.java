@@ -97,7 +97,7 @@ public class IndLearnerCollectionSummaryHandler implements DBHandler {
 	        });
 	        List<Map> collectionData = null;
 	        if (!StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
-	          collectionData = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_AGG_DATA,courseId,unitId,lessonId,collectionId,this.userId);
+	          collectionData = Base.findAll(AJEntityBaseReports.SELECT_IL_COLLECTION_AGG_DATA,courseId,unitId,lessonId,collectionId,this.userId);
 	        }else{
 	          collectionData = Base.findAll(AJEntityBaseReports.SELECT_IL_STANDALONE_COLLECTION_AGG_DATA,collectionId,this.userId);          
 	        }
@@ -115,7 +115,7 @@ public class IndLearnerCollectionSummaryHandler implements DBHandler {
 	            if(this.questionCount > 0){
 	              Object collectionScore = null;
 	              if (!StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
-	               collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_SCORE, courseId,unitId,lessonId,collectionId,this.userId);
+	               collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_IL_COLLECTION_AGG_SCORE, courseId,unitId,lessonId,collectionId,this.userId);
 	              }else{
 	               collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_IL_STANDALONE_COLLECTION_AGG_SCORE,collectionId,this.userId);
 	              }
@@ -127,7 +127,7 @@ public class IndLearnerCollectionSummaryHandler implements DBHandler {
 	            assessmentData.put(AJEntityBaseReports.SCORE, Math.round(scoreInPercent)); 
 	            Object collectionReaction = null;
 	            if (!StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
-	              collectionReaction = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_REACTION, courseId,unitId,lessonId,collectionId,this.userId);
+	              collectionReaction = Base.firstCell(AJEntityBaseReports.SELECT_IL_COLLECTION_AGG_REACTION, courseId,unitId,lessonId,collectionId,this.userId);
 	            }else{
 	              collectionReaction = Base.firstCell(AJEntityBaseReports.SELECT_IL_STANDALONE_COLLECTION_AGG_REACTION,collectionId,this.userId);              
 	            }
@@ -141,7 +141,7 @@ public class IndLearnerCollectionSummaryHandler implements DBHandler {
 	          LOGGER.debug("Collection resource Attributes started");
 	          List<Map> assessmentQuestionsKPI = null;
 	          if (!StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
-	            assessmentQuestionsKPI = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_RESOURCE_AGG_DATA,
+	            assessmentQuestionsKPI = Base.findAll(AJEntityBaseReports.SELECT_IL_COLLECTION_RESOURCE_AGG_DATA,
 	                  courseId,unitId,lessonId,collectionId,this.userId);
 	          }else{
 	             assessmentQuestionsKPI = Base.findAll(AJEntityBaseReports.SELECT_IL_STANDALONE_COLLECTION_RESOURCE_AGG_DATA
@@ -163,7 +163,7 @@ public class IndLearnerCollectionSummaryHandler implements DBHandler {
 	              if(this.questionCount > 0){
 	                List<Map> questionScore = null;
 	                if (!StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
-	                  questionScore = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_QUESTION_AGG_SCORE, courseId,unitId,lessonId,collectionId,questions.get(AJEntityBaseReports.RESOURCE_ID),this.userId);
+	                  questionScore = Base.findAll(AJEntityBaseReports.SELECT_IL_COLLECTION_QUESTION_AGG_SCORE, courseId,unitId,lessonId,collectionId,questions.get(AJEntityBaseReports.RESOURCE_ID),this.userId);
 	                }else{
 	                  questionScore = Base.findAll(AJEntityBaseReports.SELECT_IL_STANDALONE_COLLECTION_QUESTION_AGG_SCORE, collectionId,questions.get(AJEntityBaseReports.RESOURCE_ID),this.userId);
 	                }
@@ -178,7 +178,7 @@ public class IndLearnerCollectionSummaryHandler implements DBHandler {
 	               }
 	              List<Map> resourceReaction = null;
 	              if (!StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
-	                resourceReaction = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_RESOURCE_AGG_REACTION, courseId,unitId,lessonId,collectionId,questions.get(AJEntityBaseReports.RESOURCE_ID),this.userId);
+	                resourceReaction = Base.findAll(AJEntityBaseReports.SELECT_IL_COLLECTION_RESOURCE_AGG_REACTION, courseId,unitId,lessonId,collectionId,questions.get(AJEntityBaseReports.RESOURCE_ID),this.userId);
 	              }else{
 	                resourceReaction = Base.findAll(AJEntityBaseReports.SELECT_IL_STANDALONE_COLLECTION_RESOURCE_AGG_REACTION, collectionId,questions.get(AJEntityBaseReports.RESOURCE_ID),this.userId);
 	              }
