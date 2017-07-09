@@ -11,6 +11,7 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityContent;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityILBookmarkContent;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
@@ -74,29 +75,61 @@ public class IndependentLearnerLocationHandler implements DBHandler {
 	    String offsetS = this.context.request().getString("offset");
 	           		
 	    JsonObject result = new JsonObject();
-	    JsonArray locArray = new JsonArray();	    	    
-	    List<String> courseIds = new ArrayList<>();
+	    JsonArray locArray = new JsonArray();
 	    List<Map> ILlocMap = null;
 	    
 	    String contentType = this.context.request().getString(REQUEST_CONTENTTYPE);
 	  
 	    if (!StringUtil.isNullOrEmpty(contentType) && contentType.equalsIgnoreCase(MessageConstants.COURSE)){
-	       
-			LazyList<AJEntityBaseReports> ILCourses = AJEntityBaseReports.findBySQL(AJEntityBaseReports.GET_DISTINCT_COURSES_FOR_INDEPENDENT_LEARNER, userId);
-		  	ILCourses.forEach(course -> courseIds.add(course.getString(AJEntityBaseReports.COURSE_GOORU_OID)));	  
-		  	
-		  	for (String c : courseIds){
-		  		LOGGER.info("Course Ids are" + c);	  		
+	    	
+			//@NILE-1329
+	    	List<String> courseIds = new ArrayList<>();
+	    	LazyList<AJEntityILBookmarkContent> ILCourses = AJEntityILBookmarkContent.findBySQL(AJEntityILBookmarkContent.SELECT_DISTINCT_IL_CONTENTID, userId, AJEntityILBookmarkContent.ATTR_COURSE);
+		  	if (!ILCourses.isEmpty()) {
+		  		
+		  		ILCourses.forEach(course -> courseIds.add(course.get(AJEntityILBookmarkContent.CONTENT_ID).toString()));
+			  	for (String c : courseIds){
+			  		LOGGER.debug("Course Ids are" + c);	  		
+			  	}		  	
+			  	
+			  	ILlocMap = Base.findAll(AJEntityBaseReports.GET_INDEPENDENT_LEARNER_LOCATION_ALL_COURSES, 
+			  			userId, listToPostgresArrayString(courseIds),
+			  			(StringUtil.isNullOrEmpty(limitS) || (Integer.valueOf(limitS) > MAX_LIMIT)) ? MAX_LIMIT : Integer.valueOf(limitS),
+			  					StringUtil.isNullOrEmpty(offsetS) ? 0 : Integer.valueOf(offsetS));
 		  	}
-
-		    ILlocMap = Base.findAll(AJEntityBaseReports.GET_INDEPENDENT_LEARNER_LOCATION_ALL_COURSES, userId, listToPostgresArrayString(courseIds));
 	    	
 	    } else if (!StringUtil.isNullOrEmpty(contentType) && contentType.equalsIgnoreCase(MessageConstants.ASSESSMENT)) {
-	    	ILlocMap = Base.findAll(AJEntityBaseReports.GET_DISTINCT_ASSESSMENT_FOR_INDEPENDENT_LEARNER, userId);
-	    	
+			
+	    	//@NILE-1329
+	    	List<String> assessmentIds = new ArrayList<>();
+	    	LazyList<AJEntityILBookmarkContent> ILAssessments = AJEntityILBookmarkContent.findBySQL(AJEntityILBookmarkContent.SELECT_DISTINCT_IL_CONTENTID,
+	    			userId, AJEntityILBookmarkContent.ATTR_ASSESSMENT);
+	    	if (!ILAssessments.isEmpty()) {
+	    		ILAssessments.forEach(a -> assessmentIds.add(a.get(AJEntityILBookmarkContent.CONTENT_ID).toString()));
+	    	  	for (String c : assessmentIds){
+	    	  		LOGGER.debug("Assessment Ids are" + c);	  		
+	    	  	}
+	    	  	
+		    	ILlocMap = Base.findAll(AJEntityBaseReports.GET_DISTINCT_ASSESSMENT_FOR_INDEPENDENT_LEARNER, listToPostgresArrayString(assessmentIds), userId, 
+			  			(StringUtil.isNullOrEmpty(limitS) || (Integer.valueOf(limitS) > MAX_LIMIT)) ? MAX_LIMIT : Integer.valueOf(limitS),
+			  					StringUtil.isNullOrEmpty(offsetS) ? 0 : Integer.valueOf(offsetS));
+	    	} 	    	
 	    } else if (!StringUtil.isNullOrEmpty(contentType) && contentType.equalsIgnoreCase(MessageConstants.COLLECTION)) {
-	    	 ILlocMap = Base.findAll(AJEntityBaseReports.GET_DISTINCT_COLLECTION_FOR_INDEPENDENT_LEARNER, userId);
 	    	
+			//@NILE-1329
+	    	List<String> collectionIds = new ArrayList<>();
+	    	LazyList<AJEntityILBookmarkContent> ILCollections = AJEntityILBookmarkContent.findBySQL(AJEntityILBookmarkContent.SELECT_DISTINCT_IL_CONTENTID, 
+	    			userId, AJEntityILBookmarkContent.ATTR_COLLECTION);
+	    	if (!ILCollections.isEmpty()) {
+	    		ILCollections.forEach(a -> collectionIds.add(a.get(AJEntityILBookmarkContent.CONTENT_ID).toString()));
+	    	  	for (String c : collectionIds){
+	    	  		LOGGER.info("Collection Ids are" + c);	  		
+	    	  	}
+	    	  	
+	    	  	ILlocMap = Base.findAll(AJEntityBaseReports.GET_DISTINCT_COLLECTION_FOR_INDEPENDENT_LEARNER, listToPostgresArrayString(collectionIds),userId,
+			  			(StringUtil.isNullOrEmpty(limitS) || (Integer.valueOf(limitS) > MAX_LIMIT)) ? MAX_LIMIT : Integer.valueOf(limitS),
+			  					StringUtil.isNullOrEmpty(offsetS) ? 0 : Integer.valueOf(offsetS));
+	    	}	    	 	    	
 	    }
 	    
 	    	    
@@ -123,8 +156,7 @@ public class IndependentLearnerLocationHandler implements DBHandler {
               }        	
         }
         
-        if (StringUtil.isNullOrEmpty(coId) && contentType.equalsIgnoreCase(MessageConstants.ASSESSMENT)) {        	
-        	ILloc.put(JsonConstants.COURSE_TITLE, "NA");
+        if (StringUtil.isNullOrEmpty(coId) && contentType.equalsIgnoreCase(MessageConstants.ASSESSMENT)) {
         	Object title = Base.firstCell(AJEntityContent.GET_TITLE, collectionId);
             ILloc.put(JsonConstants.COLLECTION_TITLE, (title != null ? title.toString() : "NA"));
             ILloc.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collectionId);
@@ -136,19 +168,13 @@ public class IndependentLearnerLocationHandler implements DBHandler {
               }        	
         }
         
-        if (StringUtil.isNullOrEmpty(coId) && contentType.equalsIgnoreCase(MessageConstants.COLLECTION)) {        	
-        	ILloc.put(JsonConstants.COURSE_TITLE, "NA");
+        if (StringUtil.isNullOrEmpty(coId) && contentType.equalsIgnoreCase(MessageConstants.COLLECTION)) {
         	Object title = Base.firstCell(AJEntityContent.GET_TITLE, collectionId);
             ILloc.put(JsonConstants.COLLECTION_TITLE, (title != null ? title.toString() : "NA"));
             ILloc.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collectionId);
         	ILloc.put(AJEntityBaseReports.ATTR_COLLECTION_TYPE, AJEntityBaseReports.ATTR_COLLECTION);
         	//Status for collection will always be Complete.
         	ILloc.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
-//        	if (!Base.findAll(AJEntityBaseReports.GET_IL_COLLECTION_STATUS, sessionId, collectionId, EventConstants.COLLECTION_PLAY, EventConstants.STOP).isEmpty()){
-//            	  ILloc.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
-//              } else {
-//            	  ILloc.put(JsonConstants.STATUS, JsonConstants.IN_PROGRESS);
-//              }        	
         }        
 
         ILloc.put(JsonConstants.LAST_ACCESSED, m.get(JsonConstants.LAST_ACCESSED).toString());
