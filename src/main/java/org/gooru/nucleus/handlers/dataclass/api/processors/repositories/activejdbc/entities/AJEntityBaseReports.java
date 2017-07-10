@@ -854,7 +854,7 @@ public class AJEntityBaseReports extends Model {
     		+ "THEN agg.time_spent ELSE 0 END) AS time_spent, "
             + "SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.views ELSE 0 END) AS views, "
             + "agg.collection_id FROM  (SELECT collection_id,time_spent, views, event_name"
-            + " FROM base_reports WHERE class_id IS NULL "
+            + " FROM base_reports WHERE class_id IS NULL AND collection_id = ANY(?::varchar[]) "
             + "AND actor_id = ? AND collection_type = 'collection' ) AS agg GROUP BY agg.collection_id";
     
     //Note: course_id not included in these queries
