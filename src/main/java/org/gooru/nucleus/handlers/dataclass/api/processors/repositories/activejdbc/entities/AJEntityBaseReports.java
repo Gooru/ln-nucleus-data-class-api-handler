@@ -854,12 +854,12 @@ public class AJEntityBaseReports extends Model {
     		+ "THEN agg.time_spent ELSE 0 END) AS time_spent, "
             + "SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.views ELSE 0 END) AS views, "
             + "agg.collection_id FROM  (SELECT collection_id,time_spent, views, event_name"
-            + " FROM base_reports WHERE class_id IS NULL AND course_id IS NULL AND unit_id IS NULL AND lesson_id IS NULL "
-            + "AND actor_id = ? AND collection_type = 'collection' ) AS agg GROUP BY agg.collection_id OFFSET ?";
+            + " FROM base_reports WHERE class_id IS NULL "
+            + "AND actor_id = ? AND collection_type = 'collection' ) AS agg GROUP BY agg.collection_id";
     
     //Note: course_id not included in these queries
     public static final String GET_IL_ALL_COLLECTION_QUESTION_COUNT = "SELECT question_count, updated_at FROM base_reports "
-            + "WHERE class_id = ? AND collection_id = ? AND actor_id = ? AND event_name = 'collection.play'"
+            + "WHERE class_id IS NULL AND collection_id = ? AND actor_id = ? AND event_name = 'collection.play'"
             + " ORDER BY updated_at DESC LIMIT 1";
     
     public static final String GET_IL_ALL_COLLECTION_SCORE = "SELECT SUM(coll.score) AS score FROM "

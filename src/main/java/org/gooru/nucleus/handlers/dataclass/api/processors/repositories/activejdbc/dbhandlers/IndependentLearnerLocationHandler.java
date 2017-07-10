@@ -136,13 +136,15 @@ public class IndependentLearnerLocationHandler implements DBHandler {
 	    if (!ILlocMap.isEmpty()) {
 	    ILlocMap.forEach(m -> {
 	    JsonObject ILloc = new JsonObject();
-	    String coId = m.get(AJEntityBaseReports.COURSE_GOORU_OID) != null ? m.get(AJEntityBaseReports.COURSE_GOORU_OID).toString() : null;	    
-	    ILloc.put(AJEntityBaseReports.ATTR_COURSE_ID, coId);          
-        ILloc.put(AJEntityBaseReports.ATTR_UNIT_ID,  m.get(AJEntityBaseReports.UNIT_GOORU_OID) != null ? m.get(AJEntityBaseReports.UNIT_GOORU_OID).toString() : null);
-        ILloc.put(AJEntityBaseReports.ATTR_LESSON_ID, m.get(AJEntityBaseReports.LESSON_GOORU_OID) != null ? m.get(AJEntityBaseReports.LESSON_GOORU_OID).toString() : null);
-        String collectionId = m.get(AJEntityBaseReports.COLLECTION_OID).toString();
-        String sessionId = m.get(AJEntityBaseReports.SESSION_ID).toString();        
-        if (!StringUtil.isNullOrEmpty(coId) && contentType.equalsIgnoreCase(MessageConstants.COURSE)) {
+        if (contentType.equalsIgnoreCase(MessageConstants.COURSE)) {
+
+        	String coId = m.get(AJEntityBaseReports.COURSE_GOORU_OID) != null ? m.get(AJEntityBaseReports.COURSE_GOORU_OID).toString() : null;	    
+    	    ILloc.put(AJEntityBaseReports.ATTR_COURSE_ID, coId);          
+            ILloc.put(AJEntityBaseReports.ATTR_UNIT_ID,  m.get(AJEntityBaseReports.UNIT_GOORU_OID) != null ? m.get(AJEntityBaseReports.UNIT_GOORU_OID).toString() : null);
+            ILloc.put(AJEntityBaseReports.ATTR_LESSON_ID, m.get(AJEntityBaseReports.LESSON_GOORU_OID) != null ? m.get(AJEntityBaseReports.LESSON_GOORU_OID).toString() : null);
+            String collectionId = m.get(AJEntityBaseReports.COLLECTION_OID).toString();
+            String sessionId = m.get(AJEntityBaseReports.SESSION_ID).toString();        
+
         	Object title = Base.firstCell(AJEntityContent.GET_TITLE, coId);
         	ILloc.put(JsonConstants.COURSE_TITLE, (title != null ? title.toString() : "NA"));
         	Object collTitle = Base.firstCell(AJEntityContent.GET_TITLE, collectionId);
@@ -156,7 +158,9 @@ public class IndependentLearnerLocationHandler implements DBHandler {
               }        	
         }
         
-        if (StringUtil.isNullOrEmpty(coId) && contentType.equalsIgnoreCase(MessageConstants.ASSESSMENT)) {
+        if (contentType.equalsIgnoreCase(MessageConstants.ASSESSMENT)) {
+        	String collectionId = m.get(AJEntityBaseReports.COLLECTION_OID).toString();
+            String sessionId = m.get(AJEntityBaseReports.SESSION_ID).toString();        
         	Object title = Base.firstCell(AJEntityContent.GET_TITLE, collectionId);
             ILloc.put(JsonConstants.COLLECTION_TITLE, (title != null ? title.toString() : "NA"));
             ILloc.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collectionId);
@@ -168,7 +172,9 @@ public class IndependentLearnerLocationHandler implements DBHandler {
               }        	
         }
         
-        if (StringUtil.isNullOrEmpty(coId) && contentType.equalsIgnoreCase(MessageConstants.COLLECTION)) {
+        if (contentType.equalsIgnoreCase(MessageConstants.COLLECTION)) {
+        	String collectionId = m.get(AJEntityBaseReports.COLLECTION_OID).toString();
+            String sessionId = m.get(AJEntityBaseReports.SESSION_ID).toString();        
         	Object title = Base.firstCell(AJEntityContent.GET_TITLE, collectionId);
             ILloc.put(JsonConstants.COLLECTION_TITLE, (title != null ? title.toString() : "NA"));
             ILloc.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collectionId);
