@@ -123,7 +123,7 @@ public class IndependentLearnerLocationHandler implements DBHandler {
 	    	if (!ILCollections.isEmpty()) {
 	    		ILCollections.forEach(a -> collectionIds.add(a.get(AJEntityILBookmarkContent.CONTENT_ID).toString()));
 	    	  	for (String c : collectionIds){
-	    	  		LOGGER.info("Collection Ids are" + c);	  		
+	    	  		LOGGER.debug("Collection Ids are" + c);	  		
 	    	  	}
 	    	  	
 	    	  	ILlocMap = Base.findAll(AJEntityBaseReports.GET_DISTINCT_COLLECTION_FOR_INDEPENDENT_LEARNER, listToPostgresArrayString(collectionIds),userId,
@@ -131,9 +131,8 @@ public class IndependentLearnerLocationHandler implements DBHandler {
 			  					StringUtil.isNullOrEmpty(offsetS) ? 0 : Integer.valueOf(offsetS));
 	    	}	    	 	    	
 	    }
-	    
 	    	    
-	    if (!ILlocMap.isEmpty()) {
+	    if ((ILlocMap != null) && (!ILlocMap.isEmpty())) {
 	    ILlocMap.forEach(m -> {
 	    JsonObject ILloc = new JsonObject();
         if (contentType.equalsIgnoreCase(MessageConstants.COURSE)) {
