@@ -101,7 +101,7 @@ public class StudentAssessmentSummaryHandler implements DBHandler {
           assessmentKPI.stream().forEach(m -> {
             JsonObject assessmentData = ValueMapper.map(ResponseAttributeIdentifier.getSessionAssessmentAttributesMap(), m);
             assessmentData.put(JsonConstants.SCORE, Math.round(Double.valueOf(m.get(AJEntityBaseReports.SCORE).toString())));
-            assessmentData.put(JsonConstants.REACTION, ((Number)assessmentReactionObject).intValue());
+            assessmentData.put(JsonConstants.REACTION, assessmentReactionObject != null ? ((Number)assessmentReactionObject).intValue() : 0);
             assessmentDataKPI.put(JsonConstants.ASSESSMENT, assessmentData);
           });
           
