@@ -75,7 +75,7 @@ public class IndLearnerAssessmentSummaryHandler implements DBHandler {
       // STUDENT PERFORMANCE REPORTS IN ASSESSMENTS when SessionID NOT NULL
       if (!StringUtil.isNullOrEmpty(sessionId)) {
         List<Map> assessmentKPI = Base.findAll(AJEntityBaseReports.SELECT_IL_ASSESSMENT_FOREACH_COLLID_AND_SESSION_ID, context.collectionId(), sessionId , AJEntityBaseReports.ATTR_CP_EVENTNAME);
-        Object assessmentReactionObject =  Base.firstCell(AJEntityBaseReports.SELECT_ASSESSMENT_REACTION_AND_SESSION_ID, context.collectionId(), sessionId);
+        Object assessmentReactionObject =  Base.firstCell(AJEntityBaseReports.SELECT_IL_ASSESSMENT_REACTION_AND_SESSION_ID, context.collectionId(), sessionId);
         LOGGER.info("cID : {} , SID : {} ", context.collectionId(), sessionId);
         if (!assessmentKPI.isEmpty()) {
           LOGGER.debug("Assessment Attributes obtained");
@@ -95,7 +95,7 @@ public class IndLearnerAssessmentSummaryHandler implements DBHandler {
           if(!assessmentQuestionsKPI.isEmpty()){
             assessmentQuestionsKPI.stream().forEach(questions -> {
               JsonObject qnData = ValueMapper.map(ResponseAttributeIdentifier.getSessionAssessmentQuestionAttributesMap(), questions);
-              Object reactionObj = Base.firstCell(AJEntityBaseReports.SELECT_ASSESSMENT_RESOURCE_REACTION, context.collectionId(),
+              Object reactionObj = Base.firstCell(AJEntityBaseReports.SELECT_IL_ASSESSMENT_RESOURCE_REACTION, context.collectionId(),
                       sessionId,questions.get(AJEntityBaseReports.RESOURCE_ID).toString());
               qnData.put(JsonConstants.REACTION, reactionObj != null ? ((Number)reactionObj).intValue() : 0);
               qnData.put(JsonConstants.ANSWER_OBJECT, new JsonArray(questions.get(AJEntityBaseReports.ANSWER_OBECT).toString()));
