@@ -6,7 +6,7 @@ import java.util.Map;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.converters.ResponseAttributeIdentifier;
-
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityDailyClassActivity;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.converters.ValueMapper;
@@ -79,13 +79,15 @@ public class StudDCAAssessmentSummaryHandler implements DBHandler {
 	      
 	      if (!StringUtil.isNullOrEmpty(sessionId)) {
 	        List<Map> assessmentKPI = Base.findAll(AJEntityDailyClassActivity.SELECT_ASSESSMENT_FOREACH_COLLID_AND_SESSION_ID, context.collectionId(), sessionId , AJEntityDailyClassActivity.ATTR_CP_EVENTNAME);
-	  
+	        Object assessmentReactionObject =  Base.firstCell(AJEntityDailyClassActivity.SELECT_ASSESSMENT_REACTION_AND_SESSION_ID, context.collectionId(), sessionId);
+
 	        LOGGER.info("cID : {} , SID : {} ", context.collectionId(), sessionId);
 	        if (!assessmentKPI.isEmpty()) {
 	          LOGGER.debug("Assessment Attributes obtained");
 	          assessmentKPI.stream().forEach(m -> {
 	            JsonObject assessmentData = ValueMapper.map(ResponseAttributeIdentifier.getSessionDCAAssessmentAttributesMap(), m);
 	            assessmentData.put(JsonConstants.SCORE, Math.round(Double.valueOf(m.get(AJEntityDailyClassActivity.SCORE).toString())));
+	            assessmentData.put(JsonConstants.REACTION, ((Number)assessmentReactionObject).intValue());
 	            assessmentDataKPI.put(JsonConstants.ASSESSMENT, assessmentData);
 	          });
 	          
@@ -96,12 +98,15 @@ public class StudDCAAssessmentSummaryHandler implements DBHandler {
 	          
 	          JsonArray questionsArray = new JsonArray();
 	          if(!assessmentQuestionsKPI.isEmpty()){
-	            assessmentQuestionsKPI.stream().forEach(questions -> {
-	              JsonObject qnData = ValueMapper.map(ResponseAttributeIdentifier.getSessionDCAAssessmentQuestionAttributesMap(), questions);
-	              qnData.put(JsonConstants.ANSWER_OBJECT, new JsonArray(questions.get(AJEntityDailyClassActivity.ANSWER_OBJECT).toString()));
-	              qnData.put(JsonConstants.SCORE, Math.round(Double.valueOf(questions.get(AJEntityDailyClassActivity.SCORE).toString())));
-	              questionsArray.add(qnData);
-	            });
+              assessmentQuestionsKPI.stream().forEach(questions -> {
+                JsonObject qnData = ValueMapper.map(ResponseAttributeIdentifier.getSessionDCAAssessmentQuestionAttributesMap(), questions);
+                Object reactionObj = Base.firstCell(AJEntityDailyClassActivity.SELECT_ASSESSMENT_RESOURCE_REACTION, context.collectionId(), sessionId,
+                        questions.get(AJEntityBaseReports.RESOURCE_ID).toString());
+                qnData.put(JsonConstants.REACTION, reactionObj != null ? ((Number) reactionObj).intValue() : 0);
+                qnData.put(JsonConstants.ANSWER_OBJECT, new JsonArray(questions.get(AJEntityDailyClassActivity.ANSWER_OBJECT).toString()));
+                qnData.put(JsonConstants.SCORE, Math.round(Double.valueOf(questions.get(AJEntityDailyClassActivity.SCORE).toString())));
+                questionsArray.add(qnData);
+              });
 	          }
 	          assessmentDataKPI.put(JsonConstants.QUESTIONS, questionsArray);
 	          LOGGER.debug("Assessment question Attributes obtained");

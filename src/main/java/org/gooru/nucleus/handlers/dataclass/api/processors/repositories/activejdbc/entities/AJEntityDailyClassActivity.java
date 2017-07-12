@@ -154,6 +154,12 @@ public class AJEntityDailyClassActivity extends Model{
             + "updated_at,session_id,collection_type,FIRST_VALUE(views) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS collectionViews "
             + "from daily_class_activity WHERE collection_id = ? AND session_id = ? AND event_name = ? ";
     
+    public static final String SELECT_ASSESSMENT_REACTION_AND_SESSION_ID = "SELECT round(avg(data.reaction)) as reaction FROM "
+            + "(SELECT DISTINCT ON (resource_id) collection_id, "
+            + "FIRST_VALUE(reaction) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS reaction "
+            + "FROM daily_class_activity where collection_id = ? AND session_id = ? AND reaction > 0 "
+            + "AND event_name = 'reaction.create') AS data group by data.collection_id;";
+    
     public static final String SELECT_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSION_ID =
             "select  distinct on (resource_id) FIRST_VALUE(score * 100) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score,"
             + "resource_id,FIRST_VALUE(reaction) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS reaction,"
@@ -163,6 +169,9 @@ public class AJEntityDailyClassActivity extends Model{
             + "resource_type,question_type,"
             + "FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) as answer_object "
             + "from daily_class_activity WHERE collection_id = ? AND session_id = ? AND event_name = ? ";
+    
+    public static final String SELECT_ASSESSMENT_RESOURCE_REACTION = " SELECT FIRST_VALUE(reaction) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS reaction "
+            + "FROM daily_class_activity WHERE collection_id = ? AND session_id = ?  and resource_id = ? AND reaction > 0 AND event_name = 'reaction.create'";
     
     public static final String SELECT_CLASS_BY_SESSION_ID = "SELECT class_id FROM daily_class_activity WHERE collection_id = ? "
     		+ "AND session_id = ? AND class_id IS NOT NULL LIMIT 1";
@@ -196,7 +205,7 @@ public class AJEntityDailyClassActivity extends Model{
             + "FIRST_VALUE(reaction) OVER (PARTITION BY resource_id ORDER BY updated_at desc) "
             + "AS reaction FROM base_reports "
             + "WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? "
-            + "AND actor_id = ? AND event_name = 'collection.resource.play' AND reaction <> 0) AS agg GROUP BY agg.collection_id";
+            + "AND actor_id = ? AND event_name = 'reaction.create' AND reaction <> 0) AS agg GROUP BY agg.collection_id";
     //Getting RESOURCE DATA (views, time_spent)
     public static final String SELECT_COLLECTION_RESOURCE_AGG_DATA = "SELECT collection_id, resource_id ,resource_type,question_type, SUM(views) AS resourceViews, "
             + "SUM(time_spent) AS resourceTimeSpent, 0 as reaction, 0 as score, '[]' AS answer_object "
@@ -213,7 +222,7 @@ public class AJEntityDailyClassActivity extends Model{
             + "FIRST_VALUE(reaction) OVER (PARTITION BY resource_id "
             + "ORDER BY updated_at desc) AS reaction "
             + "FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND resource_id = ? "
-            + "AND actor_id = ? AND event_name = 'collection.resource.play' AND reaction <> 0";
+            + "AND actor_id = ? AND event_name = 'reaction.create' AND reaction <> 0";
 
     
     //*****************************************************************************************************************************

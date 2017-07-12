@@ -48,7 +48,7 @@ public class ResponseAttributeIdentifier {
 	    sessionDCAAssessmentAttributes = new HashMap<>();
 	   // sessionAssessmentAttributes.put("score", "score");
 	    sessionDCAAssessmentAttributes.put("collection_id", "assessmentId");
-	    sessionDCAAssessmentAttributes.put("reaction", "reaction");
+	   // sessionDCAAssessmentAttributes.put("reaction", "reaction");
 	    sessionDCAAssessmentAttributes.put("collectionTimeSpent", "timeSpent");
 	    sessionDCAAssessmentAttributes.put("updated_at", "eventTime");
 	    sessionDCAAssessmentAttributes.put("session_id", "sessionId");
@@ -73,7 +73,7 @@ public class ResponseAttributeIdentifier {
   static {
 	    sessionDCAAssessmentQuestionAttributes = new HashMap<>();	    
 	    sessionDCAAssessmentQuestionAttributes.put("resource_id", "questionId");
-	    sessionDCAAssessmentQuestionAttributes.put("reaction", "reaction");
+	   // sessionDCAAssessmentQuestionAttributes.put("reaction", "reaction");
 	    sessionDCAAssessmentQuestionAttributes.put("resourceTimeSpent", "timeSpent");
 	    sessionDCAAssessmentQuestionAttributes.put("updated_at", "eventTime");
 	    sessionDCAAssessmentQuestionAttributes.put("session_id", "sessionId");
