@@ -145,7 +145,7 @@ public class StudentLessonPerfHandler implements DBHandler {
           if (this.collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {        	  
             List<Map> collectionQuestionCount = null;
             collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_QUESTION_COUNT, context.classId(), context.courseId(),
-                    context.unitId(), context.lessonId(), cId , this.userId);
+                    context.unitId(), context.lessonId(), cId , userID);
 
 
             //If questions are not present then Question Count is always zero, however this additional check needs to be added
@@ -162,7 +162,7 @@ public class StudentLessonPerfHandler implements DBHandler {
             if (this.questionCount > 0) {
               Object collectionScore = null;
               collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_SCORE, context.classId(), context.courseId(),
-                      context.unitId(), context.lessonId(), lessonKpi.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID), this.userId);
+                      context.unitId(), context.lessonId(), cId, userID);
               if (collectionScore != null) {
                 scoreInPercent = (((Double.valueOf(collectionScore.toString())) / this.questionCount) * 100);
               }
