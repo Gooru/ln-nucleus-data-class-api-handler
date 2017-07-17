@@ -1,5 +1,6 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
+import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +32,7 @@ public class StudDCACollectionSummaryHandler implements DBHandler {
 
 	  private static final Logger LOGGER = LoggerFactory.getLogger(StudDCACollectionSummaryHandler.class);
   private final ProcessorContext context;
+  private static final String DATE = "date";
   private String userId;
   private int questionCount = 0 ;
   private long lastAccessedTime;
@@ -73,24 +75,39 @@ public class StudDCACollectionSummaryHandler implements DBHandler {
     this.userId = context.getUserIdFromRequest();
     LOGGER.debug("User ID is " + this.userId);
     String classId = context.request().getString(MessageConstants.CLASS_ID);
+    // For DCA activities, the summary report should be fetched based only on
+    // classId and collectionId. (CourseId, UnitId and lessonId are not expected)
     String courseId = context.request().getString(MessageConstants.COURSE_ID);
     String unitId = context.request().getString(MessageConstants.UNIT_ID);
     String lessonId = context.request().getString(MessageConstants.LESSON_ID);
+    String todayDate = this.context.request().getString(DATE);
     String collectionId = context.collectionId();
     JsonArray contentArray = new JsonArray();
-    
-    if (StringUtil.isNullOrEmpty(classId) || StringUtil.isNullOrEmpty(courseId) || StringUtil.isNullOrEmpty(unitId) || StringUtil.isNullOrEmpty(lessonId)) {
-        LOGGER.warn("C-CUL is mandatory to fetch Student Performance in a DCA Collection");
-        return new ExecutionResult<>(
-                MessageResponseFactory.createInvalidRequestResponse("C-CUL Missing. Cannot fetch Student Performance in DCA Collection"),
-                ExecutionStatus.FAILED);
-      }    
 
+    // For DCA activities, the summary report should be fetched based only on classId and collectionId. (CourseId, UnitId and lessonId are not expected)
+//    if (StringUtil.isNullOrEmpty(classId) || StringUtil.isNullOrEmpty(courseId) || StringUtil.isNullOrEmpty(unitId) || StringUtil.isNullOrEmpty(lessonId)) {
+    if (StringUtil.isNullOrEmpty(classId)) {
+      LOGGER.warn("ClassId is mandatory to fetch Student Performance in a DCA Collection");
+      return new ExecutionResult<>(
+              MessageResponseFactory.createInvalidRequestResponse("ClassId Missing. Cannot fetch Collection Summary in DCA"),
+              ExecutionStatus.FAILED);
+    	
+    }
     
-    LOGGER.debug("cID : {} , ClassID : {} ", collectionId, classId);  
+    if (StringUtil.isNullOrEmpty(todayDate)) {
+        LOGGER.warn("Date is mandatory to fetch Student Performance in a DCA Collection");
+        return new ExecutionResult<>(
+                MessageResponseFactory.createInvalidRequestResponse("Date Missing. Cannot fetch Collection Summary in DCA"),
+                ExecutionStatus.FAILED);        
+      	
+      }
+    
+    LOGGER.debug("cID : {} , ClassID : {} ", collectionId, classId);
+    
+    Date date = Date.valueOf(todayDate);    
       //Getting Question Count 
       List<Map> collectionQuestionCount = null;
-        collectionQuestionCount = Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_QUESTION_COUNT, classId,courseId,unitId,lessonId,collectionId,this.userId);
+        collectionQuestionCount = Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_QUESTION_COUNT, classId, collectionId, this.userId, date);
 
       //If questions are not present then Question Count is always zero, however this additional check needs to be added
       //since during migration of data from 3.0 chances are that QC may be null instead of zero
@@ -103,7 +120,7 @@ public class StudDCACollectionSummaryHandler implements DBHandler {
         this.lastAccessedTime = Timestamp.valueOf(qc.get(AJEntityDailyClassActivity.UPDATE_TIMESTAMP).toString()).getTime();
       });
       List<Map> collectionData = null;      
-        collectionData = Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_AGG_DATA, classId,courseId,unitId,lessonId,collectionId,this.userId);
+        collectionData = Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_AGG_DATA, classId, collectionId, this.userId, date);
       
       if (!collectionData.isEmpty()) {
         LOGGER.debug("Collection Attributes obtained");
@@ -119,7 +136,7 @@ public class StudDCACollectionSummaryHandler implements DBHandler {
           int reaction=0;
           if(this.questionCount > 0){
             Object collectionScore = null;            
-             collectionScore = Base.firstCell(AJEntityDailyClassActivity.SELECT_COLLECTION_AGG_SCORE, classId,courseId,unitId,lessonId,collectionId,this.userId);
+             collectionScore = Base.firstCell(AJEntityDailyClassActivity.SELECT_COLLECTION_AGG_SCORE, classId, collectionId, this.userId, date);
             
             if(collectionScore != null){
               scoreInPercent =  (((double) Double.valueOf(collectionScore.toString()) / this.questionCount) * 100);
@@ -128,7 +145,7 @@ public class StudDCACollectionSummaryHandler implements DBHandler {
           LOGGER.debug("Collection score : {} - collectionId : {}" , Math.round(scoreInPercent), collectionId);
           assessmentData.put(AJEntityDailyClassActivity.SCORE, Math.round(scoreInPercent)); 
           Object collectionReaction = null;          
-            collectionReaction = Base.firstCell(AJEntityDailyClassActivity.SELECT_COLLECTION_AGG_REACTION, classId,courseId,unitId,lessonId,collectionId,this.userId);
+            collectionReaction = Base.firstCell(AJEntityDailyClassActivity.SELECT_COLLECTION_AGG_REACTION, classId, collectionId, this.userId, date);
           
           if(collectionReaction != null){
             reaction = Integer.valueOf(collectionReaction.toString());
@@ -140,7 +157,7 @@ public class StudDCACollectionSummaryHandler implements DBHandler {
         LOGGER.debug("Collection resource Attributes started");
         List<Map> assessmentQuestionsKPI = null;        
           assessmentQuestionsKPI = Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_RESOURCE_AGG_DATA,
-                classId,courseId,unitId,lessonId,collectionId,this.userId);
+                classId, collectionId, this.userId, date);
         
         JsonArray questionsArray = new JsonArray();
         if(!assessmentQuestionsKPI.isEmpty()){
@@ -156,7 +173,8 @@ public class StudDCACollectionSummaryHandler implements DBHandler {
             qnData.put(JsonConstants.SCORE, Math.round(Double.valueOf(questions.get(AJEntityDailyClassActivity.SCORE).toString())));
             if(this.questionCount > 0){
               List<Map> questionScore = null;              
-                questionScore = Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_QUESTION_AGG_SCORE, classId,courseId,unitId,lessonId,collectionId,questions.get(AJEntityDailyClassActivity.RESOURCE_ID),this.userId);
+                questionScore = Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_QUESTION_AGG_SCORE, classId, collectionId, 
+                		questions.get(AJEntityDailyClassActivity.RESOURCE_ID), this.userId, date);
               
               if(!questionScore.isEmpty()){
               questionScore.forEach(qs ->{
@@ -167,7 +185,8 @@ public class StudDCACollectionSummaryHandler implements DBHandler {
               }
              }
             List<Map> resourceReaction = null;            
-              resourceReaction = Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_RESOURCE_AGG_REACTION, classId,courseId,unitId,lessonId,collectionId,questions.get(AJEntityDailyClassActivity.RESOURCE_ID),this.userId);
+              resourceReaction = Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_RESOURCE_AGG_REACTION, classId, collectionId, 
+            		  questions.get(AJEntityDailyClassActivity.RESOURCE_ID), this.userId, date);
             
             if(!resourceReaction.isEmpty()){
             resourceReaction.forEach(rs ->{

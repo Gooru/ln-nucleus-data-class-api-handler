@@ -41,9 +41,6 @@ public class StudPerfDailyActivityHandler implements DBHandler {
   private JsonArray collectionIds;
   private long questionCount;
 
-  /*
-   * JsonArray assessmentArray = new JsonArray();
-   */
   public StudPerfDailyActivityHandler(ProcessorContext context) {
     this.context = context;
   }
@@ -186,7 +183,8 @@ public class StudPerfDailyActivityHandler implements DBHandler {
             if (this.questionCount > 0) {
               Object collectionScore = null;
               collectionScore = Base.firstCell(AJEntityDailyClassActivity.GET_PERFORMANCE_FOR_CLASS_COLLECTIONS_SCORE, classId,
-                      m.get(AJEntityDailyClassActivity.ATTR_COLLECTION_ID).toString(), this.userId);
+                      m.get(AJEntityDailyClassActivity.ATTR_COLLECTION_ID).toString(), this.userId, 
+                      m.get(AJEntityDailyClassActivity.ACTIVITY_DATE).toString());
               if (collectionScore != null) {
                 scoreInPercent = (((double) Integer.valueOf(collectionScore.toString()) / this.questionCount) * 100);
               }

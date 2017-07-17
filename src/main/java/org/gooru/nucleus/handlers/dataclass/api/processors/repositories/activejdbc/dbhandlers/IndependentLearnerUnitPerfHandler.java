@@ -144,7 +144,7 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
             }
             JsonArray assessmentArray = new JsonArray();
             LazyList<AJEntityBaseReports> collIDforlesson = null;
-            collIDforlesson = AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_DISTINCT_COLLID_FOR_LESSON_ID_FILTERBY_COLLTYPE,
+            collIDforlesson = AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_DISTINCT_COLLID_FOR_LESSON_ID_FILTERBY_COLLTYPE_WO_PATH_ID,
                     context.courseId(), context.unitId(), this.lessonId, this.collectionType, userID);
 
             List<String> collIds = new ArrayList<>();
@@ -155,10 +155,10 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
             List<Map> assessmentKpi = null;
             if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
 
-              assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_LESSON_PERF_FOR_COLLECTION, context.courseId(), context.unitId(),
+              assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_LESSON_PERF_FOR_COLLECTION_WO_PATH_ID, context.courseId(), context.unitId(),
                       this.lessonId, listToPostgresArrayString(collIds), userID);
             } else {
-              assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_LESSON_PERF_FOR_ASSESSMENT, context.courseId(), context.unitId(),
+              assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_LESSON_PERF_FOR_ASSESSMENT_WO_PATH_ID, context.courseId(), context.unitId(),
                       this.lessonId, listToPostgresArrayString(collIds), userID, EventConstants.COLLECTION_PLAY);
             }
             if (!assessmentKpi.isEmpty()) {
