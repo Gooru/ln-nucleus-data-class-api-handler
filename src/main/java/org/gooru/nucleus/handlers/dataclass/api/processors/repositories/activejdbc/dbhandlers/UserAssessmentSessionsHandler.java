@@ -166,6 +166,6 @@ public class UserAssessmentSessionsHandler implements DBHandler {
 
     @Override
     public boolean handlerReadOnly() {
-        return false;
+        return true;
     }
 }

@@ -156,7 +156,7 @@ public class StudPerfMultipleCollectionHandler implements DBHandler{
 
     @Override
     public boolean handlerReadOnly() {
-      return false;
+      return true;
     }
     
 

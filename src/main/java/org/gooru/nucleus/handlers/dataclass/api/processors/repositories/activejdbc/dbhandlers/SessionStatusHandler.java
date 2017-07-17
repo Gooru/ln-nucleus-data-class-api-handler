@@ -93,7 +93,7 @@ public class SessionStatusHandler implements DBHandler {
 
     @Override
     public boolean handlerReadOnly() {
-        return false;
+        return true;
     }
 
 }

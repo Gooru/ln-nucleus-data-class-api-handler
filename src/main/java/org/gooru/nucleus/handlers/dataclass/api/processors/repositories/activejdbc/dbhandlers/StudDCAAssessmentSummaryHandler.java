@@ -128,7 +128,7 @@ public class StudDCAAssessmentSummaryHandler implements DBHandler {
 
 	    @Override
 	    public boolean handlerReadOnly() {
-	        return false;
+	        return true;
 	    }
 
 }

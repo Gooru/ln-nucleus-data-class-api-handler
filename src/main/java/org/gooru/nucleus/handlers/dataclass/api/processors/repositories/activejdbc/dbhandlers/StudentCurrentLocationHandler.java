@@ -109,6 +109,6 @@ public class StudentCurrentLocationHandler implements DBHandler {
 
     @Override
     public boolean handlerReadOnly() {
-        return false;
+        return true;
     } 
 }

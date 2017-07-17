@@ -244,7 +244,7 @@ import io.vertx.core.json.JsonObject;
     
       @Override
       public boolean handlerReadOnly() {
-        return false;
+        return true;
       }
     
       private String listToPostgresArrayString(List<String> input) {

@@ -87,7 +87,7 @@ public class IndLearnerAllIndCollectionPerfHandler implements DBHandler {
 
 	  @Override
 	  public boolean handlerReadOnly() {
-	    return false;
+	    return true;
 	  }
 
 }

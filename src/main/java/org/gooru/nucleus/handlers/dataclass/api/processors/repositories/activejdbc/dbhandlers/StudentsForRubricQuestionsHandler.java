@@ -111,7 +111,7 @@ public class StudentsForRubricQuestionsHandler implements DBHandler{
 
 	  @Override
 	  public boolean handlerReadOnly() {
-	      return false;
+	      return true;
 	  }
 	  private String listToPostgresArrayString(List<String> input) {
 	    int approxSize = ((input.size() + 1) * 36); // Length of UUID is around

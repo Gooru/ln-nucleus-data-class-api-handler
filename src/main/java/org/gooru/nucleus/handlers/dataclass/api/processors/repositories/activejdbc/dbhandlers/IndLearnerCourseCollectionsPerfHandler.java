@@ -237,7 +237,7 @@ public class IndLearnerCourseCollectionsPerfHandler implements DBHandler {
 
     @Override
     public boolean handlerReadOnly() {
-      return false;
+      return true;
     }
 
 }

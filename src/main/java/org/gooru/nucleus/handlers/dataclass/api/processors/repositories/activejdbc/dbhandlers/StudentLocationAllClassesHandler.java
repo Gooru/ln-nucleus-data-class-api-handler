@@ -108,7 +108,7 @@ public class StudentLocationAllClassesHandler implements DBHandler {
 
 	  @Override
 	  public boolean handlerReadOnly() {
-	    return false;
+	    return true;
 	  }
 
 	  private String listToPostgresArrayString(JsonArray inputArrary) {

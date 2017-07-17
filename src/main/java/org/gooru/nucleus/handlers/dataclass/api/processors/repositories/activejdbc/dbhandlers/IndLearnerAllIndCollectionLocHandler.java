@@ -101,7 +101,7 @@ public class IndLearnerAllIndCollectionLocHandler implements DBHandler {
 
 	  @Override
 	  public boolean handlerReadOnly() {
-	    return false;
+	    return true;
 	  }
 
 	  private String listToPostgresArrayString(JsonArray inputArrary) {
