@@ -188,7 +188,7 @@ public class AJEntityDailyClassActivity extends Model{
     //Getting COLLECTION DATA (views, time_spent)
     public static final String SELECT_COLLECTION_AGG_DATA = "SELECT SUM(CASE WHEN (agg.event_name = 'collection.resource.play') "
     		+ "THEN agg.time_spent ELSE 0 END) AS collectionTimeSpent, "
-            + "SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.views ELSE 0 END) AS collectionViews,"
+            + "SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.views ELSE 0 END) AS collectionViews, "
             + "agg.collection_id, agg.completionStatus, 0 AS score, 0 AS reaction FROM "
             + "(SELECT collection_id,time_spent,session_id,views, event_name, "
             + "CASE  WHEN (FIRST_VALUE(event_type) OVER (PARTITION BY collection_id ORDER BY updated_at desc) = 'stop') THEN 'completed' ELSE 'in-progress' END AS completionStatus "
@@ -249,7 +249,7 @@ public class AJEntityDailyClassActivity extends Model{
     public static final String SELECT_COLLECTION_QUESTION_AGG_SCORE = "SELECT DISTINCT ON (resource_id) "
             + "FIRST_VALUE(score) OVER (PARTITION BY resource_id "
             + "ORDER BY updated_at desc) AS score,FIRST_VALUE(resource_attempt_status) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS attemptStatus, FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS answer_object "
-            + "FROM daily_class_activity WHERE class_id = ? AND collection_id = ? AND resource_id = ?"
+            + "FROM daily_class_activity WHERE class_id = ? AND collection_id = ? AND resource_id = ? "
             + "AND actor_id = ? AND date_in_time_zone = ? AND event_name = 'collection.resource.play' AND resource_type = 'question' AND resource_attempt_status <> 'skipped'";
     
 //    public static final String SELECT_COLLECTION_QUESTION_AGG_SCORE = "SELECT DISTINCT ON (resource_id) "
