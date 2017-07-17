@@ -142,6 +142,6 @@ public class StudentAssessmentSummaryHandler implements DBHandler {
 
     @Override
     public boolean handlerReadOnly() {
-        return false;
+        return true;
     }
 }

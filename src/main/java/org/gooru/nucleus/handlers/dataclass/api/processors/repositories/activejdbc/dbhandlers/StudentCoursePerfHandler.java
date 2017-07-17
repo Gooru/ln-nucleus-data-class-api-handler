@@ -185,7 +185,7 @@ class StudentCoursePerfHandler implements DBHandler {
 
     @Override
     public boolean handlerReadOnly() {
-        return false;
+        return true;
     }
     
     

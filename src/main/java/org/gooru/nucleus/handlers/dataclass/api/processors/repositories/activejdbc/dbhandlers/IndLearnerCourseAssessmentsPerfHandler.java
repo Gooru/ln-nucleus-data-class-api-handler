@@ -229,7 +229,7 @@ public class IndLearnerCourseAssessmentsPerfHandler implements DBHandler {
     }
     @Override
     public boolean handlerReadOnly() {
-      return false;
+      return true;
     }
 
 

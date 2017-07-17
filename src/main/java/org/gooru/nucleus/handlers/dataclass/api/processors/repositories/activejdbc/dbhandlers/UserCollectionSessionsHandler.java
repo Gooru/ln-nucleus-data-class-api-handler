@@ -158,7 +158,7 @@ public class UserCollectionSessionsHandler implements DBHandler {
 
     @Override
     public boolean handlerReadOnly() {
-        return false;
+        return true;
     }
      
 }

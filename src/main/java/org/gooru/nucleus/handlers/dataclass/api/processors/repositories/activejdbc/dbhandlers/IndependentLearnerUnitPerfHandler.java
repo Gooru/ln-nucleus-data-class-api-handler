@@ -235,7 +235,7 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
 
   @Override
   public boolean handlerReadOnly() {
-    return false;
+    return true;
   }
 
   private String listToPostgresArrayString(List<String> input) {

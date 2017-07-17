@@ -178,7 +178,7 @@ public class StudPerfCourseAssessmentHandler implements DBHandler {
 
     @Override
     public boolean handlerReadOnly() {
-      return false;
+      return true;
     }
 
 

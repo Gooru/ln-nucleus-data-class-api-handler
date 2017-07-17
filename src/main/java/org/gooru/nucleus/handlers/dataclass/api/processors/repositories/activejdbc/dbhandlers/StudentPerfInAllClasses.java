@@ -175,7 +175,7 @@ public class StudentPerfInAllClasses implements DBHandler {
 
   @Override
   public boolean handlerReadOnly() {
-    return false;
+    return true;
   }
 
   private String jArrayToPostgresArrayString(JsonArray inputArrary) {

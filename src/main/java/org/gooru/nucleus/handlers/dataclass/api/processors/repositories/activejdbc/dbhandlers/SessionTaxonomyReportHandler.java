@@ -111,9 +111,8 @@ public class SessionTaxonomyReportHandler implements DBHandler {
   }
 
   @Override
-  public boolean handlerReadOnly() {
-    // TODO Auto-generated method stub
-    return false;
+  public boolean handlerReadOnly() {    
+    return true;
   }
 
 }
