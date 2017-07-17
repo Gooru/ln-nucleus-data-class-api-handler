@@ -92,10 +92,11 @@ public class IndLearnerAssessmentSessionsHandler implements DBHandler {
                 ExecutionStatus.FAILED);
         }
         List<Map> distinctSessionsList = null;
-        if(!StringUtil.isNullOrEmpty(this.courseId)){
+        if(!StringUtil.isNullOrEmpty(this.courseId) && !StringUtil.isNullOrEmpty(this.unitId) && !StringUtil.isNullOrEmpty(this.lessonId)){
           distinctSessionsList = Base.findAll( AJEntityBaseReports.GET_IL_SESSIONS_FOR_COLLID, this.courseId,this.unitId,this.lessonId, 
     			this.collectionId, EventConstants.ASSESSMENT, this.userId);
-        }else{
+        }else {
+          //Currently, data for Assessments at the IL Landing page should be inclusive of CUL and Standalone collections
           distinctSessionsList = Base.findAll( AJEntityBaseReports.GET_IL_SESSIONS_FOR_STANDALONE_COLLID, 
                   this.collectionId, EventConstants.ASSESSMENT, this.userId);
         }

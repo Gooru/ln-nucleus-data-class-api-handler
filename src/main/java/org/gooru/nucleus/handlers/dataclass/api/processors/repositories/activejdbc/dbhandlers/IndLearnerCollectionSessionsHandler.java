@@ -90,7 +90,7 @@ public class IndLearnerCollectionSessionsHandler implements DBHandler {
           }
           LOGGER.debug("UID is " + this.userId);
           List<Map> distinctSessionsList = null;
-          if(!StringUtil.isNullOrEmpty(this.classId)){
+          if(!StringUtil.isNullOrEmpty(this.courseId) && !StringUtil.isNullOrEmpty(this.unitId) && !StringUtil.isNullOrEmpty(this.lessonId)){
             distinctSessionsList = Base.findAll( AJEntityBaseReports.GET_IL_SESSIONS_FOR_COLLID ,this.courseId,this.unitId,this.lessonId, 
             this.collectionId, EventConstants.ASSESSMENT, this.userId);
           }else{

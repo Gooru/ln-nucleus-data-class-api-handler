@@ -167,7 +167,7 @@ import io.vertx.core.json.JsonObject;
                 }
                 List<Map> assessmentKpi = null;
                 if(this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)){
-                  assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF_FOR_COLLECTION, context.classId(),
+                  assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF_FOR_COLLECTION_WO_PATH_ID, context.classId(),
                           context.courseId(), context.unitId(), this.lessonId, listToPostgresArrayString(collIds), userID);
                 }else{
                   assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF_FOR_ASSESSMENT_WO_PATH_ID, context.classId(),

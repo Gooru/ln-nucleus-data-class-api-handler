@@ -81,8 +81,9 @@ public class IndLearnerCollectionSummaryHandler implements DBHandler {
 	        List<Map> collectionQuestionCount = null;
 	        if (!StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
 	          collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_IL_COLLECTION_QUESTION_COUNT, courseId,unitId,lessonId,collectionId,this.userId);
-	        }else{
-	          collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_IL_STANDALONE_COLLECTION_QUESTION_COUNT, collectionId,this.userId);
+	        }else {
+	          //Currently, data for Collections at the IL Landing page should be inclusive of CUL and Standalone collections
+	          collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_IL_STANDALONE_COLLECTION_QUESTION_COUNT, collectionId, this.userId);
 	        }
 
 	        //If questions are not present then Question Count is always zero, however this additional check needs to be added
@@ -99,7 +100,8 @@ public class IndLearnerCollectionSummaryHandler implements DBHandler {
 	        if (!StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
 	          collectionData = Base.findAll(AJEntityBaseReports.SELECT_IL_COLLECTION_AGG_DATA,courseId,unitId,lessonId,collectionId,this.userId);
 	        }else{
-	          collectionData = Base.findAll(AJEntityBaseReports.SELECT_IL_STANDALONE_COLLECTION_AGG_DATA,collectionId,this.userId);          
+		      //Currently, data for Collections at the IL Landing page should be inclusive of CUL and Standalone collections
+	          collectionData = Base.findAll(AJEntityBaseReports.SELECT_IL_STANDALONE_COLLECTION_AGG_DATA,collectionId, this.userId);          
 	        }
 	        if (!collectionData.isEmpty()) {
 	          LOGGER.debug("Collection Attributes obtained");
@@ -144,8 +146,8 @@ public class IndLearnerCollectionSummaryHandler implements DBHandler {
 	            assessmentQuestionsKPI = Base.findAll(AJEntityBaseReports.SELECT_IL_COLLECTION_RESOURCE_AGG_DATA,
 	                  courseId,unitId,lessonId,collectionId,this.userId);
 	          }else{
-	             assessmentQuestionsKPI = Base.findAll(AJEntityBaseReports.SELECT_IL_STANDALONE_COLLECTION_RESOURCE_AGG_DATA
-	                    ,collectionId,this.userId);
+	             assessmentQuestionsKPI = Base.findAll(AJEntityBaseReports.SELECT_IL_STANDALONE_COLLECTION_RESOURCE_AGG_DATA,
+	            		 collectionId,this.userId);
 	          }
 	          JsonArray questionsArray = new JsonArray();
 	          if(!assessmentQuestionsKPI.isEmpty()){
