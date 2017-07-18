@@ -89,9 +89,9 @@ public class IndLearnerCourseCollectionsPerfHandler implements DBHandler {
       
       this.classId = this.context.request().getString(MessageConstants.CLASS_ID); 
       if(StringUtil.isNullOrEmpty(this.classId)){
-        query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append("class_id IS NULL").append(AJEntityBaseReports.SPACE);
+        query.append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append("class_id IS NULL").append(AJEntityBaseReports.SPACE);
       } else{
-        query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.CLASS_ID).append(AJEntityBaseReports.SPACE);
+        query.append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.CLASS_ID).append(AJEntityBaseReports.SPACE);
         params.add(classId);  
       }
       

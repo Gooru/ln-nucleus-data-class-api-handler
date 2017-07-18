@@ -74,31 +74,52 @@ public class StudentAnsForRubricQuesHandler implements DBHandler {
 
 	  this.classId = this.context.request().getString(MessageConstants.CLASS_ID);      
 	  if (StringUtil.isNullOrEmpty(classId)) {
-	      LOGGER.warn("ClassID is mandatory to fetch student list for this question");
+	      LOGGER.warn("ClassID is mandatory to fetch student's answer to grade");
 	      return new ExecutionResult<>(
-	              MessageResponseFactory.createInvalidRequestResponse("Class Id Missing. Cannot fetch student list"),
+	              MessageResponseFactory.createInvalidRequestResponse("Class Id Missing. Cannot fetch student's answer"),
 	              ExecutionStatus.FAILED);
 
 	    } 
 	  
 	  this.courseId = this.context.request().getString(MessageConstants.COURSE_ID);      
 	  if (StringUtil.isNullOrEmpty(courseId)) {
-	      LOGGER.warn("CourseID is mandatory to fetch student list for this question");
+	      LOGGER.warn("CourseID is mandatory to fetch student's answer to grade");
 	      return new ExecutionResult<>(
-	              MessageResponseFactory.createInvalidRequestResponse("Course Id Missing. Cannot fetch student list"),
+	              MessageResponseFactory.createInvalidRequestResponse("Course Id Missing. Cannot fetch student's answer"),
 	              ExecutionStatus.FAILED);
 
 	    } 
 	  
 	  this.collectionId = this.context.request().getString(MessageConstants.COLLECTION_ID);      
 	  if (StringUtil.isNullOrEmpty(collectionId)) {
-	      LOGGER.warn("CollectionID is mandatory to fetch student list");
+	      LOGGER.warn("CollectionID is mandatory to fetch student's answer to grade");
 	      return new ExecutionResult<>(
-	              MessageResponseFactory.createInvalidRequestResponse("Collection Id Missing. Cannot fetch student list"),
+	              MessageResponseFactory.createInvalidRequestResponse("Collection Id Missing. Cannot fetch student's answer"),
 	              ExecutionStatus.FAILED);
 
 	    } 
+
+		List<Map> ansMap = Base.findAll(AJEntityBaseReports.GET_STUDENTS_ANSWER_FOR_RUBRIC_QUESTION, 
+				this.classId, this.courseId, this.collectionId, context.questionId(), context.studentId());
 		
+		if (!ansMap.isEmpty()){
+			  ansMap.forEach(m -> {		        
+		    result.put(AJEntityBaseReports.ATTR_COURSE_ID, m.get(AJEntityBaseReports.COURSE_GOORU_OID) != null ? 
+		    		m.get(AJEntityBaseReports.COURSE_GOORU_OID).toString() : null);		    
+		    result.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collectionId );
+		    result.put(AJEntityBaseReports.ATTR_RESOURCE_ID, context.questionId());
+		    result.put(AJEntityBaseReports.ATTR_QUESTION_TEXT, "NA");
+		    result.put(AJEntityBaseReports.ATTR_ANSWER_TEXT, m.get(AJEntityBaseReports.COURSE_GOORU_OID) != null ? 
+		    		m.get(AJEntityBaseReports.COURSE_GOORU_OID).toString() : null);
+		    result.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.parseLong(m.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()));
+		    result.put(AJEntityBaseReports.SUBMITTED_AT, (m.get(AJEntityBaseReports.UPDATE_TIMESTAMP).toString()));		    
+		  });
+
+			} else {            
+		      LOGGER.info("Questions pending grading cannot be obtained");
+		  }
+
+
 	  result.put(JsonConstants.STUDENTS , "Getting Answers");
 	  return new ExecutionResult<>(MessageResponseFactory.createGetResponse(result), ExecutionStatus.SUCCESSFUL);
 

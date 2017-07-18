@@ -92,6 +92,8 @@ public class AJEntityBaseReports extends Model {
     public static final String ATTR_COLLECTION_TYPE = "collectionType";
     public static final String ATTR_STUDENTS = "students";
     public static final String ATTR_LAST_ACCESSED = "lastaccessed";
+    public static final String ATTR_ANSWER_TEXT = "answerText";
+    public static final String ATTR_QUESTION_TEXT = "questionText";
 
     public static final String NA = "NA";
     public static final String AND = "AND";
@@ -103,6 +105,7 @@ public class AJEntityBaseReports extends Model {
     public static final String ASSESSMENT_ID = "collection_id";
     public static final String DATE = "date";
     public static final String ACTIVITY_DATE = "activityDate";
+    public static final String SUBMITTED_AT = "submittedAt";
     public static final String UPDATDED_AT_LESS_THAN_OR_EQUAL = "updated_at <= ?::timestamp";
     public static final String UPDATDED_AT_GREATER_THAN_OR_EQUAL = "updated_at >= ?::timestamp";
 
@@ -835,7 +838,7 @@ public class AJEntityBaseReports extends Model {
 
         
     public static final String GET_IL_COURSE_DISTINCT_COLLECTIONS = "SELECT distinct(collection_id) from base_reports where "
-    		+ "actor_id = ? AND collection_type = ? AND path_id IS NULL";
+    		+ "actor_id = ? AND collection_type = ? AND path_id IS NULL ";
     
     public static final String GET_IL_COLLECTION_QUESTION_COUNT = "SELECT question_count, updated_at FROM base_reports "
             + "WHERE class_id IS NULL AND course_id = ? AND collection_id = ? AND actor_id = ? AND event_name = 'collection.play'"
@@ -1102,9 +1105,20 @@ public class AJEntityBaseReports extends Model {
     public static final String GET_STUDENTS_FOR_RUBRIC_QUESTION = "select (distinct(q.actor_id) AS students FROM "
     		+ "(SELECT distinct on (resource_id) FIRST_VALUE(score) OVER "
     		+ "(PARTITION BY resource_id ORDER BY updated_at desc) AS score, resource_id, updated_at, actor_id from base_reports "
-    		+ "where class_id = ? AND course_id = ? AND collection_id = ? AND event_name = 'collection.resource.play' AND event_type = 'stop' AND "
+    		+ "where class_id = ? AND course_id = ? AND collection_id = ? AND resource_id = ? AND "
+    		+ "event_name = 'collection.resource.play' AND event_type = 'stop' AND "
     		+ "resource_type = 'question') AS q WHERE q.score IS NULL";//and is_graded = '0'
-    
+
+    public static final String GET_STUDENTS_ANSWER_FOR_RUBRIC_QUESTION = "select q.answerText, q.resource_id AS questionId, "
+    		+ "q.time_spent AS timeSpent, q.updated_at AS submittedAt "
+    		+ "FROM (SELECT distinct on (resource_id) FIRST_VALUE(score) OVER "
+    		+ "(PARTITION BY resource_id ORDER BY updated_at desc) AS score, FIRST_VALUE(answer_object) OVER "
+    		+ "(PARTITION BY resource_id ORDER BY updated_at desc) AS answerText,  "
+    		+ "resource_id, updated_at, actor_id, time_spent from base_reports "
+    		+ "where class_id = ? AND course_id = ? AND collection_id = ? AND resource_id = ? AND actor_id = ? AND "
+    		+ "event_name = 'collection.resource.play' AND event_type = 'stop' AND "
+    		+ "resource_type = 'question') AS q WHERE q.score IS NULL";//and is_graded = '0'
+
 
 
     public static final String UUID_TYPE = "uuid";

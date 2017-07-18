@@ -53,6 +53,11 @@ public class StudentsForRubricQuestionsHandler implements DBHandler{
 	  @Override
 	  @SuppressWarnings("rawtypes")
 	  public ExecutionResult<MessageResponse> validateRequest() {
+//        List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, this.context.classId(), this.context.userIdFromSession());
+//        if (owner.isEmpty()) {
+//          LOGGER.debug("validateRequest() FAILED");
+//          return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not authorized for Rubric Grading"), ExecutionStatus.FAILED);
+//        }    
 
 	    return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
 	  }
@@ -92,7 +97,8 @@ public class StudentsForRubricQuestionsHandler implements DBHandler{
 
 	    } 
 
-		List<Map> studMap = Base.findAll(AJEntityBaseReports.GET_STUDENTS_FOR_RUBRIC_QUESTION, this.classId, this.courseId, this.collectionId);
+		List<Map> studMap = Base.findAll(AJEntityBaseReports.GET_STUDENTS_FOR_RUBRIC_QUESTION, 
+				this.classId, this.courseId, this.collectionId, context.questionId());
 		
 		if (!studMap.isEmpty()){
 			  studMap.forEach(m -> {
