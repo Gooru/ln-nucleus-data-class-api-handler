@@ -176,17 +176,26 @@ public class StudPerfDailyActivityHandler implements DBHandler {
             collectionQuestionCount = Base.findAll(AJEntityDailyClassActivity.SELECT_CLASS_COLLECTION_QUESTION_COUNT, classId,
                     m.get(AJEntityDailyClassActivity.ATTR_COLLECTION_ID).toString(), this.userId);
 
+            //If questions are not present then Question Count is always zero, however this additional check needs to be added
+            //since during migration of data from 3.0 chances are that QC may be null instead of zero
             collectionQuestionCount.forEach(qc -> {
-              this.questionCount = Integer.valueOf(qc.get(AJEntityDailyClassActivity.QUESTION_COUNT).toString());
+            	if (qc.get(AJEntityBaseReports.QUESTION_COUNT) != null) {
+            		this.questionCount = Integer.valueOf(qc.get(AJEntityBaseReports.QUESTION_COUNT).toString());
+            	} else {
+            		this.questionCount = 0;
+            	}              
             });
+//            collectionQuestionCount.forEach(qc -> {
+//              this.questionCount = Integer.valueOf(qc.get(AJEntityDailyClassActivity.QUESTION_COUNT).toString());
+//            });
             double scoreInPercent = 0;
             if (this.questionCount > 0) {
               Object collectionScore = null;
               collectionScore = Base.firstCell(AJEntityDailyClassActivity.GET_PERFORMANCE_FOR_CLASS_COLLECTIONS_SCORE, classId,
                       m.get(AJEntityDailyClassActivity.ATTR_COLLECTION_ID).toString(), this.userId, 
                       Date.valueOf(m.get(AJEntityDailyClassActivity.ACTIVITY_DATE).toString()));
-              if (collectionScore != null) {
-                scoreInPercent = (((double) Integer.valueOf(collectionScore.toString()) / this.questionCount) * 100);
+              if (collectionScore != null) {                
+                scoreInPercent = (((Double.valueOf(collectionScore.toString())) / this.questionCount) * 100);
               }
               collectionKpi.put(AJEntityDailyClassActivity.ATTR_SCORE, Math.round(scoreInPercent));
             } else {
