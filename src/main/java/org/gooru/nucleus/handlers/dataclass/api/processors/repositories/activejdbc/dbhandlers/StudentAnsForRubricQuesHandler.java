@@ -120,7 +120,7 @@ public class StudentAnsForRubricQuesHandler implements DBHandler {
 		  }
 
 
-	  result.put(JsonConstants.STUDENTS , "Getting Answers");
+	  //result.put(JsonConstants.STUDENTS , "Getting Answers");
 	  return new ExecutionResult<>(MessageResponseFactory.createGetResponse(result), ExecutionStatus.SUCCESSFUL);
 
 	}   
