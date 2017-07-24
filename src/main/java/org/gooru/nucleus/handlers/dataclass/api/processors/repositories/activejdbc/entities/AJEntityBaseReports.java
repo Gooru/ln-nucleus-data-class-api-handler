@@ -1086,10 +1086,9 @@ public class AJEntityBaseReports extends Model {
       
     //*************************************************************************************************************************
 
-    //Rubric Grading
-    
+    //Rubric Grading    
     //This includes Non-Graded questions for both - assessments and collections
-    public static final String GET_QUESTIONS_TO_GRADE = "SELECT q.score, q.resource_id, q.updated_at, q.collection_type "
+    public static final String GET_QUESTIONS_TO_GRADE = "SELECT q.resource_id, q.updated_at, q.collection_type, "
     		+ "q.collection_id, q.unit_id, q.lesson_id FROM (SELECT distinct on (resource_id) FIRST_VALUE(score) OVER "
     		+ "(PARTITION BY resource_id ORDER BY updated_at desc) AS score, resource_id, updated_at, collection_type, "
     		+ "collection_id, unit_id, lesson_id from base_reports where "
@@ -1102,7 +1101,7 @@ public class AJEntityBaseReports extends Model {
     		+ "where class_id = ? AND course_id = ? AND collection_id = ? AND event_name = 'collection.resource.play' AND event_type = 'stop' AND "
     		+ "resource_type = 'question') AS q WHERE q.score IS NULL";//and is_graded = '0'
     
-    public static final String GET_STUDENTS_FOR_RUBRIC_QUESTION = "select (distinct(q.actor_id) AS students FROM "
+    public static final String GET_STUDENTS_FOR_RUBRIC_QUESTION = "select distinct(q.actor_id) AS students FROM "
     		+ "(SELECT distinct on (resource_id) FIRST_VALUE(score) OVER "
     		+ "(PARTITION BY resource_id ORDER BY updated_at desc) AS score, resource_id, updated_at, actor_id from base_reports "
     		+ "where class_id = ? AND course_id = ? AND collection_id = ? AND resource_id = ? AND "
@@ -1110,19 +1109,16 @@ public class AJEntityBaseReports extends Model {
     		+ "resource_type = 'question') AS q WHERE q.score IS NULL";//and is_graded = '0'
 
     public static final String GET_STUDENTS_ANSWER_FOR_RUBRIC_QUESTION = "select q.answerText, q.resource_id AS questionId, "
-    		+ "q.time_spent AS timeSpent, q.updated_at AS submittedAt "
+    		+ "q.time_spent AS timeSpent, q.updated_at AS submittedAt, q.session_id "
     		+ "FROM (SELECT distinct on (resource_id) FIRST_VALUE(score) OVER "
     		+ "(PARTITION BY resource_id ORDER BY updated_at desc) AS score, FIRST_VALUE(answer_object) OVER "
     		+ "(PARTITION BY resource_id ORDER BY updated_at desc) AS answerText,  "
-    		+ "resource_id, updated_at, actor_id, time_spent from base_reports "
+    		+ "resource_id, updated_at, actor_id, time_spent, session_id from base_reports "
     		+ "where class_id = ? AND course_id = ? AND collection_id = ? AND resource_id = ? AND actor_id = ? AND "
     		+ "event_name = 'collection.resource.play' AND event_type = 'stop' AND "
     		+ "resource_type = 'question') AS q WHERE q.score IS NULL";//and is_graded = '0'
 
-
-
     public static final String UUID_TYPE = "uuid";
-	
    
 }
 
