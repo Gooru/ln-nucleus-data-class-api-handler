@@ -192,7 +192,7 @@ public class StudPerfDailyActivityHandler implements DBHandler {
             if (this.questionCount > 0) {
               Object collectionScore = null;
               collectionScore = Base.firstCell(AJEntityDailyClassActivity.GET_PERFORMANCE_FOR_CLASS_COLLECTIONS_SCORE, classId,
-                      m.get(AJEntityDailyClassActivity.ATTR_COLLECTION_ID).toString(), this.userId, 
+                      m.get(AJEntityDailyClassActivity.ATTR_COLLECTION_ID).toString(), userId, 
                       Date.valueOf(m.get(AJEntityDailyClassActivity.ACTIVITY_DATE).toString()));
               if (collectionScore != null) {                
                 scoreInPercent = (((Double.valueOf(collectionScore.toString())) / this.questionCount) * 100);
