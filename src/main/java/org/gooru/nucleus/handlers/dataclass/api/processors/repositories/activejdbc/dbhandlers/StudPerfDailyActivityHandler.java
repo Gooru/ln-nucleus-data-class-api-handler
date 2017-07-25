@@ -174,7 +174,7 @@ public class StudPerfDailyActivityHandler implements DBHandler {
             collectionKpi.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
             List<Map> collectionQuestionCount = null;
             collectionQuestionCount = Base.findAll(AJEntityDailyClassActivity.SELECT_CLASS_COLLECTION_QUESTION_COUNT, classId,
-                    m.get(AJEntityDailyClassActivity.ATTR_COLLECTION_ID).toString(), this.userId);
+                    m.get(AJEntityDailyClassActivity.ATTR_COLLECTION_ID).toString(), userId);
 
             //If questions are not present then Question Count is always zero, however this additional check needs to be added
             //since during migration of data from 3.0 chances are that QC may be null instead of zero

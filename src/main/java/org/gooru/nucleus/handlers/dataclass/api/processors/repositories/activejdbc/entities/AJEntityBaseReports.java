@@ -816,8 +816,8 @@ public class AJEntityBaseReports extends Model {
     public static final String GET_IL_COURSE_COLLECTION_STATUS =  "SELECT event_name, event_type from base_reports WHERE class_id IS NULL AND course_id = ? AND "
     		+ "session_id = ? AND collection_id = ? AND event_name = ? AND event_type = ?";
     
-    public static final String GET_IL_COLLECTION_STATUS =  "SELECT event_name, event_type from base_reports WHERE class_id IS NULL AND course_id IS NULL AND "
-    		+ "unit_id IS NULL AND lesson_id IS NULL AND session_id = ? AND collection_id = ? AND event_name = ? AND event_type = ?";
+    public static final String GET_IL_COLLECTION_STATUS =  "SELECT event_name, event_type from base_reports WHERE class_id IS NULL "
+    		+ "AND session_id = ? AND collection_id = ? AND event_name = ? AND event_type = ?";
     
     //*************************************************************************************************************************
     
