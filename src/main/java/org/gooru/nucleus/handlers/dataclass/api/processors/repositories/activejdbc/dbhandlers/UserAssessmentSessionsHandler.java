@@ -1,6 +1,5 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -9,12 +8,14 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
+import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
-import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.javalite.activejdbc.Base;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.hazelcast.util.StringUtil;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -77,26 +78,33 @@ public class UserAssessmentSessionsHandler implements DBHandler {
     	    	
     	baseReport = new AJEntityBaseReports();
     
-        this.collectionId = context.collectionId();    	
-    	
-    	JsonArray os_array = this.context.request().getJsonArray(REQUEST_OPEN_SESSION);
-    	if (os_array != null) {
-    		this.openSession = os_array.getString(0);
-    		LOGGER.debug("openSession =" + this.openSession);
-    	}
-    	
-    	JsonArray uid = this.context.request().getJsonArray(REQUEST_USERID);
-        if (uid.isEmpty() || uid == null) {
-            LOGGER.warn("UserID is mandatory to fetch Student Performance in Course");
+        this.collectionId = context.collectionId();
+        this.classId = context.request().getString(EventConstants.CLASS_GOORU_OID);
+        this.courseId = context.request().getString(EventConstants.COURSE_GOORU_OID);
+        this.unitId = context.request().getString(EventConstants.UNIT_GOORU_OID);
+        this.lessonId = context.request().getString(EventConstants.LESSON_GOORU_OID);
+        this.openSession = this.context.request().getString(REQUEST_OPEN_SESSION);
+        this.userId = this.context.request().getString(REQUEST_USERID);
+       LOGGER.debug("classId :{} , userId : {} and collectionId:{}",this.classId, this.userId, this.collectionId);
+    	if (StringUtil.isNullOrEmpty(openSession)) {
+    		this.openSession = "false";
+            LOGGER.info("By Default OpenSession is assumed to be false");            
+        }
+        
+        if (StringUtil.isNullOrEmpty(userId)) {
+            LOGGER.warn("UserID is mandatory to fetch Session Information");
             return new ExecutionResult<>(
-                MessageResponseFactory.createInvalidRequestResponse("UserID Missing. Cannot fetch Student Performance in course"),
+                MessageResponseFactory.createInvalidRequestResponse("UserID Missing. Cannot fetch Session Information"),
                 ExecutionStatus.FAILED);
-        }        
-        
-        this.userId = uid.getString(0);
-        
-    	List<Map> distinctSessionsList = Base.findAll( AJEntityBaseReports.GET_USER_SESSIONS_FOR_COLLID, 
+        }
+        List<Map> distinctSessionsList = null;
+        if(!StringUtil.isNullOrEmpty(this.classId)){
+          distinctSessionsList = Base.findAll( AJEntityBaseReports.GET_USER_SESSIONS_FOR_COLLID,this.classId,this.courseId,this.unitId,this.lessonId, 
     			this.collectionId, EventConstants.ASSESSMENT, this.userId);
+        }else{
+          distinctSessionsList = Base.findAll( AJEntityBaseReports.GET_USER_SESSIONS_FOR_COLLID_, 
+                  this.collectionId, EventConstants.ASSESSMENT, this.userId);
+        }
     	if (!distinctSessionsList.isEmpty()) {    		
     		distinctSessionsList.forEach(m -> {    		
         		sessionId = m.get(AJEntityBaseReports.SESSION_ID).toString();
@@ -110,14 +118,20 @@ public class UserAssessmentSessionsHandler implements DBHandler {
         		if (!sessionStatusMap.isEmpty()){
         			
         			sessionStatusMap.forEach(sess -> {
-        				if (sess.get(EventConstants.EVENT_TYPE).toString().equals(EventConstants.START)){
-        	   				sessionObj.put(JsonConstants.EVENT_TIME, sess.get(AJEntityBaseReports.CREATE_TIMESTAMP).toString())
+        				if (sess.get(AJEntityBaseReports.EVENTTYPE).toString().equals(EventConstants.START)){
+        	   				sessionObj.put(JsonConstants.EVENT_TIME, sess.get(AJEntityBaseReports.UPDATE_TIMESTAMP).toString())
         	   				.put(JsonConstants.SESSIONID, sessionId);
         	   						
         	   			}
         	   			
-        				if (sess.get(EventConstants.EVENT_TYPE).toString().equals(EventConstants.STOP)){
+        				if (sess.get(AJEntityBaseReports.EVENTTYPE).toString().equals(EventConstants.STOP)){
+        					//Specific Change related to Migration (3.0 -> 4.0)
+        					if (!sessionObj.isEmpty()) {
+        						sessionObj.clear();
+        					}
         					closedSeq++;
+        					sessionObj.put(JsonConstants.EVENT_TIME, sess.get(AJEntityBaseReports.UPDATE_TIMESTAMP).toString())
+        	   				.put(JsonConstants.SESSIONID, sessionId);
         					sessionObj.put(JsonConstants.SEQUENCE, closedSeq.toString());
         	   				isStop = true;
         					closedSessionArray.add(sessionObj);
@@ -134,6 +148,8 @@ public class UserAssessmentSessionsHandler implements DBHandler {
 
     	
     		
+    	}else{
+    	  LOGGER.debug("No sessions data found for given assessment");
     	}
     	    	
     	if (openSession.equalsIgnoreCase("false")) {
@@ -150,47 +166,6 @@ public class UserAssessmentSessionsHandler implements DBHandler {
 
     @Override
     public boolean handlerReadOnly() {
-        return false;
+        return true;
     }
-    
-    private boolean validateOptionalParams(ProcessorContext context) {
-    	
-
-    	JsonArray classId_array = this.context.request().getJsonArray(REQUEST_CLASS_ID);
-    	JsonArray courseId_array = this.context.request().getJsonArray(REQUEST_COURSE_ID);
-    	JsonArray unitId_array = this.context.request().getJsonArray(REQUEST_UNIT_ID);
-    	JsonArray lessonId_array = this.context.request().getJsonArray(REQUEST_LESSON_ID);
-    	
-    	if ((classId_array != null) && (courseId_array != null) && (unitId_array != null) && (lessonId_array != null)){
-    		this.classId = classId_array.getString(0);
-    		this.courseId = courseId_array.getString(0);
-    		this.unitId = unitId_array.getString(0);
-    		this.lessonId = lessonId_array.getString(0);
-    		
-    		return true;    		
-    	} else return false;
-    }
-    
-    private String listToPostgresArrayString(List<String> input) {
-        int approxSize = ((input.size() + 1) * 36); // Length of UUID is around
-                                                    // 36
-                                                    // chars
-        Iterator<String> it = input.iterator();
-        if (!it.hasNext()) {
-            return "{}";
-        }
-
-        StringBuilder sb = new StringBuilder(approxSize);
-        sb.append('{');
-        for (;;) {
-            String s = it.next();
-            sb.append('"').append(s).append('"');
-            if (!it.hasNext()) {
-                return sb.append('}').toString();
-            }
-            sb.append(',');
-        }
-    }
-
-
 }

@@ -1,70 +1,41 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
+import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
-
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.converters.ResponseAttributeIdentifier;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.converters.ValueMapper;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
+import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
-import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.hazelcast.util.StringUtil;
+
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 /**
- * Created by mukul@gooru
+ * Created by daniel
  */
 
 public class StudentAssessmentPerfHandler implements DBHandler {
-	
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(StudentAssessmentPerfHandler.class);
-	private static final String REQUEST_COLLECTION_TYPE = "collectionType";
+	  private static final Logger LOGGER = LoggerFactory.getLogger(StudentAssessmentPerfHandler.class);
     private static final String REQUEST_USERID = "userUid";
-    
-    private static final String REQUEST_CLASS_ID = "classGooruId";
-    private static final String REQUEST_COURSE_ID = "courseGooruId";
-    private static final String REQUEST_UNIT_ID = "unitGooruId";
-    private static final String REQUEST_LESSON_ID = "lessonGooruId";
-    private static final String REQUEST_COLLECTION_ID = "collectionId";
-    private static final String REQUEST_SESSION_ID = "sessionId";
-        
-	private final ProcessorContext context;
-    private AJEntityBaseReports baseReport;
-    
-    private String classId;
-    private String courseId;
-    private String unitId;
-    private String lessonId;
-    private String collectionId;
+    private final ProcessorContext context;
     private String collectionType;
     private String userId;
-    private String sessionId;
 
-    private String collId;
-    private String qtype;
-    private String react;
-    private String resourceTS;
-    private String ansObj; 
-    private String resType;
-    private String resAttemptStatus;
-    private String sco;
-    private String SID;
-    private String resViews;
-    
-    
     public StudentAssessmentPerfHandler(ProcessorContext context) {
         this.context = context;
     }
@@ -72,9 +43,9 @@ public class StudentAssessmentPerfHandler implements DBHandler {
     @Override
     public ExecutionResult<MessageResponse> checkSanity() {
         if (context.request() == null || context.request().isEmpty()) {
-            LOGGER.warn("invalid request received to fetch Student Performance in Assessments");
+            LOGGER.warn("invalid request received to fetch Student Performance in Assessment");
             return new ExecutionResult<>(
-                MessageResponseFactory.createInvalidRequestResponse("Invalid data provided to fetch Student Performance in Units"),
+                MessageResponseFactory.createInvalidRequestResponse("Invalid data provided to fetch Student Performance in Assessment"),
                 ExecutionStatus.FAILED);
         }
 
@@ -83,132 +54,97 @@ public class StudentAssessmentPerfHandler implements DBHandler {
     }
 
     @Override
+    @SuppressWarnings("rawtypes")
     public ExecutionResult<MessageResponse> validateRequest() {
-    	LOGGER.debug("validateRequest() OK");
-        return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
+      if (context.getUserIdFromRequest() == null
+              || (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
+        List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, this.context.classId(), this.context.userIdFromSession());
+        if (owner.isEmpty()) {
+            LOGGER.debug("validateRequest() FAILED");
+            return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"), ExecutionStatus.FAILED);
+        }
+      }
+      LOGGER.debug("validateRequest() OK");
+      return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
     }
 
     @Override
-    public ExecutionResult<MessageResponse> executeRequest() {
+    @SuppressWarnings("rawtypes")
+  public ExecutionResult<MessageResponse> executeRequest() {
+    JsonObject resultBody = new JsonObject();
+    JsonArray resultarray = new JsonArray();
 
-    	JsonObject resultBody = new JsonObject();
-    	baseReport = new AJEntityBaseReports();
+    // FIXME: Collection Type Accepted "assessment" only.
+    this.collectionType = "assessment";
+    if (StringUtil.isNullOrEmpty(collectionType)
+            || (StringUtil.isNullOrEmpty(collectionType) && this.collectionType.equalsIgnoreCase(AJEntityBaseReports.ATTR_ASSESSMENT))) {
+      LOGGER.warn("CollectionType is mandatory to fetch Student Performance in assessment");
+      return new ExecutionResult<>(
+              MessageResponseFactory.createInvalidRequestResponse(
+                      "CollectionType is missing or make sure collectionType is assessment . Cannot fetch Student Performance in Assessment"),
+              ExecutionStatus.FAILED);
+    }
 
-        this.userId = context.userId();
-        LOGGER.debug("UID is " + this.userId);
-    	        
-    	JsonArray sessionId_array = this.context.request().getJsonArray(REQUEST_SESSION_ID);
-    	if (sessionId_array != null) {
-    		LOGGER.debug("Session in Assessment Request is:" + sessionId_array.getString(0));
-    		this.sessionId = sessionId_array.getString(0);
-    	}
-    	
-    	JsonArray AssessmentKPIArray = new JsonArray();
-    	    	    	
-    	//STUDENT PERFORMANCE REPORTS IN ASSESSMENTS when SessionID NOT NULL
-    	if (!sessionId.isEmpty()) {
-        	List<Map> assessmentKPI = Base.findAll( AJEntityBaseReports.SELECT_ASSESSMENT_FOREACH_COLLID_AND_SESSIONID,
-                    context.collectionId(), this.sessionId, AJEntityBaseReports.ATTR_EVENTNAME, 
-                    AJEntityBaseReports.ATTR_ASSESSMENT, this.userId);
-        	
-        	if (!assessmentKPI.isEmpty()) {
-        		LOGGER.debug("Assessment Attributes obtained");      	
-            	
-            	assessmentKPI.stream().forEach(m  -> { 
-            			if (m.get(AJEntityBaseReports.EVENTTYPE).toString().equals(AJEntityBaseReports.ATTR_EVENTTYPE_START)){
-            				resViews = m.get(AJEntityBaseReports.RESOURCE_VIEWS).toString();
-            				LOGGER.debug("ResourceViews" + resViews);
-            			} else if (m.get(AJEntityBaseReports.EVENTTYPE).toString().equals(AJEntityBaseReports.ATTR_EVENTTYPE_STOP)){
-            				collId = m.get(AJEntityBaseReports.COLLECTION_OID).toString();
-            				qtype = m.get(AJEntityBaseReports.QUESTION_TYPE).toString();
-            				react = m.get(AJEntityBaseReports.REACTION).toString();
-            				resourceTS =  m.get(AJEntityBaseReports.RESOURCE_TIMESPENT).toString();
-            				//TODO - Mukul
-            				//ansObj = m.get(AJEntityBaseReports.ANSWER_OBECT).toString();
-            				//resType = m.get(AJEntityBaseReports.RESOURCE_TYPE).toString();
-            				resAttemptStatus = m.get(AJEntityBaseReports.RESOURCE_ATTEMPT_STATUS).toString();
-            				sco = m.get(AJEntityBaseReports.SCORE).toString();
-            			}
-            			if (m.get(AJEntityBaseReports.EVENTTYPE).toString().equals(AJEntityBaseReports.ATTR_EVENTTYPE_STOP)){
-            				LOGGER.debug("Populating JSON array");
-            				AssessmentKPIArray.add (new JsonObject().put(AJEntityBaseReports.COLLECTION_OID, collId)
-            	            		.put(AJEntityBaseReports.QUESTION_TYPE, qtype)            		
-            	            		.put(AJEntityBaseReports.REACTION, react)
-            	            		.put(AJEntityBaseReports.RESOURCE_TIMESPENT, resourceTS)
-            	            		.put(AJEntityBaseReports.RESOURCE_ATTEMPT_STATUS, resAttemptStatus)
-            	            		.put(AJEntityBaseReports.SCORE, sco)
-            	            		.put(AJEntityBaseReports.SESSION_ID, this.sessionId)
-            	            		.put(AJEntityBaseReports.RESOURCE_VIEWS, resViews));
-            				
-            			}
-            			          		
-            	});
+    this.userId = this.context.request().getString(REQUEST_USERID);
 
-            } else {
-                LOGGER.error("Assessment Attributes cannot be obtained");
-                return new ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(), ExecutionStatus.FAILED);
-            }
-        	
-        	LOGGER.info(AssessmentKPIArray.encodePrettily());
-        	resultBody.put("UsageData:", AssessmentKPIArray);
+    List<String> userIds = new ArrayList<>();
 
-        	return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody),
-                    ExecutionStatus.SUCCESSFUL);
-            		
-        	} else {
-                LOGGER.error("SessionID Missing, Cannot Obtain Student Lesson Perf data");
-                return new ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(), ExecutionStatus.FAILED);
-            }
-    }   // End ExecuteRequest()
-    
+    // FIXME : userId can be added as GROUPBY in performance query. Not
+    // necessary to get distinct users.
+    if (this.context.classId() != null && StringUtil.isNullOrEmpty(userId)) {
+      LOGGER.warn("UserID is not in the request to fetch Student Performance in Lesson. Assume user is a teacher");
+      LazyList<AJEntityBaseReports> userIdforlesson =
+              AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_COLLECTION_ID_FILTERBY_COLLTYPE, context.classId(),
+                      context.courseId(), context.unitId(), context.lessonId(), context.collectionId(), this.collectionType);
+      userIdforlesson.forEach(coll -> userIds.add(coll.getString(AJEntityBaseReports.GOORUUID)));
+
+    } else {
+      userIds.add(this.userId);
+    }
+
+    LOGGER.debug("UID is " + this.userId);
+
+    for (String userID : userIds) {
+      JsonObject contentBody = new JsonObject();
+      List<Map> studentLatestAttempt = null;
+      studentLatestAttempt = Base.findAll(AJEntityBaseReports.GET_LATEST_COMPLETED_SESSION_ID, context.classId(), context.courseId(),
+              context.unitId(), context.lessonId(), context.collectionId(), userID);
+
+      if (!studentLatestAttempt.isEmpty()) {
+        studentLatestAttempt.forEach(attempts -> {
+          List<Map> assessmentQuestionsKPI = Base.findAll(AJEntityBaseReports.SELECT_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSION_ID,context.collectionId(),
+                  attempts.get(AJEntityBaseReports.SESSION_ID).toString(), AJEntityBaseReports.ATTR_CRP_EVENTNAME);
+          LOGGER.debug("latestSessionId : " + attempts.get(AJEntityBaseReports.SESSION_ID));
+          JsonArray questionsArray = new JsonArray();
+          if (!assessmentQuestionsKPI.isEmpty()) {
+            assessmentQuestionsKPI.stream().forEach(questions -> {
+              JsonObject qnData = ValueMapper.map(ResponseAttributeIdentifier.getSessionAssessmentQuestionAttributesMap(), questions);
+              // FIXME :: This is to be revisited. We should alter the schema
+              // column type from TEXT to JSONB. After this change we can remove
+              // this logic
+              qnData.put(JsonConstants.ANSWER_OBJECT, new JsonArray(questions.get(AJEntityBaseReports.ANSWER_OBECT).toString()));
+              // FIXME :: it can be removed once we fix writer code.
+              qnData.put(JsonConstants.RESOURCE_TYPE, JsonConstants.QUESTION);
+              qnData.put(JsonConstants.SCORE, Math.round(Double.valueOf(questions.get(AJEntityBaseReports.SCORE).toString())));
+              questionsArray.add(qnData);
+            });
+          }
+          contentBody.put(JsonConstants.USAGE_DATA, questionsArray).put(JsonConstants.USERUID, userID);
+        });
+      } else {
+        // Return an empty resultBody instead of an Error
+        LOGGER.debug("No data returned for Student Perf in Assessment");
+      }
+      resultarray.add(contentBody);
+    }
+    resultBody.put(JsonConstants.CONTENT, resultarray).putNull(JsonConstants.MESSAGE).putNull(JsonConstants.PAGINATE);
+
+    return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
+
+  }   
 
     @Override
     public boolean handlerReadOnly() {
-        return false;
+        return true;
     }
-    
-    private boolean validateOptionalParams(ProcessorContext context) {
-    	
-
-    	JsonArray classId_array = this.context.request().getJsonArray(REQUEST_CLASS_ID);
-    	JsonArray courseId_array = this.context.request().getJsonArray(REQUEST_COURSE_ID);
-    	JsonArray unitId_array = this.context.request().getJsonArray(REQUEST_UNIT_ID);
-    	JsonArray lessonId_array = this.context.request().getJsonArray(REQUEST_LESSON_ID);
-    	
-    	if ((classId_array != null) && (courseId_array != null) && (unitId_array != null) && (lessonId_array != null)){
-    		this.classId = classId_array.getString(0);
-    		this.courseId = courseId_array.getString(0);
-    		this.unitId = unitId_array.getString(0);
-    		this.lessonId = lessonId_array.getString(0);
-    		
-    		return true;    		
-    	} else {
-    		return false;
-    	}
-    		
-    }
-    
-    private String listToPostgresArrayString(List<String> input) {
-        int approxSize = ((input.size() + 1) * 36); // Length of UUID is around
-                                                    // 36
-                                                    // chars
-        Iterator<String> it = input.iterator();
-        if (!it.hasNext()) {
-            return "{}";
-        }
-
-        StringBuilder sb = new StringBuilder(approxSize);
-        sb.append('{');
-        for (;;) {
-            String s = it.next();
-            sb.append('"').append(s).append('"');
-            if (!it.hasNext()) {
-                return sb.append('}').toString();
-            }
-            sb.append(',');
-        }
-    }
-
-
-
 }

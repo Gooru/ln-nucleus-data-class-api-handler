@@ -1,0 +1,129 @@
+package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
+
+import java.util.List;
+import java.util.Map;
+
+import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
+import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.converters.ResponseAttributeIdentifier;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
+
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.converters.ValueMapper;
+import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
+import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
+import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
+import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
+import org.javalite.activejdbc.Base;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.hazelcast.util.StringUtil;
+
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
+
+public class IndLearnerAssessmentSummaryHandler implements DBHandler {
+	
+	private static final Logger LOGGER = LoggerFactory.getLogger(IndLearnerAssessmentSummaryHandler.class);
+	
+	private static final String REQUEST_SESSION_ID = "sessionId";
+    
+    private final ProcessorContext context;
+  
+    private String userId;
+    
+    private String sessionId;
+    public IndLearnerAssessmentSummaryHandler(ProcessorContext context) {
+        this.context = context;
+    }
+
+    @Override
+    public ExecutionResult<MessageResponse> checkSanity() {
+        if (context.request() == null || context.request().isEmpty()) {
+            LOGGER.warn("invalid request received to fetch Student Performance in Assessments");
+            return new ExecutionResult<>(
+                MessageResponseFactory.createInvalidRequestResponse("Invalid data provided to fetch Student Performance in Assessments"),
+                ExecutionStatus.FAILED);
+        }
+
+        LOGGER.debug("checkSanity() OK");
+        return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
+    }
+    
+    @Override
+    @SuppressWarnings("rawtypes")
+    public ExecutionResult<MessageResponse> validateRequest() {
+      if (context.getUserIdFromRequest() == null) {
+          LOGGER.debug("validateRequest() FAILED");
+          return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("UserID is mandatory to fetch Independent Learner Assessment Performance"),
+                  ExecutionStatus.FAILED);
+      }
+      LOGGER.debug("validateRequest() OK");
+      return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
+    }
+
+    @Override
+    @SuppressWarnings("rawtypes")
+    public ExecutionResult<MessageResponse> executeRequest() {
+      JsonObject resultBody = new JsonObject();
+      JsonObject assessmentDataKPI = new JsonObject();
+
+      this.userId = context.userIdFromSession();
+      LOGGER.debug("UID is " + this.userId);
+      this.sessionId = this.context.request().getString(REQUEST_SESSION_ID);
+      JsonArray contentArray = new JsonArray();
+      // STUDENT PERFORMANCE REPORTS IN ASSESSMENTS when SessionID NOT NULL
+      if (!StringUtil.isNullOrEmpty(sessionId)) {
+        List<Map> assessmentKPI = Base.findAll(AJEntityBaseReports.SELECT_IL_ASSESSMENT_FOREACH_COLLID_AND_SESSION_ID, context.collectionId(), sessionId , AJEntityBaseReports.ATTR_CP_EVENTNAME);
+        Object assessmentReactionObject =  Base.firstCell(AJEntityBaseReports.SELECT_IL_ASSESSMENT_REACTION_AND_SESSION_ID, context.collectionId(), sessionId);
+        LOGGER.info("cID : {} , SID : {} ", context.collectionId(), sessionId);
+        if (!assessmentKPI.isEmpty()) {
+          LOGGER.debug("Assessment Attributes obtained");
+          assessmentKPI.stream().forEach(m -> {
+            JsonObject assessmentData = ValueMapper.map(ResponseAttributeIdentifier.getSessionAssessmentAttributesMap(), m);
+            assessmentData.put(JsonConstants.SCORE, Math.round(Double.valueOf(m.get(AJEntityBaseReports.SCORE).toString())));
+            assessmentData.put(JsonConstants.REACTION, assessmentReactionObject != null ? ((Number)assessmentReactionObject).intValue() : 0);
+            assessmentDataKPI.put(JsonConstants.ASSESSMENT, assessmentData);
+          });
+          
+          LOGGER.debug("Assessment question Attributes started");
+
+          List<Map> assessmentQuestionsKPI = Base.findAll(AJEntityBaseReports.SELECT_IL_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSION_ID,context.collectionId(),
+                  sessionId, AJEntityBaseReports.ATTR_CRP_EVENTNAME);
+          
+          JsonArray questionsArray = new JsonArray();
+          if(!assessmentQuestionsKPI.isEmpty()){
+            assessmentQuestionsKPI.stream().forEach(questions -> {
+              JsonObject qnData = ValueMapper.map(ResponseAttributeIdentifier.getSessionAssessmentQuestionAttributesMap(), questions);
+              Object reactionObj = Base.firstCell(AJEntityBaseReports.SELECT_IL_ASSESSMENT_RESOURCE_REACTION, context.collectionId(),
+                      sessionId,questions.get(AJEntityBaseReports.RESOURCE_ID).toString());
+              qnData.put(JsonConstants.REACTION, reactionObj != null ? ((Number)reactionObj).intValue() : 0);
+              qnData.put(JsonConstants.ANSWER_OBJECT, new JsonArray(questions.get(AJEntityBaseReports.ANSWER_OBECT).toString()));
+              qnData.put(JsonConstants.SCORE, Math.round(Double.valueOf(questions.get(AJEntityBaseReports.SCORE).toString())));
+              questionsArray.add(qnData);
+            });
+          }
+          //JsonArray questionsArray = ValueMapper.map(ResponseAttributeIdentifier.getSessionAssessmentQuestionAttributesMap(), assessmentQuestionsKPI);
+          assessmentDataKPI.put(JsonConstants.QUESTIONS, questionsArray);
+          LOGGER.debug("Assessment question Attributes obtained");
+          contentArray.add(assessmentDataKPI);
+          LOGGER.debug("Done");
+        } else {
+          LOGGER.info("IL Assessment Attributes cannot be obtained");
+        }
+        resultBody.put(JsonConstants.CONTENT, contentArray);
+        return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
+      } else {
+        LOGGER.info("SessionID Missing, Cannot Obtain IL Assessment Perf data");
+        // Return empty resultBody object instead of an error
+        return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
+      }
+    }   // End ExecuteRequest()
+    
+
+    @Override
+    public boolean handlerReadOnly() {
+        return true;
+    }
+
+}

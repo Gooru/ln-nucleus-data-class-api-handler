@@ -593,6 +593,8 @@ public class EventConstants {
 
 	public static final  String CLASS_ID = "classId";
 
+	public static final  String CLASS_IDS = "classIds";
+
 	public static final  String ACTIVE_FLAG = "activeFlag";
 
 	public static final  String _ACTIVE_FLAG = "active_flag";
