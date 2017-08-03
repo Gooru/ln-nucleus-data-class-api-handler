@@ -105,12 +105,12 @@ public class StudentAssessmentPerfHandler implements DBHandler {
     LOGGER.debug("UID is " + this.userId);
 
     for (String userID : userIds) {
-      JsonObject contentBody = new JsonObject();
       List<Map> studentLatestAttempt = null;
       studentLatestAttempt = Base.findAll(AJEntityBaseReports.GET_LATEST_COMPLETED_SESSION_ID, context.classId(), context.courseId(),
               context.unitId(), context.lessonId(), context.collectionId(), userID);
 
       if (!studentLatestAttempt.isEmpty()) {
+        JsonObject contentBody = new JsonObject();
         studentLatestAttempt.forEach(attempts -> {
           List<Map> assessmentQuestionsKPI = Base.findAll(AJEntityBaseReports.SELECT_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSION_ID,context.collectionId(),
                   attempts.get(AJEntityBaseReports.SESSION_ID).toString(), AJEntityBaseReports.ATTR_CRP_EVENTNAME);
@@ -131,11 +131,11 @@ public class StudentAssessmentPerfHandler implements DBHandler {
           }
           contentBody.put(JsonConstants.USAGE_DATA, questionsArray).put(JsonConstants.USERUID, userID);
         });
+        resultarray.add(contentBody);
       } else {
         // Return an empty resultBody instead of an Error
         LOGGER.debug("No data returned for Student Perf in Assessment");
       }
-      resultarray.add(contentBody);
     }
     resultBody.put(JsonConstants.CONTENT, resultarray).putNull(JsonConstants.MESSAGE).putNull(JsonConstants.PAGINATE);
 
