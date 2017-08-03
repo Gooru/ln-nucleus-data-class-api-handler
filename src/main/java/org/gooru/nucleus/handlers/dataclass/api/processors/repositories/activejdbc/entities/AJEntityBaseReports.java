@@ -791,7 +791,7 @@ public class AJEntityBaseReports extends Model {
     		+ "FIRST_VALUE(updated_at) OVER (PARTITION BY course_id ORDER BY updated_at desc) AS lastAccessed, "
     		+ "FIRST_VALUE(session_id) OVER (PARTITION BY course_id ORDER BY updated_at desc) AS session_id "
     		+ "FROM base_reports WHERE class_id IS NULL AND actor_id = ? "
-    		+ "AND course_id = ANY(?::varchar[])) "
+    		+ "AND collection_type IS NOT NULL AND course_id = ANY(?::varchar[])) "
     		+ "AS loc order by loc.lastAccessed DESC LIMIT ? OFFSET ?";
     
     public static final String GET_DISTINCT_ASSESSMENT_FOR_INDEPENDENT_LEARNER = "SELECT asmt.collection_id as collection_id, asmt.updated_at as lastAccessed,"
