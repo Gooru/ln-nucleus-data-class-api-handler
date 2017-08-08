@@ -58,6 +58,7 @@ public class AJEntityBaseReports extends Model {
     public static final String TIME_ZONE = "time_zone";
     public static final String DATE_IN_TIME_ZONE = "date_in_time_zone";
     public static final String IS_GRADED = "is_graded";
+    public static final String GRADING_TYPE = "grading_type";
     public static final String CONTENT_SOURCE = "content_source";
 
     public static final String ATTR_TIME_SPENT = "timeSpent";
@@ -360,8 +361,9 @@ public class AJEntityBaseReports extends Model {
   //Getting RESOURCE DATA (score)
     public static final String SELECT_COLLECTION_QUESTION_AGG_SCORE = "SELECT DISTINCT ON (resource_id) "
             + "FIRST_VALUE(score) OVER (PARTITION BY resource_id "
-            + "ORDER BY updated_at desc) AS score,FIRST_VALUE(resource_attempt_status) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS attemptStatus, FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS answer_object "
-            + "FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND resource_id = ?"
+            + "ORDER BY updated_at desc) AS score,FIRST_VALUE(resource_attempt_status) OVER (PARTITION BY resource_id ORDER BY updated_at desc) "
+            + "AS attemptStatus, FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS answer_object "
+            + "FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND resource_id = ? "
             + "AND actor_id = ? AND event_name = 'collection.resource.play' AND resource_type = 'question' AND resource_attempt_status <> 'skipped'";
   //Getting RESOURCE DATA (reaction)
     public static final String SELECT_COLLECTION_RESOURCE_AGG_REACTION = "SELECT DISTINCT ON (resource_id) "
@@ -1093,20 +1095,23 @@ public class AJEntityBaseReports extends Model {
     		+ "(PARTITION BY resource_id ORDER BY updated_at desc) AS score, resource_id, updated_at, collection_type, "
     		+ "collection_id, unit_id, lesson_id from base_reports where "
     		+ "class_id = ? AND course_id = ? AND event_name = 'collection.resource.play' AND event_type = 'stop' AND "
-    		+ "resource_type = 'question') as q WHERE q.score IS NULL";//and is_graded = '0'
+    		+ "resource_type = 'question' AND is_graded = 'false' AND resource_attempt_status = 'attempted' AND "
+    		+ "grading_type = 'teacher' AND question_type = 'OE') as q WHERE q.score IS NULL";
     
     public static final String GET_STUDENT_COUNT = "select count(distinct(q.actor_id)) FROM "
     		+ "(SELECT distinct on (resource_id) FIRST_VALUE(score) OVER "
     		+ "(PARTITION BY resource_id ORDER BY updated_at desc) AS score, resource_id, updated_at, actor_id from base_reports "
     		+ "where class_id = ? AND course_id = ? AND collection_id = ? AND event_name = 'collection.resource.play' AND event_type = 'stop' AND "
-    		+ "resource_type = 'question') AS q WHERE q.score IS NULL";//and is_graded = '0'
+    		+ "resource_type = 'question' AND is_graded = 'false' AND resource_attempt_status = 'attempted' AND "
+    		+ "grading_type = 'teacher' AND question_type = 'OE') AS q WHERE q.score IS NULL";
     
     public static final String GET_STUDENTS_FOR_RUBRIC_QUESTION = "select distinct(q.actor_id) AS students FROM "
     		+ "(SELECT distinct on (resource_id) FIRST_VALUE(score) OVER "
     		+ "(PARTITION BY resource_id ORDER BY updated_at desc) AS score, resource_id, updated_at, actor_id from base_reports "
     		+ "where class_id = ? AND course_id = ? AND collection_id = ? AND resource_id = ? AND "
     		+ "event_name = 'collection.resource.play' AND event_type = 'stop' AND "
-    		+ "resource_type = 'question') AS q WHERE q.score IS NULL";//and is_graded = '0'
+    		+ "resource_type = 'question' AND is_graded = 'false' AND resource_attempt_status = 'attempted' AND "
+    		+ "grading_type = 'teacher' AND question_type = 'OE') AS q WHERE q.score IS NULL";
 
     public static final String GET_STUDENTS_ANSWER_FOR_RUBRIC_QUESTION = "select q.answerText, q.resource_id AS questionId, "
     		+ "q.time_spent AS timeSpent, q.updated_at AS submittedAt, q.session_id "
@@ -1116,7 +1121,8 @@ public class AJEntityBaseReports extends Model {
     		+ "resource_id, updated_at, actor_id, time_spent, session_id from base_reports "
     		+ "where class_id = ? AND course_id = ? AND collection_id = ? AND resource_id = ? AND actor_id = ? AND "
     		+ "event_name = 'collection.resource.play' AND event_type = 'stop' AND "
-    		+ "resource_type = 'question') AS q WHERE q.score IS NULL";//and is_graded = '0'
+    		+ "resource_type = 'question' AND is_graded = 'false' AND resource_attempt_status = 'attempted' AND "
+    		+ "grading_type = 'teacher' AND question_type = 'OE') AS q WHERE q.score IS NULL";
 
     public static final String UUID_TYPE = "uuid";
    
