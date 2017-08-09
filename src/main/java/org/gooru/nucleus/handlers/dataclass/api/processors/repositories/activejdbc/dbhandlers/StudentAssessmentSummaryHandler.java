@@ -117,8 +117,11 @@ public class StudentAssessmentSummaryHandler implements DBHandler {
               Object reactionObj = Base.firstCell(AJEntityBaseReports.SELECT_ASSESSMENT_RESOURCE_REACTION, context.collectionId(),
                       sessionId,questions.get(AJEntityBaseReports.RESOURCE_ID).toString());
               qnData.put(JsonConstants.REACTION, reactionObj != null ? ((Number)reactionObj).intValue() : 0);
-              qnData.put(JsonConstants.ANSWER_OBJECT, new JsonArray(questions.get(AJEntityBaseReports.ANSWER_OBECT).toString()));
-              qnData.put(JsonConstants.SCORE, Math.round(Double.valueOf(questions.get(AJEntityBaseReports.SCORE).toString())));
+              qnData.put(JsonConstants.ANSWER_OBJECT, questions.get(AJEntityBaseReports.ANSWER_OBECT) != null 
+            		  ? new JsonArray(questions.get(AJEntityBaseReports.ANSWER_OBECT).toString()) : null);
+              //Rubrics - Score should be NULL only incase of OE questions
+              qnData.put(JsonConstants.SCORE, questions.get(AJEntityBaseReports.SCORE) != null ? 
+            		  Math.round(Double.valueOf(questions.get(AJEntityBaseReports.SCORE).toString())) : "NA");
               questionsArray.add(qnData);
             });
           }
