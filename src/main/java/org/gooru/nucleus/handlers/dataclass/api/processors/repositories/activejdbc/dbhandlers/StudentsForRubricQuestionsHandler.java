@@ -1,5 +1,6 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,7 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResp
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.javalite.activejdbc.Base;
+import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,17 +99,44 @@ public class StudentsForRubricQuestionsHandler implements DBHandler{
 
 	    } 
 
-		List<Map> studMap = Base.findAll(AJEntityBaseReports.GET_STUDENTS_FOR_RUBRIC_QUESTION, 
-				this.classId, this.courseId, this.collectionId, context.questionId());
+//		List<Map> studMap = Base.findAll(AJEntityBaseReports.GET_STUDENTS_FOR_RUBRIC_QUESTION, 
+//				this.classId, this.courseId, this.collectionId, context.questionId());
 		
-		if (!studMap.isEmpty()){
-			  studMap.forEach(m -> {
-		    JsonObject stud = new JsonObject();   
-		    resultarray.add(m.get(AJEntityBaseReports.ATTR_STUDENTS).toString());		    
-		  });
-		} else {            
-		      LOGGER.info("Student list for this Rubric Question cannot be obtained");
+		List<String> userIds = new ArrayList<>();
+		LazyList<AJEntityBaseReports> userIdforQue =
+	              AJEntityBaseReports.findBySQL(AJEntityBaseReports.GET_DISTINCT_STUDENTS_FOR_THIS_RESOURCE, this.classId, 
+	            		  this.courseId, this.collectionId, context.questionId());
+		
+		if (!userIdforQue.isEmpty()) {			
+			userIdforQue.forEach(u -> userIds.add(u.getString(AJEntityBaseReports.GOORUUID)));		      
+		     
+		    for (String userID : userIds) {
+		    	LOGGER.debug("UID is " + userID);
+				List<Map> scoreMap = Base.findAll(AJEntityBaseReports.GET_LATEST_SCORE_FOR_THIS_RESOURCE_STUDENT, 
+						this.classId, this.courseId, this.collectionId, context.questionId(), userID);
+				
+				if (!scoreMap.isEmpty()){
+					  scoreMap.forEach(m -> {
+				    if (m.get(AJEntityBaseReports.SCORE).equals(null)) {
+				    	resultarray.add(userID);
+				    } 		    
+				  });	    	
+		    }
+		    }
+			
+		} else {
+			LOGGER.info("Student list for this Rubric Question cannot be obtained");			
 		}
+	    
+		
+//		if (!studMap.isEmpty()){
+//			  studMap.forEach(m -> {
+//		    JsonObject stud = new JsonObject();   
+//		    resultarray.add(m.get(AJEntityBaseReports.ATTR_STUDENTS).toString());		    
+//		  });
+//		} else {            
+//		      LOGGER.info("Student list for this Rubric Question cannot be obtained");
+//		}
 		
 	  result.put(JsonConstants.STUDENTS , resultarray);  
 
