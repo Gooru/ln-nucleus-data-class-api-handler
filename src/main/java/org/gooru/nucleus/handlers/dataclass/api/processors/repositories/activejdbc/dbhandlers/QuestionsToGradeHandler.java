@@ -111,8 +111,8 @@ public ExecutionResult<MessageResponse> executeRequest() {
     que.put(AJEntityBaseReports.ATTR_RESOURCE_ID, resourceId);
     int studentCount = 0;
     Object sc = null;
-    sc = Base.firstCell(AJEntityBaseReports.GET_STUDENT_COUNT, this.classId, this.courseId, 
-            collectionId);
+    sc = Base.firstCell(AJEntityBaseReports.GET_STUDENT_COUNT_FOR_QUESTIONS, this.classId, this.courseId, 
+            collectionId, resourceId);
     if (sc != null) {
       studentCount = Integer.valueOf(sc.toString());
     }

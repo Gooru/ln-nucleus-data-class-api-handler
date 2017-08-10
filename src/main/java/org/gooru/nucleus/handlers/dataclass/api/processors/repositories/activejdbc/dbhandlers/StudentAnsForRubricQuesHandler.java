@@ -107,12 +107,13 @@ public class StudentAnsForRubricQuesHandler implements DBHandler {
 		    result.put(AJEntityBaseReports.ATTR_COURSE_ID, m.get(AJEntityBaseReports.COURSE_GOORU_OID) != null ? 
 		    		m.get(AJEntityBaseReports.COURSE_GOORU_OID).toString() : null);		    
 		    result.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collectionId );
-		    result.put(AJEntityBaseReports.ATTR_RESOURCE_ID, context.questionId());
+		    result.put(AJEntityBaseReports.ATTR_QUESTION_ID, context.questionId());
 		    result.put(AJEntityBaseReports.ATTR_QUESTION_TEXT, "NA");
 		    result.put(AJEntityBaseReports.ATTR_ANSWER_TEXT, m.get(AJEntityBaseReports.COURSE_GOORU_OID) != null ? 
 		    		m.get(AJEntityBaseReports.COURSE_GOORU_OID).toString() : null);
 		    result.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.parseLong(m.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()));
-		    result.put(AJEntityBaseReports.SUBMITTED_AT, (m.get(AJEntityBaseReports.UPDATE_TIMESTAMP).toString()));		    
+		    result.put(AJEntityBaseReports.SUBMITTED_AT, (m.get(AJEntityBaseReports.SUBMITTED_AT).toString()));
+		    result.put(AJEntityBaseReports.SESSION_ID, (m.get(AJEntityBaseReports.SESSION_ID).toString()));
 		  });
 
 			} else {            
