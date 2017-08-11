@@ -1143,6 +1143,15 @@ public class AJEntityBaseReports extends Model {
     		+ "event_name = 'collection.resource.play' AND event_type = 'stop' AND "
     		+ "resource_type = 'question' AND is_graded = 'false' AND resource_attempt_status = 'attempted' AND "
     		+ "grading_type = 'teacher' AND question_type = 'OE') AS q WHERE q.score IS NULL";
+    
+    public static final String GET_RUBRIC_GRADE_FOR_QUESTION = "SELECT q.resource_id, q.updated_at, q.collection_type, "
+    		+ "q.collection_id, q.unit_id, q.lesson_id FROM (SELECT distinct on (resource_id) FIRST_VALUE(score) OVER "
+    		+ "(PARTITION BY resource_id ORDER BY updated_at desc) AS score, resource_id, updated_at, collection_type, "
+    		+ "collection_id, unit_id, lesson_id from base_reports where "
+    		+ "class_id = ? AND course_id = ? AND event_name = 'collection.resource.play' AND event_type = 'stop' AND "
+    		+ "resource_type = 'question' AND is_graded = 'false' AND resource_attempt_status = 'attempted' AND "
+    		+ "grading_type = 'teacher' AND question_type = 'OE') as q WHERE q.score IS NULL";
+
 
     
     public static final String GET_NU_DISTINCT_COURSES =
