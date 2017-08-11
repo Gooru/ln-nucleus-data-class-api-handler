@@ -1,5 +1,7 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.ResourceBundle;
 import java.util.UUID;
 
@@ -20,7 +22,8 @@ class MessageProcessor implements Processor {
     private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("messages");
     private final Message<Object> message;
     private JsonObject request;
-    
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+
     public MessageProcessor(Message<Object> message) {
         this.message = message;
     }
@@ -183,6 +186,9 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_DCA_SESSION_TAXONOMY_REPORT:
                 result = getDCASessionTaxonomyReport();              
                   break;
+            case MessageConstants.MSG_OP_NU_DATA_REPORT:
+                result = getDataReports();
+                break;
             default:
                 LOGGER.error("Invalid operation type passed in, not able to handle");
                 return MessageResponseFactory
@@ -263,7 +269,41 @@ class MessageProcessor implements Processor {
 
       }
 
+      private MessageResponse getDataReports() {
+        try {
+          ProcessorContext context = createContext();
     
+          LOGGER.info("classId : {}", context.classId());
+          LOGGER.info("userId : {}", context.getUserIdFromRequest());
+    
+          LOGGER.info("startDate : {}", context.startDate());
+          LOGGER.info("endDate : {}", context.endDate());
+    
+          if (!checkClassId(context)) {
+            LOGGER.error("ClassId not available to obtain Student Current Location. Aborting!");
+            return MessageResponseFactory.createInvalidRequestResponse("Invalid ClassId");
+          }
+    
+          if (!validateUser(context.userIdFromSession())) {
+            LOGGER.error("Invalid User ID. Aborting");
+            return MessageResponseFactory.createInvalidRequestResponse("Invalid UserId");
+          }
+          if (!validateDate(context.startDate())) {
+            LOGGER.error("Invalid start date. Aborting");
+            return MessageResponseFactory.createInvalidRequestResponse("Invalid startDate");
+          }
+          if (!validateDate(context.endDate())) {
+            LOGGER.error("Invalid end date. Aborting");
+            return MessageResponseFactory.createInvalidRequestResponse("Invalid endDate");
+          }
+          return new RepoBuilder().buildReportRepo(context).getDataReports();
+    
+        } catch (Throwable t) {
+          LOGGER.error("Exception while getting Student DCA Session Taxonomy Report", t);
+          return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+        }
+    
+      }
 
     //************ RUBRIC GRADING ******************************************************************************************
     
@@ -1121,9 +1161,11 @@ class MessageProcessor implements Processor {
         String sessionId = message.headers().get(MessageConstants.SESSION_ID);
         String studentId = message.headers().get(MessageConstants.STUDENT_ID);
         String questionId = message.headers().get(MessageConstants.QUESTION_ID);
+        String startDate = message.headers().get(MessageConstants.START_DATE);
+        String endDate = message.headers().get(MessageConstants.END_DATE);
         
         return new ProcessorContext(request, userId,userUId, classId, courseId, unitId, lessonId, collectionId, 
-        		sessionId, studentId, questionId);
+        		sessionId, studentId, questionId,startDate,endDate);
     }
 
     //This is just the first level validation. Each Individual Handler would need to do more validation based on the
@@ -1189,7 +1231,7 @@ class MessageProcessor implements Processor {
     private boolean checkStudentId(ProcessorContext context) {
         return validateId(context.studentId());
     }
-
+    
 
  
     private boolean validateUser(String userId) {
@@ -1212,4 +1254,18 @@ class MessageProcessor implements Processor {
         }
     }
 
+    private boolean validateDate(String value) {
+      Date date = null;
+      if (value != null) {
+        try {
+          date = sdf.parse(value);
+          if (!value.equals(sdf.format(date))) {
+            date = null;
+          }
+        } catch (Exception ex) {
+          LOGGER.error("Invalid date format...");
+        }
+      }
+      return date != null;
+    }
 }

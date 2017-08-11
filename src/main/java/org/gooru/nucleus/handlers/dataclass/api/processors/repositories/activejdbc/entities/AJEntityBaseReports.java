@@ -88,6 +88,7 @@ public class AJEntityBaseReports extends Model {
     public static final String ATTR_COURSE_ID = "courseId";
     public static final String ATTR_UNIT_ID = "unitId";
     public static final String ATTR_LESSON_ID = "lessonId";    
+    public static final String ATTR_USER_ID = "userId";    
     public static final String ATTR_RESOURCE_ID = "resourceId";
     public static final String ATTR_PATH_ID = "pathId";
     public static final String ATTR_COLLECTION_TYPE = "collectionType";
@@ -1151,6 +1152,92 @@ public class AJEntityBaseReports extends Model {
     		+ "resource_type = 'question' AND is_graded = 'false' AND resource_attempt_status = 'attempted' AND "
     		+ "grading_type = 'teacher' AND question_type = 'OE') as q WHERE q.score IS NULL";
 
+
+    
+    public static final String GET_NU_DISTINCT_COURSES =
+            "SELECT DISTINCT course_id FROM base_reports "
+            + "WHERE class_id  = ? AND actor_id= ? and updated_at > ?::timestamp AND updated_at < ?::timestamp;";
+    
+    public static final String GET_NU_REPORT_ASSESSMENT_TS_ATTEMPTS = "SELECT DISTINCT on (collection_id) collection_id, "
+            + "SUM(time_spent)  as time_spent,SUM(views)  AS views from base_reports "
+            + "WHERE actor_id = ? and class_id = ? AND course_id = ? "
+            + "AND unit_id = ? and lesson_id = ? AND collection_id = ? AND event_name = 'collection.play' "
+            + "AND updated_at > ?::timestamp AND updated_at < ?::timestamp GROUP BY collection_id";
+    
+    public static final String GET_NU_REPORT_ASSESSMENT_SCORE_REACTION = "SELECT DISTINCT on (collection_id) FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS score,"
+            + "FIRST_VALUE(reaction) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS reaction, "
+            + "collection_id FROM base_reports WHERE actor_id = ? AND class_id = ? AND course_id = ? AND unit_id = ? "
+            + "AND lesson_id = ? AND collection_id = ? AND event_name = 'collection.play' AND updated_at > ?::timestamp AND updated_at < ?::timestamp";
+    
+    public static final String GET_NU_REPORT_ASSESSMENT_QUESTIONS_SCORE_REACTION ="SELECT  DISTINCT on (resource_id) FIRST_VALUE(score * 100) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score, "
+            + "resource_id,FIRST_VALUE(reaction) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS reaction, "
+            + "resource_type,question_type, FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) as answer_object "
+            + "FROM base_reports WHERE actor_id = ? and class_id = ? "
+            + "AND course_id = ? AND unit_id = ? and lesson_id = ? AND collection_id = ? "
+            + "AND event_name = 'collection.resource.play' AND updated_at > ?::timestamp AND updated_at < ?::timestamp";
+    
+    public static final String GET_NU_REPORT_ASSESSMENT_QUESTIONS_TS_ATTEMPTS ="SELECT  SUM(time_spent) AS time_spent, SUM(views) as views "
+            + "FROM base_reports WHERE actor_id = ? and class_id = ? AND course_id = ? AND unit_id = ? "
+            + "AND lesson_id = ? AND collection_id = ? AND resource_id = ? AND event_name = 'collection.play' "
+            + "AND updated_at > ?::timestamp  AND updated_at < ?::timestamp   GROUP BY resource_id;";
+
+    public static final String NU_SELECT_COLLECTION_QUESTION_COUNT = "SELECT question_count,updated_at FROM base_reports "
+            + "WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND actor_id = ? "
+            + "AND updated_at > ?::timestamp  AND updated_at < ?::timestamp AND event_name = 'collection.play'"
+            + " ORDER BY updated_at DESC LIMIT 1";
+    
+    public static final String NU_SELECT_COLLECTION_AGG_DATA = "SELECT SUM(CASE WHEN (agg.event_name = 'collection.resource.play') THEN agg.time_spent ELSE 0 END) AS collectionTimeSpent, "
+            + "SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.views ELSE 0 END) AS collectionViews,"
+            + "agg.collection_id, agg.completionStatus, 0 AS score, 0 AS reaction FROM "
+            + "(SELECT collection_id,time_spent,session_id,views, event_name, "
+            + "CASE  WHEN (FIRST_VALUE(event_type) OVER (PARTITION BY collection_id ORDER BY updated_at desc) = 'stop') THEN 'completed' ELSE 'in-progress' END AS completionStatus "
+            + "FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND actor_id = ? "
+            + "AND updated_at > ?::timestamp  AND updated_at < ?::timestamp) AS agg "
+            + "GROUP BY agg.collection_id,agg.completionStatus";
+    
+    public static final String NU_SELECT_COLLECTION_AGG_SCORE = "SELECT SUM(agg.score) AS score FROM "
+            + "(SELECT DISTINCT ON (resource_id) collection_id, "
+            + "FIRST_VALUE(score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score "
+            + "FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND actor_id = ? AND "
+            + "event_name = 'collection.resource.play' AND resource_type = 'question' AND resource_attempt_status <> 'skipped' "
+            + "AND updated_at > ?::timestamp  AND updated_at < ?::timestamp) AS agg "
+            + "GROUP BY agg.collection_id";
+    public static final String NU_SELECT_COLLECTION_AGG_REACTION = "SELECT ROUND(AVG(agg.reaction)) AS reaction "
+            + "FROM (SELECT DISTINCT ON (resource_id) collection_id,  "
+            + "FIRST_VALUE(reaction) OVER (PARTITION BY resource_id ORDER BY updated_at desc) "
+            + "AS reaction FROM base_reports "
+            + "WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? "
+            + "AND actor_id = ? AND updated_at > ?::timestamp  AND updated_at < ?::timestamp "
+            + "AND event_name = 'reaction.create' AND reaction <> 0) AS agg GROUP BY agg.collection_id";
+    public static final String NU_SELECT_COLLECTION_RESOURCE_AGG_DATA = "SELECT collection_id, resource_id ,resource_type,question_type, SUM(views) AS resourceViews, "
+            + "SUM(time_spent) AS resourceTimeSpent, 0 as reaction, 0 as score, '[]' AS answer_object "
+            + "FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? "
+            + "AND actor_id = ? AND event_name = 'collection.resource.play' "
+            + "AND updated_at > ?::timestamp  AND updated_at < ?::timestamp GROUP BY collection_id, resource_id,resource_type,question_type";
+    public static final String NU_SELECT_COLLECTION_QUESTION_AGG_SCORE = "SELECT DISTINCT ON (resource_id) "
+            + "FIRST_VALUE(score) OVER (PARTITION BY resource_id "
+            + "ORDER BY updated_at desc) AS score,FIRST_VALUE(resource_attempt_status) OVER (PARTITION BY resource_id ORDER BY updated_at desc) "
+            + "AS attemptStatus, FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS answer_object "
+            + "FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND resource_id = ? "
+            + "AND actor_id = ? AND updated_at > ?::timestamp  AND updated_at < ?::timestamp "
+            + "AND event_name = 'collection.resource.play' AND resource_type = 'question' AND resource_attempt_status <> 'skipped'";
+    public static final String NU_SELECT_COLLECTION_RESOURCE_AGG_REACTION = "SELECT DISTINCT ON (resource_id) "
+            + "FIRST_VALUE(reaction) OVER (PARTITION BY resource_id "
+            + "ORDER BY updated_at desc) AS reaction "
+            + "FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND resource_id = ? "
+            + "AND actor_id = ? AND event_name = 'reaction.create' AND reaction <> 0 AND updated_at > ?::timestamp  AND updated_at < ?::timestamp";
+  
+    public static final String NU_DISTINCT_COLLECTIONS = "SELECT DISTINCT collection_id,collection_type FROM base_reports "
+            + "WHERE actor_id = ? and class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND updated_at > ?::timestamp  AND updated_at < ?::timestamp";
+    
+    public static final String NU_DISTINCT_LESSONS = "SELECT DISTINCT lesson_id FROM base_reports "
+            + "WHERE actor_id = ? and class_id = ? AND course_id = ? AND unit_id = ? AND updated_at > ?::timestamp  AND updated_at < ?::timestamp";
+    
+    public static final String NU_DISTINCT_UNITS = "SELECT DISTINCT unit_id FROM base_reports "
+            + "WHERE actor_id = ? and class_id = ? AND course_id = ? AND updated_at > ?::timestamp  AND updated_at < ?::timestamp";
+
+    public static final String NU_DISTINCT_COURSES = "SELECT DISTINCT course_id FROM base_reports "
+            + "WHERE actor_id = ? and class_id = ? AND updated_at > ?::timestamp  AND updated_at < ?::timestamp";
 
     public static final String UUID_TYPE = "uuid";
    

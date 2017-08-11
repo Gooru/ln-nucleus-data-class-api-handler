@@ -106,10 +106,11 @@ public interface ReportRepo {
     
     MessageResponse getStudentSummaryInDCACollection();
 	
-	MessageResponse getStudentSummaryInDCAAssessment();
+    MessageResponse getStudentSummaryInDCAAssessment();
 	
-	MessageResponse getDCASessionTaxonomyReport();
-
+    MessageResponse getDCASessionTaxonomyReport();
     
+    MessageResponse getDataReports();
+   
         
 }
