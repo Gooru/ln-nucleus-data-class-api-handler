@@ -32,8 +32,6 @@ public class StudentsForRubricQuestionsHandler implements DBHandler{
 	  private String classId;
 	  private String courseId;
 	  private String collectionId;
-	  private String userId;
-
 	  	  
 	  public StudentsForRubricQuestionsHandler(ProcessorContext context) {
 	      this.context = context;
@@ -98,9 +96,6 @@ public class StudentsForRubricQuestionsHandler implements DBHandler{
 	              ExecutionStatus.FAILED);
 
 	    } 
-
-//		List<Map> studMap = Base.findAll(AJEntityBaseReports.GET_STUDENTS_FOR_RUBRIC_QUESTION, 
-//				this.classId, this.courseId, this.collectionId, context.questionId());
 		
 		List<String> userIds = new ArrayList<>();
 		LazyList<AJEntityBaseReports> userIdforQue =
@@ -117,7 +112,7 @@ public class StudentsForRubricQuestionsHandler implements DBHandler{
 				
 				if (!scoreMap.isEmpty()){
 					  scoreMap.forEach(m -> {
-				    if (m.get(AJEntityBaseReports.SCORE).equals(null)) {
+				    if (m.get(AJEntityBaseReports.SCORE) == null) {
 				    	resultarray.add(userID);
 				    } 		    
 				  });	    	
@@ -128,16 +123,6 @@ public class StudentsForRubricQuestionsHandler implements DBHandler{
 			LOGGER.info("Student list for this Rubric Question cannot be obtained");			
 		}
 	    
-		
-//		if (!studMap.isEmpty()){
-//			  studMap.forEach(m -> {
-//		    JsonObject stud = new JsonObject();   
-//		    resultarray.add(m.get(AJEntityBaseReports.ATTR_STUDENTS).toString());		    
-//		  });
-//		} else {            
-//		      LOGGER.info("Student list for this Rubric Question cannot be obtained");
-//		}
-		
 	  result.put(JsonConstants.STUDENTS , resultarray);  
 
 	  return new ExecutionResult<>(MessageResponseFactory.createGetResponse(result), ExecutionStatus.SUCCESSFUL);
@@ -147,27 +132,6 @@ public class StudentsForRubricQuestionsHandler implements DBHandler{
 	  @Override
 	  public boolean handlerReadOnly() {
 	      return true;
-	  }
-	  private String listToPostgresArrayString(List<String> input) {
-	    int approxSize = ((input.size() + 1) * 36); // Length of UUID is around
-	                                                // 36
-	                                                // chars
-	    Iterator<String> it = input.iterator();
-	    if (!it.hasNext()) {
-	      return "{}";
-	    }
-
-	    StringBuilder sb = new StringBuilder(approxSize);
-	    sb.append('{');
-	    for (;;) {
-	      String s = it.next();
-	      sb.append('"').append(s).append('"');
-	      if (!it.hasNext()) {
-	        return sb.append('}').toString();
-	      }
-	      sb.append(',');
-	    }
-
 	  }
 
 }
