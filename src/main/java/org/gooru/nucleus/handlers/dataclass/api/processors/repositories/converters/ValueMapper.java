@@ -21,6 +21,14 @@ public class ValueMapper {
     return result;
   }
 
+  public static JsonObject map(JsonObject result, Map<?, ?> attributesMap, Map<?, ?> databaseResult) {
+    if (result != null) {
+      for (Entry<?, ?> resultRow : attributesMap.entrySet()) {
+        result.put(resultRow.getValue().toString(), castValue(databaseResult.get(resultRow.getKey())));
+      }
+    }
+    return result;
+  }
   @SuppressWarnings("rawtypes") 
   public static JsonArray map(Map<?, ?> attributesMap, List<Map> databaseResult) {
     JsonArray arrayResult = new JsonArray();

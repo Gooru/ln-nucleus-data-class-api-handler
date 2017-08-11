@@ -1,8 +1,6 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
-import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.transactions.TransactionExecutor;
-import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 
 /**
  * Created by mukul@gooru
@@ -212,6 +210,10 @@ public final class DBHandlerBuilder {
     
     public static DBHandler buildDCASessionTaxonomyReportHandler(ProcessorContext context) {
     	return new DCASessionTaxonomyReportHandler(context);
+    }
+    
+    public static DBHandler getDataReports(ProcessorContext context) {
+      return new DataReportsHandler(context);
     }
 }
 

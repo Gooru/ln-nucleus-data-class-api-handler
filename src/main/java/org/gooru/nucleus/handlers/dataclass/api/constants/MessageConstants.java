@@ -55,6 +55,7 @@ public final class MessageConstants {
     public static final String STUDENT_ID = "student_id";
     public static final String QUESTION_ID = "question_id";
     
+    
     // Read API Constants
     public static final String MSG_OP_COURSE_PEERS = "student.peers.in.course";    
     public static final String MSG_OP_UNIT_PEERS = "student.peers.in.unit";
@@ -117,6 +118,9 @@ public final class MessageConstants {
     public static final String MSG_OP_DCA_STUDENT_ASSESSMENT_SUMMARY = "dca.student.assessment.summary";
     public static final String MSG_OP_STUDENT_PERF_DAILY_CLASS_ACTIVITY = "student.daily.class.activity.performance";
     public static final String MSG_OP_DCA_SESSION_TAXONOMY_REPORT = "dca.session.taxonomy.report";
+    
+    //DATA REPORTS
+    public static final String MSG_OP_NU_DATA_REPORT = "nu.data.report";
     
     public static final String PORT = "port";
     public static final String HOST = "host";
