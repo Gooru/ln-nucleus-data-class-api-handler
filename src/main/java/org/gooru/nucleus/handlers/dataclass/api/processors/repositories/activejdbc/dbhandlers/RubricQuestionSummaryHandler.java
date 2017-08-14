@@ -68,32 +68,7 @@ public class RubricQuestionSummaryHandler implements DBHandler {
 	  
 	  rubricReport = new AJEntityRubricGrading();
 
-	  this.classId = this.context.request().getString(MessageConstants.CLASS_ID);      
-	  if (StringUtil.isNullOrEmpty(classId)) {
-	      LOGGER.warn("ClassID is mandatory to fetch Rubric Question Summary");
-	      return new ExecutionResult<>(
-	              MessageResponseFactory.createInvalidRequestResponse("Class Id Missing. Cannot fetch Rubric Question Summary"),
-	              ExecutionStatus.FAILED);
-	    } 
-	  
-	  this.courseId = this.context.request().getString(MessageConstants.COURSE_ID);      
-	  if (StringUtil.isNullOrEmpty(courseId)) {
-	      LOGGER.warn("CourseID is mandatory to fetch Rubric Question Summary");
-	      return new ExecutionResult<>(
-	              MessageResponseFactory.createInvalidRequestResponse("Course Id Missing. Cannot fetch Rubric Question Summary"),
-	              ExecutionStatus.FAILED);
-	    }
-	  
-	  this.collectionId = this.context.request().getString(MessageConstants.COLLECTION_ID);      
-	  if (StringUtil.isNullOrEmpty(collectionId)) {
-	      LOGGER.warn("CourseID is mandatory to fetch Rubric Question Summary");
-	      return new ExecutionResult<>(
-	              MessageResponseFactory.createInvalidRequestResponse("Collection Id Missing. Cannot fetch Rubric Question Summary"),
-	              ExecutionStatus.FAILED);
-	    }
- 
-
-	  this.studentId = this.context.request().getString(MessageConstants.STUDENT_ID);      
+	  this.studentId = this.context.request().getString(MessageConstants.STUDENTID);      
 	  if (StringUtil.isNullOrEmpty(studentId)) {
 	      LOGGER.warn("StudentID is mandatory to fetch Rubric Question Summary");
 	      return new ExecutionResult<>(
@@ -111,8 +86,8 @@ public class RubricQuestionSummaryHandler implements DBHandler {
 
 	    //Currently its assumed that teacher will have only one attempt at grading a student's question, so there should be 
 	    //only one record per session, per student for this question. (possibly even for collection)	    
-		List<Map> summaryMap = Base.findAll(AJEntityRubricGrading.GET_RUBRIC_GRADE_FOR_QUESTION, this.studentId, this.classId, 
-				this.courseId, this.collectionId, context.questionId(), this.sessionId);	
+		List<Map> summaryMap = Base.findAll(AJEntityRubricGrading.GET_RUBRIC_GRADE_FOR_QUESTION, context.classId(), 
+				context.courseId(), context.collectionId(), context.questionId(), this.studentId,this.sessionId);	
 			
 		if (!summaryMap.isEmpty()){
 			summaryMap.forEach(m -> {
@@ -125,7 +100,7 @@ public class RubricQuestionSummaryHandler implements DBHandler {
 	    smry.put(AJEntityRubricGrading.ATTR_OVERALL_COMMENT, m.get(AJEntityRubricGrading.OVERALL_COMMENT) != null 
 	    		? (m.get(AJEntityRubricGrading.OVERALL_COMMENT).toString()) : null);
 	    smry.put(AJEntityRubricGrading.ATTR_CATEGORY_SCORE, m.get(AJEntityRubricGrading.CATEGORY_SCORE) != null 
-	    		? (m.get(AJEntityRubricGrading.CATEGORY_SCORE).toString()) : null);
+	    		? new JsonArray((m.get(AJEntityRubricGrading.CATEGORY_SCORE).toString())) : null);
 	    
 	    resultArray.add(smry);        
 	  });

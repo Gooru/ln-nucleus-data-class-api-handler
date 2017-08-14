@@ -101,6 +101,8 @@ public interface ReportRepo {
     
     MessageResponse getStudentAnswersForRubricQuestion();
     
+    MessageResponse getRubricSummaryforQuestion();
+    
     //DCA
     MessageResponse getStudPerfDailyClassActivity();
     

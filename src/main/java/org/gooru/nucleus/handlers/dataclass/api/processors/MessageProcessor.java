@@ -162,7 +162,6 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_IND_LEARNER_ALL_COLLECTION_SESSIONS:
             	result = getIndependentLearnerCollectionSessions();            	
                 break;
-
                 //Rubric Grading
             case MessageConstants.MSG_OP_RUBRICS_QUESTIONS_TO_GRADE:
                 result = getRubricQuestionsToGrade();
@@ -172,6 +171,9 @@ class MessageProcessor implements Processor {
                 break;
             case MessageConstants.MSG_OP_RUBRIC_QUESTIONS_STUDENT_ANSWERS:
                 result = getStudAnswersForRubricQue();
+                break;
+            case MessageConstants.MSG_OP_RUBRIC_QUESTIONS_GRADE_SUMMARY:
+                result = getRubricSummaryforQue();
                 break;
                 //DCA
             case MessageConstants.MSG_OP_STUDENT_PERF_DAILY_CLASS_ACTIVITY:
@@ -354,6 +356,40 @@ class MessageProcessor implements Processor {
 
             
             return new RepoBuilder().buildReportRepo(context).getStudentAnswersForRubricQuestion();
+            
+        } catch (Throwable t) {
+            LOGGER.error("Exception while getting Student answers for Rubric Grading", t);
+            return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+        }
+
+    }
+    
+    private MessageResponse getRubricSummaryforQue() {
+    	try {
+            ProcessorContext context = createContext();
+            
+            if (!checkClassId(context)) {
+                LOGGER.error("ClassId not available to obtain Student Rubric Question Summary. Aborting!");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid ClassId");
+            }
+            
+            if (!checkCourseId(context)) {
+                LOGGER.error("Course id not available to obtain Student Rubric Question Summary. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid CourseId");
+            }
+            
+            if (!checkCollectionId(context)) {
+                LOGGER.error("Collection id not available to obtain Student Rubric Question Summary. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid collectionId");
+            }
+
+            
+            if (!checkQuestionId(context)) {
+                LOGGER.error("QuestionId not available to obtain Rubric Question Summary. Aborting!");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid QuestionId");
+            }
+            
+            return new RepoBuilder().buildReportRepo(context).getRubricSummaryforQuestion();
             
         } catch (Throwable t) {
             LOGGER.error("Exception while getting Student answers for Rubric Grading", t);

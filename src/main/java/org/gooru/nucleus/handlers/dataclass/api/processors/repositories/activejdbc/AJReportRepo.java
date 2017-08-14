@@ -242,6 +242,11 @@ class AJReportRepo implements ReportRepo {
     	return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildStudAnsForRubricQuesHandler(context));
     }
     
+    @Override
+    public MessageResponse getRubricSummaryforQuestion(){
+    	return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildRubricSummaryforQueHandler(context));
+    }
+    
     //DCA    
     @Override
     public MessageResponse getStudPerfDailyClassActivity() {
