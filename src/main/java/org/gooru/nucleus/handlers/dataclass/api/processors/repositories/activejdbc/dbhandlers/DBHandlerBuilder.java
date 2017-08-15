@@ -194,6 +194,10 @@ public final class DBHandlerBuilder {
     	return new StudentAnsForRubricQuesHandler(context);
     }
     
+    public static DBHandler buildRubricSummaryforQueHandler(ProcessorContext context) {
+    	return new RubricQuestionSummaryHandler(context);
+    }
+    
     //DCA
         
     public static DBHandler buildStudPerfDailyClassActivityHandler(ProcessorContext context) {

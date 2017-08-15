@@ -79,8 +79,8 @@ public class AJEntityRubricGrading extends Model {
 
     
     public static final String GET_RUBRIC_GRADE_FOR_QUESTION = "SELECT student_id, student_score, max_score, "
-    		+ "overall_comment, category_score from student_rubric_grading where student_id = ? AND class_id = ? AND "
-    		+ "course_id = ? AND collection_id = ? AND resource_id = ? AND session_id = ?";
+    		+ "overall_comment, category_score from student_rubric_grading where class_id = ? AND "
+    		+ "course_id = ? AND collection_id = ? AND resource_id = ? AND student_id = ? AND session_id = ?";
 
 
 }
