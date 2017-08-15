@@ -119,13 +119,16 @@ public class StudentAssessmentPerfHandler implements DBHandler {
           if (!assessmentQuestionsKPI.isEmpty()) {
             assessmentQuestionsKPI.stream().forEach(questions -> {
               JsonObject qnData = ValueMapper.map(ResponseAttributeIdentifier.getSessionAssessmentQuestionAttributesMap(), questions);
-              // FIXME :: This is to be revisited. We should alter the schema
-              // column type from TEXT to JSONB. After this change we can remove
-              // this logic
-              qnData.put(JsonConstants.ANSWER_OBJECT, new JsonArray(questions.get(AJEntityBaseReports.ANSWER_OBECT).toString()));
               // FIXME :: it can be removed once we fix writer code.
-              qnData.put(JsonConstants.RESOURCE_TYPE, JsonConstants.QUESTION);
-              qnData.put(JsonConstants.SCORE, Math.round(Double.valueOf(questions.get(AJEntityBaseReports.SCORE).toString())));
+              qnData.put(JsonConstants.RESOURCE_TYPE, JsonConstants.QUESTION);              
+              //********
+              qnData.put(JsonConstants.ANSWER_OBJECT, questions.get(AJEntityBaseReports.ANSWER_OBECT) != null 
+            		  ? new JsonArray(questions.get(AJEntityBaseReports.ANSWER_OBECT).toString()) : null);
+              //Rubrics - Score should be NULL only incase of OE questions
+              qnData.put(JsonConstants.SCORE, questions.get(AJEntityBaseReports.SCORE) != null ? 
+            		  Math.round(Double.valueOf(questions.get(AJEntityBaseReports.SCORE).toString())) : "NA");              
+              //*********
+              
               questionsArray.add(qnData);
             });
           }
