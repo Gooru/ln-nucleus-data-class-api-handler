@@ -15,6 +15,8 @@ public class AJEntityContent extends Model {
 
   public static final String TITLE = "title";
 
+  public static final String TAXONOMY = "taxonomy";
+
   public static final String UPDATED_AT = "updated_at";
 
   public static final String CLASS_CODE = "class_code";
@@ -28,5 +30,7 @@ public class AJEntityContent extends Model {
   public static final String GET_TITLE = "SELECT title FROM content WHERE id = ?";
 
   public static final String GET_CLASS_TITLE_CODE = "SELECT title,class_code FROM content WHERE id = ?";
+
+  public static final String GET_TTITLE_TAXONOMY = "SELECT title,taxonomy FROM content WHERE id = ?";
 
 }

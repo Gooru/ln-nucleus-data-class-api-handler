@@ -1,6 +1,5 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -160,9 +159,7 @@ public class DataReportsHandler implements DBHandler {
                   qnData.remove("eventTime");
                   qnData.remove("gooruOId");
                   // TODO ; Data to synced ... Revisit in sometime..
-                  qnData.putNull("questionTitle");
-                  qnData.putNull("displayCode");
-                  qnData.putNull("taxonomyId");
+                  qnData.put("metadata",getTitleAndTaxonomy(questions.get(AJEntityBaseReports.RESOURCE_ID).toString()));
 
                   if (questions.get(AJEntityBaseReports.ANSWER_OBECT) != null) {
                     qnData.put(JsonConstants.ANSWER_OBJECT, new JsonArray(questions.get(AJEntityBaseReports.ANSWER_OBECT).toString()));
@@ -234,9 +231,8 @@ public class DataReportsHandler implements DBHandler {
               qnScoreReaction.forEach(scoreReaction -> {
                 JsonObject qnData = new JsonObject();
                 //TODO : TO BE REVISITED.
-                qnData.putNull("questionTitle");
-                qnData.putNull("displayCode");
-                qnData.putNull("taxonomyId");
+                qnData.put("metadata",getTitleAndTaxonomy(scoreReaction.get(AJEntityBaseReports.RESOURCE_ID).toString()));
+              
                 
                 qnData.put(AJEntityBaseReports.ATTR_QUESTION_ID, scoreReaction.get(AJEntityBaseReports.RESOURCE_ID));
                 qnData.put(JsonConstants.RESOURCE_TYPE, scoreReaction.get(AJEntityBaseReports.RESOURCE_TYPE));
@@ -297,4 +293,14 @@ public class DataReportsHandler implements DBHandler {
     return title;
   }
 
+  private JsonObject getTitleAndTaxonomy(String id) {
+    List<Map> meta = Base.findAll(AJEntityContent.GET_TTITLE_TAXONOMY, id);
+    JsonObject metaData = new JsonObject();
+    meta.forEach(me -> {
+      metaData.put(AJEntityContent.TITLE, me.get(AJEntityContent.TITLE));
+      metaData.put(AJEntityContent.TAXONOMY,
+              me.get(AJEntityContent.TAXONOMY) != null ? new JsonObject(me.get(AJEntityContent.TAXONOMY).toString()) : null);
+    });
+    return metaData;
+  }
 }
