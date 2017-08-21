@@ -123,6 +123,7 @@ public final class MessageConstants {
     
     //DATA REPORTS
     public static final String MSG_OP_NU_DATA_REPORT = "nu.data.report";
+    public static final String MSG_OP_NU_COURSE_COMPETENCY_COMPLETION = "nu.course.competency.completion";
     
     public static final String PORT = "port";
     public static final String HOST = "host";

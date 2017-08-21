@@ -191,6 +191,9 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_NU_DATA_REPORT:
                 result = getDataReports();
                 break;
+            case MessageConstants.MSG_OP_NU_COURSE_COMPETENCY_COMPLETION:
+              result = getCourseCompetencyCompletion();
+              break;
             default:
                 LOGGER.error("Invalid operation type passed in, not able to handle");
                 return MessageResponseFactory
@@ -282,7 +285,7 @@ class MessageProcessor implements Processor {
           LOGGER.info("endDate : {}", context.endDate());
     
           if (!checkClassId(context)) {
-            LOGGER.error("ClassId not available to obtain Student Current Location. Aborting!");
+            LOGGER.error("ClassId not available to obtain NU data reports. Aborting!");
             return MessageResponseFactory.createInvalidRequestResponse("Invalid ClassId");
           }
     
@@ -301,7 +304,35 @@ class MessageProcessor implements Processor {
           return new RepoBuilder().buildReportRepo(context).getDataReports();
     
         } catch (Throwable t) {
-          LOGGER.error("Exception while getting Student DCA Session Taxonomy Report", t);
+          LOGGER.error("Exception while getting NU data reports", t);
+          return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+        }
+    
+      }
+      
+      
+      private MessageResponse getCourseCompetencyCompletion() {
+        try {
+          ProcessorContext context = createContext();
+    
+          LOGGER.info("courseId : {}", context.courseId());
+          LOGGER.info("userId : {}", context.getUserIdFromRequest());
+    
+    
+          if (!checkCourseId(context)) {
+            LOGGER.error("CourseId not available to obtain course competency completion. Aborting!");
+            return MessageResponseFactory.createInvalidRequestResponse("Invalid CourseId");
+          }
+    
+          if (!validateUser(context.userIdFromSession())) {
+            LOGGER.error("Invalid User ID. Aborting");
+            return MessageResponseFactory.createInvalidRequestResponse("Invalid UserId");
+          }
+          
+          return new RepoBuilder().buildReportRepo(context).getCourseComptencyCompletion();
+    
+        } catch (Throwable t) {
+          LOGGER.error("Exception while getting course competency completion", t);
           return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
         }
     

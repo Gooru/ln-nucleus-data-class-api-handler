@@ -114,5 +114,7 @@ public interface ReportRepo {
     
     MessageResponse getDataReports();
    
+    MessageResponse getCourseComptencyCompletion();
+    
         
 }
