@@ -1218,6 +1218,13 @@ public class AJEntityBaseReports extends Model {
             + "WHERE actor_id = ? and class_id = ? AND updated_at > ?::timestamp  AND updated_at < ?::timestamp";
 
     public static final String UUID_TYPE = "uuid";
+    
+    public static final String COURSE_COMPETENCY_TOTAL_COUNT = "SELECT sum(competency_count) as totalCount FROM course_competency_count "
+            + "WHERE course_id = ? group by course_id";
    
+    public static final String COURSE_COMPETENCY_COMPLETION_COUNT = "SELECT SUM(completionData.completion) AS completedCount FROM (SELECT cr.course_id, CASE  WHEN (br.score >= 80) THEN 1 ELSE 0 END AS completion FROM competency_report cr "
+            + "INNER JOIN base_reports br ON cr.base_report_id = br.id "
+            + "WHERE cr.course_id = ?  AND cr.actor_id = ? "
+            + "AND br.event_name = 'collection.play') AS completionData GROUP BY course_id;";
 }
 

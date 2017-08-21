@@ -6,6 +6,7 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionRe
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
+import org.javalite.activejdbc.Base;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,8 +50,11 @@ public class CourseCompetencyCompletionHandler implements DBHandler {
               ExecutionStatus.FAILED);
     }
 
-    result.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
-    result.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 0);
+    Object totalCount = Base.firstCell(AJEntityBaseReports.COURSE_COMPETENCY_TOTAL_COUNT,  context.courseId());
+    Object completedCount = Base.firstCell(AJEntityBaseReports.COURSE_COMPETENCY_COMPLETION_COUNT,  context.courseId(),context.getUserIdFromRequest());
+    LOGGER.debug("totalCount {} - CompletedCount : {} ", totalCount, completedCount);
+    result.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, totalCount == null ? 0:totalCount);
+    result.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, completedCount  == null ? 0:completedCount);
 
     return new ExecutionResult<>(MessageResponseFactory.createGetResponse(result), ExecutionStatus.SUCCESSFUL);
 
