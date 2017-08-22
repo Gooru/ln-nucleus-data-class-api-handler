@@ -219,11 +219,7 @@ public final class DBHandlerBuilder {
     public static DBHandler getDataReports(ProcessorContext context) {
       return new DataReportsHandler(context);
     }
-    
-    public static DBHandler getCourseComptencyCompletion(ProcessorContext context) {
-      return new CourseCompetencyCompletionHandler(context);
-    }
-    
+
     public static DBHandler getCoursesComptencyCompletion(ProcessorContext context) {
       return new CoursesCompetencyCompletionHandler(context);
     }
