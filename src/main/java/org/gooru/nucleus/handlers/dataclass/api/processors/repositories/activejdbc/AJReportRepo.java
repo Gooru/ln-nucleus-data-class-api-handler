@@ -277,4 +277,9 @@ class AJReportRepo implements ReportRepo {
     public MessageResponse getCourseComptencyCompletion() {
       return TransactionExecutor.executeTransaction(DBHandlerBuilder.getCourseComptencyCompletion(context));
     }
+    
+    @Override
+    public MessageResponse getCoursesComptencyCompletion() {
+      return TransactionExecutor.executeTransaction(DBHandlerBuilder.getCoursesComptencyCompletion(context));
+    }
 }

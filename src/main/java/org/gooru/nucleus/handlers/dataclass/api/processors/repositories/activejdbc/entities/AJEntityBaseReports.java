@@ -1224,7 +1224,7 @@ public class AJEntityBaseReports extends Model {
    
     public static final String COURSE_COMPETENCY_COMPLETION_COUNT = "SELECT SUM(completionData.completion) AS completedCount FROM (SELECT cr.course_id, CASE  WHEN (br.score >= 80) THEN 1 ELSE 0 END AS completion FROM competency_report cr "
             + "INNER JOIN base_reports br ON cr.base_report_id = br.id "
-            + "WHERE cr.course_id = ?  AND cr.actor_id = ? "
+            + "WHERE cr.class_id is not null AND cr.course_id = ?  AND cr.actor_id = ? "
             + "AND br.event_name = 'collection.play') AS completionData GROUP BY course_id;";
 }
 

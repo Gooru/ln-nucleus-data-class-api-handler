@@ -194,6 +194,9 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_NU_COURSE_COMPETENCY_COMPLETION:
               result = getCourseCompetencyCompletion();
               break;
+            case MessageConstants.MSG_OP_NU_COURSES_COMPETENCY_COMPLETION:
+              result = getCoursesCompetencyCompletion();
+              break;
             default:
                 LOGGER.error("Invalid operation type passed in, not able to handle");
                 return MessageResponseFactory
@@ -324,7 +327,7 @@ class MessageProcessor implements Processor {
             return MessageResponseFactory.createInvalidRequestResponse("Invalid CourseId");
           }
     
-          if (!validateUser(context.userIdFromSession())) {
+          if (!validateUser(context.getUserIdFromRequest())) {
             LOGGER.error("Invalid User ID. Aborting");
             return MessageResponseFactory.createInvalidRequestResponse("Invalid UserId");
           }
@@ -338,6 +341,26 @@ class MessageProcessor implements Processor {
     
       }
 
+      private MessageResponse getCoursesCompetencyCompletion() {
+        try {
+          ProcessorContext context = createContext();
+    
+          LOGGER.info("userId : {}", context.getUserIdFromRequest());
+    
+   
+          if (!validateUser(context.getUserIdFromRequest())) {
+            LOGGER.error("Invalid User ID. Aborting");
+            return MessageResponseFactory.createInvalidRequestResponse("Invalid UserId");
+          }
+          
+          return new RepoBuilder().buildReportRepo(context).getCoursesComptencyCompletion();
+    
+        } catch (Throwable t) {
+          LOGGER.error("Exception while getting course competency completion", t);
+          return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+        }
+    
+      }
     //************ RUBRIC GRADING ******************************************************************************************
     
     private MessageResponse getRubricQuestionsToGrade() {
