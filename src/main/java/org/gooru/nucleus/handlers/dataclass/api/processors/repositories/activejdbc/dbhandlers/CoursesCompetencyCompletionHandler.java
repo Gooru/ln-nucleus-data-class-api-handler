@@ -57,9 +57,9 @@ public class CoursesCompetencyCompletionHandler implements DBHandler {
     }
 
     courseIds.stream().forEach(courseId -> {
-      Object totalCount = Base.firstCell(AJEntityBaseReports.COURSE_COMPETENCY_TOTAL_COUNT, context.courseId());
+      Object totalCount = Base.firstCell(AJEntityBaseReports.COURSE_COMPETENCY_TOTAL_COUNT, courseId);
       Object completedCount =
-              Base.firstCell(AJEntityBaseReports.COURSE_COMPETENCY_COMPLETION_COUNT, context.courseId(), context.getUserIdFromRequest());
+              Base.firstCell(AJEntityBaseReports.COURSE_COMPETENCY_COMPLETION_COUNT, courseId, context.getUserIdFromRequest());
       LOGGER.debug("totalCount {} - CompletedCount : {} ", totalCount, completedCount);
       JsonObject completionData = new JsonObject();
       completionData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, totalCount == null ? 0 : totalCount);
