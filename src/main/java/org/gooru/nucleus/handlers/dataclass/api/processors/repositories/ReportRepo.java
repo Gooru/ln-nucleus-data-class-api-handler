@@ -113,9 +113,7 @@ public interface ReportRepo {
     MessageResponse getDCASessionTaxonomyReport();
     
     MessageResponse getDataReports();
-   
-    MessageResponse getCourseComptencyCompletion();
-    
+       
     MessageResponse getCoursesComptencyCompletion();
 
     

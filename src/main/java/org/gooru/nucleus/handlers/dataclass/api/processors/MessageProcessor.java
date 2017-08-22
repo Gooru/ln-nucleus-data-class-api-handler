@@ -191,9 +191,6 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_NU_DATA_REPORT:
                 result = getDataReports();
                 break;
-            case MessageConstants.MSG_OP_NU_COURSE_COMPETENCY_COMPLETION:
-              result = getCourseCompetencyCompletion();
-              break;
             case MessageConstants.MSG_OP_NU_COURSES_COMPETENCY_COMPLETION:
               result = getCoursesCompetencyCompletion();
               break;
@@ -308,34 +305,6 @@ class MessageProcessor implements Processor {
     
         } catch (Throwable t) {
           LOGGER.error("Exception while getting NU data reports", t);
-          return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
-        }
-    
-      }
-      
-      
-      private MessageResponse getCourseCompetencyCompletion() {
-        try {
-          ProcessorContext context = createContext();
-    
-          LOGGER.info("courseId : {}", context.courseId());
-          LOGGER.info("userId : {}", context.getUserIdFromRequest());
-    
-    
-          if (!checkCourseId(context)) {
-            LOGGER.error("CourseId not available to obtain course competency completion. Aborting!");
-            return MessageResponseFactory.createInvalidRequestResponse("Invalid CourseId");
-          }
-    
-          if (!validateUser(context.getUserIdFromRequest())) {
-            LOGGER.error("Invalid User ID. Aborting");
-            return MessageResponseFactory.createInvalidRequestResponse("Invalid UserId");
-          }
-          
-          return new RepoBuilder().buildReportRepo(context).getCourseComptencyCompletion();
-    
-        } catch (Throwable t) {
-          LOGGER.error("Exception while getting course competency completion", t);
           return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
         }
     

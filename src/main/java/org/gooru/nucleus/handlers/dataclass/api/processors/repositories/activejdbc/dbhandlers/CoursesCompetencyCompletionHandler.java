@@ -1,5 +1,8 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
+import java.util.List;
+import java.util.Map;
+
 import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
@@ -42,11 +45,11 @@ public class CoursesCompetencyCompletionHandler implements DBHandler {
   @Override
   public ExecutionResult<MessageResponse> executeRequest() {
 
-    JsonArray courseIds = this.context.request().getJsonArray(EventConstants.COURSE_IDS);
+    JsonArray classIds = this.context.request().getJsonArray(EventConstants.CLASS_IDS);
     JsonArray resultArray = new JsonArray();
     JsonObject result = new JsonObject();
 
-    LOGGER.debug("courseIds : {}", courseIds);
+    LOGGER.debug("classIds : {}", classIds);
     LOGGER.debug("userId : {}", context.getUserIdFromRequest());
 
     if (StringUtil.isNullOrEmpty(context.getUserIdFromRequest())) {
@@ -56,15 +59,23 @@ public class CoursesCompetencyCompletionHandler implements DBHandler {
               ExecutionStatus.FAILED);
     }
 
-    courseIds.stream().forEach(courseId -> {
-      Object totalCount = Base.firstCell(AJEntityBaseReports.COURSE_COMPETENCY_TOTAL_COUNT, courseId);
-      Object completedCount =
-              Base.firstCell(AJEntityBaseReports.COURSE_COMPETENCY_COMPLETION_COUNT, courseId, context.getUserIdFromRequest());
-      LOGGER.debug("totalCount {} - CompletedCount : {} ", totalCount, completedCount);
+    classIds.stream().forEach(classId -> {
+      List<Map> completedMapCount = Base.findAll(AJEntityBaseReports.COURSE_COMPETENCY_COMPLETION_COUNT, classId, context.getUserIdFromRequest());
       JsonObject completionData = new JsonObject();
-      completionData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, totalCount == null ? 0 : totalCount);
-      completionData.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, completedCount == null ? 0 : completedCount);
-      completionData.put(AJEntityBaseReports.ATTR_COURSE_ID, courseId);
+      if (!completedMapCount.isEmpty()) {
+        completedMapCount.stream().forEach(completion -> {
+          Object totalCount = Base.firstCell(AJEntityBaseReports.COURSE_COMPETENCY_TOTAL_COUNT, completion.get(AJEntityBaseReports.COURSE_GOORU_OID));
+          completionData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, totalCount == null ? 0 : totalCount);
+          completionData.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT,
+                  completion.get("completedCount") == null ? 0 : completion.get("completedCount"));
+          LOGGER.debug("totalCount {} - CompletedCount : {} ", totalCount, completion.get("completedCount"));
+        });
+
+      } else {
+        completionData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
+        completionData.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 0);
+      }
+      completionData.put(AJEntityBaseReports.ATTR_CLASS_ID, classId);
       resultArray.add(completionData);
     });
     result.put(JsonConstants.USAGE_DATA, resultArray);
