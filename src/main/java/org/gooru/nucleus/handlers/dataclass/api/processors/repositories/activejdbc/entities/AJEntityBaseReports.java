@@ -1222,9 +1222,9 @@ public class AJEntityBaseReports extends Model {
     public static final String COURSE_COMPETENCY_TOTAL_COUNT = "SELECT sum(competency_count) as totalCount FROM course_competency_count "
             + "WHERE course_id = ? group by course_id";
    
-    public static final String COURSE_COMPETENCY_COMPLETION_COUNT = "SELECT class_id,course_id,SUM(completionData.completion) AS completedCount FROM (SELECT cr.class_id,cr.course_id, CASE  WHEN (br.score >= 80) THEN 1 ELSE 0 END AS completion FROM competency_report cr "
-            + "INNER JOIN base_reports br ON cr.base_report_id = br.id "
-            + "WHERE cr.class_id = ?  AND cr.actor_id = ? "
-            + "AND br.event_name = 'collection.play') AS completionData GROUP BY class_id,course_id";
+    public static final String COURSE_COMPETENCY_COMPLETION_COUNT = "SELECT COUNT(1) as completion FROM  (SELECT DISTINCT ON (br.collection_id) br.course_id, br.collection_id "
+            + "FROM competency_report cr INNER JOIN base_reports br ON cr.base_report_id = br.id "
+            + "WHERE cr.course_id = ? AND cr.actor_id = ? "
+            + "AND br.event_name = 'collection.play' AND br.score >= 80) AS completionData group by course_id";
 }
 
