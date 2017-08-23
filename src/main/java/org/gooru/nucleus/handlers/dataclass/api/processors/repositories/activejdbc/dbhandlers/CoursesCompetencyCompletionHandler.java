@@ -1,5 +1,7 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
+import java.util.UUID;
+
 import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
@@ -30,8 +32,14 @@ public class CoursesCompetencyCompletionHandler implements DBHandler {
   @Override
   public ExecutionResult<MessageResponse> checkSanity() {
     if (StringUtil.isNullOrEmpty(context.getUserIdFromRequest())) {
-      LOGGER.warn("userId is mandatory to fetch competency completion");
+      LOGGER.error("userId is mandatory to fetch competency completion");
       return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("userId is Missing. Cannot fetch competency completion"),
+              ExecutionStatus.FAILED);
+    }
+    if (!this.context.request().containsKey(EventConstants.COURSE_IDS) || this.context.request().getJsonArray(EventConstants.COURSE_IDS) == null
+            || this.context.request().getJsonArray(EventConstants.COURSE_IDS).isEmpty()) {
+      LOGGER.error("course ids are mandatory to fetch competency completion");
+      return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("courseIds are missing. Cannot fetch competency completion"),
               ExecutionStatus.FAILED);
     }
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
@@ -57,15 +65,19 @@ public class CoursesCompetencyCompletionHandler implements DBHandler {
     LOGGER.debug("userId : {}", context.getUserIdFromRequest());
 
     courseIds.stream().forEach(courseId -> {
-      Object completedCount = Base.firstCell(AJEntityBaseReports.COURSE_COMPETENCY_COMPLETION_COUNT, courseId, context.getUserIdFromRequest());
-      JsonObject completionData = new JsonObject();
-      LOGGER.debug("Course ID : {} ", courseId);
-      Object totalCount = Base.firstCell(AJEntityBaseReports.COURSE_COMPETENCY_TOTAL_COUNT, courseId);
-      completionData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, totalCount == null ? 0 : totalCount);
-      completionData.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, completedCount == null ? 0 : completedCount);
-      LOGGER.debug("totalCount {} - CompletedCount : {} ", totalCount, completedCount);
-      completionData.put(AJEntityBaseReports.ATTR_COURSE_ID, courseId);
-      resultArray.add(completionData);
+      if (validateCourseId(courseId.toString())) {
+        Object completedCount = Base.firstCell(AJEntityBaseReports.COURSE_COMPETENCY_COMPLETION_COUNT, courseId, context.getUserIdFromRequest());
+        JsonObject completionData = new JsonObject();
+        LOGGER.debug("Course ID : {} ", courseId);
+        Object totalCount = Base.firstCell(AJEntityBaseReports.COURSE_COMPETENCY_TOTAL_COUNT, courseId);
+        completionData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, totalCount == null ? 0 : totalCount);
+        completionData.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, completedCount == null ? 0 : completedCount);
+        LOGGER.debug("totalCount {} - CompletedCount : {} ", totalCount, completedCount);
+        completionData.put(AJEntityBaseReports.ATTR_COURSE_ID, courseId);
+        resultArray.add(completionData);
+      } else {
+        LOGGER.warn("Invalid courseId -> " + courseId + " Simply Ignore now.");
+      }
     });
     result.put(JsonConstants.USAGE_DATA, resultArray);
     return new ExecutionResult<>(MessageResponseFactory.createGetResponse(result), ExecutionStatus.SUCCESSFUL);
@@ -76,5 +88,20 @@ public class CoursesCompetencyCompletionHandler implements DBHandler {
   public boolean handlerReadOnly() {
     // TODO Auto-generated method stub
     return false;
+  }
+
+  private boolean validateCourseId(String id) {
+    return !(id == null || id.isEmpty()) && validateUuid(id);
+  }
+
+  private boolean validateUuid(String uuidString) {
+    try {
+      UUID uuid = UUID.fromString(uuidString);
+      return true;
+    } catch (IllegalArgumentException e) {
+      return false;
+    } catch (Exception e) {
+      return false;
+    }
   }
 }
