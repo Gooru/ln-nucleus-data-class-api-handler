@@ -44,7 +44,7 @@ import io.vertx.core.json.JsonObject;
     
       // For stuffing Json
       private String lessonId;
-      private long questionCount;
+      private double maxScore;
       
       public StudentUnitPerfHandler(ProcessorContext context) {
         this.context = context;
@@ -183,24 +183,24 @@ import io.vertx.core.json.JsonObject;
                     // FIXME: This logic to be revisited.
                     if (this.collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {
                       List<Map> collectionQuestionCount = null;
-                        collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_QUESTION_COUNT, context.classId(),
+                        collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_MAX_SCORE, context.classId(),
                               context.courseId(), context.unitId(), this.lessonId, assData.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID),this.userId);
                         //If questions are not present then Question Count is always zero, however this additional check needs to be added
                         //since during migration of data from 3.0 chances are that QC may be null instead of zero
-                      collectionQuestionCount.forEach(qc -> {
-                      	if (qc.get(AJEntityBaseReports.QUESTION_COUNT) != null) {
-                      		this.questionCount = Integer.valueOf(qc.get(AJEntityBaseReports.QUESTION_COUNT).toString());
+                      collectionQuestionCount.forEach(ms -> {
+                      	if (ms.get(AJEntityBaseReports.MAX_SCORE) != null) {
+                      		this.maxScore = Double.valueOf(ms.get(AJEntityBaseReports.MAX_SCORE).toString());
                       	} else {
-                      		this.questionCount = 0;
+                      		this.maxScore = 0;
                       	}                        
                       });
                       double scoreInPercent=0;
-                      if(this.questionCount > 0){
+                      if(this.maxScore > 0){
                         Object collectionScore = null;
                           collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_SCORE, context.classId(),
                                 context.courseId(), context.unitId(), this.lessonId, assData.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID),this.userId);
                         if(collectionScore != null){
-                          scoreInPercent =  (((double) Double.valueOf(collectionScore.toString()) / this.questionCount) * 100);
+                          scoreInPercent =  (((double) Double.valueOf(collectionScore.toString()) / this.maxScore) * 100);
                         }
                         assData.put(AJEntityBaseReports.ATTR_SCORE, Math.round(scoreInPercent));                        
                       } else {
