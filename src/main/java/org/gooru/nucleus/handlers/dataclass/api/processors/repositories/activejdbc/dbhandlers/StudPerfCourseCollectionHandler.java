@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
@@ -30,7 +29,7 @@ public class StudPerfCourseCollectionHandler implements DBHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(StudPerfCourseCollectionHandler.class);
     private static final String REQUEST_USERID = "userId";
     private final ProcessorContext context;
-    private int questionCount;
+    private double maxScore;
     private String userId;
     private String classId;
     private String courseId;
@@ -154,26 +153,26 @@ public class StudPerfCourseCollectionHandler implements DBHandler {
         	}
         	
       	  
-            List<Map> collectionQuestionCount = null;
-            collectionQuestionCount = Base.findAll(AJEntityBaseReports.GET_COLLECTION_QUESTION_COUNT, this.classId, this.courseId,
+            List<Map> collectionMaximumScore = null;
+            collectionMaximumScore = Base.findAll(AJEntityBaseReports.GET_COLLECTION_MAX_SCORE, this.classId, this.courseId,
                     collId, this.userId);
 
             //If questions are not present then Question Count is always zero, however this additional check needs to be added
             //since during migration of data from 3.0 chances are that QC may be null instead of zero
-            collectionQuestionCount.forEach(qc -> {
-            	if (qc.get(AJEntityBaseReports.QUESTION_COUNT) != null) {
-            		this.questionCount = Integer.valueOf(qc.get(AJEntityBaseReports.QUESTION_COUNT).toString());
+            collectionMaximumScore.forEach(ms -> {
+            	if (ms.get(AJEntityBaseReports.MAX_SCORE) != null) {
+            		this.maxScore = Double.valueOf(ms.get(AJEntityBaseReports.MAX_SCORE).toString());
             	} else {
-            		this.questionCount = 0;
+            		this.maxScore = 0;
             	}
             });
             double scoreInPercent = 0;
-            if (this.questionCount > 0) {
+            if (this.maxScore > 0) {
               Object collectionScore = null;
               collectionScore = Base.firstCell(AJEntityBaseReports.GET_COLLECTION_SCORE, this.classId, this.courseId,
                       collId, this.userId);
               if (collectionScore != null) {
-                scoreInPercent = (((Double.valueOf(collectionScore.toString())) / this.questionCount) * 100);
+                scoreInPercent = (((Double.valueOf(collectionScore.toString())) / this.maxScore) * 100);
               }
               collectionKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(scoreInPercent));
             } else {

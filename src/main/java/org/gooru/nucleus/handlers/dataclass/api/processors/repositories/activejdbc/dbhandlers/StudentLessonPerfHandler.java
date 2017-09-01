@@ -38,7 +38,7 @@ public class StudentLessonPerfHandler implements DBHandler {
     private final ProcessorContext context;
     private String collectionType;
     private String userId;
-    private long questionCount;
+    private double maxScore;
     private boolean isTeacher = false;
     
     public StudentLessonPerfHandler(ProcessorContext context) {
@@ -144,27 +144,27 @@ public class StudentLessonPerfHandler implements DBHandler {
           // FIXME: This logic to be revisited.
           if (this.collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {        	  
             List<Map> collectionQuestionCount = null;
-            collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_QUESTION_COUNT, context.classId(), context.courseId(),
+            collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_MAX_SCORE, context.classId(), context.courseId(),
                     context.unitId(), context.lessonId(), cId , userID);
 
 
             //If questions are not present then Question Count is always zero, however this additional check needs to be added
             //since during migration of data from 3.0 chances are that QC may be null instead of zero
             collectionQuestionCount.forEach(qc -> {
-            	if (qc.get(AJEntityBaseReports.QUESTION_COUNT) != null) {
-            		this.questionCount = Integer.valueOf(qc.get(AJEntityBaseReports.QUESTION_COUNT).toString());
+            	if (qc.get(AJEntityBaseReports.MAX_SCORE) != null) {
+            		this.maxScore = Double.valueOf(qc.get(AJEntityBaseReports.MAX_SCORE).toString());
             	} else {
-            		this.questionCount = 0;
+            		this.maxScore = 0;
             	}              
             });
-            LOGGER.debug("Question Count : " + this.questionCount);
+            LOGGER.debug("Max Score : " + this.maxScore);
             double scoreInPercent = 0;
-            if (this.questionCount > 0) {
+            if (this.maxScore > 0) {
               Object collectionScore = null;
               collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_SCORE, context.classId(), context.courseId(),
                       context.unitId(), context.lessonId(), cId, userID);
               if (collectionScore != null) {
-                scoreInPercent = (((Double.valueOf(collectionScore.toString())) / this.questionCount) * 100);
+                scoreInPercent = (((Double.valueOf(collectionScore.toString())) / this.maxScore) * 100);
               }
               lessonKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(scoreInPercent));
             } else {
