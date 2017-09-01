@@ -144,8 +144,7 @@ public class StudentCollectionSummaryHandler implements DBHandler {
               if(collectionScore != null){
                 scoreInPercent =  (((double) Double.valueOf(collectionScore.toString()) / this.maxScore) * 100);
               }
-            }
-            LOGGER.debug("Collection score : {} - collectionId : {}" , Math.round(scoreInPercent), collectionId);
+            }            
             assessmentData.put(AJEntityBaseReports.SCORE, Math.round(scoreInPercent)); 
             Object collectionReaction = null;
             if (!StringUtil.isNullOrEmpty(classId) && !StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
@@ -191,15 +190,13 @@ public class StudentCollectionSummaryHandler implements DBHandler {
                 		  questions.get(AJEntityBaseReports.RESOURCE_ID),this.userId);
                 }
                 if(!questionScore.isEmpty()){
-                questionScore.forEach(qs ->{
-                    qnData.put(JsonConstants.ANSWER_OBJECT, questions.get(AJEntityBaseReports.ANSWER_OBECT) != null 
-                  		  ? new JsonArray(questions.get(AJEntityBaseReports.ANSWER_OBECT).toString()) : null);
+                questionScore.forEach(qs -> {
+                    qnData.put(JsonConstants.ANSWER_OBJECT, qs.get(AJEntityBaseReports.ANSWER_OBECT) != null 
+                  		  ? new JsonArray(qs.get(AJEntityBaseReports.ANSWER_OBECT).toString()) : null);
                     //Rubrics - Score may be NULL only incase of OE questions
-                    qnData.put(JsonConstants.SCORE, questions.get(AJEntityBaseReports.SCORE) != null ? 
+                    qnData.put(JsonConstants.SCORE, qs.get(AJEntityBaseReports.SCORE) != null ? 
                     		Math.round(Double.valueOf(qs.get(AJEntityBaseReports.SCORE).toString()) * 100) : "NA");
                   qnData.put(EventConstants.ANSWERSTATUS, qs.get(AJEntityBaseReports.ATTR_ATTEMPT_STATUS).toString());
-                  LOGGER.debug("Question Score : {} - resourceId : {}" ,qs.get(AJEntityBaseReports.SCORE).toString(), 
-                		  questions.get(AJEntityBaseReports.RESOURCE_ID));
                 });
                 }
                }
@@ -239,8 +236,7 @@ public class StudentCollectionSummaryHandler implements DBHandler {
           //JsonArray questionsArray = ValueMapper.map(ResponseAttributeIdentifier.getSessionAssessmentQuestionAttributesMap(), assessmentQuestionsKPI);
           assessmentDataKPI.put(JsonConstants.RESOURCES, questionsArray);
           LOGGER.debug("Collection Attributes obtained");
-          contentArray.add(assessmentDataKPI);
-          LOGGER.debug("Done");
+          contentArray.add(assessmentDataKPI);          
         } else {
           LOGGER.info("Collection Attributes cannot be obtained");
         }
