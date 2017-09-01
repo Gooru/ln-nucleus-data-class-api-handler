@@ -143,14 +143,10 @@ public class StudentLessonPerfHandler implements DBHandler {
           
           // FIXME: This logic to be revisited.
           if (this.collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {        	  
-            List<Map> collectionQuestionCount = null;
-            collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_MAX_SCORE, context.classId(), context.courseId(),
+            List<Map> collectionmaxScore = null;
+            collectionmaxScore = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_MAX_SCORE, context.classId(), context.courseId(),
                     context.unitId(), context.lessonId(), cId , userID);
-
-
-            //If questions are not present then Question Count is always zero, however this additional check needs to be added
-            //since during migration of data from 3.0 chances are that QC may be null instead of zero
-            collectionQuestionCount.forEach(qc -> {
+            collectionmaxScore.forEach(qc -> {
             	if (qc.get(AJEntityBaseReports.MAX_SCORE) != null) {
             		this.maxScore = Double.valueOf(qc.get(AJEntityBaseReports.MAX_SCORE).toString());
             	} else {

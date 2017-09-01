@@ -3,6 +3,7 @@ package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activej
 import java.util.List;
 import java.util.Map;
 
+import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.converters.ResponseAttributeIdentifier;
@@ -117,6 +118,17 @@ public class StudentAssessmentSummaryHandler implements DBHandler {
               Object reactionObj = Base.firstCell(AJEntityBaseReports.SELECT_ASSESSMENT_RESOURCE_REACTION, context.collectionId(),
                       sessionId,questions.get(AJEntityBaseReports.RESOURCE_ID).toString());
               qnData.put(JsonConstants.REACTION, reactionObj != null ? ((Number)reactionObj).intValue() : 0);
+              if(qnData.getString(EventConstants.QUESTION_TYPE).equalsIgnoreCase(EventConstants.OPEN_ENDED_QUE)){
+                  Object isGradedObj = Base.firstCell(AJEntityBaseReports.GET_ASMT_OE_QUE_GRADE_STATUS, context.collectionId(),
+                          sessionId, questions.get(AJEntityBaseReports.RESOURCE_ID).toString());
+                  if (isGradedObj != null && (isGradedObj.toString().equalsIgnoreCase("t") || isGradedObj.toString().equalsIgnoreCase("true"))) {
+                	  qnData.put(JsonConstants.IS_GRADED, true);                	  
+                  } else {
+                	  qnData.put(JsonConstants.IS_GRADED, false);                	  
+                  }                  
+                } else {
+                	qnData.put(JsonConstants.IS_GRADED, true);
+                }
               qnData.put(JsonConstants.ANSWER_OBJECT, questions.get(AJEntityBaseReports.ANSWER_OBECT) != null 
             		  ? new JsonArray(questions.get(AJEntityBaseReports.ANSWER_OBECT).toString()) : null);
               //Rubrics - Score should be NULL only incase of OE questions

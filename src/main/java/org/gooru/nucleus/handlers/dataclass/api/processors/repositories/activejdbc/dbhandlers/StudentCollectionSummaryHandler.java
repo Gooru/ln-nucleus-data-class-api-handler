@@ -25,8 +25,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 /**
- * Created by mukul@gooru
- * 
+ * Created by mukul@gooru  
  * Modified by daniel
  */
 
@@ -101,8 +100,6 @@ public class StudentCollectionSummaryHandler implements DBHandler {
           collectionMaximumScore = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_MAX_SCORE_, collectionId,this.userId);
         }
 
-        //If questions are not present then Question Count is always zero, however this additional check needs to be added
-        //since during migration of data from 3.0 chances are that QC may be null instead of zero
         collectionMaximumScore.forEach(ms -> {
         	if (ms.get(AJEntityBaseReports.MAX_SCORE) != null) {
         		this.maxScore = Double.valueOf(ms.get(AJEntityBaseReports.MAX_SCORE).toString());
@@ -115,8 +112,11 @@ public class StudentCollectionSummaryHandler implements DBHandler {
           lastAccessedTime = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_LAST_ACCESSED_TIME, classId,courseId,unitId,lessonId,collectionId,this.userId);
         }else{
           lastAccessedTime = Base.firstCell(AJEntityBaseReports.SELECT_CLASS_COLLECTION_LAST_ACCESSED_TIME, collectionId,this.userId);
+        }        
+        if (lastAccessedTime != null) {
+        	this.lastAccessedTime = Timestamp.valueOf(lastAccessedTime.toString()).getTime();        	
         }
-        this.lastAccessedTime = Timestamp.valueOf(lastAccessedTime.toString()).getTime();
+        
         List<Map> collectionData = null;
         if (!StringUtil.isNullOrEmpty(classId) && !StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
           collectionData = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_AGG_DATA, classId,courseId,unitId,lessonId,collectionId,this.userId);
@@ -187,17 +187,38 @@ public class StudentCollectionSummaryHandler implements DBHandler {
                 if (!StringUtil.isNullOrEmpty(classId) && !StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
                   questionScore = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_QUESTION_AGG_SCORE, classId,courseId,unitId,lessonId,collectionId,questions.get(AJEntityBaseReports.RESOURCE_ID),this.userId);
                 }else{
-                  questionScore = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_QUESTION_AGG_SCORE_, collectionId,questions.get(AJEntityBaseReports.RESOURCE_ID),this.userId);
+                  questionScore = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_QUESTION_AGG_SCORE_, collectionId,
+                		  questions.get(AJEntityBaseReports.RESOURCE_ID),this.userId);
                 }
                 if(!questionScore.isEmpty()){
                 questionScore.forEach(qs ->{
-                  qnData.put(JsonConstants.SCORE, Math.round(Double.valueOf(qs.get(AJEntityBaseReports.SCORE).toString()) * 100));
-                  qnData.put(JsonConstants.ANSWER_OBJECT, new JsonArray(qs.get(AJEntityBaseReports.ANSWER_OBECT).toString()));
+                    qnData.put(JsonConstants.ANSWER_OBJECT, questions.get(AJEntityBaseReports.ANSWER_OBECT) != null 
+                  		  ? new JsonArray(questions.get(AJEntityBaseReports.ANSWER_OBECT).toString()) : null);
+                    //Rubrics - Score may be NULL only incase of OE questions
+                    qnData.put(JsonConstants.SCORE, questions.get(AJEntityBaseReports.SCORE) != null ? 
+                    		Math.round(Double.valueOf(qs.get(AJEntityBaseReports.SCORE).toString()) * 100) : "NA");
                   qnData.put(EventConstants.ANSWERSTATUS, qs.get(AJEntityBaseReports.ATTR_ATTEMPT_STATUS).toString());
-                  LOGGER.debug("Question Score : {} - resourceId : {}" ,qs.get(AJEntityBaseReports.SCORE).toString(), questions.get(AJEntityBaseReports.RESOURCE_ID));
+                  LOGGER.debug("Question Score : {} - resourceId : {}" ,qs.get(AJEntityBaseReports.SCORE).toString(), 
+                		  questions.get(AJEntityBaseReports.RESOURCE_ID));
                 });
                 }
                }
+              //Get grading status for Questions
+              if (!StringUtil.isNullOrEmpty(classId) && !StringUtil.isNullOrEmpty(courseId) && 
+            		  !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
+            	  if(qnData.getString(EventConstants.QUESTION_TYPE).equalsIgnoreCase(EventConstants.OPEN_ENDED_QUE)){
+                      Object isGradedObj = Base.firstCell(AJEntityBaseReports.GET_COLL_OE_QUE_GRADE_STATUS, classId, courseId, 
+                    		  unitId, lessonId, collectionId, questions.get(AJEntityBaseReports.RESOURCE_ID),this.userId);
+                      if (isGradedObj != null && (isGradedObj.toString().equalsIgnoreCase("t") || isGradedObj.toString().equalsIgnoreCase("true"))) {
+                    	  qnData.put(JsonConstants.IS_GRADED, true);                	  
+                      } else {
+                    	  qnData.put(JsonConstants.IS_GRADED, false);                	  
+                      }
+                    } else {
+                    	qnData.put(JsonConstants.IS_GRADED, true);
+                    }  
+              }              
+
               List<Map> resourceReaction = null;
               if (!StringUtil.isNullOrEmpty(classId) && !StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
                 resourceReaction = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_RESOURCE_AGG_REACTION, classId,courseId,unitId,lessonId,collectionId,questions.get(AJEntityBaseReports.RESOURCE_ID),this.userId);

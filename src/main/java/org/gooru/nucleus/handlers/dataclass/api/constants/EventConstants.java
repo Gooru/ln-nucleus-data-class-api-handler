@@ -847,6 +847,8 @@ public class EventConstants {
 	
 	public static final String BOTH = "both";
 	
+	public static final String OPEN_ENDED_QUE = "OE";
+	
 	private EventConstants() {
 		throw new AssertionError();
 	}
