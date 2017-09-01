@@ -306,9 +306,9 @@ public class AJEntityBaseReports extends Model {
             "select  distinct on (resource_id) FIRST_VALUE(score * 100) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score,"
             + "resource_id,FIRST_VALUE(reaction) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS reaction,"
             + "FIRST_VALUE(time_spent) OVER (PARTITION BY resource_id ORDER BY updated_at desc) as resourceTimeSpent,"
-            + "updated_at,session_id,collection_type,"
+            + "updated_at, session_id, collection_type,"
             + "FIRST_VALUE(views) OVER (PARTITION BY resource_id ORDER BY updated_at asc) AS resourceViews, "
-            + "resource_type,question_type,"
+            + "resource_type, question_type,"
             + "FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) as answer_object "
             + "from base_reports WHERE collection_id = ? AND session_id = ? AND event_name = ? ";
     
@@ -1148,6 +1148,14 @@ public class AJEntityBaseReports extends Model {
     		+ "event_name = 'collection.resource.play' AND event_type = 'stop' AND "
     		+ "resource_type = 'question' AND is_graded = 'false' AND resource_attempt_status = 'attempted' AND "
     		+ "grading_type = 'teacher' AND question_type = 'OE') AS q WHERE q.score IS NULL";
+    
+    public static final String GET_ASMT_OE_QUE_GRADE_STATUS = "SELECT is_graded FROM base_reports "
+    		+ "WHERE collection_id = ? AND session_id = ?  and resource_id = ? AND event_name = 'collection.resource.play' "
+    		+ "AND event_type = 'stop'"; 
+    
+    public static final String GET_COLL_OE_QUE_GRADE_STATUS = "SELECT is_graded FROM base_reports "
+    		+ "WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND resource_id = ? "
+            + "AND actor_id = ? AND event_name = 'collection.resource.play' AND event_type = 'stop'"; 
     
    //*************************************************************************************************************************
    //NU Data Reports 

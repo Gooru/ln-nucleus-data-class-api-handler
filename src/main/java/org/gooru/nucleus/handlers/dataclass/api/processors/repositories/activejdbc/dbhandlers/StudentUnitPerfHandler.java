@@ -182,12 +182,12 @@ import io.vertx.core.json.JsonObject;
                     assData.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.valueOf(ass.get(AJEntityBaseReports.ATTR_SCORE).toString())));
                     // FIXME: This logic to be revisited.
                     if (this.collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {
-                      List<Map> collectionQuestionCount = null;
-                        collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_MAX_SCORE, context.classId(),
+                      List<Map> collectionMaxScore = null;
+                        collectionMaxScore = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_MAX_SCORE, context.classId(),
                               context.courseId(), context.unitId(), this.lessonId, assData.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID),this.userId);
                         //If questions are not present then Question Count is always zero, however this additional check needs to be added
                         //since during migration of data from 3.0 chances are that QC may be null instead of zero
-                      collectionQuestionCount.forEach(ms -> {
+                      collectionMaxScore.forEach(ms -> {
                       	if (ms.get(AJEntityBaseReports.MAX_SCORE) != null) {
                       		this.maxScore = Double.valueOf(ms.get(AJEntityBaseReports.MAX_SCORE).toString());
                       	} else {
