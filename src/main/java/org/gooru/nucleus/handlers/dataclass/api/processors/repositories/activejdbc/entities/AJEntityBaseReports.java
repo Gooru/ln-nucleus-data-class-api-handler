@@ -428,8 +428,9 @@ public class AJEntityBaseReports extends Model {
   //Getting RESOURCE DATA (score)
     public static final String SELECT_COLLECTION_QUESTION_AGG_SCORE_ = "SELECT DISTINCT ON (resource_id) "
             + "FIRST_VALUE(score) OVER (PARTITION BY resource_id "
-            + "ORDER BY updated_at desc) AS score,FIRST_VALUE(resource_attempt_status) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS attemptStatus, FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS answer_object "
-            + "FROM base_reports WHERE class_id IS NULL AND course_id IS NULL AND unit_id IS NULL AND lesson_id IS NULL AND collection_id = ? AND resource_id = ?"
+            + "ORDER BY updated_at desc) AS score,FIRST_VALUE(resource_attempt_status) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS attemptStatus, "
+            + "FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS answer_object "
+            + "FROM base_reports WHERE class_id IS NULL AND course_id IS NULL AND unit_id IS NULL AND lesson_id IS NULL AND collection_id = ? AND resource_id = ? "
             + "AND actor_id = ? AND event_name = 'collection.resource.play' AND resource_type = 'question' AND resource_attempt_status <> 'skipped'";
   //Getting RESOURCE DATA (reaction)
     public static final String SELECT_COLLECTION_RESOURCE_AGG_REACTION_ = "SELECT DISTINCT ON (resource_id) "
