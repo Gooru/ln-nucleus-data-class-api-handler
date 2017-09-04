@@ -143,30 +143,25 @@ public class StudentLessonPerfHandler implements DBHandler {
           
           // FIXME: This logic to be revisited.
           if (this.collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {        	  
-            List<Map> collectionmaxScore = null;
-            collectionmaxScore = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_MAX_SCORE, context.classId(), context.courseId(),
+            List<Map> collectionQuestionCount = null;
+            collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_SCORE_AND_MAX_SCORE, context.classId(), context.courseId(),
                     context.unitId(), context.lessonId(), cId , userID);
-            collectionmaxScore.forEach(qc -> {
-            	if (qc.get(AJEntityBaseReports.MAX_SCORE) != null) {
-            		this.maxScore = Double.valueOf(qc.get(AJEntityBaseReports.MAX_SCORE).toString());
-            	} else {
-            		this.maxScore = 0;
-            	}              
+
+
+            //If questions are not present then Question Count is always zero, however this additional check needs to be added
+            //since during migration of data from 3.0 chances are that QC may be null instead of zero
+            collectionQuestionCount.forEach(score -> {
+              double maxScore = Double.valueOf(score.get(AJEntityBaseReports.MAX_SCORE).toString());
+              double sumOfScore = Double.valueOf(score.get(AJEntityBaseReports.SCORE).toString());
+              
+            LOGGER.debug("maxScore : {} , sumOfScore : {} ", maxScore, sumOfScore);
+              if(maxScore>0) {
+                lessonKpi.put(AJEntityBaseReports.ATTR_SCORE,((sumOfScore / maxScore) * 100));
+              }else {    
+                lessonKpi.putNull(AJEntityBaseReports.ATTR_SCORE);
+              }                      
             });
-            LOGGER.debug("Max Score : " + this.maxScore);
-            double scoreInPercent = 0;
-            if (this.maxScore > 0) {
-              Object collectionScore = null;
-              collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_SCORE, context.classId(), context.courseId(),
-                      context.unitId(), context.lessonId(), cId, userID);
-              if (collectionScore != null) {
-                scoreInPercent = (((Double.valueOf(collectionScore.toString())) / this.maxScore) * 100);
-              }
-              lessonKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(scoreInPercent));
-            } else {
-            	//If Collections have No Questions then score should be NULL
-            	lessonKpi.putNull(AJEntityBaseReports.ATTR_SCORE);
-            }            
+                       
             lessonKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, lessonKpi.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID));
             lessonKpi.remove(AJEntityBaseReports.ATTR_ASSESSMENT_ID);
             lessonKpi.put(EventConstants.VIEWS, lessonKpi.getInteger(EventConstants.ATTEMPTS));
