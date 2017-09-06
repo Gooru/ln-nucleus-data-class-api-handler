@@ -36,6 +36,7 @@ public class StudentCollectionSummaryHandler implements DBHandler {
     private String userId;
     private double maxScore = 0 ;
     private long lastAccessedTime;
+    private String sessionId;
     
     public StudentCollectionSummaryHandler(ProcessorContext context) {
         this.context = context;
@@ -107,15 +108,22 @@ public class StudentCollectionSummaryHandler implements DBHandler {
         		this.maxScore = 0;
         	}
         });
-        Object lastAccessedTime = null;
+        
+        List<Map> lastAccessedTime = null;
         if (!StringUtil.isNullOrEmpty(classId) && !StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
-          lastAccessedTime = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_LAST_ACCESSED_TIME, classId,courseId,unitId,lessonId,collectionId,this.userId);
+          lastAccessedTime = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_LAST_ACCESSED_TIME, classId,courseId,unitId,lessonId,collectionId,this.userId);
         }else{
-          lastAccessedTime = Base.firstCell(AJEntityBaseReports.SELECT_CLASS_COLLECTION_LAST_ACCESSED_TIME, collectionId,this.userId);
-        }        
-        if (lastAccessedTime != null) {
-        	this.lastAccessedTime = Timestamp.valueOf(lastAccessedTime.toString()).getTime();        	
-        }
+          lastAccessedTime = Base.findAll(AJEntityBaseReports.SELECT_CLASS_COLLECTION_LAST_ACCESSED_TIME, collectionId,this.userId);
+        }       
+        
+        if (!lastAccessedTime.isEmpty()) {
+        	lastAccessedTime.forEach(l -> {
+        		this.lastAccessedTime = l.get(AJEntityBaseReports.UPDATE_TIMESTAMP) != null ? 
+        				Timestamp.valueOf(l.get(AJEntityBaseReports.UPDATE_TIMESTAMP).toString()).getTime() : null;
+        		this.sessionId = l.get(AJEntityBaseReports.SESSION_ID) != null ? 
+        				l.get(AJEntityBaseReports.SESSION_ID).toString() : "NA";
+            });
+        } 
         
         List<Map> collectionData = null;
         if (!StringUtil.isNullOrEmpty(classId) && !StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
@@ -128,24 +136,27 @@ public class StudentCollectionSummaryHandler implements DBHandler {
           collectionData.stream().forEach(m -> {
             JsonObject assessmentData = ValueMapper.map(ResponseAttributeIdentifier.getSessionCollectionAttributesMap(), m);
             assessmentData.put(EventConstants.EVENT_TIME, this.lastAccessedTime);
-            assessmentData.put(EventConstants.SESSION_ID, EventConstants.NA);
+            assessmentData.put(EventConstants.SESSION_ID, this.sessionId);
             assessmentData.put(EventConstants.RESOURCE_TYPE, AJEntityBaseReports.ATTR_COLLECTION);
             assessmentData.put(JsonConstants.SCORE, Math.round(Double.valueOf(m.get(AJEntityBaseReports.SCORE).toString())));
 
-            double scoreInPercent=0;
-            int reaction=0;
-            if(this.maxScore > 0){
+            //With Rubrics Score can be Null (for FR questions)
+            double scoreInPercent;
+            int reaction=0;            
               Object collectionScore = null;
               if (!StringUtil.isNullOrEmpty(classId) && !StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
                collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_SCORE, classId,courseId,unitId,lessonId,collectionId,this.userId);
               }else{
                collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_SCORE_,collectionId,this.userId);
               }
-              if(collectionScore != null){
+              
+              if(collectionScore != null && (this.maxScore > 0)){
                 scoreInPercent =  (((double) Double.valueOf(collectionScore.toString()) / this.maxScore) * 100);
-              }
-            }            
-            assessmentData.put(AJEntityBaseReports.SCORE, Math.round(scoreInPercent)); 
+                assessmentData.put(AJEntityBaseReports.SCORE, Math.round(scoreInPercent));
+              } else {
+            	  assessmentData.putNull(AJEntityBaseReports.SCORE);
+              }         
+             
             Object collectionReaction = null;
             if (!StringUtil.isNullOrEmpty(classId) && !StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
               collectionReaction = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_REACTION, classId,courseId,unitId,lessonId,collectionId,this.userId);
@@ -180,8 +191,7 @@ public class StudentCollectionSummaryHandler implements DBHandler {
               if(qnData.getString(EventConstants.RESOURCE_TYPE).equalsIgnoreCase(EventConstants.QUESTION)){
                 qnData.put(EventConstants.ANSWERSTATUS, EventConstants.SKIPPED);
               }
-              qnData.put(JsonConstants.SCORE, Math.round(Double.valueOf(questions.get(AJEntityBaseReports.SCORE).toString())));
-              if(this.maxScore > 0){
+              //qnData.put(JsonConstants.SCORE, Math.round(Double.valueOf(questions.get(AJEntityBaseReports.SCORE).toString())));              
                 List<Map> questionScore = null;
                 if (!StringUtil.isNullOrEmpty(classId) && !StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
                   questionScore = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_QUESTION_AGG_SCORE, classId,courseId,unitId,lessonId,collectionId,questions.get(AJEntityBaseReports.RESOURCE_ID),this.userId);
@@ -198,8 +208,7 @@ public class StudentCollectionSummaryHandler implements DBHandler {
                     		Math.round(Double.valueOf(qs.get(AJEntityBaseReports.SCORE).toString()) * 100) : "NA");
                   qnData.put(EventConstants.ANSWERSTATUS, qs.get(AJEntityBaseReports.ATTR_ATTEMPT_STATUS).toString());
                 });
-                }
-               }
+                }               
               //Get grading status for Questions
               if (!StringUtil.isNullOrEmpty(classId) && !StringUtil.isNullOrEmpty(courseId) && 
             		  !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
