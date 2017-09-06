@@ -343,10 +343,10 @@ public class AJEntityBaseReports extends Model {
   //*************************************************************************************************************************
     //Collection Summary report Queries
     //Getting collection question count
-    public static final String SELECT_COLLECTION_LAST_ACCESSED_TIME = "SELECT updated_at FROM base_reports "
+    public static final String SELECT_COLLECTION_LAST_ACCESSED_TIME = "SELECT updated_at, session_id FROM base_reports "
             + "WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND actor_id = ? AND event_name = 'collection.play'"
             + " ORDER BY updated_at DESC LIMIT 1";
-    public static final String SELECT_CLASS_COLLECTION_LAST_ACCESSED_TIME = "SELECT updated_at FROM base_reports "
+    public static final String SELECT_CLASS_COLLECTION_LAST_ACCESSED_TIME = "SELECT updated_at, session_id FROM base_reports "
             + "WHERE collection_id = ? AND actor_id = ? AND event_name = 'collection.play'"
             + " ORDER BY updated_at DESC LIMIT 1";
     //Getting COLLECTION DATA (views, time_spent)
