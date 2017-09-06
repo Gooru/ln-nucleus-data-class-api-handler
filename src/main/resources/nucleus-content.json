@@ -8,14 +8,31 @@
     "jdbcUrl": "jdbc:postgresql://localhost:5432/reports_db",
     "maximumPoolSize": 5
  },
- "redis.config": {
+  "org.gooru.nucleus.handlers.dataclass.api.bootstrap.AuthVerticle":
+  {
+  "redis.config": {
     "host": "localhost",
     "port": 6379,
+    "tcpKeepAlive" : true,
+    "tcpNoDelay" : true,
     "max.size":50,
     "max.idle":10,
     "min.idle":1,
-    "max.wait.millis":30000
+    "max.wait.millis":30000,
+    "sessionTimeoutInSeconds": 3600
+  }
   },
-  "org.gooru.nucleus.handlers.dataclass.api.bootstrap.AuthVerticle":{},
+
+  "redis.config": {
+    "host": "localhost",
+    "port": 6379,
+    "tcpKeepAlive" : true,
+    "tcpNoDelay" : true,
+    "max.size":50,
+    "max.idle":10,
+    "min.idle":1,
+    "max.wait.millis":30000,
+    "sessionTimeoutInSeconds": 3600
+  },
   "org.gooru.nucleus.handlers.dataclass.api.bootstrap.DataClassReadApiVerticle":{}
 }

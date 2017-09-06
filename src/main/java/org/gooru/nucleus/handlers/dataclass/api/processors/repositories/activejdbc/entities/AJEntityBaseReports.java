@@ -161,7 +161,15 @@ public class AJEntityBaseReports extends Model {
             + "unit_id FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND "
             + "collection_type =? AND actor_id = ? AND event_name = ?  AND path_id IS NULL ORDER BY collection_id, updated_at DESC) "
             + "AS unitData GROUP BY unit_id;";
-        
+   
+    
+    public static final String GET_SCORE_FOREACH_UNIT_ID = 
+            "SELECT SUM(score) as score, SUM(max_score) as max_score  FROM "
+            + "(SELECT DISTINCT ON (collection_id,resource_id) unit_id, FIRST_VALUE(score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) "
+            + "AS score,FIRST_VALUE(max_score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS max_score "
+            + "FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ?  "
+            + "AND collection_type =? AND actor_id = ? AND event_name = 'collection.resource.play' "
+            + "AND resource_type = 'question' AND path_id IS NULL) AS lessonData GROUP BY unit_id;";  
     
     //*************************************************************************************************************************
     //String Constants and Queries for STUDENT PERFORMANCE REPORTS IN UNIT    
@@ -213,6 +221,14 @@ public class AJEntityBaseReports extends Model {
             + "FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? "
             + " AND collection_type =? AND actor_id = ? AND event_name = ? AND path_id IS NULL ORDER BY collection_id, updated_at DESC) "
             + "AS lessonData GROUP BY lesson_id;";  
+    
+    public static final String GET_SCORE_FOREACH_LESSON_ID = 
+            "SELECT SUM(score) as score, SUM(max_score) as max_score  FROM "
+            + "(SELECT DISTINCT ON (collection_id,resource_id) lesson_id, FIRST_VALUE(score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) "
+            + "AS score,FIRST_VALUE(max_score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS max_score "
+            + "FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ?  "
+            + "AND collection_type =? AND actor_id = ? AND event_name = 'collection.resource.play' "
+            + "AND resource_type = 'question' AND path_id IS NULL) AS lessonData GROUP BY lesson_id;";  
     
     public static final String SELECT_STUDENT_UNIT_PERF_FOR_ASSESSMENT =
             "SELECT SUM(agg.time_spent) AS timeSpent, "
@@ -355,6 +371,16 @@ public class AJEntityBaseReports extends Model {
             + "FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND actor_id = ? AND "
             + "event_name = 'collection.resource.play' AND resource_type = 'question') AS agg "
             + "GROUP BY agg.collection_id";
+    
+    public static final String SELECT_COLLECTION_SCORE_AND_MAX_SCORE = "SELECT SUM(agg.score) AS score, SUM(agg.max_score) AS max_score FROM "
+            + "(SELECT DISTINCT ON (resource_id) collection_id, "
+            + "FIRST_VALUE(updated_at) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS updated_at, "
+            + "FIRST_VALUE(score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score, "
+            + "FIRST_VALUE(max_score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS max_score "
+            + "FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? "
+            + "AND collection_id = ? AND actor_id = ? AND event_name = 'collection.resource.play' "
+            + "AND resource_type = 'question') AS agg GROUP BY agg.collection_id";
+    
     //Getting COLLECTION DATA (reaction)
     public static final String SELECT_COLLECTION_AGG_REACTION = "SELECT ROUND(AVG(agg.reaction)) AS reaction "
             + "FROM (SELECT DISTINCT ON (resource_id) collection_id,  "

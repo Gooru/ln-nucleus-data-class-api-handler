@@ -16,4 +16,4 @@ include 'api'
 include 'services:webservice'
 */
 
-rootProject.name = 'nucleus-handlers-data-class-api'
+rootProject.name = 'nucleus-data-class-api-handler'

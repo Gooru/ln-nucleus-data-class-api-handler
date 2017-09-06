@@ -133,9 +133,12 @@ import io.vertx.core.json.JsonObject;
                 this.lessonId = m.get(AJEntityBaseReports.ATTR_LESSON_ID).toString();
                 LOGGER.debug("The Value of LESSONID " + lessonId);
                 List<Map> completedCountMap = null;
+                List<Map> scoreMap = null;
                 if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
                   completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLL_COUNT_FOREACH_LESSON_ID, context.classId(),
                         context.courseId(), context.unitId(), this.lessonId, this.collectionType, userID, EventConstants.COLLECTION_PLAY);
+                  scoreMap = Base.findAll(AJEntityBaseReports.GET_SCORE_FOREACH_LESSON_ID, context.classId(),
+                          context.courseId(), context.unitId(), this.lessonId, this.collectionType, userID);
                 }else{
                   completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLLID_COUNT_FOREACH_LESSON_ID, context.classId(),
                           context.courseId(), context.unitId(), this.lessonId, this.collectionType, userID, EventConstants.COLLECTION_PLAY);   
@@ -148,6 +151,21 @@ import io.vertx.core.json.JsonObject;
                   LOGGER.debug("UnitID : {} - UserID : {} - completedCount : {}",lessonId,userID,Integer.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
 
                 });
+                
+                if(scoreMap != null && !scoreMap.isEmpty() && this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
+                  scoreMap.forEach(score ->{
+                    double maxScore = Double.valueOf(score.get(AJEntityBaseReports.MAX_SCORE).toString());
+                    double sumOfScore = Double.valueOf(score.get(AJEntityBaseReports.SCORE).toString());
+                    LOGGER.debug("maxScore : {} , sumOfScore : {} ", maxScore, sumOfScore);
+                    if(maxScore > 0) {
+                      lessonData.put(AJEntityBaseReports.ATTR_SCORE, ((sumOfScore / maxScore) * 100));
+                    }else {    
+                      lessonData.putNull(AJEntityBaseReports.ATTR_SCORE);
+                    }
+                  });
+                }else {    
+                  lessonData.putNull(AJEntityBaseReports.ATTR_SCORE);
+                }
                 // FIXME: Total count will be taken from nucleus core.
                 lessonData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
                 // FIXME : Revisit this logic in future.
@@ -182,31 +200,27 @@ import io.vertx.core.json.JsonObject;
                     assData.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.valueOf(ass.get(AJEntityBaseReports.ATTR_SCORE).toString())));
                     // FIXME: This logic to be revisited.
                     if (this.collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {
-                      List<Map> collectionMaxScore = null;
-                        collectionMaxScore = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_MAX_SCORE, context.classId(),
-                              context.courseId(), context.unitId(), this.lessonId, assData.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID),this.userId);
+                      List<Map> collectionQuestionCount = null;
+                        collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_SCORE_AND_MAX_SCORE, context.classId(),
+                              context.courseId(), context.unitId(), this.lessonId, assData.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID),userID);
                         //If questions are not present then Question Count is always zero, however this additional check needs to be added
                         //since during migration of data from 3.0 chances are that QC may be null instead of zero
-                      collectionMaxScore.forEach(ms -> {
-                      	if (ms.get(AJEntityBaseReports.MAX_SCORE) != null) {
-                      		this.maxScore = Double.valueOf(ms.get(AJEntityBaseReports.MAX_SCORE).toString());
-                      	} else {
-                      		this.maxScore = 0;
-                      	}                        
-                      });
-                      double scoreInPercent=0;
-                      if(this.maxScore > 0){
-                        Object collectionScore = null;
-                          collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_SCORE, context.classId(),
-                                context.courseId(), context.unitId(), this.lessonId, assData.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID),this.userId);
-                        if(collectionScore != null){
-                          scoreInPercent =  (((double) Double.valueOf(collectionScore.toString()) / this.maxScore) * 100);
-                        }
-                        assData.put(AJEntityBaseReports.ATTR_SCORE, Math.round(scoreInPercent));                        
+                      if (collectionQuestionCount != null && !collectionQuestionCount.isEmpty()) {
+                        collectionQuestionCount.forEach(score -> {
+    
+                          double maxScore = Double.valueOf(score.get(AJEntityBaseReports.MAX_SCORE).toString());
+                          double sumOfScore = Double.valueOf(score.get(AJEntityBaseReports.SCORE).toString());
+    
+                          LOGGER.debug("maxScore : {} , sumOfScore : {} ", maxScore, sumOfScore);
+                          if (maxScore > 0) {
+                            assData.put(AJEntityBaseReports.ATTR_SCORE, ((sumOfScore / maxScore) * 100));
+                          } else {
+                            assData.putNull(AJEntityBaseReports.ATTR_SCORE);
+                          }
+                        });
                       } else {
-                      	//If Collections have No Questions then score should be NULL
-                    	  assData.putNull(AJEntityBaseReports.ATTR_SCORE);
-                      }                       
+                        assData.putNull(AJEntityBaseReports.ATTR_SCORE);
+                      }          
                       assData.put(AJEntityBaseReports.ATTR_COLLECTION_ID, assData.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID));
                       assData.remove(AJEntityBaseReports.ATTR_ASSESSMENT_ID);
                       assData.put(EventConstants.VIEWS, assData.getInteger(EventConstants.ATTEMPTS));
