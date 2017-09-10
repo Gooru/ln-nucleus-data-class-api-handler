@@ -38,8 +38,7 @@ class StudentCoursePerfHandler implements DBHandler {
     
 	  private final ProcessorContext context;
     private String collectionType;
-    private String userId;    
-    //For stuffing Json
+    private String userId;
     private String unitId;
 
     public StudentCoursePerfHandler(ProcessorContext context) {
@@ -132,8 +131,6 @@ class StudentCoursePerfHandler implements DBHandler {
               List<Map> scoreMap = null;
 
               if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
-                // FIXME: Score will not be useful in CUL if collection so could
-                // be incorrect from this below query.
                   completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLL_COUNT_FOREACH_UNIT_ID, context.classId(), context.courseId(),
                           unitId, this.collectionType, userID, EventConstants.COLLECTION_PLAY);
                   scoreMap = Base.findAll(AJEntityBaseReports.GET_SCORE_FOREACH_UNIT_ID, context.classId(), context.courseId(),
@@ -146,31 +143,25 @@ class StudentCoursePerfHandler implements DBHandler {
               completedCountMap.forEach(scoreCompletonMap -> {
                 unitData.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT,
                         Integer.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
-                unitData.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE).toString())));
-                LOGGER.debug("UnitID : {} - UserID : {} - Score : {}", unitId, userID,
-                        Math.round(Double.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE).toString())));
-                LOGGER.debug("UnitID : {} - UserID : {} - completedCount : {}", unitId, userID,
-                        Integer.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
-  
+                unitData.put(AJEntityBaseReports.ATTR_SCORE, scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE) != null ? 
+                		Math.round(Double.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE).toString())) : null);
               });
               
               if(scoreMap != null && !scoreMap.isEmpty() && this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
                 scoreMap.forEach(score ->{
-                  double maxScore = Double.valueOf(score.get(AJEntityBaseReports.MAX_SCORE).toString());
-                  double sumOfScore = Double.valueOf(score.get(AJEntityBaseReports.SCORE).toString());
-                  LOGGER.debug("maxScore : {} , sumOfScore : {} ", maxScore, sumOfScore);
-                  if(maxScore > 0) {
-                    unitData.put(AJEntityBaseReports.ATTR_SCORE, ((sumOfScore / maxScore) * 100));
+                  double maxScore = Double.valueOf(score.get(AJEntityBaseReports.MAX_SCORE).toString());                                    
+                  if(maxScore > 0 && (score.get(AJEntityBaseReports.SCORE) != null)) {                	
+                	double sumOfScore = Double.valueOf(score.get(AJEntityBaseReports.SCORE).toString());
+                	LOGGER.debug("maxScore : {} , sumOfScore : {} ", maxScore, sumOfScore);
+                    unitData.put(AJEntityBaseReports.ATTR_SCORE, (Math.round((sumOfScore / maxScore) * 100)));
                   }else {    
                     unitData.putNull(AJEntityBaseReports.ATTR_SCORE);
                   }
                 });
-              }else {
-                unitData.putNull(AJEntityBaseReports.ATTR_SCORE);
               }
+              
               // FIXME: Total count will be taken from nucleus core.
               unitData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
-              // FIXME : Revisit this logic in future.
               if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
                 unitData.put(EventConstants.VIEWS, unitData.getInteger(EventConstants.ATTEMPTS));
                 unitData.remove(EventConstants.ATTEMPTS);
@@ -178,18 +169,10 @@ class StudentCoursePerfHandler implements DBHandler {
               CourseKpiArray.add(unitData);
             });
           } else {
-            LOGGER.info("No data returned for Student Perf in Assessment");
-            // return new
-            // ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(),
-            // ExecutionStatus.FAILED);
-          }
-  
+            LOGGER.info("No data returned for Student Perf in Course");            
+          }  
         } else {
           LOGGER.info("Could not get Student Course Performance");
-          // Return an empty resultBody instead of an Error
-          // return new
-          // ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(),
-          // ExecutionStatus.FAILED);
         }
   
         // Form the required Json pass it on
