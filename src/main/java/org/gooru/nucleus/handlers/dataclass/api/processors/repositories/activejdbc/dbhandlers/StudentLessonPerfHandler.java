@@ -27,7 +27,8 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 /**
- * Created by mukul@gooru Modified by Daniel
+ * Created by mukul@gooru 
+ * Modified by Daniel
  */
 
 public class StudentLessonPerfHandler implements DBHandler {
@@ -126,7 +127,6 @@ public class StudentLessonPerfHandler implements DBHandler {
       if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
         assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF_FOR_COLLECTION, context.classId(), context.courseId(),
                 context.unitId(), context.lessonId(), listToPostgresArrayString(collIds), userID);
-
       } else {
         assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF_FOR_ASSESSMENT, context.classId(), context.courseId(),
                 context.unitId(), context.lessonId(), listToPostgresArrayString(collIds), userID, EventConstants.COLLECTION_PLAY);
@@ -146,28 +146,24 @@ public class StudentLessonPerfHandler implements DBHandler {
             List<Map> collectionQuestionCount = null;
             collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_SCORE_AND_MAX_SCORE, context.classId(), context.courseId(),
                     context.unitId(), context.lessonId(), cId , userID);
-
-
-            //If questions are not present then Question Count is always zero, however this additional check needs to be added
-            //since during migration of data from 3.0 chances are that QC may be null instead of zero
             collectionQuestionCount.forEach(score -> {
-              double maxScore = Double.valueOf(score.get(AJEntityBaseReports.MAX_SCORE).toString());
-              double sumOfScore = Double.valueOf(score.get(AJEntityBaseReports.SCORE).toString());
-              
-            LOGGER.debug("maxScore : {} , sumOfScore : {} ", maxScore, sumOfScore);
-              if(maxScore>0) {
-                lessonKpi.put(AJEntityBaseReports.ATTR_SCORE,((sumOfScore / maxScore) * 100));
-              }else {    
+              double maxScore = Double.valueOf(score.get(AJEntityBaseReports.MAX_SCORE).toString());                    
+              if(maxScore > 0 && (score.get(AJEntityBaseReports.SCORE) != null)) {
+              	double sumOfScore = Double.valueOf(score.get(AJEntityBaseReports.SCORE).toString());
+                	LOGGER.debug("maxScore : {} , sumOfScore : {} ", maxScore, sumOfScore);                  	
+                  lessonKpi.put(AJEntityBaseReports.ATTR_SCORE, ((sumOfScore / maxScore) * 100));
+              } else {    
                 lessonKpi.putNull(AJEntityBaseReports.ATTR_SCORE);
               }                      
             });
-                       
+            
             lessonKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, lessonKpi.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID));
             lessonKpi.remove(AJEntityBaseReports.ATTR_ASSESSMENT_ID);
             lessonKpi.put(EventConstants.VIEWS, lessonKpi.getInteger(EventConstants.ATTEMPTS));
             lessonKpi.remove(EventConstants.ATTEMPTS);
           }else{
-            lessonKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.valueOf(m.get(AJEntityBaseReports.ATTR_SCORE).toString())));
+            lessonKpi.put(AJEntityBaseReports.ATTR_SCORE, m.get(AJEntityBaseReports.ATTR_SCORE) != null ? 
+            		Math.round(Double.valueOf(m.get(AJEntityBaseReports.ATTR_SCORE).toString())) : null);
             if (!isTeacher){
             	List<Map> resourceKpi = null;                            
                 resourceKpi = Base.findAll(AJEntityBaseReports.GET_RESOURCE_PERF, context.classId(), context.courseId(),
@@ -184,12 +180,10 @@ public class StudentLessonPerfHandler implements DBHandler {
                       });            	
                 }            	
             }
-            
           }
           LessonKpiArray.add(lessonKpi);
         });
       } else {
-        // Return an empty resultBody instead of an Error
         LOGGER.debug("No data returned for Student Perf in Assessment");
       }
       contentBody.put(JsonConstants.USAGE_DATA, LessonKpiArray).put(JsonConstants.ALTERNATE_PATH, altPathArray).put(JsonConstants.USERUID, userID);

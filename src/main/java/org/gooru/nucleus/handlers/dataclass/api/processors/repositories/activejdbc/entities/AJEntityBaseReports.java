@@ -152,7 +152,7 @@ public class AJEntityBaseReports extends Model {
     		+ "unit_id FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND "
     		+ "collection_type =? AND actor_id = ? AND event_name = ? AND event_type = 'stop' AND path_id IS NULL "
     		+ "ORDER BY collection_id, updated_at DESC) "
-    		+ "AS unitData GROUP BY unit_id;";
+    		+ "AS unitData GROUP BY unit_id";
     
     public static final String GET_COMPLETED_COLL_COUNT_FOREACH_UNIT_ID = 
             "SELECT SUM(unitData.completion) AS completedCount, (AVG(scoreInPercentage)) scoreInPercentage FROM "
@@ -160,7 +160,7 @@ public class AJEntityBaseReports extends Model {
             + "FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage,"
             + "unit_id FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND "
             + "collection_type =? AND actor_id = ? AND event_name = ?  AND path_id IS NULL ORDER BY collection_id, updated_at DESC) "
-            + "AS unitData GROUP BY unit_id;";
+            + "AS unitData GROUP BY unit_id";
    
     
     public static final String GET_SCORE_FOREACH_UNIT_ID = 
@@ -169,7 +169,7 @@ public class AJEntityBaseReports extends Model {
             + "AS score,FIRST_VALUE(max_score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS max_score "
             + "FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ?  "
             + "AND collection_type =? AND actor_id = ? AND event_name = 'collection.resource.play' "
-            + "AND resource_type = 'question' AND path_id IS NULL) AS lessonData GROUP BY unit_id;";  
+            + "AND resource_type = 'question' AND path_id IS NULL) AS lessonData GROUP BY unit_id";  
     
     //*************************************************************************************************************************
     //String Constants and Queries for STUDENT PERFORMANCE REPORTS IN UNIT    

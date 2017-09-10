@@ -83,14 +83,12 @@ import io.vertx.core.json.JsonObject;
     
         JsonObject resultBody = new JsonObject();
         JsonArray resultarray = new JsonArray();
-    
-        // TODO Confirm if collType is optional. In which case we need not check for
-        // null or Empty (and probably send data for both)
+
         this.collectionType = this.context.request().getString(REQUEST_COLLECTION_TYPE);
         if (StringUtil.isNullOrEmpty(collectionType)) {
-          LOGGER.warn("CollectionType is mandatory to fetch Student Performance in Course");
+          LOGGER.warn("CollectionType is mandatory to fetch Student Performance in Units");
           return new ExecutionResult<>(
-                  MessageResponseFactory.createInvalidRequestResponse("CollectionType Missing. Cannot fetch Student Performance in course"),
+                  MessageResponseFactory.createInvalidRequestResponse("CollectionType Missing. Cannot fetch Student Performance in Units"),
                   ExecutionStatus.FAILED);
         }
         LOGGER.debug("Collection Type is " + this.collectionType);
@@ -100,7 +98,7 @@ import io.vertx.core.json.JsonObject;
         List<String> userIds = new ArrayList<>();
         List<String> lessonIds = new ArrayList<>();
         if (StringUtil.isNullOrEmpty(userId)) {
-          LOGGER.warn("UserID is not in the request to fetch Student Performance in Course. Asseume user is a teacher");
+          LOGGER.warn("UserID is not in the request to fetch Student Performance in Units. Assume user is a teacher");
           LazyList<AJEntityBaseReports> userIdforUnit =
                   AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_UNIT_ID_FITLERBY_COLLTYPE, context.classId(),
                           context.courseId(), context.unitId(), this.collectionType);
@@ -146,26 +144,25 @@ import io.vertx.core.json.JsonObject;
                 JsonObject lessonData = ValueMapper.map(ResponseAttributeIdentifier.getUnitPerformanceAttributesMap(), m);
                 completedCountMap.forEach( scoreCompletonMap -> {
                   lessonData.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, Integer.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
-                  lessonData.put(AJEntityBaseReports.ATTR_SCORE,  Math.round(Double.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE).toString())));
-                  LOGGER.debug("UnitID : {} - UserID : {} - Score : {}",lessonId,userID, Math.round(Double.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE).toString())));
-                  LOGGER.debug("UnitID : {} - UserID : {} - completedCount : {}",lessonId,userID,Integer.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
-
+                  lessonData.put(AJEntityBaseReports.ATTR_SCORE,  scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE) != null ? 
+                		  Math.round(Double.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE).toString())) : null);
                 });
                 
                 if(scoreMap != null && !scoreMap.isEmpty() && this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
                   scoreMap.forEach(score ->{
-                    double maxScore = Double.valueOf(score.get(AJEntityBaseReports.MAX_SCORE).toString());
-                    double sumOfScore = Double.valueOf(score.get(AJEntityBaseReports.SCORE).toString());
-                    LOGGER.debug("maxScore : {} , sumOfScore : {} ", maxScore, sumOfScore);
-                    if(maxScore > 0) {
-                      lessonData.put(AJEntityBaseReports.ATTR_SCORE, ((sumOfScore / maxScore) * 100));
-                    }else {    
-                      lessonData.putNull(AJEntityBaseReports.ATTR_SCORE);
-                    }
+                    double maxScore = Double.valueOf(score.get(AJEntityBaseReports.MAX_SCORE).toString());                    
+                    if(maxScore > 0 && (score.get(AJEntityBaseReports.SCORE) != null)) {
+                    	double sumOfScore = Double.valueOf(score.get(AJEntityBaseReports.SCORE).toString());
+                      	LOGGER.debug("maxScore : {} , sumOfScore : {} ", maxScore, sumOfScore);                  	
+                        lessonData.put(AJEntityBaseReports.ATTR_SCORE, Math.round((sumOfScore / maxScore) * 100));
+                    } else {
+                    	lessonData.putNull(AJEntityBaseReports.ATTR_SCORE);
+                    }                     
                   });
-                }else {    
-                  lessonData.putNull(AJEntityBaseReports.ATTR_SCORE);
                 }
+//                else {    
+//                  lessonData.putNull(AJEntityBaseReports.ATTR_SCORE);
+//                }
                 // FIXME: Total count will be taken from nucleus core.
                 lessonData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
                 // FIXME : Revisit this logic in future.
@@ -197,23 +194,21 @@ import io.vertx.core.json.JsonObject;
                     // FIXME : revisit completed count and total count
                     assData.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 1);
                     assData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
-                    assData.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.valueOf(ass.get(AJEntityBaseReports.ATTR_SCORE).toString())));
+                    assData.put(AJEntityBaseReports.ATTR_SCORE, ass.get(AJEntityBaseReports.ATTR_SCORE) != null ? 
+                    		Math.round(Double.valueOf(ass.get(AJEntityBaseReports.ATTR_SCORE).toString())) : null);
                     // FIXME: This logic to be revisited.
                     if (this.collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {
                       List<Map> collectionQuestionCount = null;
                         collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_SCORE_AND_MAX_SCORE, context.classId(),
                               context.courseId(), context.unitId(), this.lessonId, assData.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID),userID);
-                        //If questions are not present then Question Count is always zero, however this additional check needs to be added
-                        //since during migration of data from 3.0 chances are that QC may be null instead of zero
+
                       if (collectionQuestionCount != null && !collectionQuestionCount.isEmpty()) {
-                        collectionQuestionCount.forEach(score -> {
-    
+                        collectionQuestionCount.forEach(score -> {    
                           double maxScore = Double.valueOf(score.get(AJEntityBaseReports.MAX_SCORE).toString());
-                          double sumOfScore = Double.valueOf(score.get(AJEntityBaseReports.SCORE).toString());
-    
-                          LOGGER.debug("maxScore : {} , sumOfScore : {} ", maxScore, sumOfScore);
-                          if (maxScore > 0) {
-                            assData.put(AJEntityBaseReports.ATTR_SCORE, ((sumOfScore / maxScore) * 100));
+                          if(maxScore > 0 && (score.get(AJEntityBaseReports.SCORE) != null)) {                	
+                        	double sumOfScore = Double.valueOf(score.get(AJEntityBaseReports.SCORE).toString());
+                        	LOGGER.debug("maxScore : {} , sumOfScore : {} ", maxScore, sumOfScore);
+                            assData.put(AJEntityBaseReports.ATTR_SCORE, Math.round((sumOfScore / maxScore) * 100));
                           } else {
                             assData.putNull(AJEntityBaseReports.ATTR_SCORE);
                           }
@@ -230,22 +225,14 @@ import io.vertx.core.json.JsonObject;
                   });
                 }
                 lessonData.put(JsonConstants.SOURCELIST, assessmentArray);
-                UnitKpiArray.add(lessonData);
-    
+                UnitKpiArray.add(lessonData);    
               });
             } else {
-              LOGGER.info("No data returned for Student Perf in Assessment");
-              // return new
-              // ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(),
-              // ExecutionStatus.FAILED);
+              LOGGER.info("No data returned for Student Perf in Units");
             }
     
           } else {
             LOGGER.info("Could not get Student Unit Performance");
-            // Return an empty resultBody instead of an Error
-            // return new
-            // ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(),
-            // ExecutionStatus.FAILED);
           }
     
           contentBody.put(JsonConstants.USAGE_DATA, UnitKpiArray).put(JsonConstants.USERUID, userID);
