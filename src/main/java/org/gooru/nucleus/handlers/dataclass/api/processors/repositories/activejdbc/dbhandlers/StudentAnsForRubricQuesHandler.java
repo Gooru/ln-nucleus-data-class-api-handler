@@ -69,7 +69,6 @@ public class StudentAnsForRubricQuesHandler implements DBHandler {
 	  @SuppressWarnings("rawtypes")
 	public ExecutionResult<MessageResponse> executeRequest() {
 	  JsonObject result = new JsonObject();
-	  JsonArray resultarray = new JsonArray();
 	  baseReport = new AJEntityBaseReports();
 
 	  this.classId = this.context.request().getString(MessageConstants.CLASS_ID);      
@@ -104,15 +103,15 @@ public class StudentAnsForRubricQuesHandler implements DBHandler {
 		
 		if (!ansMap.isEmpty()){
 			  ansMap.forEach(m -> {		        
-		    result.put(AJEntityBaseReports.ATTR_COURSE_ID, m.get(AJEntityBaseReports.COURSE_GOORU_OID) != null ? 
-		    		m.get(AJEntityBaseReports.COURSE_GOORU_OID).toString() : null);		    
-		    result.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collectionId );
-		    result.put(AJEntityBaseReports.ATTR_RESOURCE_ID, context.questionId());
+		    result.put(AJEntityBaseReports.ATTR_COURSE_ID, this.courseId);		    
+		    result.put(AJEntityBaseReports.ATTR_COLLECTION_ID, this.collectionId );
+		    result.put(AJEntityBaseReports.ATTR_QUESTION_ID, context.questionId());
 		    result.put(AJEntityBaseReports.ATTR_QUESTION_TEXT, "NA");
-		    result.put(AJEntityBaseReports.ATTR_ANSWER_TEXT, m.get(AJEntityBaseReports.COURSE_GOORU_OID) != null ? 
-		    		m.get(AJEntityBaseReports.COURSE_GOORU_OID).toString() : null);
+		    result.put(AJEntityBaseReports.ATTR_ANSWER_TEXT, m.get(AJEntityBaseReports.ATTR_ANSWER_TEXT) != null ? 
+		    		new JsonArray(m.get(AJEntityBaseReports.ATTR_ANSWER_TEXT).toString()) : null);
 		    result.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.parseLong(m.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()));
-		    result.put(AJEntityBaseReports.SUBMITTED_AT, (m.get(AJEntityBaseReports.UPDATE_TIMESTAMP).toString()));		    
+		    result.put(AJEntityBaseReports.SUBMITTED_AT, (m.get(AJEntityBaseReports.SUBMITTED_AT).toString()));
+		    result.put(AJEntityBaseReports.SESSION_ID, (m.get(AJEntityBaseReports.SESSION_ID).toString()));
 		  });
 
 			} else {            
@@ -128,27 +127,6 @@ public class StudentAnsForRubricQuesHandler implements DBHandler {
 	  @Override
 	  public boolean handlerReadOnly() {
 	      return true;
-	  }
-	  private String listToPostgresArrayString(List<String> input) {
-	    int approxSize = ((input.size() + 1) * 36); // Length of UUID is around
-	                                                // 36
-	                                                // chars
-	    Iterator<String> it = input.iterator();
-	    if (!it.hasNext()) {
-	      return "{}";
-	    }
-
-	    StringBuilder sb = new StringBuilder(approxSize);
-	    sb.append('{');
-	    for (;;) {
-	      String s = it.next();
-	      sb.append('"').append(s).append('"');
-	      if (!it.hasNext()) {
-	        return sb.append('}').toString();
-	      }
-	      sb.append(',');
-	    }
-
 	  }
 
 }

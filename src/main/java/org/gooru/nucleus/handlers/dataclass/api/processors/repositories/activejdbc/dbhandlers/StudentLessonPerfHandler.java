@@ -27,7 +27,8 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 /**
- * Created by mukul@gooru Modified by Daniel
+ * Created by mukul@gooru 
+ * Modified by Daniel
  */
 
 public class StudentLessonPerfHandler implements DBHandler {
@@ -38,7 +39,7 @@ public class StudentLessonPerfHandler implements DBHandler {
     private final ProcessorContext context;
     private String collectionType;
     private String userId;
-    private long questionCount;
+    private double maxScore;
     private boolean isTeacher = false;
     
     public StudentLessonPerfHandler(ProcessorContext context) {
@@ -126,7 +127,6 @@ public class StudentLessonPerfHandler implements DBHandler {
       if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
         assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF_FOR_COLLECTION, context.classId(), context.courseId(),
                 context.unitId(), context.lessonId(), listToPostgresArrayString(collIds), userID);
-
       } else {
         assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF_FOR_ASSESSMENT, context.classId(), context.courseId(),
                 context.unitId(), context.lessonId(), listToPostgresArrayString(collIds), userID, EventConstants.COLLECTION_PLAY);
@@ -144,39 +144,26 @@ public class StudentLessonPerfHandler implements DBHandler {
           // FIXME: This logic to be revisited.
           if (this.collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {        	  
             List<Map> collectionQuestionCount = null;
-            collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_QUESTION_COUNT, context.classId(), context.courseId(),
+            collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_SCORE_AND_MAX_SCORE, context.classId(), context.courseId(),
                     context.unitId(), context.lessonId(), cId , userID);
-
-
-            //If questions are not present then Question Count is always zero, however this additional check needs to be added
-            //since during migration of data from 3.0 chances are that QC may be null instead of zero
-            collectionQuestionCount.forEach(qc -> {
-            	if (qc.get(AJEntityBaseReports.QUESTION_COUNT) != null) {
-            		this.questionCount = Integer.valueOf(qc.get(AJEntityBaseReports.QUESTION_COUNT).toString());
-            	} else {
-            		this.questionCount = 0;
-            	}              
+            collectionQuestionCount.forEach(score -> {
+              double maxScore = Double.valueOf(score.get(AJEntityBaseReports.MAX_SCORE).toString());                    
+              if(maxScore > 0 && (score.get(AJEntityBaseReports.SCORE) != null)) {
+              	double sumOfScore = Double.valueOf(score.get(AJEntityBaseReports.SCORE).toString());
+                	LOGGER.debug("maxScore : {} , sumOfScore : {} ", maxScore, sumOfScore);                  	
+                  lessonKpi.put(AJEntityBaseReports.ATTR_SCORE, ((sumOfScore / maxScore) * 100));
+              } else {    
+                lessonKpi.putNull(AJEntityBaseReports.ATTR_SCORE);
+              }                      
             });
-            LOGGER.debug("Question Count : " + this.questionCount);
-            double scoreInPercent = 0;
-            if (this.questionCount > 0) {
-              Object collectionScore = null;
-              collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_SCORE, context.classId(), context.courseId(),
-                      context.unitId(), context.lessonId(), cId, userID);
-              if (collectionScore != null) {
-                scoreInPercent = (((Double.valueOf(collectionScore.toString())) / this.questionCount) * 100);
-              }
-              lessonKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(scoreInPercent));
-            } else {
-            	//If Collections have No Questions then score should be NULL
-            	lessonKpi.putNull(AJEntityBaseReports.ATTR_SCORE);
-            }            
+            
             lessonKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, lessonKpi.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID));
             lessonKpi.remove(AJEntityBaseReports.ATTR_ASSESSMENT_ID);
             lessonKpi.put(EventConstants.VIEWS, lessonKpi.getInteger(EventConstants.ATTEMPTS));
             lessonKpi.remove(EventConstants.ATTEMPTS);
           }else{
-            lessonKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.valueOf(m.get(AJEntityBaseReports.ATTR_SCORE).toString())));
+            lessonKpi.put(AJEntityBaseReports.ATTR_SCORE, m.get(AJEntityBaseReports.ATTR_SCORE) != null ? 
+            		Math.round(Double.valueOf(m.get(AJEntityBaseReports.ATTR_SCORE).toString())) : null);
             if (!isTeacher){
             	List<Map> resourceKpi = null;                            
                 resourceKpi = Base.findAll(AJEntityBaseReports.GET_RESOURCE_PERF, context.classId(), context.courseId(),
@@ -193,12 +180,10 @@ public class StudentLessonPerfHandler implements DBHandler {
                       });            	
                 }            	
             }
-            
           }
           LessonKpiArray.add(lessonKpi);
         });
       } else {
-        // Return an empty resultBody instead of an Error
         LOGGER.debug("No data returned for Student Perf in Assessment");
       }
       contentBody.put(JsonConstants.USAGE_DATA, LessonKpiArray).put(JsonConstants.ALTERNATE_PATH, altPathArray).put(JsonConstants.USERUID, userID);

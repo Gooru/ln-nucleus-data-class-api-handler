@@ -104,14 +104,15 @@ public ExecutionResult<MessageResponse> executeRequest() {
     JsonObject que = new JsonObject();    
     que.put(AJEntityBaseReports.ATTR_UNIT_ID, m.get(AJEntityBaseReports.UNIT_GOORU_OID) != null ? m.get(AJEntityBaseReports.UNIT_GOORU_OID).toString() : null);
     que.put(AJEntityBaseReports.ATTR_LESSON_ID, m.get(AJEntityBaseReports.LESSON_GOORU_OID) != null ? m.get(AJEntityBaseReports.LESSON_GOORU_OID).toString() : null);
+    que.put(AJEntityBaseReports.ATTR_COLLECTION_TYPE, m.get(AJEntityBaseReports.COLLECTION_TYPE).toString());
     String collectionId = m.get(AJEntityBaseReports.COLLECTION_OID).toString();
     que.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collectionId );
     String resourceId = m.get(AJEntityBaseReports.RESOURCE_ID).toString();
     que.put(AJEntityBaseReports.ATTR_RESOURCE_ID, resourceId);
     int studentCount = 0;
     Object sc = null;
-    sc = Base.firstCell(AJEntityBaseReports.GET_STUDENT_COUNT, this.classId, this.courseId, 
-            collectionId);
+    sc = Base.firstCell(AJEntityBaseReports.GET_STUDENT_COUNT_FOR_QUESTIONS, this.classId, this.courseId, 
+            collectionId, resourceId);
     if (sc != null) {
       studentCount = Integer.valueOf(sc.toString());
     }

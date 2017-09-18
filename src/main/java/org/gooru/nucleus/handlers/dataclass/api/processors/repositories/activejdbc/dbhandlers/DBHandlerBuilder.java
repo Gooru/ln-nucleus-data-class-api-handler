@@ -1,8 +1,6 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
-import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.transactions.TransactionExecutor;
-import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 
 /**
  * Created by mukul@gooru
@@ -196,6 +194,10 @@ public final class DBHandlerBuilder {
     	return new StudentAnsForRubricQuesHandler(context);
     }
     
+    public static DBHandler buildRubricSummaryforQueHandler(ProcessorContext context) {
+    	return new RubricQuestionSummaryHandler(context);
+    }
+    
     //DCA
         
     public static DBHandler buildStudPerfDailyClassActivityHandler(ProcessorContext context) {
@@ -212,6 +214,14 @@ public final class DBHandlerBuilder {
     
     public static DBHandler buildDCASessionTaxonomyReportHandler(ProcessorContext context) {
     	return new DCASessionTaxonomyReportHandler(context);
+    }
+    
+    public static DBHandler getDataReports(ProcessorContext context) {
+      return new DataReportsHandler(context);
+    }
+
+    public static DBHandler getCoursesComptencyCompletion(ProcessorContext context) {
+      return new CoursesCompetencyCompletionHandler(context);
     }
 }
 

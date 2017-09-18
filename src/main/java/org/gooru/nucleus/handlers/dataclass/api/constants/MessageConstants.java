@@ -53,7 +53,9 @@ public final class MessageConstants {
     public static final String COLLECTION = "collection";
     //Rubric Grading
     public static final String STUDENT_ID = "student_id";
+    public static final String STUDENTID = "studentId";
     public static final String QUESTION_ID = "question_id";
+    
     
     // Read API Constants
     public static final String MSG_OP_COURSE_PEERS = "student.peers.in.course";    
@@ -111,6 +113,7 @@ public final class MessageConstants {
     public static final String MSG_OP_RUBRICS_QUESTIONS_TO_GRADE = "rubric.questions.to.grade";
     public static final String MSG_OP_RUBRIC_QUESTIONS_STUDENTS_LIST = "rubric.questions.students.list";
     public static final String MSG_OP_RUBRIC_QUESTIONS_STUDENT_ANSWERS = "rubric.questions.student.answers";
+    public static final String MSG_OP_RUBRIC_QUESTIONS_GRADE_SUMMARY = "rubric.questions.grade.summary";
     
     //DCA
     public static final String MSG_OP_DCA_STUDENT_COLLECTION_SUMMARY = "dca.student.collection.summary";
@@ -118,6 +121,10 @@ public final class MessageConstants {
     public static final String MSG_OP_STUDENT_PERF_DAILY_CLASS_ACTIVITY = "student.daily.class.activity.performance";
     public static final String MSG_OP_DCA_SESSION_TAXONOMY_REPORT = "dca.session.taxonomy.report";
     
+    //DATA REPORTS
+    public static final String MSG_OP_NU_DATA_REPORT = "nu.data.report";
+    public static final String MSG_OP_NU_COURSES_COMPETENCY_COMPLETION = "nu.courses.competency.completion";
+
     public static final String PORT = "port";
     public static final String HOST = "host";
     public static final String REDIS = "redis.config";

@@ -101,14 +101,20 @@ public interface ReportRepo {
     
     MessageResponse getStudentAnswersForRubricQuestion();
     
+    MessageResponse getRubricSummaryforQuestion();
+    
     //DCA
     MessageResponse getStudPerfDailyClassActivity();
     
     MessageResponse getStudentSummaryInDCACollection();
 	
-	MessageResponse getStudentSummaryInDCAAssessment();
+    MessageResponse getStudentSummaryInDCAAssessment();
 	
-	MessageResponse getDCASessionTaxonomyReport();
+    MessageResponse getDCASessionTaxonomyReport();
+    
+    MessageResponse getDataReports();
+       
+    MessageResponse getCoursesComptencyCompletion();
 
     
         

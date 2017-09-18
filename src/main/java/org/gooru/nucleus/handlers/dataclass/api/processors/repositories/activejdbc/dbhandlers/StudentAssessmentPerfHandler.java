@@ -105,12 +105,12 @@ public class StudentAssessmentPerfHandler implements DBHandler {
     LOGGER.debug("UID is " + this.userId);
 
     for (String userID : userIds) {
-      JsonObject contentBody = new JsonObject();
       List<Map> studentLatestAttempt = null;
       studentLatestAttempt = Base.findAll(AJEntityBaseReports.GET_LATEST_COMPLETED_SESSION_ID, context.classId(), context.courseId(),
               context.unitId(), context.lessonId(), context.collectionId(), userID);
 
       if (!studentLatestAttempt.isEmpty()) {
+        JsonObject contentBody = new JsonObject();
         studentLatestAttempt.forEach(attempts -> {
           List<Map> assessmentQuestionsKPI = Base.findAll(AJEntityBaseReports.SELECT_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSION_ID,context.collectionId(),
                   attempts.get(AJEntityBaseReports.SESSION_ID).toString(), AJEntityBaseReports.ATTR_CRP_EVENTNAME);
@@ -119,23 +119,26 @@ public class StudentAssessmentPerfHandler implements DBHandler {
           if (!assessmentQuestionsKPI.isEmpty()) {
             assessmentQuestionsKPI.stream().forEach(questions -> {
               JsonObject qnData = ValueMapper.map(ResponseAttributeIdentifier.getSessionAssessmentQuestionAttributesMap(), questions);
-              // FIXME :: This is to be revisited. We should alter the schema
-              // column type from TEXT to JSONB. After this change we can remove
-              // this logic
-              qnData.put(JsonConstants.ANSWER_OBJECT, new JsonArray(questions.get(AJEntityBaseReports.ANSWER_OBECT).toString()));
               // FIXME :: it can be removed once we fix writer code.
-              qnData.put(JsonConstants.RESOURCE_TYPE, JsonConstants.QUESTION);
-              qnData.put(JsonConstants.SCORE, Math.round(Double.valueOf(questions.get(AJEntityBaseReports.SCORE).toString())));
+              qnData.put(JsonConstants.RESOURCE_TYPE, JsonConstants.QUESTION);              
+              //********
+              qnData.put(JsonConstants.ANSWER_OBJECT, questions.get(AJEntityBaseReports.ANSWER_OBECT) != null 
+            		  ? new JsonArray(questions.get(AJEntityBaseReports.ANSWER_OBECT).toString()) : null);
+              //Rubrics - Score should be NULL only incase of OE questions
+              qnData.put(JsonConstants.SCORE, questions.get(AJEntityBaseReports.SCORE) != null ? 
+            		  Math.round(Double.valueOf(questions.get(AJEntityBaseReports.SCORE).toString())) : "NA");              
+              //*********
+              
               questionsArray.add(qnData);
             });
           }
           contentBody.put(JsonConstants.USAGE_DATA, questionsArray).put(JsonConstants.USERUID, userID);
         });
+        resultarray.add(contentBody);
       } else {
         // Return an empty resultBody instead of an Error
         LOGGER.debug("No data returned for Student Perf in Assessment");
       }
-      resultarray.add(contentBody);
     }
     resultBody.put(JsonConstants.CONTENT, resultarray).putNull(JsonConstants.MESSAGE).putNull(JsonConstants.PAGINATE);
 

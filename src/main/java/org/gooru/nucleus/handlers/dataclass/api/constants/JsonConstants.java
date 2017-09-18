@@ -95,4 +95,8 @@ public class JsonConstants {
   	public static final String GRADE_ITEMS = "gradeItems";
   	
   	public static final String STUDENTS = "students";
+  	
+  	public static final String QUE_RUBRICS = "queRubrics";
+  	
+  	public static final String IS_GRADED = "isGraded";
 }

@@ -25,8 +25,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 /**
- * Created by mukul@gooru
- * 
+ * Created by mukul@gooru  
  * Modified by daniel
  */
 
@@ -35,8 +34,9 @@ public class StudentCollectionSummaryHandler implements DBHandler {
 	  private static final Logger LOGGER = LoggerFactory.getLogger(StudentCollectionSummaryHandler.class);
     private final ProcessorContext context;
     private String userId;
-    private int questionCount = 0 ;
+    private double maxScore = 0 ;
     private long lastAccessedTime;
+    private String sessionId;
     
     public StudentCollectionSummaryHandler(ProcessorContext context) {
         this.context = context;
@@ -94,23 +94,37 @@ public class StudentCollectionSummaryHandler implements DBHandler {
       
       LOGGER.debug("cID : {} , ClassID : {} ", collectionId, classId);  
         //Getting Question Count 
-        List<Map> collectionQuestionCount = null;
+        List<Map> collectionMaximumScore = null;
         if (!StringUtil.isNullOrEmpty(classId) && !StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
-          collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_QUESTION_COUNT, classId,courseId,unitId,lessonId,collectionId,this.userId);
+          collectionMaximumScore = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_MAX_SCORE, classId,courseId,unitId,lessonId,collectionId,this.userId);
         }else{
-          collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_QUESTION_COUNT_, collectionId,this.userId);
+          collectionMaximumScore = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_MAX_SCORE_, collectionId,this.userId);
         }
 
-        //If questions are not present then Question Count is always zero, however this additional check needs to be added
-        //since during migration of data from 3.0 chances are that QC may be null instead of zero
-        collectionQuestionCount.forEach(qc -> {
-        	if (qc.get(AJEntityBaseReports.QUESTION_COUNT) != null) {
-        		this.questionCount = Integer.valueOf(qc.get(AJEntityBaseReports.QUESTION_COUNT).toString());
+        collectionMaximumScore.forEach(ms -> {
+        	if (ms.get(AJEntityBaseReports.MAX_SCORE) != null) {
+        		this.maxScore = Double.valueOf(ms.get(AJEntityBaseReports.MAX_SCORE).toString());
         	} else {
-        		this.questionCount = 0;
+        		this.maxScore = 0;
         	}
-          this.lastAccessedTime = Timestamp.valueOf(qc.get(AJEntityBaseReports.UPDATE_TIMESTAMP).toString()).getTime();
         });
+        
+        List<Map> lastAccessedTime = null;
+        if (!StringUtil.isNullOrEmpty(classId) && !StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
+          lastAccessedTime = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_LAST_ACCESSED_TIME, classId,courseId,unitId,lessonId,collectionId,this.userId);
+        }else{
+          lastAccessedTime = Base.findAll(AJEntityBaseReports.SELECT_CLASS_COLLECTION_LAST_ACCESSED_TIME, collectionId,this.userId);
+        }       
+        
+        if (!lastAccessedTime.isEmpty()) {
+        	lastAccessedTime.forEach(l -> {
+        		this.lastAccessedTime = l.get(AJEntityBaseReports.UPDATE_TIMESTAMP) != null ? 
+        				Timestamp.valueOf(l.get(AJEntityBaseReports.UPDATE_TIMESTAMP).toString()).getTime() : null;
+        		this.sessionId = l.get(AJEntityBaseReports.SESSION_ID) != null ? 
+        				l.get(AJEntityBaseReports.SESSION_ID).toString() : "NA";
+            });
+        } 
+        
         List<Map> collectionData = null;
         if (!StringUtil.isNullOrEmpty(classId) && !StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
           collectionData = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_AGG_DATA, classId,courseId,unitId,lessonId,collectionId,this.userId);
@@ -122,25 +136,27 @@ public class StudentCollectionSummaryHandler implements DBHandler {
           collectionData.stream().forEach(m -> {
             JsonObject assessmentData = ValueMapper.map(ResponseAttributeIdentifier.getSessionCollectionAttributesMap(), m);
             assessmentData.put(EventConstants.EVENT_TIME, this.lastAccessedTime);
-            assessmentData.put(EventConstants.SESSION_ID, EventConstants.NA);
+            assessmentData.put(EventConstants.SESSION_ID, this.sessionId);
             assessmentData.put(EventConstants.RESOURCE_TYPE, AJEntityBaseReports.ATTR_COLLECTION);
             assessmentData.put(JsonConstants.SCORE, Math.round(Double.valueOf(m.get(AJEntityBaseReports.SCORE).toString())));
 
-            double scoreInPercent=0;
-            int reaction=0;
-            if(this.questionCount > 0){
+            //With Rubrics Score can be Null (for FR questions)
+            double scoreInPercent;
+            int reaction=0;            
               Object collectionScore = null;
               if (!StringUtil.isNullOrEmpty(classId) && !StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
                collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_SCORE, classId,courseId,unitId,lessonId,collectionId,this.userId);
               }else{
                collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_SCORE_,collectionId,this.userId);
               }
-              if(collectionScore != null){
-                scoreInPercent =  (((double) Double.valueOf(collectionScore.toString()) / this.questionCount) * 100);
-              }
-            }
-            LOGGER.debug("Collection score : {} - collectionId : {}" , Math.round(scoreInPercent), collectionId);
-            assessmentData.put(AJEntityBaseReports.SCORE, Math.round(scoreInPercent)); 
+              
+              if(collectionScore != null && (this.maxScore > 0)){
+                scoreInPercent =  (((double) Double.valueOf(collectionScore.toString()) / this.maxScore) * 100);
+                assessmentData.put(AJEntityBaseReports.SCORE, Math.round(scoreInPercent));
+              } else {
+            	  assessmentData.putNull(AJEntityBaseReports.SCORE);
+              }         
+             
             Object collectionReaction = null;
             if (!StringUtil.isNullOrEmpty(classId) && !StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
               collectionReaction = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_REACTION, classId,courseId,unitId,lessonId,collectionId,this.userId);
@@ -175,23 +191,40 @@ public class StudentCollectionSummaryHandler implements DBHandler {
               if(qnData.getString(EventConstants.RESOURCE_TYPE).equalsIgnoreCase(EventConstants.QUESTION)){
                 qnData.put(EventConstants.ANSWERSTATUS, EventConstants.SKIPPED);
               }
-              qnData.put(JsonConstants.SCORE, Math.round(Double.valueOf(questions.get(AJEntityBaseReports.SCORE).toString())));
-              if(this.questionCount > 0){
+              //qnData.put(JsonConstants.SCORE, Math.round(Double.valueOf(questions.get(AJEntityBaseReports.SCORE).toString())));              
                 List<Map> questionScore = null;
                 if (!StringUtil.isNullOrEmpty(classId) && !StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
                   questionScore = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_QUESTION_AGG_SCORE, classId,courseId,unitId,lessonId,collectionId,questions.get(AJEntityBaseReports.RESOURCE_ID),this.userId);
                 }else{
-                  questionScore = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_QUESTION_AGG_SCORE_, collectionId,questions.get(AJEntityBaseReports.RESOURCE_ID),this.userId);
+                  questionScore = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_QUESTION_AGG_SCORE_, collectionId,
+                		  questions.get(AJEntityBaseReports.RESOURCE_ID),this.userId);
                 }
                 if(!questionScore.isEmpty()){
-                questionScore.forEach(qs ->{
-                  qnData.put(JsonConstants.SCORE, Math.round(Double.valueOf(qs.get(AJEntityBaseReports.SCORE).toString()) * 100));
-                  qnData.put(JsonConstants.ANSWER_OBJECT, new JsonArray(qs.get(AJEntityBaseReports.ANSWER_OBECT).toString()));
+                questionScore.forEach(qs -> {
+                    qnData.put(JsonConstants.ANSWER_OBJECT, qs.get(AJEntityBaseReports.ANSWER_OBECT) != null 
+                  		  ? new JsonArray(qs.get(AJEntityBaseReports.ANSWER_OBECT).toString()) : null);
+                    //Rubrics - Score may be NULL only incase of OE questions
+                    qnData.put(JsonConstants.SCORE, qs.get(AJEntityBaseReports.SCORE) != null ? 
+                    		Math.round(Double.valueOf(qs.get(AJEntityBaseReports.SCORE).toString()) * 100) : "NA");
                   qnData.put(EventConstants.ANSWERSTATUS, qs.get(AJEntityBaseReports.ATTR_ATTEMPT_STATUS).toString());
-                  LOGGER.debug("Question Score : {} - resourceId : {}" ,qs.get(AJEntityBaseReports.SCORE).toString(), questions.get(AJEntityBaseReports.RESOURCE_ID));
                 });
-                }
-               }
+                }               
+              //Get grading status for Questions
+              if (!StringUtil.isNullOrEmpty(classId) && !StringUtil.isNullOrEmpty(courseId) && 
+            		  !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
+            	  if(qnData.getString(EventConstants.QUESTION_TYPE).equalsIgnoreCase(EventConstants.OPEN_ENDED_QUE)){
+                      Object isGradedObj = Base.firstCell(AJEntityBaseReports.GET_COLL_OE_QUE_GRADE_STATUS, classId, courseId, 
+                    		  unitId, lessonId, collectionId, questions.get(AJEntityBaseReports.RESOURCE_ID),this.userId);
+                      if (isGradedObj != null && (isGradedObj.toString().equalsIgnoreCase("t") || isGradedObj.toString().equalsIgnoreCase("true"))) {
+                    	  qnData.put(JsonConstants.IS_GRADED, true);                	  
+                      } else {
+                    	  qnData.put(JsonConstants.IS_GRADED, false);                	  
+                      }
+                    } else {
+                    	qnData.put(JsonConstants.IS_GRADED, true);
+                    }  
+              }              
+
               List<Map> resourceReaction = null;
               if (!StringUtil.isNullOrEmpty(classId) && !StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
                 resourceReaction = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_RESOURCE_AGG_REACTION, classId,courseId,unitId,lessonId,collectionId,questions.get(AJEntityBaseReports.RESOURCE_ID),this.userId);
@@ -212,8 +245,7 @@ public class StudentCollectionSummaryHandler implements DBHandler {
           //JsonArray questionsArray = ValueMapper.map(ResponseAttributeIdentifier.getSessionAssessmentQuestionAttributesMap(), assessmentQuestionsKPI);
           assessmentDataKPI.put(JsonConstants.RESOURCES, questionsArray);
           LOGGER.debug("Collection Attributes obtained");
-          contentArray.add(assessmentDataKPI);
-          LOGGER.debug("Done");
+          contentArray.add(assessmentDataKPI);          
         } else {
           LOGGER.info("Collection Attributes cannot be obtained");
         }
