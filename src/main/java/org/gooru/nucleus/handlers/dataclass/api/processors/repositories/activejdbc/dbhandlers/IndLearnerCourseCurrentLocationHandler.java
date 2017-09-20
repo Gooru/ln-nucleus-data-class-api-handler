@@ -1,9 +1,8 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
@@ -15,11 +14,8 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResp
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.javalite.activejdbc.Base;
-import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.hazelcast.util.StringUtil;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -27,22 +23,18 @@ import io.vertx.core.json.JsonObject;
 
 /**
  * Created by mukul@gooru
- * 
+ *
  */
 
 public class IndLearnerCourseCurrentLocationHandler implements DBHandler {
-	
-	
+
+
 	  private static final Logger LOGGER = LoggerFactory.getLogger(IndLearnerCourseCurrentLocationHandler.class);
 
 	  private final ProcessorContext context;
 	  private static final String REQUEST_USERID = "userId";
-	  private AJEntityBaseReports baseReport;
 
-	  private String userId;
-	  private String courseId;
-
-	  IndLearnerCourseCurrentLocationHandler(ProcessorContext context) {
+    IndLearnerCourseCurrentLocationHandler(ProcessorContext context) {
 	    this.context = context;
 	  }
 
@@ -61,24 +53,24 @@ public class IndLearnerCourseCurrentLocationHandler implements DBHandler {
 	  @Override
 	  @SuppressWarnings("rawtypes")
 	  public ExecutionResult<MessageResponse> executeRequest() {
-		  
-		    JsonObject resultBody = new JsonObject();	       	
-	    	JsonArray CurrentLocArray = new JsonArray();
-	    	baseReport = new AJEntityBaseReports();
-	    
-	        this.courseId = context.courseId();    	
-	        this.userId = context.getUserIdFromRequest();     
 
-	    	List<Map> CurrentLocMap = Base.findAll( AJEntityBaseReports.GET_IL_LOCATION,this.courseId, this.userId);
-	    	
+		    JsonObject resultBody = new JsonObject();
+	    	JsonArray CurrentLocArray = new JsonArray();
+          AJEntityBaseReports baseReport = new AJEntityBaseReports();
+
+		  String courseId = context.courseId();
+          String userId = context.getUserIdFromRequest();
+
+	    	List<Map> CurrentLocMap = Base.findAll( AJEntityBaseReports.GET_IL_LOCATION, courseId, userId);
+
 	    	if (!CurrentLocMap.isEmpty()){
 	    	  CurrentLocMap.forEach(m -> {
-	          JsonObject loc = new JsonObject();	          
+	          JsonObject loc = new JsonObject();
 	          loc.put(AJEntityBaseReports.ATTR_COURSE_ID, m.get(AJEntityBaseReports.COURSE_GOORU_OID) != null ? m.get(AJEntityBaseReports.COURSE_GOORU_OID).toString() :null);
 	          loc.put(AJEntityBaseReports.ATTR_UNIT_ID, m.get(AJEntityBaseReports.UNIT_GOORU_OID) != null ? m.get(AJEntityBaseReports.UNIT_GOORU_OID).toString() : null);
 	          loc.put(AJEntityBaseReports.ATTR_LESSON_ID, m.get(AJEntityBaseReports.LESSON_GOORU_OID) != null ? m.get(AJEntityBaseReports.LESSON_GOORU_OID).toString() : null);
 	          String collId = m.get(AJEntityBaseReports.COLLECTION_OID).toString();
-	          if (m.get(AJEntityBaseReports.COLLECTION_TYPE).equals(EventConstants.ASSESSMENT)) {
+	          if (Objects.equals(m.get(AJEntityBaseReports.COLLECTION_TYPE), EventConstants.ASSESSMENT)) {
 	            loc.put(AJEntityBaseReports.ATTR_ASSESSMENT_ID, collId);
 	        	Object collTitle = Base.firstCell(AJEntityContent.GET_TITLE, collId);
 	            loc.put(JsonConstants.ASSESSMENT_TITLE, (collTitle != null ? collTitle.toString() : "NA"));
@@ -89,14 +81,14 @@ public class IndLearnerCourseCurrentLocationHandler implements DBHandler {
 	          }
 	          CurrentLocArray.add(loc);
 	        });
-	      
-	    	} else {            
+
+	    	} else {
 	            LOGGER.info("Current Location Attributes cannot be obtained for the Independent Learner");
 	        }
 
 	        //Form the required JSon pass it on
 	        resultBody.put(JsonConstants.CONTENT, CurrentLocArray).putNull(JsonConstants.MESSAGE).putNull(JsonConstants.PAGINATE);
-	        
+
 	    	return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody),
 	                ExecutionStatus.SUCCESSFUL);
 	  }

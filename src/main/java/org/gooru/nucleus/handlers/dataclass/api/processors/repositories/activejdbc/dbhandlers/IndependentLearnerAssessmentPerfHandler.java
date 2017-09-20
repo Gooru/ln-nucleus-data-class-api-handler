@@ -30,8 +30,6 @@ public class IndependentLearnerAssessmentPerfHandler implements DBHandler {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IndependentLearnerAssessmentPerfHandler.class);
   private final ProcessorContext context;
-  private String collectionType;
-  private String userId;
 
   public IndependentLearnerAssessmentPerfHandler(ProcessorContext context) {
     this.context = context;
@@ -64,9 +62,12 @@ public class IndependentLearnerAssessmentPerfHandler implements DBHandler {
     JsonArray resultarray = new JsonArray();
 
     // FIXME: Collection Type Accepted "assessment" only.
-    this.collectionType = "assessment";
+    String collectionType = "assessment";
+
+    // TODO: AM - What exactly are we checking in the condition below - should collectionType be present or it should
+    // be present and equal to "assessment. Kindly check
     if (StringUtil.isNullOrEmpty(collectionType)
-            || (StringUtil.isNullOrEmpty(collectionType) && this.collectionType.equalsIgnoreCase(AJEntityBaseReports.ATTR_ASSESSMENT))) {
+            || (StringUtil.isNullOrEmpty(collectionType) && collectionType.equalsIgnoreCase(AJEntityBaseReports.ATTR_ASSESSMENT))) {
       LOGGER.warn("CollectionType is mandatory to fetch Student Performance in assessment");
       return new ExecutionResult<>(
               MessageResponseFactory.createInvalidRequestResponse(
@@ -74,16 +75,16 @@ public class IndependentLearnerAssessmentPerfHandler implements DBHandler {
               ExecutionStatus.FAILED);
     }
 
-    this.userId = this.context.userIdFromSession();
-    List<String> userIds = new ArrayList<>();
+    String userId = this.context.userIdFromSession();
+    List<String> userIds = new ArrayList<>(1);
 
-    userIds.add(this.userId);
+    userIds.add(userId);
 
-    LOGGER.debug("UID is " + this.userId);
+    LOGGER.debug("UID is " + userId);
 
     for (String userID : userIds) {
       JsonObject contentBody = new JsonObject();
-      List<Map> studentLatestAttempt = null;
+      List<Map> studentLatestAttempt;
       studentLatestAttempt = Base.findAll(AJEntityBaseReports.GET_INDEPENDENT_LEARNER_LATEST_COMPLETED_SESSION_ID, context.courseId(), context.unitId(),
               context.lessonId(), context.collectionId(), userID);
       if (!studentLatestAttempt.isEmpty()) {
@@ -92,7 +93,7 @@ public class IndependentLearnerAssessmentPerfHandler implements DBHandler {
                   attempts.get(AJEntityBaseReports.SESSION_ID).toString(), AJEntityBaseReports.ATTR_CRP_EVENTNAME);
           JsonArray questionsArray = new JsonArray();
           if (!assessmentQuestionsKPI.isEmpty()) {
-            assessmentQuestionsKPI.stream().forEach(questions -> {
+            assessmentQuestionsKPI.forEach(questions -> {
               JsonObject qnData = ValueMapper.map(ResponseAttributeIdentifier.getSessionAssessmentQuestionAttributesMap(), questions);
               // FIXME :: This is to be revisited. We should alter the schema
               // column type from TEXT to JSONB. After this change we can remove

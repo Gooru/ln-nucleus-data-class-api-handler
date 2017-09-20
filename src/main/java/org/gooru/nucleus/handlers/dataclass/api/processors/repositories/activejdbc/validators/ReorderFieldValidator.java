@@ -16,7 +16,7 @@ public class ReorderFieldValidator implements FieldValidator {
 
     @Override
     public boolean validateField(Object value) {
-        if (!(value instanceof JsonArray) || value == null || ((JsonArray) value).isEmpty()) {
+        if (value == null || !(value instanceof JsonArray) || ((JsonArray) value).isEmpty()) {
             return false;
         }
         JsonArray input = (JsonArray) value;

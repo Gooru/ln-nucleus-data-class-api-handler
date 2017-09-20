@@ -11,7 +11,7 @@ import io.vertx.core.json.JsonObject;
 /**
  * Created by ashish on 6/1/16.
  */
-public class MessageResponse {
+public final class MessageResponse {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageResponse.class);
     private final DeliveryOptions deliveryOptions;

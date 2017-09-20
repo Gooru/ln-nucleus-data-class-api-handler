@@ -2,6 +2,7 @@ package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activej
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
@@ -24,24 +25,20 @@ import io.vertx.core.json.JsonObject;
  * Created by mukul@gooru
  */
 public class StudentCurrentLocationHandler implements DBHandler {
-	
-	private static final Logger LOGGER = LoggerFactory.getLogger(StudentCurrentLocationHandler.class);
-	    
-	  private final ProcessorContext context;
-    private AJEntityBaseReports baseReport;
 
-    private String classId;
-    private String userId;
-        
+	private static final Logger LOGGER = LoggerFactory.getLogger(StudentCurrentLocationHandler.class);
+
+	  private final ProcessorContext context;
+
     public StudentCurrentLocationHandler(ProcessorContext context) {
         this.context = context;
     }
 
     @Override
     public ExecutionResult<MessageResponse> checkSanity() {
-    	
+
     	//No Sanity Check required since, no params are being passed in Request Body
- 
+
         LOGGER.debug("checkSanity() OK");
         return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
     }
@@ -63,17 +60,17 @@ public class StudentCurrentLocationHandler implements DBHandler {
 
     @Override
     public ExecutionResult<MessageResponse> executeRequest() {
-    	
-    	JsonObject resultBody = new JsonObject();
-       	
-    	JsonArray CurrentLocArray = new JsonArray();
-    	baseReport = new AJEntityBaseReports();
-    
-        this.classId = context.classId();    	
-        this.userId = context.getUserIdFromRequest();     
 
-    	List<Map> CurrentLocMap = Base.findAll( AJEntityBaseReports.GET_STUDENT_LOCATION,this.classId, this.userId);
-    	
+    	JsonObject resultBody = new JsonObject();
+
+    	JsonArray CurrentLocArray = new JsonArray();
+        AJEntityBaseReports baseReport = new AJEntityBaseReports();
+
+        String classId = context.classId();
+        String userId = context.getUserIdFromRequest();
+
+    	List<Map> CurrentLocMap = Base.findAll( AJEntityBaseReports.GET_STUDENT_LOCATION, classId, userId);
+
     	if (!CurrentLocMap.isEmpty()){
     	  CurrentLocMap.forEach(m -> {
           JsonObject loc = new JsonObject();
@@ -82,7 +79,7 @@ public class StudentCurrentLocationHandler implements DBHandler {
           loc.put(AJEntityBaseReports.ATTR_UNIT_ID, m.get(AJEntityBaseReports.UNIT_GOORU_OID) != null ? m.get(AJEntityBaseReports.UNIT_GOORU_OID).toString() : null);
           loc.put(AJEntityBaseReports.ATTR_LESSON_ID, m.get(AJEntityBaseReports.LESSON_GOORU_OID) != null ? m.get(AJEntityBaseReports.LESSON_GOORU_OID).toString() : null);
           String collId = m.get(AJEntityBaseReports.COLLECTION_OID).toString();
-          if (m.get(AJEntityBaseReports.COLLECTION_TYPE).equals(EventConstants.ASSESSMENT)) {
+          if (Objects.equals(m.get(AJEntityBaseReports.COLLECTION_TYPE), EventConstants.ASSESSMENT)) {
             loc.put(AJEntityBaseReports.ATTR_ASSESSMENT_ID, collId);
         	Object collTitle = Base.firstCell(AJEntityContent.GET_TITLE, collId);
             loc.put(JsonConstants.ASSESSMENT_TITLE, (collTitle != null ? collTitle.toString() : "NA"));
@@ -93,22 +90,22 @@ public class StudentCurrentLocationHandler implements DBHandler {
           }
           CurrentLocArray.add(loc);
         });
-      
-    	} else {            
+
+    	} else {
             LOGGER.info("Current Location Attributes cannot be obtained");
         }
 
         //Form the required JSon pass it on
         resultBody.put(JsonConstants.CONTENT, CurrentLocArray).putNull(JsonConstants.MESSAGE).putNull(JsonConstants.PAGINATE);
-                 
+
     	return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody),
                 ExecutionStatus.SUCCESSFUL);
-    	
-    }   
-    
+
+    }
+
 
     @Override
     public boolean handlerReadOnly() {
         return true;
-    } 
+    }
 }

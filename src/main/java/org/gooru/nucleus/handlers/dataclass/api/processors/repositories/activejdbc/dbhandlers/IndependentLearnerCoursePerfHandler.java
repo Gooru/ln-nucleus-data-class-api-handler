@@ -35,8 +35,7 @@ class IndependentLearnerCoursePerfHandler implements DBHandler {
 
   private final ProcessorContext context;
   private String collectionType;
-  private String userId;
-  // For stuffing Json
+    // For stuffing Json
   private String unitId;
 
   public IndependentLearnerCoursePerfHandler(ProcessorContext context) {
@@ -79,17 +78,17 @@ class IndependentLearnerCoursePerfHandler implements DBHandler {
               ExecutionStatus.FAILED);
     }
 
-    this.userId = this.context.userIdFromSession();
+      String userId = this.context.userIdFromSession();
 
     List<String> unitIds = new ArrayList<>();
     List<String> userIds = new ArrayList<>();
-    userIds.add(this.userId);
+    userIds.add(userId);
 
     for (String userID : userIds) {
       JsonObject contentBody = new JsonObject();
       JsonArray CourseKpiArray = new JsonArray();
 
-      LazyList<AJEntityBaseReports> unitIDforCourse = null;
+      LazyList<AJEntityBaseReports> unitIDforCourse;
 
       unitIDforCourse = AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_DISTINCT_UNIT_ID_FOR_COURSE_ID_FILTERBY_COLLTYPE,
               context.courseId(), this.collectionType, userID);
@@ -98,7 +97,7 @@ class IndependentLearnerCoursePerfHandler implements DBHandler {
         LOGGER.debug("Got a list of Distinct unitIDs for this Course");
 
         unitIDforCourse.forEach(unit -> unitIds.add(unit.getString(AJEntityBaseReports.UNIT_GOORU_OID)));
-        List<Map> assessmentKpi = null;
+        List<Map> assessmentKpi;
         if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
           assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_COURSE_PERF_FOR_COLLECTION, context.courseId(), this.collectionType, userID,
                   listToPostgresArrayString(unitIds));
@@ -110,7 +109,7 @@ class IndependentLearnerCoursePerfHandler implements DBHandler {
           assessmentKpi.forEach(m -> {
             unitId = m.get(AJEntityBaseReports.UNIT_GOORU_OID).toString();
             LOGGER.debug("The Value of UNITID " + unitId);
-            List<Map> completedCountMap = null;
+            List<Map> completedCountMap;
             if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
               // FIXME: Score will not be useful in CUL if collection so could
               // be incorrect from this below query.

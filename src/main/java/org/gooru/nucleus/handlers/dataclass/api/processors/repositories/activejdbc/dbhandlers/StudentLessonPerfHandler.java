@@ -27,7 +27,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 /**
- * Created by mukul@gooru 
+ * Created by mukul@gooru
  * Modified by Daniel
  */
 
@@ -38,10 +38,9 @@ public class StudentLessonPerfHandler implements DBHandler {
     private static final String REQUEST_USERID = "userUid";
     private final ProcessorContext context;
     private String collectionType;
-    private String userId;
     private double maxScore;
     private boolean isTeacher = false;
-    
+
     public StudentLessonPerfHandler(ProcessorContext context) {
         this.context = context;
     }
@@ -87,9 +86,9 @@ public class StudentLessonPerfHandler implements DBHandler {
       return new ExecutionResult<>(
               MessageResponseFactory.createInvalidRequestResponse("CollectionType Missing. Cannot fetch Student Performance in Lesson"),
               ExecutionStatus.FAILED);
-    }    
+    }
 
-    this.userId = this.context.request().getString(REQUEST_USERID);
+        String userId = this.context.request().getString(REQUEST_USERID);
     List<String> userIds = new ArrayList<>();
 
     // FIXME : userId can be added as GROUPBY in performance query. Not
@@ -103,27 +102,27 @@ public class StudentLessonPerfHandler implements DBHandler {
       userIdforlesson.forEach(coll -> userIds.add(coll.getString(AJEntityBaseReports.GOORUUID)));
 
     } else {
-      isTeacher = false;	
-      userIds.add(this.userId);
+      isTeacher = false;
+      userIds.add(userId);
     }
 
-    LOGGER.debug("UID is " + this.userId);
+    LOGGER.debug("UID is " + userId);
 
     for (String userID : userIds) {
       JsonObject contentBody = new JsonObject();
       JsonArray LessonKpiArray = new JsonArray();
       JsonArray altPathArray = new JsonArray();
-      
-      LazyList<AJEntityBaseReports> collIDforlesson = null;
+
+      LazyList<AJEntityBaseReports> collIDforlesson;
       collIDforlesson = AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_COLLID_FOR_LESSON_ID_FILTERBY_COLLTYPE, context.classId(),
               context.courseId(), context.unitId(), context.lessonId(), this.collectionType, userID);
 
-      List<String> collIds = new ArrayList<>();
+      List<String> collIds = new ArrayList<>(collIDforlesson.size());
       if (!collIDforlesson.isEmpty()) {
         LOGGER.info("Got a list of Distinct collectionIDs for this lesson");
         collIDforlesson.forEach(coll -> collIds.add(coll.getString(AJEntityBaseReports.COLLECTION_OID)));
       }
-      List<Map> assessmentKpi = null;
+      List<Map> assessmentKpi;
       if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
         assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_LESSON_PERF_FOR_COLLECTION, context.classId(), context.courseId(),
                 context.unitId(), context.lessonId(), listToPostgresArrayString(collIds), userID);
@@ -134,40 +133,40 @@ public class StudentLessonPerfHandler implements DBHandler {
       if (!assessmentKpi.isEmpty()) {
         assessmentKpi.forEach(m -> {
           JsonObject lessonKpi = ValueMapper.map(ResponseAttributeIdentifier.getLessonPerformanceAttributesMap(), m);
-          String cId = m.get(AJEntityBaseReports.ATTR_COLLECTION_ID).toString();                    
+          String cId = m.get(AJEntityBaseReports.ATTR_COLLECTION_ID).toString();
           // FIXME : revisit completed count and total count
           lessonKpi.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 1);
           //In Gooru 3.0, total_count was hardcoded to 1 at this last mile, assessment/collection level
           //Replicating the same here.
           lessonKpi.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 1);
-          
+
           // FIXME: This logic to be revisited.
-          if (this.collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {        	  
-            List<Map> collectionQuestionCount = null;
+          if (this.collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {
+            List<Map> collectionQuestionCount;
             collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_SCORE_AND_MAX_SCORE, context.classId(), context.courseId(),
                     context.unitId(), context.lessonId(), cId , userID);
             collectionQuestionCount.forEach(score -> {
-              double maxScore = Double.valueOf(score.get(AJEntityBaseReports.MAX_SCORE).toString());                    
+              double maxScore = Double.valueOf(score.get(AJEntityBaseReports.MAX_SCORE).toString());
               if(maxScore > 0 && (score.get(AJEntityBaseReports.SCORE) != null)) {
               	double sumOfScore = Double.valueOf(score.get(AJEntityBaseReports.SCORE).toString());
-                	LOGGER.debug("maxScore : {} , sumOfScore : {} ", maxScore, sumOfScore);                  	
+                	LOGGER.debug("maxScore : {} , sumOfScore : {} ", maxScore, sumOfScore);
                   lessonKpi.put(AJEntityBaseReports.ATTR_SCORE, ((sumOfScore / maxScore) * 100));
-              } else {    
+              } else {
                 lessonKpi.putNull(AJEntityBaseReports.ATTR_SCORE);
-              }                      
+              }
             });
-            
+
             lessonKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, lessonKpi.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID));
             lessonKpi.remove(AJEntityBaseReports.ATTR_ASSESSMENT_ID);
             lessonKpi.put(EventConstants.VIEWS, lessonKpi.getInteger(EventConstants.ATTEMPTS));
             lessonKpi.remove(EventConstants.ATTEMPTS);
           }else{
-            lessonKpi.put(AJEntityBaseReports.ATTR_SCORE, m.get(AJEntityBaseReports.ATTR_SCORE) != null ? 
+            lessonKpi.put(AJEntityBaseReports.ATTR_SCORE, m.get(AJEntityBaseReports.ATTR_SCORE) != null ?
             		Math.round(Double.valueOf(m.get(AJEntityBaseReports.ATTR_SCORE).toString())) : null);
             if (!isTeacher){
-            	List<Map> resourceKpi = null;                            
+            	List<Map> resourceKpi;
                 resourceKpi = Base.findAll(AJEntityBaseReports.GET_RESOURCE_PERF, context.classId(), context.courseId(),
-                        context.unitId(), context.lessonId(), cId, userID, EventConstants.COLLECTION_RESOURCE_PLAY);            
+                        context.unitId(), context.lessonId(), cId, userID, EventConstants.COLLECTION_RESOURCE_PLAY);
                 if (!resourceKpi.isEmpty()) {
                     resourceKpi.forEach(res -> {
                     	JsonObject resKpi = new JsonObject();
@@ -176,9 +175,9 @@ public class StudentLessonPerfHandler implements DBHandler {
                     	resKpi.put(AJEntityBaseReports.ATTR_RESOURCE_ID, res.get(AJEntityBaseReports.ATTR_RESOURCE_ID).toString());
                 		resKpi.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.parseLong(res.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()));
                 		resKpi.put(AJEntityBaseReports.VIEWS, Integer.parseInt(res.get(AJEntityBaseReports.VIEWS).toString()));
-                		altPathArray.add(resKpi);                		
-                      });            	
-                }            	
+                		altPathArray.add(resKpi);
+                      });
+                }
             }
           }
           LessonKpiArray.add(lessonKpi);
@@ -193,7 +192,7 @@ public class StudentLessonPerfHandler implements DBHandler {
 
     return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
 
-  }   
+  }
 
     @Override
     public boolean handlerReadOnly() {
@@ -207,7 +206,7 @@ public class StudentLessonPerfHandler implements DBHandler {
       if (!it.hasNext()) {
         return "{}";
       }
-  
+
       StringBuilder sb = new StringBuilder(approxSize);
       sb.append('{');
       for (;;) {
@@ -218,6 +217,6 @@ public class StudentLessonPerfHandler implements DBHandler {
         }
         sb.append(',');
       }
-  
+
     }
 }

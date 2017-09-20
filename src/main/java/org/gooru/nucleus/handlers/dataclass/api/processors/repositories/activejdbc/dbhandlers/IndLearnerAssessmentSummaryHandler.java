@@ -23,15 +23,13 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 public class IndLearnerAssessmentSummaryHandler implements DBHandler {
-	
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(IndLearnerAssessmentSummaryHandler.class);
-	
+
 	private static final String REQUEST_SESSION_ID = "sessionId";
-    
+
     private final ProcessorContext context;
-  
-    private String userId;
-    
+
     private String sessionId;
     public IndLearnerAssessmentSummaryHandler(ProcessorContext context) {
         this.context = context;
@@ -49,7 +47,7 @@ public class IndLearnerAssessmentSummaryHandler implements DBHandler {
         LOGGER.debug("checkSanity() OK");
         return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
     }
-    
+
     @Override
     @SuppressWarnings("rawtypes")
     public ExecutionResult<MessageResponse> validateRequest() {
@@ -68,8 +66,8 @@ public class IndLearnerAssessmentSummaryHandler implements DBHandler {
       JsonObject resultBody = new JsonObject();
       JsonObject assessmentDataKPI = new JsonObject();
 
-      this.userId = context.userIdFromSession();
-      LOGGER.debug("UID is " + this.userId);
+        String userId = context.userIdFromSession();
+      LOGGER.debug("UID is " + userId);
       this.sessionId = this.context.request().getString(REQUEST_SESSION_ID);
       JsonArray contentArray = new JsonArray();
       // STUDENT PERFORMANCE REPORTS IN ASSESSMENTS when SessionID NOT NULL
@@ -79,21 +77,21 @@ public class IndLearnerAssessmentSummaryHandler implements DBHandler {
         LOGGER.info("cID : {} , SID : {} ", context.collectionId(), sessionId);
         if (!assessmentKPI.isEmpty()) {
           LOGGER.debug("Assessment Attributes obtained");
-          assessmentKPI.stream().forEach(m -> {
+          assessmentKPI.forEach(m -> {
             JsonObject assessmentData = ValueMapper.map(ResponseAttributeIdentifier.getSessionAssessmentAttributesMap(), m);
             assessmentData.put(JsonConstants.SCORE, Math.round(Double.valueOf(m.get(AJEntityBaseReports.SCORE).toString())));
             assessmentData.put(JsonConstants.REACTION, assessmentReactionObject != null ? ((Number)assessmentReactionObject).intValue() : 0);
             assessmentDataKPI.put(JsonConstants.ASSESSMENT, assessmentData);
           });
-          
+
           LOGGER.debug("Assessment question Attributes started");
 
           List<Map> assessmentQuestionsKPI = Base.findAll(AJEntityBaseReports.SELECT_IL_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSION_ID,context.collectionId(),
                   sessionId, AJEntityBaseReports.ATTR_CRP_EVENTNAME);
-          
+
           JsonArray questionsArray = new JsonArray();
           if(!assessmentQuestionsKPI.isEmpty()){
-            assessmentQuestionsKPI.stream().forEach(questions -> {
+            assessmentQuestionsKPI.forEach(questions -> {
               JsonObject qnData = ValueMapper.map(ResponseAttributeIdentifier.getSessionAssessmentQuestionAttributesMap(), questions);
               Object reactionObj = Base.firstCell(AJEntityBaseReports.SELECT_IL_ASSESSMENT_RESOURCE_REACTION, context.collectionId(),
                       sessionId,questions.get(AJEntityBaseReports.RESOURCE_ID).toString());
@@ -119,7 +117,7 @@ public class IndLearnerAssessmentSummaryHandler implements DBHandler {
         return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
       }
     }   // End ExecuteRequest()
-    
+
 
     @Override
     public boolean handlerReadOnly() {

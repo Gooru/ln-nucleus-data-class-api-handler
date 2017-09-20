@@ -21,21 +21,18 @@ import io.vertx.core.json.JsonObject;
  * Created by mukul@gooru
  */
 public class StudentPeersInCourseHandler implements DBHandler {
-	
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(StudentPeersInCourseHandler.class);
-    
+
 	private final ProcessorContext context;
 
-    private String classId;
-    private String courseId;
-        
     public StudentPeersInCourseHandler(ProcessorContext context) {
         this.context = context;
     }
 
     @Override
     public ExecutionResult<MessageResponse> checkSanity() {
-    	
+
     	//No Sanity Check required since, no params are being passed in Request Body
         LOGGER.debug("checkSanity() OK");
         return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
@@ -52,9 +49,10 @@ public class StudentPeersInCourseHandler implements DBHandler {
     public ExecutionResult<MessageResponse> executeRequest() {
       JsonObject resultBody = new JsonObject();
       JsonArray StudentPeerArray = new JsonArray();
-      this.classId = context.classId();
-      this.courseId = context.courseId();
-      List<Map> CoursePeerMap = Base.findAll(AJEntityBaseReports.GET_PEERS_COUNT_IN_COURSE, this.classId,this.context.userIdFromSession(), this.courseId);
+        String classId = context.classId();
+        String courseId = context.courseId();
+      List<Map> CoursePeerMap = Base.findAll(AJEntityBaseReports.GET_PEERS_COUNT_IN_COURSE, classId,this.context.userIdFromSession(),
+          courseId);
       if (!CoursePeerMap.isEmpty()) {
         CoursePeerMap.forEach(m -> {
           Integer peerCount = Integer.valueOf(m.get(AJEntityBaseReports.ATTR_PEER_COUNT).toString());
@@ -66,14 +64,14 @@ public class StudentPeersInCourseHandler implements DBHandler {
       }
       // Form the required JSon pass it on
       resultBody.put(JsonConstants.CONTENT, StudentPeerArray).putNull(JsonConstants.MESSAGE).putNull(JsonConstants.PAGINATE);
-  
+
       return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
-    }   
-    
+    }
+
 
     @Override
     public boolean handlerReadOnly() {
         return true;
     }
- 
+
 }

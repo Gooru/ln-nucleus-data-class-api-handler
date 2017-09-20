@@ -98,8 +98,6 @@ public class CoursesCompetencyCompletionHandler implements DBHandler {
     try {
       UUID uuid = UUID.fromString(uuidString);
       return true;
-    } catch (IllegalArgumentException e) {
-      return false;
     } catch (Exception e) {
       return false;
     }

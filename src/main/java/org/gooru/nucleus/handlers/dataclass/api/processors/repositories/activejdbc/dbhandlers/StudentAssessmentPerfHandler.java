@@ -33,8 +33,6 @@ public class StudentAssessmentPerfHandler implements DBHandler {
 	  private static final Logger LOGGER = LoggerFactory.getLogger(StudentAssessmentPerfHandler.class);
     private static final String REQUEST_USERID = "userUid";
     private final ProcessorContext context;
-    private String collectionType;
-    private String userId;
 
     public StudentAssessmentPerfHandler(ProcessorContext context) {
         this.context = context;
@@ -75,9 +73,10 @@ public class StudentAssessmentPerfHandler implements DBHandler {
     JsonArray resultarray = new JsonArray();
 
     // FIXME: Collection Type Accepted "assessment" only.
-    this.collectionType = "assessment";
+        String collectionType = "assessment";
+    // TODO: AM - Reverify the statement for conditional check, seems incorrect
     if (StringUtil.isNullOrEmpty(collectionType)
-            || (StringUtil.isNullOrEmpty(collectionType) && this.collectionType.equalsIgnoreCase(AJEntityBaseReports.ATTR_ASSESSMENT))) {
+            || (StringUtil.isNullOrEmpty(collectionType) && collectionType.equalsIgnoreCase(AJEntityBaseReports.ATTR_ASSESSMENT))) {
       LOGGER.warn("CollectionType is mandatory to fetch Student Performance in assessment");
       return new ExecutionResult<>(
               MessageResponseFactory.createInvalidRequestResponse(
@@ -85,7 +84,7 @@ public class StudentAssessmentPerfHandler implements DBHandler {
               ExecutionStatus.FAILED);
     }
 
-    this.userId = this.context.request().getString(REQUEST_USERID);
+        String userId = this.context.request().getString(REQUEST_USERID);
 
     List<String> userIds = new ArrayList<>();
 
@@ -95,17 +94,17 @@ public class StudentAssessmentPerfHandler implements DBHandler {
       LOGGER.warn("UserID is not in the request to fetch Student Performance in Lesson. Assume user is a teacher");
       LazyList<AJEntityBaseReports> userIdforlesson =
               AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_COLLECTION_ID_FILTERBY_COLLTYPE, context.classId(),
-                      context.courseId(), context.unitId(), context.lessonId(), context.collectionId(), this.collectionType);
+                      context.courseId(), context.unitId(), context.lessonId(), context.collectionId(), collectionType);
       userIdforlesson.forEach(coll -> userIds.add(coll.getString(AJEntityBaseReports.GOORUUID)));
 
     } else {
-      userIds.add(this.userId);
+      userIds.add(userId);
     }
 
-    LOGGER.debug("UID is " + this.userId);
+    LOGGER.debug("UID is " + userId);
 
     for (String userID : userIds) {
-      List<Map> studentLatestAttempt = null;
+      List<Map> studentLatestAttempt;
       studentLatestAttempt = Base.findAll(AJEntityBaseReports.GET_LATEST_COMPLETED_SESSION_ID, context.classId(), context.courseId(),
               context.unitId(), context.lessonId(), context.collectionId(), userID);
 
@@ -117,18 +116,18 @@ public class StudentAssessmentPerfHandler implements DBHandler {
           LOGGER.debug("latestSessionId : " + attempts.get(AJEntityBaseReports.SESSION_ID));
           JsonArray questionsArray = new JsonArray();
           if (!assessmentQuestionsKPI.isEmpty()) {
-            assessmentQuestionsKPI.stream().forEach(questions -> {
+            assessmentQuestionsKPI.forEach(questions -> {
               JsonObject qnData = ValueMapper.map(ResponseAttributeIdentifier.getSessionAssessmentQuestionAttributesMap(), questions);
               // FIXME :: it can be removed once we fix writer code.
-              qnData.put(JsonConstants.RESOURCE_TYPE, JsonConstants.QUESTION);              
+              qnData.put(JsonConstants.RESOURCE_TYPE, JsonConstants.QUESTION);
               //********
-              qnData.put(JsonConstants.ANSWER_OBJECT, questions.get(AJEntityBaseReports.ANSWER_OBECT) != null 
+              qnData.put(JsonConstants.ANSWER_OBJECT, questions.get(AJEntityBaseReports.ANSWER_OBECT) != null
             		  ? new JsonArray(questions.get(AJEntityBaseReports.ANSWER_OBECT).toString()) : null);
               //Rubrics - Score should be NULL only incase of OE questions
-              qnData.put(JsonConstants.SCORE, questions.get(AJEntityBaseReports.SCORE) != null ? 
-            		  Math.round(Double.valueOf(questions.get(AJEntityBaseReports.SCORE).toString())) : "NA");              
+              qnData.put(JsonConstants.SCORE, questions.get(AJEntityBaseReports.SCORE) != null ?
+            		  Math.round(Double.valueOf(questions.get(AJEntityBaseReports.SCORE).toString())) : "NA");
               //*********
-              
+
               questionsArray.add(qnData);
             });
           }
@@ -144,7 +143,7 @@ public class StudentAssessmentPerfHandler implements DBHandler {
 
     return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
 
-  }   
+  }
 
     @Override
     public boolean handlerReadOnly() {

@@ -7,7 +7,6 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.converters.ResponseAttributeIdentifier;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
-import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityDailyClassActivity;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.converters.ValueMapper;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
@@ -24,16 +23,14 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 public class StudDCAAssessmentSummaryHandler implements DBHandler {
-	
+
 	  private static final Logger LOGGER = LoggerFactory.getLogger(StudDCAAssessmentSummaryHandler.class);
 
 	    private static final String REQUEST_SESSION_ID = "sessionId";
-	        
+
 	    private final ProcessorContext context;
-	  
-	    private String userId;
-	    
-	    private String sessionId;
+
+	private String sessionId;
 	    public StudDCAAssessmentSummaryHandler(ProcessorContext context) {
 	        this.context = context;
 	    }
@@ -50,11 +47,11 @@ public class StudDCAAssessmentSummaryHandler implements DBHandler {
 	        LOGGER.debug("checkSanity() OK");
 	        return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
 	    }
-	    
+
 	    @Override
 	    @SuppressWarnings("rawtypes")
 	    public ExecutionResult<MessageResponse> validateRequest() {
-	    // No Teacher validation yet needed	
+	    // No Teacher validation yet needed
 	      if (context.getUserIdFromRequest() == null
 	              || (!context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
 	          LOGGER.debug("validateRequest() FAILED");
@@ -71,12 +68,12 @@ public class StudDCAAssessmentSummaryHandler implements DBHandler {
 	      JsonObject resultBody = new JsonObject();
 	      JsonObject assessmentDataKPI = new JsonObject();
 
-	      this.userId = context.getUserIdFromRequest();
-	      
-	      LOGGER.debug("UID is " + this.userId);
+			String userId = context.getUserIdFromRequest();
+
+	      LOGGER.debug("UID is " + userId);
 	      this.sessionId = this.context.request().getString(REQUEST_SESSION_ID);
 	      JsonArray contentArray = new JsonArray();
-	      
+
 	      if (!StringUtil.isNullOrEmpty(sessionId)) {
 	        List<Map> assessmentKPI = Base.findAll(AJEntityDailyClassActivity.SELECT_ASSESSMENT_FOREACH_COLLID_AND_SESSION_ID, context.collectionId(), sessionId , AJEntityDailyClassActivity.ATTR_CP_EVENTNAME);
 	        Object assessmentReactionObject =  Base.firstCell(AJEntityDailyClassActivity.SELECT_ASSESSMENT_REACTION_AND_SESSION_ID, context.collectionId(), sessionId);
@@ -84,21 +81,21 @@ public class StudDCAAssessmentSummaryHandler implements DBHandler {
 	        LOGGER.info("cID : {} , SID : {} ", context.collectionId(), sessionId);
 	        if (!assessmentKPI.isEmpty()) {
 	          LOGGER.debug("Assessment Attributes obtained");
-	          assessmentKPI.stream().forEach(m -> {
+	          assessmentKPI.forEach(m -> {
 	            JsonObject assessmentData = ValueMapper.map(ResponseAttributeIdentifier.getSessionDCAAssessmentAttributesMap(), m);
 	            assessmentData.put(JsonConstants.SCORE, Math.round(Double.valueOf(m.get(AJEntityDailyClassActivity.SCORE).toString())));
 	            assessmentData.put(JsonConstants.REACTION, ((Number)assessmentReactionObject).intValue());
 	            assessmentDataKPI.put(JsonConstants.ASSESSMENT, assessmentData);
 	          });
-	          
+
 	          LOGGER.debug("Assessment question Attributes started");
 
 	          List<Map> assessmentQuestionsKPI = Base.findAll(AJEntityDailyClassActivity.SELECT_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSION_ID,context.collectionId(),
 	                  sessionId, AJEntityDailyClassActivity.ATTR_CRP_EVENTNAME);
-	          
+
 	          JsonArray questionsArray = new JsonArray();
 	          if(!assessmentQuestionsKPI.isEmpty()){
-              assessmentQuestionsKPI.stream().forEach(questions -> {
+              assessmentQuestionsKPI.forEach(questions -> {
                 JsonObject qnData = ValueMapper.map(ResponseAttributeIdentifier.getSessionDCAAssessmentQuestionAttributesMap(), questions);
                 Object reactionObj = Base.firstCell(AJEntityDailyClassActivity.SELECT_ASSESSMENT_RESOURCE_REACTION, context.collectionId(), sessionId,
                         questions.get(AJEntityBaseReports.RESOURCE_ID).toString());
@@ -124,7 +121,7 @@ public class StudDCAAssessmentSummaryHandler implements DBHandler {
 	        return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
 	      }
 	    }   // End ExecuteRequest()
-	    
+
 
 	    @Override
 	    public boolean handlerReadOnly() {

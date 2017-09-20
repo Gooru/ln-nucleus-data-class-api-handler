@@ -34,7 +34,7 @@ public class AuthVerticle extends AbstractVerticle {
       }, res -> {
         if (res.result() != null) {
           JsonObject result = (JsonObject) res.result();
-          DeliveryOptions options = null;
+          DeliveryOptions options;
           if (!result.isEmpty()) {
             options = new DeliveryOptions().addHeader(MessageConstants.MSG_OP_STATUS, MessageConstants.MSG_OP_STATUS_SUCCESS);
           } else {

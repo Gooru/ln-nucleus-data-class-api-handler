@@ -60,7 +60,7 @@ public class RedisClient implements Initializer, Finalizer {
   }
 
   public String get(final String key) {
-    String value = null;
+    String value;
     Jedis jedis = null;
     try {
       jedis = getJedis();

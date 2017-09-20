@@ -11,7 +11,6 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityDailyClassActivity;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
-import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
@@ -35,10 +34,7 @@ public class StudPerfDailyActivityHandler implements DBHandler {
   private static final String REQUEST_COLLECTION_TYPE = "collectionType";
 
   private final ProcessorContext context;
-  private String userId;
   private String classId;
-  private String collectionType;
-  private JsonArray collectionIds;
   private long questionCount;
 
   public StudPerfDailyActivityHandler(ProcessorContext context) {
@@ -79,7 +75,7 @@ public class StudPerfDailyActivityHandler implements DBHandler {
 
     JsonObject resultBody = new JsonObject();
     JsonArray userUsageArray = new JsonArray();
-    this.userId = this.context.request().getString(REQUEST_USERID);
+    String userId1 = this.context.request().getString(REQUEST_USERID);
     String sDate = this.context.request().getString(START_DATE);
     String eDate = this.context.request().getString(END_DATE);
 
@@ -92,15 +88,15 @@ public class StudPerfDailyActivityHandler implements DBHandler {
     Date startDate = Date.valueOf(sDate);
     Date endDate = Date.valueOf(eDate);
 
-    this.collectionType = this.context.request().getString(REQUEST_COLLECTION_TYPE);
-    if (StringUtil.isNullOrEmpty(this.collectionType)) {
+    String collectionType = this.context.request().getString(REQUEST_COLLECTION_TYPE);
+    if (StringUtil.isNullOrEmpty(collectionType)) {
       LOGGER.warn("Collection Type is mandatory to fetch Student Performance in Daily Class Activity.");
       return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse(
               "Collection Type is Missing. Cannot fetch Student Performance in Daily Class Activity"), ExecutionStatus.FAILED);
 
     }
-    this.collectionIds = this.context.request().getJsonArray(MessageConstants.COLLECTION_IDS);
-    LOGGER.debug("userId : {} - collectionIds:{}", userId, this.collectionIds);
+    JsonArray collectionIds = this.context.request().getJsonArray(MessageConstants.COLLECTION_IDS);
+    LOGGER.debug("userId : {} - collectionIds:{}", userId1, collectionIds);
 
     if (collectionIds.isEmpty()) {
       LOGGER.warn("CollectionIds are mandatory to fetch Student Performance in Assessments");
@@ -109,8 +105,8 @@ public class StudPerfDailyActivityHandler implements DBHandler {
               ExecutionStatus.FAILED);
     }
 
-    List<String> collIds = new ArrayList<>();
-    for (Object s : this.collectionIds) {
+    List<String> collIds = new ArrayList<>(collectionIds.size());
+    for (Object s : collectionIds) {
       collIds.add(s.toString());
     }
 
@@ -123,26 +119,29 @@ public class StudPerfDailyActivityHandler implements DBHandler {
               ExecutionStatus.FAILED);
     }
 
-    this.userId = this.context.request().getString(REQUEST_USERID);
-    List<String> userIds = new ArrayList<>();
-    if (StringUtil.isNullOrEmpty(userId)) {
+    userId1 = this.context.request().getString(REQUEST_USERID);
+    List<String> userIds;
+    if (StringUtil.isNullOrEmpty(userId1)) {
       LOGGER.warn("UserID is not in the request to fetch Student Performance in Course. Asseume user is a teacher");
       LazyList<AJEntityDailyClassActivity> userIdOfClass =
-    		  AJEntityDailyClassActivity.findBySQL(AJEntityDailyClassActivity.SELECT_DISTINCT_USERID_FOR_DAILY_CLASS_ACTIVITY, this.classId, this.collectionType);
-      userIdOfClass.forEach(users -> userIds.add(users.getString(AJEntityDailyClassActivity.GOORUUID)));
+    		  AJEntityDailyClassActivity.findBySQL(AJEntityDailyClassActivity.SELECT_DISTINCT_USERID_FOR_DAILY_CLASS_ACTIVITY, this.classId,
+
+                  collectionType);
+      userIds = userIdOfClass.collect(AJEntityDailyClassActivity.GOORUUID);
 
     } else {
-      userIds.add(this.userId);
+      userIds = new ArrayList<>(1);
+      userIds.add(userId1);
     }
 
     for (String userId : userIds) {
       JsonArray assessmentArray = new JsonArray();
       JsonObject dateActivity = new JsonObject();
-      
-      if (this.collectionType.equalsIgnoreCase(JsonConstants.ASSESSMENT)) {
+
+      if (collectionType.equalsIgnoreCase(JsonConstants.ASSESSMENT)) {
     	LOGGER.debug("Fetching Performance for Assessments in Class");
         List<Map> assessmentPerf = Base.findAll(AJEntityDailyClassActivity.GET_PERFORMANCE_FOR_CLASS_ASSESSMENTS, classId,
-                listToPostgresArrayString(collIds), userId, this.collectionType, AJEntityDailyClassActivity.ATTR_CP_EVENTNAME, startDate, endDate);
+                listToPostgresArrayString(collIds), userId, collectionType, AJEntityDailyClassActivity.ATTR_CP_EVENTNAME, startDate, endDate);
         if (!assessmentPerf.isEmpty()) {
           assessmentPerf.forEach(m -> {
             JsonObject assessmentKpi = new JsonObject();
@@ -162,7 +161,7 @@ public class StudPerfDailyActivityHandler implements DBHandler {
       } else {
         LOGGER.debug("Fetching Performance for Collections in Class");
         List<Map> collectionPerf = Base.findAll(AJEntityDailyClassActivity.GET_PERFORMANCE_FOR_CLASS_COLLECTIONS, classId,
-                listToPostgresArrayString(collIds), userId, this.collectionType, startDate, endDate);
+                listToPostgresArrayString(collIds), userId, collectionType, startDate, endDate);
         if (!collectionPerf.isEmpty()) {
           collectionPerf.forEach(m -> {
             JsonObject collectionKpi = new JsonObject();
@@ -172,7 +171,7 @@ public class StudPerfDailyActivityHandler implements DBHandler {
             collectionKpi.put(AJEntityDailyClassActivity.ATTR_LAST_SESSION_ID, AJEntityDailyClassActivity.NA);
             collectionKpi.put(AJEntityDailyClassActivity.ATTR_ATTEMPTS, Integer.parseInt(m.get(AJEntityDailyClassActivity.ATTR_ATTEMPTS).toString()));
             collectionKpi.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
-            List<Map> collectionQuestionCount = null;
+            List<Map> collectionQuestionCount;
             collectionQuestionCount = Base.findAll(AJEntityDailyClassActivity.SELECT_CLASS_COLLECTION_QUESTION_COUNT, classId,
                     m.get(AJEntityDailyClassActivity.ATTR_COLLECTION_ID).toString(), userId);
 
@@ -183,25 +182,25 @@ public class StudPerfDailyActivityHandler implements DBHandler {
             		this.questionCount = Integer.valueOf(qc.get(AJEntityBaseReports.QUESTION_COUNT).toString());
             	} else {
             		this.questionCount = 0;
-            	}              
+            	}
             });
 //            collectionQuestionCount.forEach(qc -> {
 //              this.questionCount = Integer.valueOf(qc.get(AJEntityDailyClassActivity.QUESTION_COUNT).toString());
 //            });
             double scoreInPercent = 0;
             if (this.questionCount > 0) {
-              Object collectionScore = null;
+              Object collectionScore;
               collectionScore = Base.firstCell(AJEntityDailyClassActivity.GET_PERFORMANCE_FOR_CLASS_COLLECTIONS_SCORE, classId,
-                      m.get(AJEntityDailyClassActivity.ATTR_COLLECTION_ID).toString(), userId, 
+                      m.get(AJEntityDailyClassActivity.ATTR_COLLECTION_ID).toString(), userId,
                       Date.valueOf(m.get(AJEntityDailyClassActivity.ACTIVITY_DATE).toString()));
-              if (collectionScore != null) {                
+              if (collectionScore != null) {
                 scoreInPercent = (((Double.valueOf(collectionScore.toString())) / this.questionCount) * 100);
               }
               collectionKpi.put(AJEntityDailyClassActivity.ATTR_SCORE, Math.round(scoreInPercent));
             } else {
             	//If Collections have No Questions then score should be NULL
             	collectionKpi.putNull(AJEntityBaseReports.ATTR_SCORE);
-            }            
+            }
             assessmentArray.add(collectionKpi);
           });
 

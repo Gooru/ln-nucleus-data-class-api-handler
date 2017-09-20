@@ -14,7 +14,6 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionRe
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
 import org.javalite.activejdbc.Base;
-import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,8 +30,6 @@ public class IndependentLearnerIndependentAssessmentPerfHandler implements DBHan
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IndependentLearnerIndependentAssessmentPerfHandler.class);
   private final ProcessorContext context;
-  private String collectionType;
-  private String userId;
 
   public IndependentLearnerIndependentAssessmentPerfHandler(ProcessorContext context) {
     this.context = context;
@@ -65,9 +62,10 @@ public class IndependentLearnerIndependentAssessmentPerfHandler implements DBHan
     JsonArray resultarray = new JsonArray();
 
     // FIXME: Collection Type Accepted "assessment" only.
-    this.collectionType = "assessment";
+    String collectionType = "assessment";
+    // TODO: AM - Reverify the statement for conditional check, seems incorrect
     if (StringUtil.isNullOrEmpty(collectionType)
-            || (StringUtil.isNullOrEmpty(collectionType) && this.collectionType.equalsIgnoreCase(AJEntityBaseReports.ATTR_ASSESSMENT))) {
+            || (StringUtil.isNullOrEmpty(collectionType) && collectionType.equalsIgnoreCase(AJEntityBaseReports.ATTR_ASSESSMENT))) {
       LOGGER.warn("CollectionType is mandatory to fetch Student Performance in assessment");
       return new ExecutionResult<>(
               MessageResponseFactory.createInvalidRequestResponse(
@@ -75,16 +73,16 @@ public class IndependentLearnerIndependentAssessmentPerfHandler implements DBHan
               ExecutionStatus.FAILED);
     }
 
-    this.userId = this.context.userIdFromSession();
+    String userId = this.context.userIdFromSession();
     List<String> userIds = new ArrayList<>();
 
-    userIds.add(this.userId);
+    userIds.add(userId);
 
-    LOGGER.debug("UID is " + this.userId);
+    LOGGER.debug("UID is " + userId);
 
     for (String userID : userIds) {
       JsonObject contentBody = new JsonObject();
-      List<Map> studentLatestAttempt = null;
+      List<Map> studentLatestAttempt;
 
       studentLatestAttempt =
               Base.findAll(AJEntityBaseReports.GET_INDEPENDENT_LEARNER_LATEST_ASS_COMPLETED_SESSION_ID, context.collectionId(), userID);
@@ -95,7 +93,7 @@ public class IndependentLearnerIndependentAssessmentPerfHandler implements DBHan
                   attempts.get(AJEntityBaseReports.SESSION_ID).toString(), AJEntityBaseReports.ATTR_CRP_EVENTNAME);
           JsonArray questionsArray = new JsonArray();
           if (!assessmentQuestionsKPI.isEmpty()) {
-            assessmentQuestionsKPI.stream().forEach(questions -> {
+            assessmentQuestionsKPI.forEach(questions -> {
               JsonObject qnData = ValueMapper.map(ResponseAttributeIdentifier.getSessionAssessmentQuestionAttributesMap(), questions);
               // FIXME :: This is to be revisited. We should alter the schema
               // column type from TEXT to JSONB. After this change we can remove

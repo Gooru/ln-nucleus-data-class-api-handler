@@ -11,7 +11,11 @@ import com.hazelcast.util.CollectionUtil;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
-public class ValueMapper {
+public final class ValueMapper {
+
+  private ValueMapper() {
+    throw new AssertionError();
+  }
 
   public static JsonObject map(Map<?, ?> attributesMap, Map<?, ?> databaseResult) {
     JsonObject result = new JsonObject();
@@ -29,11 +33,11 @@ public class ValueMapper {
     }
     return result;
   }
-  @SuppressWarnings("rawtypes") 
+  @SuppressWarnings("rawtypes")
   public static JsonArray map(Map<?, ?> attributesMap, List<Map> databaseResult) {
     JsonArray arrayResult = new JsonArray();
     if (CollectionUtil.isNotEmpty(databaseResult)) {
-      databaseResult.stream().forEach(databaseResultRow -> {
+      databaseResult.forEach(databaseResultRow -> {
         JsonObject result = new JsonObject();
         for (Entry<?, ?> resultRow : attributesMap.entrySet()) {
           result.put(resultRow.getValue().toString(), castValue(databaseResultRow.get(resultRow.getKey())));

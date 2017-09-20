@@ -20,7 +20,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 /**
- * 
+ *
  * @author daniel
  *
  */
@@ -30,9 +30,7 @@ public class IndependentLearnerTaxonomySubjectHandler implements DBHandler {
 
   private final ProcessorContext context;
 
-  private String userId;
-
-  private static final String REQUEST_USERID = "userId";
+    private static final String REQUEST_USERID = "userId";
 
   public IndependentLearnerTaxonomySubjectHandler(ProcessorContext context) {
     this.context = context;
@@ -56,21 +54,21 @@ public class IndependentLearnerTaxonomySubjectHandler implements DBHandler {
   @SuppressWarnings("rawtypes")
   public ExecutionResult<MessageResponse> executeRequest() {
 
-    this.userId = this.context.request().getString(REQUEST_USERID);
+      String userId = this.context.request().getString(REQUEST_USERID);
     String userType = this.context.request().getString("userType");
-    
+
     if (StringUtil.isNullOrEmpty(userId)) {
-      this.userId = this.context.userIdFromSession();
+      userId = this.context.userIdFromSession();
     }
 
     JsonObject result = new JsonObject();
     JsonArray subjectArray = new JsonArray();
 
-    List<Map> taxSubjects = null;
-    if(!StringUtil.isNullOrEmpty(userType) && userType.equalsIgnoreCase("IL")){      
-      taxSubjects = Base.findAll(AJEntityUserTaxonomySubject.GET_IL_TAX_SUBJECTS, this.userId);
+    List<Map> taxSubjects;
+    if(!StringUtil.isNullOrEmpty(userType) && userType.equalsIgnoreCase("IL")){
+      taxSubjects = Base.findAll(AJEntityUserTaxonomySubject.GET_IL_TAX_SUBJECTS, userId);
     }else{
-      taxSubjects = Base.findAll(AJEntityUserTaxonomySubject.GET_LEARNER_TAX_SUBJECTS, this.userId);      
+      taxSubjects = Base.findAll(AJEntityUserTaxonomySubject.GET_LEARNER_TAX_SUBJECTS, userId);
     }
     if (!taxSubjects.isEmpty()) {
       taxSubjects.forEach(m -> {
@@ -84,7 +82,7 @@ public class IndependentLearnerTaxonomySubjectHandler implements DBHandler {
     } else {
       LOGGER.info("Taxonomy Subject for the Independent Learner cannot be obtained");
     }
-    result.put(JsonConstants.USAGE_DATA, subjectArray).put(JsonConstants.USERID, this.userId);
+    result.put(JsonConstants.USAGE_DATA, subjectArray).put(JsonConstants.USERID, userId);
     return new ExecutionResult<>(MessageResponseFactory.createGetResponse(result), ExecutionStatus.SUCCESSFUL);
 
   }

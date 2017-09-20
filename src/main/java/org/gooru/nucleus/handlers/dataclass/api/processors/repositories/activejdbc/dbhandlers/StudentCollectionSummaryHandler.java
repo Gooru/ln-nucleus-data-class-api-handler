@@ -25,7 +25,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 /**
- * Created by mukul@gooru  
+ * Created by mukul@gooru
  * Modified by daniel
  */
 
@@ -37,7 +37,7 @@ public class StudentCollectionSummaryHandler implements DBHandler {
     private double maxScore = 0 ;
     private long lastAccessedTime;
     private String sessionId;
-    
+
     public StudentCollectionSummaryHandler(ProcessorContext context) {
         this.context = context;
     }
@@ -91,10 +91,10 @@ public class StudentCollectionSummaryHandler implements DBHandler {
       String lessonId = context.request().getString(EventConstants.LESSON_GOORU_OID);
       String collectionId = context.collectionId();
       JsonArray contentArray = new JsonArray();
-      
-      LOGGER.debug("cID : {} , ClassID : {} ", collectionId, classId);  
-        //Getting Question Count 
-        List<Map> collectionMaximumScore = null;
+
+      LOGGER.debug("cID : {} , ClassID : {} ", collectionId, classId);
+        //Getting Question Count
+        List<Map> collectionMaximumScore;
         if (!StringUtil.isNullOrEmpty(classId) && !StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
           collectionMaximumScore = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_MAX_SCORE, classId,courseId,unitId,lessonId,collectionId,this.userId);
         }else{
@@ -108,32 +108,32 @@ public class StudentCollectionSummaryHandler implements DBHandler {
         		this.maxScore = 0;
         	}
         });
-        
-        List<Map> lastAccessedTime = null;
+
+        List<Map> lastAccessedTime;
         if (!StringUtil.isNullOrEmpty(classId) && !StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
           lastAccessedTime = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_LAST_ACCESSED_TIME, classId,courseId,unitId,lessonId,collectionId,this.userId);
         }else{
           lastAccessedTime = Base.findAll(AJEntityBaseReports.SELECT_CLASS_COLLECTION_LAST_ACCESSED_TIME, collectionId,this.userId);
-        }       
-        
+        }
+
         if (!lastAccessedTime.isEmpty()) {
         	lastAccessedTime.forEach(l -> {
-        		this.lastAccessedTime = l.get(AJEntityBaseReports.UPDATE_TIMESTAMP) != null ? 
+        		this.lastAccessedTime = l.get(AJEntityBaseReports.UPDATE_TIMESTAMP) != null ?
         				Timestamp.valueOf(l.get(AJEntityBaseReports.UPDATE_TIMESTAMP).toString()).getTime() : null;
-        		this.sessionId = l.get(AJEntityBaseReports.SESSION_ID) != null ? 
+        		this.sessionId = l.get(AJEntityBaseReports.SESSION_ID) != null ?
         				l.get(AJEntityBaseReports.SESSION_ID).toString() : "NA";
             });
-        } 
-        
-        List<Map> collectionData = null;
+        }
+
+        List<Map> collectionData;
         if (!StringUtil.isNullOrEmpty(classId) && !StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
           collectionData = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_AGG_DATA, classId,courseId,unitId,lessonId,collectionId,this.userId);
         }else{
-          collectionData = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_AGG_DATA_,collectionId,this.userId);          
+          collectionData = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_AGG_DATA_,collectionId,this.userId);
         }
         if (!collectionData.isEmpty()) {
           LOGGER.debug("Collection Attributes obtained");
-          collectionData.stream().forEach(m -> {
+          collectionData.forEach(m -> {
             JsonObject assessmentData = ValueMapper.map(ResponseAttributeIdentifier.getSessionCollectionAttributesMap(), m);
             assessmentData.put(EventConstants.EVENT_TIME, this.lastAccessedTime);
             assessmentData.put(EventConstants.SESSION_ID, this.sessionId);
@@ -142,26 +142,26 @@ public class StudentCollectionSummaryHandler implements DBHandler {
 
             //With Rubrics Score can be Null (for FR questions)
             double scoreInPercent;
-            int reaction=0;            
-              Object collectionScore = null;
+            int reaction=0;
+              Object collectionScore;
               if (!StringUtil.isNullOrEmpty(classId) && !StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
                collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_SCORE, classId,courseId,unitId,lessonId,collectionId,this.userId);
               }else{
                collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_SCORE_,collectionId,this.userId);
               }
-              
+
               if(collectionScore != null && (this.maxScore > 0)){
-                scoreInPercent =  (((double) Double.valueOf(collectionScore.toString()) / this.maxScore) * 100);
+                scoreInPercent =  ((Double.valueOf(collectionScore.toString()) / this.maxScore) * 100);
                 assessmentData.put(AJEntityBaseReports.SCORE, Math.round(scoreInPercent));
               } else {
             	  assessmentData.putNull(AJEntityBaseReports.SCORE);
-              }         
-             
-            Object collectionReaction = null;
+              }
+
+            Object collectionReaction;
             if (!StringUtil.isNullOrEmpty(classId) && !StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
               collectionReaction = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_REACTION, classId,courseId,unitId,lessonId,collectionId,this.userId);
             }else{
-              collectionReaction = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_REACTION_,collectionId,this.userId);              
+              collectionReaction = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_REACTION_,collectionId,this.userId);
             }
             if(collectionReaction != null){
               reaction = Integer.valueOf(collectionReaction.toString());
@@ -171,7 +171,7 @@ public class StudentCollectionSummaryHandler implements DBHandler {
             assessmentDataKPI.put(JsonConstants.COLLECTION, assessmentData);
           });
           LOGGER.debug("Collection resource Attributes started");
-          List<Map> assessmentQuestionsKPI = null;
+          List<Map> assessmentQuestionsKPI;
           if (!StringUtil.isNullOrEmpty(classId) && !StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
             assessmentQuestionsKPI = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_RESOURCE_AGG_DATA,
                   classId,courseId,unitId,lessonId,collectionId,this.userId);
@@ -181,7 +181,7 @@ public class StudentCollectionSummaryHandler implements DBHandler {
           }
           JsonArray questionsArray = new JsonArray();
           if(!assessmentQuestionsKPI.isEmpty()){
-            assessmentQuestionsKPI.stream().forEach(questions -> {
+            assessmentQuestionsKPI.forEach(questions -> {
               JsonObject qnData = ValueMapper.map(ResponseAttributeIdentifier.getSessionCollectionResourceAttributesMap(), questions);
               //FIXME :: This is to be revisited. We should alter the schema column type from TEXT to JSONB. After this change we can remove this logic
               if(questions.get(AJEntityBaseReports.ANSWER_OBECT) != null){
@@ -191,8 +191,8 @@ public class StudentCollectionSummaryHandler implements DBHandler {
               if(qnData.getString(EventConstants.RESOURCE_TYPE).equalsIgnoreCase(EventConstants.QUESTION)){
                 qnData.put(EventConstants.ANSWERSTATUS, EventConstants.SKIPPED);
               }
-              //qnData.put(JsonConstants.SCORE, Math.round(Double.valueOf(questions.get(AJEntityBaseReports.SCORE).toString())));              
-                List<Map> questionScore = null;
+              //qnData.put(JsonConstants.SCORE, Math.round(Double.valueOf(questions.get(AJEntityBaseReports.SCORE).toString())));
+                List<Map> questionScore;
                 if (!StringUtil.isNullOrEmpty(classId) && !StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
                   questionScore = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_QUESTION_AGG_SCORE, classId,courseId,unitId,lessonId,collectionId,questions.get(AJEntityBaseReports.RESOURCE_ID),this.userId);
                 }else{
@@ -201,31 +201,31 @@ public class StudentCollectionSummaryHandler implements DBHandler {
                 }
                 if(!questionScore.isEmpty()){
                 questionScore.forEach(qs -> {
-                    qnData.put(JsonConstants.ANSWER_OBJECT, qs.get(AJEntityBaseReports.ANSWER_OBECT) != null 
+                    qnData.put(JsonConstants.ANSWER_OBJECT, qs.get(AJEntityBaseReports.ANSWER_OBECT) != null
                   		  ? new JsonArray(qs.get(AJEntityBaseReports.ANSWER_OBECT).toString()) : null);
                     //Rubrics - Score may be NULL only incase of OE questions
-                    qnData.put(JsonConstants.SCORE, qs.get(AJEntityBaseReports.SCORE) != null ? 
+                    qnData.put(JsonConstants.SCORE, qs.get(AJEntityBaseReports.SCORE) != null ?
                     		Math.round(Double.valueOf(qs.get(AJEntityBaseReports.SCORE).toString()) * 100) : "NA");
                   qnData.put(EventConstants.ANSWERSTATUS, qs.get(AJEntityBaseReports.ATTR_ATTEMPT_STATUS).toString());
                 });
-                }               
+                }
               //Get grading status for Questions
-              if (!StringUtil.isNullOrEmpty(classId) && !StringUtil.isNullOrEmpty(courseId) && 
+              if (!StringUtil.isNullOrEmpty(classId) && !StringUtil.isNullOrEmpty(courseId) &&
             		  !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
             	  if(qnData.getString(EventConstants.QUESTION_TYPE).equalsIgnoreCase(EventConstants.OPEN_ENDED_QUE)){
-                      Object isGradedObj = Base.firstCell(AJEntityBaseReports.GET_COLL_OE_QUE_GRADE_STATUS, classId, courseId, 
+                      Object isGradedObj = Base.firstCell(AJEntityBaseReports.GET_COLL_OE_QUE_GRADE_STATUS, classId, courseId,
                     		  unitId, lessonId, collectionId, questions.get(AJEntityBaseReports.RESOURCE_ID),this.userId);
                       if (isGradedObj != null && (isGradedObj.toString().equalsIgnoreCase("t") || isGradedObj.toString().equalsIgnoreCase("true"))) {
-                    	  qnData.put(JsonConstants.IS_GRADED, true);                	  
+                    	  qnData.put(JsonConstants.IS_GRADED, true);
                       } else {
-                    	  qnData.put(JsonConstants.IS_GRADED, false);                	  
+                    	  qnData.put(JsonConstants.IS_GRADED, false);
                       }
                     } else {
                     	qnData.put(JsonConstants.IS_GRADED, true);
-                    }  
-              }              
+                    }
+              }
 
-              List<Map> resourceReaction = null;
+              List<Map> resourceReaction;
               if (!StringUtil.isNullOrEmpty(classId) && !StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
                 resourceReaction = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_RESOURCE_AGG_REACTION, classId,courseId,unitId,lessonId,collectionId,questions.get(AJEntityBaseReports.RESOURCE_ID),this.userId);
               }else{
@@ -245,14 +245,14 @@ public class StudentCollectionSummaryHandler implements DBHandler {
           //JsonArray questionsArray = ValueMapper.map(ResponseAttributeIdentifier.getSessionAssessmentQuestionAttributesMap(), assessmentQuestionsKPI);
           assessmentDataKPI.put(JsonConstants.RESOURCES, questionsArray);
           LOGGER.debug("Collection Attributes obtained");
-          contentArray.add(assessmentDataKPI);          
+          contentArray.add(assessmentDataKPI);
         } else {
           LOGGER.info("Collection Attributes cannot be obtained");
         }
         resultBody.put(JsonConstants.CONTENT, contentArray);
         return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
-      
-    }   
+
+    }
 
     @Override
     public boolean handlerReadOnly() {

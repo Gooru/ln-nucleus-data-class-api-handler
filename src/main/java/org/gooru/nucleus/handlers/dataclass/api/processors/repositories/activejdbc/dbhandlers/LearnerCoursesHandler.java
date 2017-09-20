@@ -29,8 +29,7 @@ public class LearnerCoursesHandler implements DBHandler {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LearnerCoursesHandler.class);
   private final ProcessorContext context;
-  private String userId;
-  private String nullVal = null;
+    private String nullVal = null;
 
   public LearnerCoursesHandler(ProcessorContext context) {
     this.context = context;
@@ -60,24 +59,24 @@ public class LearnerCoursesHandler implements DBHandler {
   public ExecutionResult<MessageResponse> executeRequest() {
     JsonObject resultBody = new JsonObject();
     JsonArray resultarray = new JsonArray();
-    this.userId = this.context.userIdFromSession();
-    LOGGER.debug("UID is " + this.userId);
+      String userId = this.context.userIdFromSession();
+    LOGGER.debug("UID is " + userId);
     String taxSubjectId = this.context.request().getString("taxSubjectId");
     String userType = this.context.request().getString("userType");
-    List<Map> coursesList = null;
+    List<Map> coursesList;
     if (StringUtil.isNullOrEmpty(taxSubjectId) || ((taxSubjectId.equalsIgnoreCase("all") || taxSubjectId.equals("*")))) {
       // TODO : IL represents IndependentLearner. This can be changed later.
       if (!StringUtil.isNullOrEmpty(userType) && userType.equalsIgnoreCase("IL")) {
-        coursesList = Base.findAll(AJEntityUserTaxonomySubject.GET_INDEPENDENT_LEARNER_ALL_COURSES, this.userId);
+        coursesList = Base.findAll(AJEntityUserTaxonomySubject.GET_INDEPENDENT_LEARNER_ALL_COURSES, userId);
       } else {
-        coursesList = Base.findAll(AJEntityUserTaxonomySubject.GET_LEARNER_ALL_COURSES, this.userId);
+        coursesList = Base.findAll(AJEntityUserTaxonomySubject.GET_LEARNER_ALL_COURSES, userId);
       }
     } else {
       if (!StringUtil.isNullOrEmpty(userType) && userType.equalsIgnoreCase("IL")) {
-        coursesList = Base.findAll(AJEntityUserTaxonomySubject.GET_INDEPENDENT_LEARNER_COURSES, taxSubjectId, this.userId);
+        coursesList = Base.findAll(AJEntityUserTaxonomySubject.GET_INDEPENDENT_LEARNER_COURSES, taxSubjectId, userId);
 
       } else {
-        coursesList = Base.findAll(AJEntityUserTaxonomySubject.GET_LEARNER_COURSES, taxSubjectId, this.userId);
+        coursesList = Base.findAll(AJEntityUserTaxonomySubject.GET_LEARNER_COURSES, taxSubjectId, userId);
       }
     }
     if (!coursesList.isEmpty()) {

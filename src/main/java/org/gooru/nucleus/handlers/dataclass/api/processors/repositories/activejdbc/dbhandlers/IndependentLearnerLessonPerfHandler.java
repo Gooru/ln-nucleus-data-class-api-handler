@@ -89,17 +89,17 @@ public class IndependentLearnerLessonPerfHandler implements DBHandler {
     for (String userID : userIds) {
       JsonObject contentBody = new JsonObject();
       JsonArray LessonKpiArray = new JsonArray();
-      LazyList<AJEntityBaseReports> collIDforlesson = null;
+      LazyList<AJEntityBaseReports> collIDforlesson;
 
       collIDforlesson = AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_DISTINCT_COLLID_FOR_LESSON_ID_FILTERBY_COLLTYPE,
               context.courseId(), context.unitId(), context.lessonId(), this.collectionType, userID);
 
-      List<String> collIds = new ArrayList<>();
+      List<String> collIds = new ArrayList<>(collIDforlesson.size());
       if (!collIDforlesson.isEmpty()) {
         LOGGER.info("Got a list of Distinct collectionIDs for this lesson");
         collIDforlesson.forEach(coll -> collIds.add(coll.getString(AJEntityBaseReports.COLLECTION_OID)));
       }
-      List<Map> assessmentKpi = null;
+      List<Map> assessmentKpi;
       if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
 
         assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_LESSON_PERF_FOR_COLLECTION, context.courseId(), context.unitId(),
@@ -119,7 +119,7 @@ public class IndependentLearnerLessonPerfHandler implements DBHandler {
           lessonKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.valueOf(m.get(AJEntityBaseReports.ATTR_SCORE).toString())));
           // FIXME: This logic to be revisited.
           if (this.collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {
-            List<Map> collectionQuestionCount = null;
+            List<Map> collectionQuestionCount;
 
             collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_COLLECTION_QUESTION_COUNT, context.courseId(), context.unitId(),
                     context.lessonId(), lessonKpi.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID), this.userId);
@@ -135,19 +135,19 @@ public class IndependentLearnerLessonPerfHandler implements DBHandler {
             });
             double scoreInPercent = 0;
             if (this.questionCount > 0) {
-              Object collectionScore = null;
+              Object collectionScore;
 
               collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_COLLECTION_AGG_SCORE, context.courseId(), context.unitId(),
                       context.lessonId(), lessonKpi.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID), this.userId);
 
               if (collectionScore != null) {
-                scoreInPercent = ((double) Double.valueOf(collectionScore.toString()) / this.questionCount) * 100;
+                scoreInPercent = (Double.valueOf(collectionScore.toString()) / this.questionCount) * 100;
               }
-              lessonKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(scoreInPercent));              
+              lessonKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(scoreInPercent));
             } else {
             	//If Collections have No Questions then score should be NULL
             	lessonKpi.putNull(AJEntityBaseReports.ATTR_SCORE);
-            }            
+            }
             lessonKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, lessonKpi.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID));
             lessonKpi.remove(AJEntityBaseReports.ATTR_ASSESSMENT_ID);
             lessonKpi.put(EventConstants.VIEWS, lessonKpi.getInteger(EventConstants.ATTEMPTS));

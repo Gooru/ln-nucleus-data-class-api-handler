@@ -24,19 +24,14 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 public class IndLearnerCourseAssessmentsPerfHandler implements DBHandler {
-	
-	
+
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(IndLearnerCourseAssessmentsPerfHandler.class);
     private static final String REQUEST_USERID = "userId";
     private final ProcessorContext context;
-    private String classId;    
-    private String userId;    
-    private String courseId;
-    private String unitId;
-    private String lessonId;
     private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
-    
+
     public IndLearnerCourseAssessmentsPerfHandler(ProcessorContext context) {
         this.context = context;
     }
@@ -64,66 +59,66 @@ public class IndLearnerCourseAssessmentsPerfHandler implements DBHandler {
     @Override
     @SuppressWarnings("rawtypes")
     public ExecutionResult<MessageResponse> executeRequest() {
-    	
+
     	//NOTE: This code will need to be refactored going ahead. (based on changes/updates to Student Performance Reports)
 
         StringBuilder query = new StringBuilder(AJEntityBaseReports.GET_IL_COURSE_DISTINCT_COLLECTIONS);
         List<String> params = new ArrayList<>();
-        JsonObject resultBody = new JsonObject();        
+        JsonObject resultBody = new JsonObject();
         JsonArray assessmentArray = new JsonArray();
 
-      this.userId = this.context.request().getString(REQUEST_USERID);
-        
+        String userId = this.context.request().getString(REQUEST_USERID);
+
       if (StringUtil.isNullOrEmpty(userId)) {
         LOGGER.warn("UserID is mandatory for fetching Student Performance in a Collection");
         return new ExecutionResult<>(
                 MessageResponseFactory.createInvalidRequestResponse("User Id Missing. Cannot fetch Student Performance in Collection"),
                 ExecutionStatus.FAILED);
-  
+
       } else {
-      	params.add(userId);        	
+      	params.add(userId);
       }
-      
-      params.add(AJEntityBaseReports.ATTR_ASSESSMENT);          
-      
-      this.classId = this.context.request().getString(MessageConstants.CLASS_ID); 
-      if(StringUtil.isNullOrEmpty(this.classId)){
+
+      params.add(AJEntityBaseReports.ATTR_ASSESSMENT);
+
+        String classId = this.context.request().getString(MessageConstants.CLASS_ID);
+      if(StringUtil.isNullOrEmpty(classId)){
         query.append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append("class_id IS NULL").append(AJEntityBaseReports.SPACE);
       } else{
         query.append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.CLASS_ID).append(AJEntityBaseReports.SPACE);
-        params.add(classId);  
+        params.add(classId);
       }
-      this.courseId = this.context.request().getString(MessageConstants.COURSE_ID);      
+        String courseId = this.context.request().getString(MessageConstants.COURSE_ID);
       if (StringUtil.isNullOrEmpty(courseId)) {
           LOGGER.warn("CourseID is mandatory for fetching Student Performance in a Collection");
           return new ExecutionResult<>(
                   MessageResponseFactory.createInvalidRequestResponse("Course Id Missing. Cannot fetch Student Performance in Collection"),
                   ExecutionStatus.FAILED);
-    
+
         } else {
           query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.COURSE_ID);
-        	params.add(courseId);        	
+        	params.add(courseId);
         }
 
-      this.unitId = this.context.request().getString(MessageConstants.UNIT_ID);
+        String unitId = this.context.request().getString(MessageConstants.UNIT_ID);
       if (!StringUtil.isNullOrEmpty(unitId)) {
     	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.UNIT_ID);
-    	  params.add(unitId);    
-        } 
-      
-      this.lessonId = this.context.request().getString(MessageConstants.LESSON_ID);
+    	  params.add(unitId);
+        }
+
+        String lessonId = this.context.request().getString(MessageConstants.LESSON_ID);
       if (!StringUtil.isNullOrEmpty(lessonId)) {
     	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.LESSON_ID);
-    	  params.add(lessonId);    
-        } 
+    	  params.add(lessonId);
+        }
       String startDate = this.context.request().getString(MessageConstants.START_DATE);
-    
+
       if (!StringUtil.isNullOrEmpty(startDate)&&!isValidFormat(startDate)) {
         LOGGER.error("Invalid startDate");
         return new ExecutionResult<>(
                 MessageResponseFactory.createInvalidRequestResponse("Invalid startDate. Cannot fetch Student Performance in Assessment"),
                 ExecutionStatus.FAILED);
-  
+
       }
       if (!StringUtil.isNullOrEmpty(startDate)) {
         query.append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.UPDATDED_AT_GREATER_THAN_OR_EQUAL);
@@ -135,35 +130,35 @@ public class IndLearnerCourseAssessmentsPerfHandler implements DBHandler {
         return new ExecutionResult<>(
                 MessageResponseFactory.createInvalidRequestResponse("Invalid endDate. Cannot fetch Student Performance in Assessment"),
                 ExecutionStatus.FAILED);
-  
+
       }
       if (!StringUtil.isNullOrEmpty(endDate)) {
         query.append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.UPDATDED_AT_LESS_THAN_OR_EQUAL);
         params.add(endDate);
       }
-      
-      LOGGER.debug("Query : " + query.toString());
+
+      LOGGER.debug("Query : " + query);
       LazyList<AJEntityBaseReports> collectionList = AJEntityBaseReports.findBySQL(query.toString(), params.toArray());
-      LOGGER.debug("The query is" + query.toString());
-      
+      LOGGER.debug("The query is" + query);
+
       //Populate collIds from the Context in API
-      List<String> collIds = new ArrayList<>();
-      if (!collectionList.isEmpty()) {          
+      List<String> collIds = new ArrayList<>(collectionList.size());
+      if (!collectionList.isEmpty()) {
     	  LOGGER.debug("Do I get here?");
           collectionList.forEach(c -> collIds.add(c.getString(AJEntityBaseReports.COLLECTION_OID)));
-      }        
+      }
         for (String collId : collIds) {
-          LazyList<AJEntityBaseReports> assessScore = null;
-        	LazyList<AJEntityBaseReports> assessTSA = null;
+          LazyList<AJEntityBaseReports> assessScore;
+        	LazyList<AJEntityBaseReports> assessTSA;
         	LOGGER.debug("The collectionIds are" + collId);
         	JsonObject assessmentKpi = new JsonObject();
           List<String> assessTSAParams = new ArrayList<>();
-          
+
           StringBuilder assessTSAQuery = new StringBuilder(AJEntityBaseReports.GET_IL_COURSE_ASSESSMENTS_TOTAL_TIME_SPENT_ATTEMPTS);
-          assessTSAParams.add(this.courseId);
+          assessTSAParams.add(courseId);
           assessTSAParams.add(collId);
           assessTSAParams.add(AJEntityBaseReports.ATTR_ASSESSMENT);
-          assessTSAParams.add(this.userId);
+          assessTSAParams.add(userId);
           assessTSAParams.add(EventConstants.COLLECTION_PLAY);
           assessTSAParams.add(EventConstants.STOP);
           if (!StringUtil.isNullOrEmpty(startDate)) {
@@ -178,16 +173,16 @@ public class IndLearnerCourseAssessmentsPerfHandler implements DBHandler {
           LOGGER.debug("assessTSA Query : ", assessTSAQuery.toString());
           //Find Timespent and Attempts
         	assessTSA = AJEntityBaseReports.findBySQL(assessTSAQuery.toString(), assessTSAParams.toArray());
-        	
+
         	if (!assessTSA.isEmpty()) {
         	assessTSA.forEach(m -> {
         		assessmentKpi.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.parseLong(m.get(AJEntityBaseReports.TIME_SPENT).toString()));
         		assessmentKpi.put(AJEntityBaseReports.ATTR_ATTEMPTS, Integer.parseInt(m.get(AJEntityBaseReports.VIEWS).toString()));
 	    		});
         	}
-        	
+
         	StringBuilder assessScoreQuery = new StringBuilder(AJEntityBaseReports.GET_IL_COURSE_ASSESSMENTS_SCORE);
-        	
+
         	 if (!StringUtil.isNullOrEmpty(startDate)) {
         	   assessScoreQuery.append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.UPDATDED_AT_GREATER_THAN_OR_EQUAL);
            }
@@ -197,25 +192,26 @@ public class IndLearnerCourseAssessmentsPerfHandler implements DBHandler {
            LOGGER.debug("assessScore Query :{} ", assessTSAQuery.toString());
         	//Get the latest Score
         	assessScore = AJEntityBaseReports.findBySQL(assessScoreQuery.toString(),assessTSAParams.toArray());
-        	
+
         	if (!assessScore.isEmpty()){
         		assessScore.forEach(m -> {
             		assessmentKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.valueOf((m.get(AJEntityBaseReports.SCORE).toString()))));
-            		assessmentKpi.put(JsonConstants.STATUS, JsonConstants.COMPLETE);        
+            		assessmentKpi.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
     	    		});
             	}
-        		
+
         	assessmentKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collId);
         	assessmentArray.add(assessmentKpi);
         	}
 
-      resultBody.put(JsonConstants.USAGE_DATA, assessmentArray).put(JsonConstants.USERID, this.userId);
-      
-      return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);  
+      resultBody.put(JsonConstants.USAGE_DATA, assessmentArray).put(JsonConstants.USERID, userId);
 
-      }       
-      
+      return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
+
+      }
+
     public boolean isValidFormat(String value) {
+    // TODO: AM: This access to SDF is not thread safe
       Date date = null;
       try {
         date = sdf.parse(value);
