@@ -27,21 +27,19 @@ import io.vertx.core.json.JsonObject;
  * Created by mukul@gooru
  */
 public class StudentLocationAllClassesHandler implements DBHandler {
-	
+
 	  private static final Logger LOGGER = LoggerFactory.getLogger(StudentLocationAllClassesHandler.class);
 
 	  private final ProcessorContext context;
 	  private static final String REQUEST_USERID = "userId";
-	  private String userId;
-	  private JsonArray classIds;
 
-	  StudentLocationAllClassesHandler(ProcessorContext context) {
+	StudentLocationAllClassesHandler(ProcessorContext context) {
 	    this.context = context;
 	  }
 
 	  @Override
 	  public ExecutionResult<MessageResponse> checkSanity() {
-	    // No Sanity Check required at this point since, no params are being passed in Request	    
+	    // No Sanity Check required at this point since, no params are being passed in Request
 	    LOGGER.debug("checkSanity() OK");
 	    return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
 	  }
@@ -56,9 +54,9 @@ public class StudentLocationAllClassesHandler implements DBHandler {
 	  @SuppressWarnings("rawtypes")
 	  public ExecutionResult<MessageResponse> executeRequest() {
 
-	    this.userId = this.context.request().getString(REQUEST_USERID);
-	    this.classIds = this.context.request().getJsonArray(EventConstants.CLASS_IDS);
-	    LOGGER.debug("userId : {} - classIds:{}", userId, this.classIds);
+          String userId = this.context.request().getString(REQUEST_USERID);
+		  JsonArray classIds = this.context.request().getJsonArray(EventConstants.CLASS_IDS);
+	    LOGGER.debug("userId : {} - classIds:{}", userId, classIds);
 
 	    if (classIds.isEmpty()) {
 	      LOGGER.warn("ClassIds are mandatory to fetch Student Performance in Classes");
@@ -72,10 +70,12 @@ public class StudentLocationAllClassesHandler implements DBHandler {
 
 
 	    List<Map> studLocData = null;
-	    if (!StringUtil.isNullOrEmpty(this.userId)) {
-	      studLocData = Base.findAll(AJEntityBaseReports.GET_STUDENT_LOCATION_ALL_CLASSES, this.userId, listToPostgresArrayString(this.classIds));
-	    } 
-	    
+	    if (!StringUtil.isNullOrEmpty(userId)) {
+	      studLocData = Base.findAll(AJEntityBaseReports.GET_STUDENT_LOCATION_ALL_CLASSES, userId, listToPostgresArrayString(
+			  classIds));
+	    }
+
+	    // TODO: AM - If we are not returning in above statement when userID is null, we are going to produce NPE
 	    if (!studLocData.isEmpty()) {
 	      studLocData.forEach(m -> {
 	        JsonObject studLoc = new JsonObject();
@@ -94,14 +94,14 @@ public class StudentLocationAllClassesHandler implements DBHandler {
           } else {
         	  studLoc.put(JsonConstants.STATUS, JsonConstants.IN_PROGRESS);
           }
-          locArray.add(studLoc);          
+          locArray.add(studLoc);
 	      });
 	    } else {
 	      LOGGER.info("Location Attributes for the student cannot be obtained");
 	    }
 
 	    // Form the required Json pass it on
-	    result.put(JsonConstants.USAGE_DATA, locArray).put(JsonConstants.USERID, this.userId);
+	    result.put(JsonConstants.USAGE_DATA, locArray).put(JsonConstants.USERID, userId);
 
 	    return new ExecutionResult<>(MessageResponseFactory.createGetResponse(result), ExecutionStatus.SUCCESSFUL);
 	  }
@@ -112,7 +112,7 @@ public class StudentLocationAllClassesHandler implements DBHandler {
 	  }
 
 	  private String listToPostgresArrayString(JsonArray inputArrary) {
-	    List<String> input = new ArrayList<>();
+	    List<String> input = new ArrayList<>(inputArrary.size());
 	    for (Object s : inputArrary) {
 	      input.add(s.toString());
 	    }

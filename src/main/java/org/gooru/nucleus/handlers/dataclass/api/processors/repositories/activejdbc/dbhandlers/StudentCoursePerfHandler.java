@@ -35,10 +35,9 @@ class StudentCoursePerfHandler implements DBHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(StudentCoursePerfHandler.class);
 	private static final String REQUEST_COLLECTION_TYPE = "collectionType";
     private static final String REQUEST_USERID = "userUid";
-    
+
 	  private final ProcessorContext context;
     private String collectionType;
-    private String userId;
     private String unitId;
 
     public StudentCoursePerfHandler(ProcessorContext context) {
@@ -77,10 +76,10 @@ class StudentCoursePerfHandler implements DBHandler {
     @Override
     @SuppressWarnings("rawtypes")
     public ExecutionResult<MessageResponse> executeRequest() {
-  
+
       JsonObject resultBody = new JsonObject();
       JsonArray resultarray = new JsonArray();
-  
+
       // CollectionType is a Mandatory Parameter
       this.collectionType = this.context.request().getString(REQUEST_COLLECTION_TYPE);
       if (StringUtil.isNullOrEmpty(collectionType)) {
@@ -89,33 +88,33 @@ class StudentCoursePerfHandler implements DBHandler {
                 MessageResponseFactory.createInvalidRequestResponse("CollectionType Missing. Cannot fetch Student Performance in course"),
                 ExecutionStatus.FAILED);
       }
-      this.userId = this.context.request().getString(REQUEST_USERID);
-      
+        String userId = this.context.request().getString(REQUEST_USERID);
+
       List<String> unitIds = new ArrayList<>();
       List<String> userIds = new ArrayList<>();
-  
-      if (context.classId() != null && StringUtil.isNullOrEmpty(this.userId)) {
+
+      if (context.classId() != null && StringUtil.isNullOrEmpty(userId)) {
         LOGGER.info("UserID is not in the request fetch Student Performance in Course, Assume user is a teacher");
         LazyList<AJEntityBaseReports> userIDforCourse = AJEntityBaseReports.findBySQL(
                 AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_COURSE_ID_FILTERBY_COLLTYPE, context.classId(), context.courseId(), this.collectionType);
         userIDforCourse.forEach(unit -> userIds.add(unit.getString(AJEntityBaseReports.GOORUUID)));
       } else {
-        userIds.add(this.userId);
+        userIds.add(userId);
       }
-  
+
       for (String userID : userIds) {
         JsonObject contentBody = new JsonObject();
         JsonArray CourseKpiArray = new JsonArray();
-  
-        LazyList<AJEntityBaseReports> unitIDforCourse = null;
+
+        LazyList<AJEntityBaseReports> unitIDforCourse;
           unitIDforCourse = AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_UNIT_ID_FOR_COURSE_ID_FILTERBY_COLLTYPE,
                   context.classId(), context.courseId(), this.collectionType, userID);
-  
+
         if (!unitIDforCourse.isEmpty()) {
           LOGGER.debug("Got a list of Distinct unitIDs for this Course");
-  
+
           unitIDforCourse.forEach(unit -> unitIds.add(unit.getString(AJEntityBaseReports.UNIT_GOORU_OID)));
-          List<Map> assessmentKpi = null;
+          List<Map> assessmentKpi;
           if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
               assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_COURSE_PERF_FOR_COLLECTION, context.classId(), context.courseId(),
                       this.collectionType, userID, listToPostgresArrayString(unitIds));
@@ -127,7 +126,7 @@ class StudentCoursePerfHandler implements DBHandler {
             assessmentKpi.forEach(m -> {
               unitId = m.get(AJEntityBaseReports.UNIT_GOORU_OID).toString();
               LOGGER.debug("The Value of UNITID " + unitId);
-              List<Map> completedCountMap = null;
+              List<Map> completedCountMap;
               List<Map> scoreMap = null;
 
               if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
@@ -143,23 +142,23 @@ class StudentCoursePerfHandler implements DBHandler {
               completedCountMap.forEach(scoreCompletonMap -> {
                 unitData.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT,
                         Integer.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
-                unitData.put(AJEntityBaseReports.ATTR_SCORE, scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE) != null ? 
+                unitData.put(AJEntityBaseReports.ATTR_SCORE, scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE) != null ?
                 		Math.round(Double.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE).toString())) : null);
               });
-              
+
               if(scoreMap != null && !scoreMap.isEmpty() && this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
                 scoreMap.forEach(score ->{
-                  double maxScore = Double.valueOf(score.get(AJEntityBaseReports.MAX_SCORE).toString());                                    
-                  if(maxScore > 0 && (score.get(AJEntityBaseReports.SCORE) != null)) {                	
+                  double maxScore = Double.valueOf(score.get(AJEntityBaseReports.MAX_SCORE).toString());
+                  if(maxScore > 0 && (score.get(AJEntityBaseReports.SCORE) != null)) {
                 	double sumOfScore = Double.valueOf(score.get(AJEntityBaseReports.SCORE).toString());
                 	LOGGER.debug("maxScore : {} , sumOfScore : {} ", maxScore, sumOfScore);
                     unitData.put(AJEntityBaseReports.ATTR_SCORE, (Math.round((sumOfScore / maxScore) * 100)));
-                  }else {    
+                  }else {
                     unitData.putNull(AJEntityBaseReports.ATTR_SCORE);
                   }
                 });
               }
-              
+
               // FIXME: Total count will be taken from nucleus core.
               unitData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
               if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
@@ -169,28 +168,28 @@ class StudentCoursePerfHandler implements DBHandler {
               CourseKpiArray.add(unitData);
             });
           } else {
-            LOGGER.info("No data returned for Student Perf in Course");            
-          }  
+            LOGGER.info("No data returned for Student Perf in Course");
+          }
         } else {
           LOGGER.info("Could not get Student Course Performance");
         }
-  
+
         // Form the required Json pass it on
         contentBody.put(JsonConstants.USAGE_DATA, CourseKpiArray).put(JsonConstants.USERUID, userID);
         resultarray.add(contentBody);
       }
       resultBody.put(JsonConstants.CONTENT, resultarray).putNull(JsonConstants.MESSAGE).putNull(JsonConstants.PAGINATE);
-  
+
       return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
-    }   
-    
+    }
+
 
     @Override
     public boolean handlerReadOnly() {
         return true;
     }
-    
-    
+
+
     private String listToPostgresArrayString(List<String> input) {
         int approxSize = ((input.size() + 1) * 36); // Length of UUID is around
                                                     // 36

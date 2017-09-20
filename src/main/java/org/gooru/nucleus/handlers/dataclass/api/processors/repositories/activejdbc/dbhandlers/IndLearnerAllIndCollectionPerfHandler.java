@@ -21,14 +21,13 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 public class IndLearnerAllIndCollectionPerfHandler implements DBHandler {
-	
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(IndLearnerAllIndCollectionPerfHandler.class);
 
 	  private final ProcessorContext context;
 	  private static final String REQUEST_USERID = "userId";
-	  private String userId;
-	  
-	  IndLearnerAllIndCollectionPerfHandler(ProcessorContext context) {
+
+    IndLearnerAllIndCollectionPerfHandler(ProcessorContext context) {
 	    this.context = context;
 	  }
 
@@ -49,21 +48,21 @@ public class IndLearnerAllIndCollectionPerfHandler implements DBHandler {
 	  @Override
 	  @SuppressWarnings("rawtypes")
     public ExecutionResult<MessageResponse> executeRequest() {
-      this.userId = this.context.request().getString(REQUEST_USERID);
+          String userId = this.context.request().getString(REQUEST_USERID);
       String limitS = this.context.request().getString("limit");
       String offsetS = this.context.request().getString("offset");
-  
-      if (StringUtil.isNullOrEmpty(this.userId)) {
+
+      if (StringUtil.isNullOrEmpty(userId)) {
         // If user id is not present in the path, take user id from session token.
-        this.userId = this.context.userIdFromSession();
+        userId = this.context.userIdFromSession();
       }
-  
+
       JsonObject result = new JsonObject();
       JsonArray collectionKpiArray = new JsonArray();
       String query = StringUtil.isNullOrEmpty(limitS) ? AJEntityBaseReports.GET_IL_ALL_COLLECTION_VIEWS_TIMESPENT
               : AJEntityBaseReports.GET_IL_ALL_COLLECTION_VIEWS_TIMESPENT + "LIMIT " + Long.valueOf(limitS);
-  
-      List<Map> collectionAggData = Base.findAll(query, this.userId, StringUtil.isNullOrEmpty(offsetS) ? 0L : Long.valueOf(offsetS));
+
+      List<Map> collectionAggData = Base.findAll(query, userId, StringUtil.isNullOrEmpty(offsetS) ? 0L : Long.valueOf(offsetS));
       if (!collectionAggData.isEmpty()) {
         collectionAggData.forEach(collectionsKpi -> {
           JsonObject collectionObj = new JsonObject();
@@ -79,9 +78,9 @@ public class IndLearnerAllIndCollectionPerfHandler implements DBHandler {
       }
       // Form the required Json pass it on
       result.put(JsonConstants.USAGE_DATA, collectionKpiArray);
-  
-      result.put(JsonConstants.USERID, this.userId);
-  
+
+      result.put(JsonConstants.USERID, userId);
+
       return new ExecutionResult<>(MessageResponseFactory.createGetResponse(result), ExecutionStatus.SUCCESSFUL);
     }
 

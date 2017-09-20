@@ -21,13 +21,13 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 public class IndLearnerAllIndAssessmentPerfHandler implements DBHandler {
-	
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(IndLearnerAllIndAssessmentPerfHandler.class);
 
 	  private final ProcessorContext context;
 	  private static final String REQUEST_USERID = "userId";
 	  private String userId;
-	  
+
 	  IndLearnerAllIndAssessmentPerfHandler(ProcessorContext context) {
 	    this.context = context;
 	  }
@@ -53,17 +53,17 @@ public class IndLearnerAllIndAssessmentPerfHandler implements DBHandler {
       this.userId = this.context.request().getString(REQUEST_USERID);
       String limitS = this.context.request().getString("limit");
       String offsetS = this.context.request().getString("offset");
-  
+
       if (StringUtil.isNullOrEmpty(this.userId)) {
         // If user id is not present in the path, take user id from session token.
         this.userId = this.context.userIdFromSession();
       }
-  
+
       JsonObject result = new JsonObject();
       JsonArray assessmentKpiArray = new JsonArray();
       String query = StringUtil.isNullOrEmpty(limitS) ? AJEntityBaseReports.GET_IL_ALL_ASSESSMENT_ATTEMPTS_TIMESPENT
               : AJEntityBaseReports.GET_IL_ALL_ASSESSMENT_ATTEMPTS_TIMESPENT + "LIMIT " + Long.valueOf(limitS);
-  
+
       List<Map> assessmentTS = Base.findAll(query, this.userId, StringUtil.isNullOrEmpty(offsetS) ? 0L : Long.valueOf(offsetS));
       if (!assessmentTS.isEmpty()) {
         assessmentTS.forEach(assessmentTsKpi -> {
@@ -74,10 +74,8 @@ public class IndLearnerAllIndAssessmentPerfHandler implements DBHandler {
           List<Map> assessmentCompletionKpi = Base.findAll(AJEntityBaseReports.GET_IL_ALL_ASSESSMENT_SCORE_COMPLETION, this.userId,
                   assessmentTsKpi.get(AJEntityBaseReports.COLLECTION_OID).toString());
           if (!assessmentCompletionKpi.isEmpty()) {
-            assessmentCompletionKpi.forEach(courseComplettion -> {
-              assesmentObject.put(AJEntityBaseReports.ATTR_SCORE,
-                      Math.round(Double.valueOf(courseComplettion.get(AJEntityBaseReports.ATTR_SCORE).toString())));
-            });
+            assessmentCompletionKpi.forEach(courseComplettion -> assesmentObject.put(AJEntityBaseReports.ATTR_SCORE,
+                    Math.round(Double.valueOf(courseComplettion.get(AJEntityBaseReports.ATTR_SCORE).toString()))));
           } else {
             assesmentObject.put(AJEntityBaseReports.ATTR_SCORE, 0);
           }
@@ -90,9 +88,9 @@ public class IndLearnerAllIndAssessmentPerfHandler implements DBHandler {
       }
       // Form the required Json pass it on
       result.put(JsonConstants.USAGE_DATA, assessmentKpiArray);
-  
+
       result.put(JsonConstants.USERID, this.userId);
-  
+
       return new ExecutionResult<>(MessageResponseFactory.createGetResponse(result), ExecutionStatus.SUCCESSFUL);
     }
 

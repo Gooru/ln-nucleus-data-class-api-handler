@@ -2,6 +2,7 @@ package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activej
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
@@ -21,39 +22,33 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 public class IndLearnerAssessmentSessionsHandler implements DBHandler {
-	
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(IndLearnerAssessmentSessionsHandler.class);
-		
+
     private static final String REQUEST_COURSE_ID = "courseGooruId";
     private static final String REQUEST_UNIT_ID = "unitGooruId";
     private static final String REQUEST_LESSON_ID = "lessonGooruId";
     private static final String REQUEST_OPEN_SESSION = "openSession";
     private static final String REQUEST_USERID = "userUid";
-    
-	private final ProcessorContext context;
-    private AJEntityBaseReports baseReport;
 
-    private String courseId;
-    private String unitId;
-    private String lessonId;
+	private final ProcessorContext context;
+
     private String collectionId;
-    private String userId;
     private String sessionId;
-    private Integer openSeq = new Integer(0);
-    private Integer closedSeq = new Integer(0);
-    
-    private String openSession = new String("false");
+    private Integer openSeq = 0;
+    private Integer closedSeq = 0;
+
     boolean isStop = false;
-        
+
     public IndLearnerAssessmentSessionsHandler(ProcessorContext context) {
         this.context = context;
     }
 
     @Override
     public ExecutionResult<MessageResponse> checkSanity() {
-    	
+
     	//No Sanity Check required since, no params are being passed in Request Body
- 
+
         LOGGER.debug("checkSanity() OK");
         return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
     }
@@ -66,60 +61,64 @@ public class IndLearnerAssessmentSessionsHandler implements DBHandler {
 
     @Override
     public ExecutionResult<MessageResponse> executeRequest() {
-    	
-    	JsonObject resultBody = new JsonObject();       	    	
+
+    	JsonObject resultBody = new JsonObject();
     	JsonArray closedSessionArray = new JsonArray();
     	JsonArray openSessionArray = new JsonArray();
-    	    	
-    	baseReport = new AJEntityBaseReports();
-    
-        this.collectionId = context.collectionId();   
-        this.courseId = context.request().getString(EventConstants.COURSE_GOORU_OID);
-        this.unitId = context.request().getString(EventConstants.UNIT_GOORU_OID);
-        this.lessonId = context.request().getString(EventConstants.LESSON_GOORU_OID);
-        this.openSession = this.context.request().getString(REQUEST_OPEN_SESSION);
-        this.userId = this.context.request().getString(REQUEST_USERID);
-       
+
+        AJEntityBaseReports baseReport = new AJEntityBaseReports();
+
+        this.collectionId = context.collectionId();
+        String courseId = context.request().getString(EventConstants.COURSE_GOORU_OID);
+        String unitId = context.request().getString(EventConstants.UNIT_GOORU_OID);
+        String lessonId = context.request().getString(EventConstants.LESSON_GOORU_OID);
+        String openSession = this.context.request().getString(REQUEST_OPEN_SESSION);
+        String userId = this.context.request().getString(REQUEST_USERID);
+
     	if (StringUtil.isNullOrEmpty(openSession)) {
-    		this.openSession = "false";
-            LOGGER.info("By Default OpenSession is assumed to be false");            
+    		openSession = "false";
+            LOGGER.info("By Default OpenSession is assumed to be false");
         }
-        
+
         if (StringUtil.isNullOrEmpty(userId)) {
             LOGGER.warn("UserID is mandatory to fetch Session Information");
             return new ExecutionResult<>(
                 MessageResponseFactory.createInvalidRequestResponse("UserID Missing. Cannot fetch Session Information"),
                 ExecutionStatus.FAILED);
         }
-        List<Map> distinctSessionsList = null;
-        if(!StringUtil.isNullOrEmpty(this.courseId) && !StringUtil.isNullOrEmpty(this.unitId) && !StringUtil.isNullOrEmpty(this.lessonId)){
-          distinctSessionsList = Base.findAll( AJEntityBaseReports.GET_IL_SESSIONS_FOR_COLLID, this.courseId,this.unitId,this.lessonId, 
-    			this.collectionId, EventConstants.ASSESSMENT, this.userId);
+        List<Map> distinctSessionsList;
+        if(!StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(
+
+
+            lessonId)){
+          distinctSessionsList = Base.findAll( AJEntityBaseReports.GET_IL_SESSIONS_FOR_COLLID, courseId, unitId,
+              lessonId,
+    			this.collectionId, EventConstants.ASSESSMENT, userId);
         }else {
           //Currently, data for Assessments at the IL Landing page should be inclusive of CUL and Standalone collections
-          distinctSessionsList = Base.findAll( AJEntityBaseReports.GET_IL_SESSIONS_FOR_STANDALONE_COLLID, 
-                  this.collectionId, EventConstants.ASSESSMENT, this.userId);
+          distinctSessionsList = Base.findAll( AJEntityBaseReports.GET_IL_SESSIONS_FOR_STANDALONE_COLLID,
+                  this.collectionId, EventConstants.ASSESSMENT, userId);
         }
-    	if (!distinctSessionsList.isEmpty()) {    		
-    		distinctSessionsList.forEach(m -> {    		
+    	if (!distinctSessionsList.isEmpty()) {
+    		distinctSessionsList.forEach(m -> {
         		sessionId = m.get(AJEntityBaseReports.SESSION_ID).toString();
-        		LOGGER.debug(sessionId.toString());        		
+        		LOGGER.debug(sessionId);
         		isStop = false;
         		JsonObject sessionObj = new JsonObject();
-        		
-        		List<Map> sessionStatusMap = Base.findAll( AJEntityBaseReports.GET_IL_SESSION_STATUS, 
+
+        		List<Map> sessionStatusMap = Base.findAll( AJEntityBaseReports.GET_IL_SESSION_STATUS,
         	   			 sessionId, this.collectionId, EventConstants.COLLECTION_PLAY);
 
         		if (!sessionStatusMap.isEmpty()){
-        			
+
         			sessionStatusMap.forEach(sess -> {
-        				if (sess.get(AJEntityBaseReports.EVENTTYPE).toString().equals(EventConstants.START)){
+        				if (Objects.equals(sess.get(AJEntityBaseReports.EVENTTYPE).toString(), EventConstants.START)){
         	   				sessionObj.put(JsonConstants.EVENT_TIME, sess.get(AJEntityBaseReports.UPDATE_TIMESTAMP).toString())
         	   				.put(JsonConstants.SESSIONID, sessionId);
-        	   						
+
         	   			}
-        	   			
-        				if (sess.get(AJEntityBaseReports.EVENTTYPE).toString().equals(EventConstants.STOP)){
+
+        				if (Objects.equals(sess.get(AJEntityBaseReports.EVENTTYPE).toString(), EventConstants.STOP)){
         					//Specific Change related to Migration (3.0 -> 4.0)
         					if (!sessionObj.isEmpty()) {
         						sessionObj.clear();
@@ -132,32 +131,32 @@ public class IndLearnerAssessmentSessionsHandler implements DBHandler {
         					closedSessionArray.add(sessionObj);
         	   			}
         	    		});
-        			
+
         			if (!isStop) {
         				openSeq++;
         				sessionObj.put(JsonConstants.SEQUENCE, openSeq.toString());
         				openSessionArray.add(sessionObj);
         			}
-        		} 
+        		}
         	});
 
-    	
-    		
+
+
     	}else{
     	  LOGGER.debug("No sessions data found for given assessment");
     	}
-    	    	
+
     	if (openSession.equalsIgnoreCase("false")) {
-    		resultBody.put(JsonConstants.CONTENT, closedSessionArray).putNull(JsonConstants.MESSAGE).putNull(JsonConstants.PAGINATE);    		
+    		resultBody.put(JsonConstants.CONTENT, closedSessionArray).putNull(JsonConstants.MESSAGE).putNull(JsonConstants.PAGINATE);
     	} else if (openSession.equalsIgnoreCase("true")) {
     		resultBody.put(JsonConstants.CONTENT, openSessionArray).putNull(JsonConstants.MESSAGE).putNull(JsonConstants.PAGINATE);
     	}
 
     	return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody),
                 ExecutionStatus.SUCCESSFUL);
-    	
-    }   
-    
+
+    }
+
 
     @Override
     public boolean handlerReadOnly() {

@@ -25,18 +25,12 @@ import io.vertx.core.json.JsonObject;
 
 public class StudPerfCourseCollectionHandler implements DBHandler {
 
-	
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(StudPerfCourseCollectionHandler.class);
     private static final String REQUEST_USERID = "userId";
     private final ProcessorContext context;
     private double maxScore;
-    private String userId;
-    private String classId;
-    private String courseId;
-    private String unitId;
-    private String lessonId;
 
-    
     public StudPerfCourseCollectionHandler(ProcessorContext context) {
         this.context = context;
     }
@@ -72,90 +66,89 @@ public class StudPerfCourseCollectionHandler implements DBHandler {
     @Override
     @SuppressWarnings("rawtypes")
     public ExecutionResult<MessageResponse> executeRequest() {
-    	
+
     	//NOTE: This code will need to be refactored going ahead. (based on changes/updates to Student Performance Reports)
-    	
+
         StringBuilder query = new StringBuilder(AJEntityBaseReports.GET_DISTINCT_COLLECTIONS);
         List<String> params = new ArrayList<>();
-        JsonObject resultBody = new JsonObject();        
+        JsonObject resultBody = new JsonObject();
         JsonArray collectionArray = new JsonArray();
 
-      this.userId = this.context.request().getString(REQUEST_USERID);
-        
+        String userId = this.context.request().getString(REQUEST_USERID);
+
       if (StringUtil.isNullOrEmpty(userId)) {
         LOGGER.warn("UserID is mandatory for fetching Student Performance in a Collection");
         return new ExecutionResult<>(
                 MessageResponseFactory.createInvalidRequestResponse("User Id Missing. Cannot fetch Student Performance in Collection"),
                 ExecutionStatus.FAILED);
-  
+
       } else {
-      	params.add(userId);        	
+      	params.add(userId);
       }
-      
+
       params.add(AJEntityBaseReports.ATTR_COLLECTION);
-      
-      
-      this.classId = this.context.request().getString(MessageConstants.CLASS_ID);      
+
+        String classId = this.context.request().getString(MessageConstants.CLASS_ID);
       if (StringUtil.isNullOrEmpty(classId)) {
           LOGGER.warn("ClassID is mandatory for fetching Student Performance in a Collection");
           return new ExecutionResult<>(
                   MessageResponseFactory.createInvalidRequestResponse("Class Id Missing. Cannot fetch Student Performance in Collection"),
                   ExecutionStatus.FAILED);
-    
+
         } else {
-        	params.add(classId);        	
+        	params.add(classId);
         }
-      
-      this.courseId = this.context.request().getString(MessageConstants.COURSE_ID);      
+
+        String courseId = this.context.request().getString(MessageConstants.COURSE_ID);
       if (StringUtil.isNullOrEmpty(courseId)) {
           LOGGER.warn("CourseID is mandatory for fetching Student Performance in a Collection");
           return new ExecutionResult<>(
                   MessageResponseFactory.createInvalidRequestResponse("Course Id Missing. Cannot fetch Student Performance in Collection"),
                   ExecutionStatus.FAILED);
-    
+
         } else {
-        	params.add(courseId);        	
+        	params.add(courseId);
         }
 
-      this.unitId = this.context.request().getString(MessageConstants.UNIT_ID);
+        String unitId = this.context.request().getString(MessageConstants.UNIT_ID);
       if (!StringUtil.isNullOrEmpty(unitId)) {
     	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.UNIT_ID);
-    	  params.add(unitId);    
-        } 
-      
-      this.lessonId = this.context.request().getString(MessageConstants.LESSON_ID);
+    	  params.add(unitId);
+        }
+
+        String lessonId = this.context.request().getString(MessageConstants.LESSON_ID);
       if (!StringUtil.isNullOrEmpty(lessonId)) {
     	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.LESSON_ID);
-    	  params.add(lessonId);    
-        } 
-      
+    	  params.add(lessonId);
+        }
+
       LazyList<AJEntityBaseReports> collectionList = AJEntityBaseReports.findBySQL(query.toString(), params.toArray());
-      
+
       //Populate collIds from the Context in API
-      List<String> collIds = new ArrayList<>();
-      if (!collectionList.isEmpty()) {          
+      List<String> collIds = new ArrayList<>(collectionList.size());
+      if (!collectionList.isEmpty()) {
           collectionList.forEach(c -> collIds.add(c.getString(AJEntityBaseReports.COLLECTION_OID)));
       }
-      
-        for (String collId : collIds) {        	
-        	List<Map> collTSA = null;
+
+        for (String collId : collIds) {
+        	List<Map> collTSA;
         	JsonObject collectionKpi = new JsonObject();
-            
+
         	//Find Timespent and Attempts
-        	collTSA = Base.findAll(AJEntityBaseReports.GET_PERFORMANCE_FOR_COLLECTION, this.classId, this.courseId,
-        			collId, AJEntityBaseReports.ATTR_COLLECTION, this.userId);
-        	
+        	collTSA = Base.findAll(AJEntityBaseReports.GET_PERFORMANCE_FOR_COLLECTION, classId, courseId,
+        			collId, AJEntityBaseReports.ATTR_COLLECTION, userId);
+
         	if (!collTSA.isEmpty()) {
         	collTSA.forEach(m -> {
         		collectionKpi.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.parseLong(m.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()));
         		collectionKpi.put(AJEntityBaseReports.VIEWS, Integer.parseInt(m.get(AJEntityBaseReports.VIEWS).toString()));
 	    		});
         	}
-        	
-      	  
-            List<Map> collectionMaximumScore = null;
-            collectionMaximumScore = Base.findAll(AJEntityBaseReports.GET_COLLECTION_MAX_SCORE, this.classId, this.courseId,
-                    collId, this.userId);
+
+
+            List<Map> collectionMaximumScore;
+            collectionMaximumScore = Base.findAll(AJEntityBaseReports.GET_COLLECTION_MAX_SCORE, classId, courseId,
+                    collId, userId);
 
             //If questions are not present then Question Count is always zero, however this additional check needs to be added
             //since during migration of data from 3.0 chances are that QC may be null instead of zero
@@ -168,9 +161,9 @@ public class StudPerfCourseCollectionHandler implements DBHandler {
             });
             double scoreInPercent = 0;
             if (this.maxScore > 0) {
-              Object collectionScore = null;
-              collectionScore = Base.firstCell(AJEntityBaseReports.GET_COLLECTION_SCORE, this.classId, this.courseId,
-                      collId, this.userId);
+              Object collectionScore;
+              collectionScore = Base.firstCell(AJEntityBaseReports.GET_COLLECTION_SCORE, classId, courseId,
+                      collId, userId);
               if (collectionScore != null) {
                 scoreInPercent = (((Double.valueOf(collectionScore.toString())) / this.maxScore) * 100);
               }
@@ -178,20 +171,20 @@ public class StudPerfCourseCollectionHandler implements DBHandler {
             } else {
             	//If Collections have No Questions then score should be NULL
             	collectionKpi.putNull(AJEntityBaseReports.ATTR_SCORE);
-            }            
+            }
             collectionKpi.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
-            collectionKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collId);        	
-            
+            collectionKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collId);
+
             collectionArray.add(collectionKpi);
 
         	}
 
-        resultBody.put(JsonConstants.USAGE_DATA, collectionArray).put(JsonConstants.USERID, this.userId);
-      
-      return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);  
+        resultBody.put(JsonConstants.USAGE_DATA, collectionArray).put(JsonConstants.USERID, userId);
+
+      return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
 
       }
-    
+
     @Override
     public boolean handlerReadOnly() {
       return true;

@@ -1,12 +1,12 @@
 /**
- * 
+ *
  */
 package org.gooru.nucleus.handlers.dataclass.api.constants;
 
 import java.util.regex.Pattern;
 
-public class EventConstants {
-	
+public final class EventConstants {
+
 	public static final String FIRST_SESSION = "FS~";
 
     public static final  String RECENT_SESSION = "RS~";
@@ -108,7 +108,7 @@ public class EventConstants {
 	public static final  String IS_STUDENT = "isStudent";
 
 	public static final  String STUDENT_ID = "studentId";
-	
+
 	public static final  String SESSION = "session";
 
 	public static final  String SESSIONS = "sessions";
@@ -596,7 +596,7 @@ public class EventConstants {
 	public static final  String CLASS_IDS = "classIds";
 
 	 public static final  String COURSE_IDS = "courseIds";
-	 
+
 	public static final  String ACTIVE_FLAG = "activeFlag";
 
 	public static final  String _ACTIVE_FLAG = "active_flag";
@@ -750,7 +750,7 @@ public class EventConstants {
 	public static final  Pattern PLAY_EVENTS_PATTERN = Pattern.compile("collection.play|collection.resource.play|reaction.create|resource.play");
 
 	public static final  Pattern OBJECT_CREATOR_EVENTS_PATTERN = Pattern.compile("collection.play|collection.resource.play|reaction.create|resource.play|item.delete|item.move|item.remove");
-	
+
 	public static final  String VIEW_CALC_EVENTS = "collection.play|collection.resource.play|resource.play";
 
 	public static final  String CONTENT_FORMATS = "course|unit|lesson|collection|assessment|resource|question";
@@ -818,7 +818,7 @@ public class EventConstants {
 	public static final String REACTION_CREATE = "reaction.create";
 
 	public static final String CLASS_JOIN = "class.join";
-	
+
 	public static final String CLASS_STUDENT_REMOVE = "class.student.remove";
 
 	public static final String COLLABORATORS_UPDATE = "collaborators.update";
@@ -834,21 +834,21 @@ public class EventConstants {
 	public static final String ITEM_ADD = "item.add";
 
 	public static final String ITEM_REMOVE = "item.remove";
-	
+
 	public static final String PUBLISH_METRICS = "publishMetrics";
 
 	public static final String _CLASS_UID = "class_uid";
-	
+
 	public static final String _CONTENT_UID = "content_uid";
-	
+
 	public static final String _CONTENT_TYPE = "content_type";
-	
+
 	public static final String _TOTAL_COUNT = "total_count";
-	
+
 	public static final String BOTH = "both";
-	
+
 	public static final String OPEN_ENDED_QUE = "OE";
-	
+
 	private EventConstants() {
 		throw new AssertionError();
 	}

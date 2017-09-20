@@ -27,16 +27,16 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 public class IndependentLearnerPerformanceHandler implements DBHandler {
-	
-	
+
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(IndependentLearnerPerformanceHandler.class);
 
 	  private final ProcessorContext context;
 	  private static final String REQUEST_USERID = "userId";
 	  private static final String REQUEST_CONTENTTYPE = "contentType";
-	  private static final int MAX_LIMIT = 20;	  
+	  private static final int MAX_LIMIT = 20;
 	  int questionCount;
-	  
+
 	  IndependentLearnerPerformanceHandler(ProcessorContext context) {
 	    this.context = context;
 	  }
@@ -59,7 +59,7 @@ public class IndependentLearnerPerformanceHandler implements DBHandler {
 	      if (context.getUserIdFromRequest() == null
 	              || (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
 	          LOGGER.debug("validateRequest() FAILED");
-	          return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User validation failed"), ExecutionStatus.FAILED);	        
+	          return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User validation failed"), ExecutionStatus.FAILED);
 	      }
 
 	    LOGGER.debug("validateRequest() OK");
@@ -77,10 +77,10 @@ public class IndependentLearnerPerformanceHandler implements DBHandler {
                 MessageResponseFactory.createInvalidRequestResponse("userId Missing. Cannot fetch Independent Learner's Performance"),
                 ExecutionStatus.FAILED);
       }
-      
-    
+
+
     String contentType = this.context.request().getString(REQUEST_CONTENTTYPE);
-    
+
     if (StringUtil.isNullOrEmpty(contentType)) {
         LOGGER.error("contentType is Mandatory to fetch Independent Learner's performance");
         return new ExecutionResult<>(
@@ -88,36 +88,36 @@ public class IndependentLearnerPerformanceHandler implements DBHandler {
                 ExecutionStatus.FAILED);
       }
 
-    
+
     String limitS = this.context.request().getString("limit");
     String offsetS = this.context.request().getString("offset");
-    
+
     JsonObject result = new JsonObject();
-    JsonArray ILPerfArray = new JsonArray();    
-	  
-    if (!StringUtil.isNullOrEmpty(contentType) && contentType.equalsIgnoreCase(MessageConstants.COURSE)){    	
+    JsonArray ILPerfArray = new JsonArray();
+
+    if (!StringUtil.isNullOrEmpty(contentType) && contentType.equalsIgnoreCase(MessageConstants.COURSE)){
 		//@NILE-1329
     	List<String> courseIds = new ArrayList<>();
     	LazyList<AJEntityILBookmarkContent> ILCourses = AJEntityILBookmarkContent.findBySQL(AJEntityILBookmarkContent.SELECT_DISTINCT_IL_CONTENTID, userId, AJEntityILBookmarkContent.ATTR_COURSE);
 	  	if (!ILCourses.isEmpty()) {
 	  		ILCourses.forEach(course -> courseIds.add(course.get(AJEntityILBookmarkContent.CONTENT_ID).toString()));
 		  	for (String c : courseIds){
-		  		LOGGER.debug("Course Ids are" + c);	  		
-		  	}		  	
+		  		LOGGER.debug("Course Ids are" + c);
+		  	}
 		  	List<String> cIds = new ArrayList<>();
-		  	
-		  	LazyList<AJEntityBaseReports> ILLatestCourses = AJEntityBaseReports.findBySQL(AJEntityBaseReports.GET_LATEST_IL_COURSES, userId, 
-		  			listToPostgresArrayString(courseIds), 
+
+		  	LazyList<AJEntityBaseReports> ILLatestCourses = AJEntityBaseReports.findBySQL(AJEntityBaseReports.GET_LATEST_IL_COURSES, userId,
+		  			listToPostgresArrayString(courseIds),
 		  			(StringUtil.isNullOrEmpty(limitS) || (Integer.valueOf(limitS) > MAX_LIMIT)) ? MAX_LIMIT : Integer.valueOf(limitS),
 		  					StringUtil.isNullOrEmpty(offsetS) ? 0 : Integer.valueOf(offsetS));
-		  					
+
 		  	if (!ILLatestCourses.isEmpty()) {
 		  		ILLatestCourses.forEach(course -> cIds.add(course.get(AJEntityBaseReports.COURSE_GOORU_OID).toString()));
 			  	for (String c : cIds){
-			  		LOGGER.debug("Latest Course Ids are" + c);	  		
-			  	}		  	
-		  	List<Map> courseTSKpi = Base.findAll(AJEntityBaseReports.GET_IL_ALL_COURSE_TIMESPENT, listToPostgresArrayString(cIds), userId);	  	
-	        
+			  		LOGGER.debug("Latest Course Ids are" + c);
+			  	}
+		  	List<Map> courseTSKpi = Base.findAll(AJEntityBaseReports.GET_IL_ALL_COURSE_TIMESPENT, listToPostgresArrayString(cIds), userId);
+
 		  	if (!courseTSKpi.isEmpty()) {
 	          courseTSKpi.forEach(courseTS -> {
 	            JsonObject courseDataObject = new JsonObject();
@@ -132,43 +132,43 @@ public class IndependentLearnerPerformanceHandler implements DBHandler {
 	                      Math.round(Double.valueOf(courseComplettion.get(AJEntityBaseReports.ATTR_SCORE).toString())));
 	              courseDataObject.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT,
 	                      Integer.parseInt(courseComplettion.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
-	            });	            
+	            });
 	            Object courseTotalAssCount = Base.firstCell(AJEntityCourseCollectionCount.GET_COURSE_ASSESSMENT_COUNT,
 	                    courseTS.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
 	            courseDataObject.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, courseTotalAssCount != null ? Integer.valueOf(courseTotalAssCount.toString()) : 0);
-	            ILPerfArray.add(courseDataObject);                        
+	            ILPerfArray.add(courseDataObject);
 	          });
-	        }		  		
+	        }
 		  }
 	  	} else {
           LOGGER.info("No data returned for Independent Learner for All Courses");
         }
-    	
+
     } else if (!StringUtil.isNullOrEmpty(contentType) && contentType.equalsIgnoreCase(MessageConstants.ASSESSMENT)) {
-    	
+
 		//@NILE-1329
     	List<String> assessmentIds = new ArrayList<>();
     	LazyList<AJEntityILBookmarkContent> ILAssessments = AJEntityILBookmarkContent.findBySQL(AJEntityILBookmarkContent.SELECT_DISTINCT_IL_CONTENTID, userId, AJEntityILBookmarkContent.ATTR_ASSESSMENT);
     	if (!ILAssessments.isEmpty()) {
     		ILAssessments.forEach(a -> assessmentIds.add(a.get(AJEntityILBookmarkContent.CONTENT_ID).toString()));
     	  	for (String c : assessmentIds){
-    	  		LOGGER.debug("Assessment Ids are" + c);	  		
+    	  		LOGGER.debug("Assessment Ids are" + c);
     	  	}
 		  	List<String> aIds = new ArrayList<>();
-		  	
-		  	LazyList<AJEntityBaseReports> ILLatestAssessments = AJEntityBaseReports.findBySQL(AJEntityBaseReports.GET_LATEST_IL_ASSESSMENTS, userId, 
-		  			listToPostgresArrayString(assessmentIds), 
+
+		  	LazyList<AJEntityBaseReports> ILLatestAssessments = AJEntityBaseReports.findBySQL(AJEntityBaseReports.GET_LATEST_IL_ASSESSMENTS, userId,
+		  			listToPostgresArrayString(assessmentIds),
 		  			(StringUtil.isNullOrEmpty(limitS) || (Integer.valueOf(limitS) > MAX_LIMIT)) ? MAX_LIMIT : Integer.valueOf(limitS),
 		  					StringUtil.isNullOrEmpty(offsetS) ? 0 : Integer.valueOf(offsetS));
-		  					
-		  	if (!ILLatestAssessments.isEmpty()) {		  		
+
+		  	if (!ILLatestAssessments.isEmpty()) {
 		  		ILLatestAssessments.forEach(as -> aIds.add(as.get(AJEntityBaseReports.COLLECTION_OID).toString()));
 			  	for (String a : aIds){
-			  		LOGGER.debug("Latest Assessment Ids are" + a);	  		
-			  	}		  	
-			  	
+			  		LOGGER.debug("Latest Assessment Ids are" + a);
+			  	}
+
     	  	List<Map> assessmentTS = Base.findAll(AJEntityBaseReports.GET_IL_ALL_ASSESSMENT_ATTEMPTS_TIMESPENT, listToPostgresArrayString(aIds), userId);
-    	  	
+
             if (!assessmentTS.isEmpty()) {
               assessmentTS.forEach(assessmentTsKpi -> {
                 JsonObject assesmentObject = new JsonObject();
@@ -178,10 +178,8 @@ public class IndependentLearnerPerformanceHandler implements DBHandler {
                 List<Map> assessmentCompletionKpi = Base.findAll(AJEntityBaseReports.GET_IL_ALL_ASSESSMENT_SCORE_COMPLETION, userId,
                         assessmentTsKpi.get(AJEntityBaseReports.COLLECTION_OID).toString());
                 if (!assessmentCompletionKpi.isEmpty()) {
-                  assessmentCompletionKpi.forEach(courseComplettion -> {
-                    assesmentObject.put(AJEntityBaseReports.ATTR_SCORE,
-                            Math.round(Double.valueOf(courseComplettion.get(AJEntityBaseReports.ATTR_SCORE).toString())));
-                  });
+                  assessmentCompletionKpi.forEach(courseComplettion -> assesmentObject.put(AJEntityBaseReports.ATTR_SCORE,
+                          Math.round(Double.valueOf(courseComplettion.get(AJEntityBaseReports.ATTR_SCORE).toString()))));
                 } else {
                   assesmentObject.put(AJEntityBaseReports.ATTR_SCORE, 0);
                 }
@@ -195,35 +193,35 @@ public class IndependentLearnerPerformanceHandler implements DBHandler {
           LOGGER.info("No data returned for Independent Learner for Standalone Assessments");
         }
 
-    	
+
     } else if (!StringUtil.isNullOrEmpty(contentType) && contentType.equalsIgnoreCase(MessageConstants.COLLECTION)) {
-    	
+
 		//@NILE-1329
     	List<String> collectionIds = new ArrayList<>();
-    	LazyList<AJEntityILBookmarkContent> ILCollections = AJEntityILBookmarkContent.findBySQL(AJEntityILBookmarkContent.SELECT_DISTINCT_IL_CONTENTID, 
+    	LazyList<AJEntityILBookmarkContent> ILCollections = AJEntityILBookmarkContent.findBySQL(AJEntityILBookmarkContent.SELECT_DISTINCT_IL_CONTENTID,
     			userId, AJEntityILBookmarkContent.ATTR_COLLECTION);
-    	if (!ILCollections.isEmpty()) {    		
+    	if (!ILCollections.isEmpty()) {
     	  	ILCollections.forEach(a -> collectionIds.add(a.get(AJEntityILBookmarkContent.CONTENT_ID).toString()));
     	  	for (String c : collectionIds){
-    	  		LOGGER.info("Collection Ids are" + c);	  		
+    	  		LOGGER.info("Collection Ids are" + c);
     	  	}
-    	  	
+
 		  	List<String> collIds = new ArrayList<>();
-		  	
-		  	LazyList<AJEntityBaseReports> ILLatestCollections = AJEntityBaseReports.findBySQL(AJEntityBaseReports.GET_LATEST_IL_COLLECTIONS, userId, 
-		  			listToPostgresArrayString(collectionIds), 
+
+		  	LazyList<AJEntityBaseReports> ILLatestCollections = AJEntityBaseReports.findBySQL(AJEntityBaseReports.GET_LATEST_IL_COLLECTIONS, userId,
+		  			listToPostgresArrayString(collectionIds),
 		  			(StringUtil.isNullOrEmpty(limitS) || (Integer.valueOf(limitS) > MAX_LIMIT)) ? MAX_LIMIT : Integer.valueOf(limitS),
 		  					StringUtil.isNullOrEmpty(offsetS) ? 0 : Integer.valueOf(offsetS));
-		  					
+
 		  	if (!ILLatestCollections.isEmpty()) {
-		  		
+
 		  		ILLatestCollections.forEach(coll -> collIds.add(coll.get(AJEntityBaseReports.COLLECTION_OID).toString()));
 			  	for (String co : collIds){
-			  		LOGGER.debug("Latest Collection Ids are" + co);	  		
+			  		LOGGER.debug("Latest Collection Ids are" + co);
 			  	}
-			  	
+
 	    	  	List<Map> collectionTS = Base.findAll(AJEntityBaseReports.GET_IL_ALL_COLLECTION_VIEWS_TIMESPENT, listToPostgresArrayString(collIds), userId);
-	    	  	
+
 	            if (!collectionTS.isEmpty()) {
 	              collectionTS.forEach(collectionsKpi -> {
 	                JsonObject collectionObj = new JsonObject();
@@ -231,8 +229,8 @@ public class IndependentLearnerPerformanceHandler implements DBHandler {
 	                collectionObj.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collId );
 	                collectionObj.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.parseLong(collectionsKpi.get(AJEntityBaseReports.TIME_SPENT).toString()));
 	                collectionObj.put(AJEntityBaseReports.VIEWS, Long.parseLong(collectionsKpi.get(AJEntityBaseReports.VIEWS).toString()));
-	                
-	                List<Map> collectionQuestionCount = null;
+
+	                List<Map> collectionQuestionCount;
 	                collectionQuestionCount = Base.findAll(AJEntityBaseReports.GET_IL_ALL_COLLECTION_QUESTION_COUNT,
 	                        collId, userId);
 
@@ -243,12 +241,12 @@ public class IndependentLearnerPerformanceHandler implements DBHandler {
 	                		questionCount = Integer.valueOf(qc.get(AJEntityBaseReports.QUESTION_COUNT).toString());
 	                	} else {
 	                		this.questionCount = 0;
-	                	}                
+	                	}
 	                  });
 
 	                double scoreInPercent = 0;
 	                if (questionCount > 0) {
-	                  Object collectionScore = null;
+	                  Object collectionScore;
 	                  collectionScore = Base.firstCell(AJEntityBaseReports.GET_IL_ALL_COLLECTION_SCORE,
 	                          collId, userId);
 	                  if (collectionScore != null) {
@@ -258,18 +256,18 @@ public class IndependentLearnerPerformanceHandler implements DBHandler {
 	                }else {
 	                	//If Collections have No Questions then score should be NULL
 	                	collectionObj.putNull(AJEntityBaseReports.ATTR_SCORE);
-	                }            
+	                }
 	                Object title = Base.firstCell(AJEntityContent.GET_TITLE, collectionsKpi.get(AJEntityBaseReports.COLLECTION_OID).toString());
-	                collectionObj.put(JsonConstants.COLLECTION_TITLE, (title != null ? title.toString() : "NA"));	                
+	                collectionObj.put(JsonConstants.COLLECTION_TITLE, (title != null ? title.toString() : "NA"));
 	                ILPerfArray.add(collectionObj);
 	              });
-	            }		  		
-		  	}    		
+	            }
+		  	}
     	} else {
           LOGGER.info("No data returned for Independent Learner for Standalone Collections");
-        }    	
+        }
     }
-    
+
     // Form the required Json pass it on
     result.put(JsonConstants.USAGE_DATA, ILPerfArray).put(JsonConstants.USERID, userId);
 
@@ -280,7 +278,7 @@ public class IndependentLearnerPerformanceHandler implements DBHandler {
 	  public boolean handlerReadOnly() {
 	    return true;
 	  }
-	  
+
 	   private String listToPostgresArrayString(List<String> input) {
 		      int approxSize = ((input.size() + 1) * 36); // Length of UUID is around
 		                                                  // 36
@@ -289,7 +287,7 @@ public class IndependentLearnerPerformanceHandler implements DBHandler {
 		      if (!it.hasNext()) {
 		        return "{}";
 		      }
-		  
+
 		      StringBuilder sb = new StringBuilder(approxSize);
 		      sb.append('{');
 		      for (;;) {
@@ -300,6 +298,6 @@ public class IndependentLearnerPerformanceHandler implements DBHandler {
 		        }
 		        sb.append(',');
 		      }
-		  
+
 		    }
   }

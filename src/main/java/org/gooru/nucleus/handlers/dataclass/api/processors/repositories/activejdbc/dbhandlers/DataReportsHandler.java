@@ -120,7 +120,7 @@ public class DataReportsHandler implements DBHandler {
                       lessonId, collectionId, context.getUserIdFromRequest(), context.startDate(), context.endDate());
 
               LOGGER.debug("Collection Attributes obtained");
-              collectionData.stream().forEach(m -> {
+              collectionData.forEach(m -> {
                 ValueMapper.map(collectionObject, ResponseAttributeIdentifier.getSessionCollectionAttributesMap(), m);
                 collectionObject.put(EventConstants.COLLECTION_TYPE, AJEntityBaseReports.ATTR_COLLECTION);
                 collectionObject.put(JsonConstants.SCORE, Math.round(Double.valueOf(m.get(AJEntityBaseReports.SCORE).toString())));
@@ -128,17 +128,17 @@ public class DataReportsHandler implements DBHandler {
                 double scoreInPercent = 0;
                 int reaction = 0;
                 if (questionCount > 0) {
-                  Object collectionScore = null;
+                  Object collectionScore;
                   collectionScore = Base.firstCell(AJEntityBaseReports.NU_SELECT_COLLECTION_AGG_SCORE, context.classId(), courseId, unitId, lessonId,
                           collectionId, context.getUserIdFromRequest(), context.startDate(), context.endDate());
 
                   if (collectionScore != null) {
-                    scoreInPercent = (((double) Double.valueOf(collectionScore.toString()) / questionCount) * 100);
+                    scoreInPercent = ((Double.valueOf(collectionScore.toString()) / questionCount) * 100);
                   }
                 }
                 LOGGER.debug("Collection score : {} - collectionId : {}", Math.round(scoreInPercent), collectionId);
                 collectionObject.put(AJEntityBaseReports.SCORE, Math.round(scoreInPercent));
-                Object collectionReaction = null;
+                Object collectionReaction;
                 collectionReaction = Base.firstCell(AJEntityBaseReports.NU_SELECT_COLLECTION_AGG_REACTION, context.classId(), courseId, unitId,
                         lessonId, collectionId, context.getUserIdFromRequest(), context.startDate(), context.endDate());
                 if (collectionReaction != null) {
@@ -153,7 +153,7 @@ public class DataReportsHandler implements DBHandler {
 
               JsonArray questionsArray = new JsonArray();
               if (!assessmentQuestionsKPI.isEmpty()) {
-                assessmentQuestionsKPI.stream().forEach(questions -> {
+                assessmentQuestionsKPI.forEach(questions -> {
                   JsonObject qnData = ValueMapper.map(ResponseAttributeIdentifier.getSessionCollectionResourceAttributesMap(), questions);
                   qnData.put(AJEntityBaseReports.ATTR_RESOURCE_ID, questions.get(AJEntityBaseReports.RESOURCE_ID));
                   qnData.remove("eventTime");
@@ -232,8 +232,8 @@ public class DataReportsHandler implements DBHandler {
                 JsonObject qnData = new JsonObject();
                 //TODO : TO BE REVISITED.
                 qnData.put("metadata",getTitleAndTaxonomy(scoreReaction.get(AJEntityBaseReports.RESOURCE_ID).toString()));
-              
-                
+
+
                 qnData.put(AJEntityBaseReports.ATTR_QUESTION_ID, scoreReaction.get(AJEntityBaseReports.RESOURCE_ID));
                 qnData.put(JsonConstants.RESOURCE_TYPE, scoreReaction.get(AJEntityBaseReports.RESOURCE_TYPE));
                 qnData.put(JsonConstants.QUESTION_TYPE, scoreReaction.get(AJEntityBaseReports.QUESTION_TYPE));
@@ -289,8 +289,7 @@ public class DataReportsHandler implements DBHandler {
   }
 
   private Object getTitle(String id) {
-    Object title = Base.firstCell(AJEntityContent.GET_TITLE, id);
-    return title;
+    return Base.firstCell(AJEntityContent.GET_TITLE, id);
   }
 
   private JsonObject getTitleAndTaxonomy(String id) {
