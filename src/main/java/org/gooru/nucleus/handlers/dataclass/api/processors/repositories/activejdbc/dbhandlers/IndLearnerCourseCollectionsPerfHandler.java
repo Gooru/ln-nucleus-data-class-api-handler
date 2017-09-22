@@ -1,8 +1,6 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -10,6 +8,7 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.validators.FieldValidator;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
@@ -28,7 +27,6 @@ public class IndLearnerCourseCollectionsPerfHandler implements DBHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(IndLearnerCourseCollectionsPerfHandler.class);
     private static final String REQUEST_USERID = "userId";
-    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
     private final ProcessorContext context;
     private int questionCount;
 
@@ -114,7 +112,7 @@ public class IndLearnerCourseCollectionsPerfHandler implements DBHandler {
         }
 
       String startDate = this.context.request().getString(MessageConstants.START_DATE);
-      if (!StringUtil.isNullOrEmpty(startDate)&&!isValidFormat(startDate)) {
+      if (!StringUtil.isNullOrEmpty(startDate)&&!FieldValidator.validateDate(startDate)) {
         LOGGER.error("Invalid startDate");
         return new ExecutionResult<>(
                 MessageResponseFactory.createInvalidRequestResponse("Invalid startDate. Cannot fetch Student Performance in Collection"),
@@ -126,7 +124,7 @@ public class IndLearnerCourseCollectionsPerfHandler implements DBHandler {
         params.add(startDate);
       }
       String endDate = this.context.request().getString(MessageConstants.END_DATE);
-      if (!StringUtil.isNullOrEmpty(endDate)&&!isValidFormat(endDate)) {
+      if (!StringUtil.isNullOrEmpty(endDate)&&!FieldValidator.validateDate(endDate)) {
         LOGGER.error("Invalid endDate");
         return new ExecutionResult<>(
                 MessageResponseFactory.createInvalidRequestResponse("Invalid endDate. Cannot fetch Student Performance in Collection"),
@@ -215,21 +213,6 @@ public class IndLearnerCourseCollectionsPerfHandler implements DBHandler {
       return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
 
       }
-
-    public boolean isValidFormat(String value) {
-      synchronized (sdf) {
-        Date date = null;
-        try {
-          date = sdf.parse(value);
-          if (!value.equals(sdf.format(date))) {
-            date = null;
-          }
-        } catch (Exception ex) {
-          LOGGER.error("Invalid date format...");
-        }
-        return date != null;
-      }
-    }
 
     @Override
     public boolean handlerReadOnly() {

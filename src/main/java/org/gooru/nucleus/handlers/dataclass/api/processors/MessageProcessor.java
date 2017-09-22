@@ -1,12 +1,11 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.ResourceBundle;
 import java.util.UUID;
 
 import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.RepoBuilder;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.validators.FieldValidator;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
@@ -22,7 +21,6 @@ class MessageProcessor implements Processor {
     private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("messages");
     private final Message<Object> message;
     private JsonObject request;
-    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
     public MessageProcessor(Message<Object> message) {
         this.message = message;
@@ -293,11 +291,11 @@ class MessageProcessor implements Processor {
             LOGGER.error("Invalid User ID. Aborting");
             return MessageResponseFactory.createInvalidRequestResponse("Invalid UserId");
           }
-          if (!validateDate(context.startDate())) {
+          if (!FieldValidator.validateDate(context.startDate())) {
             LOGGER.error("Invalid start date. Aborting");
             return MessageResponseFactory.createInvalidRequestResponse("Invalid startDate");
           }
-          if (!validateDate(context.endDate())) {
+          if (!FieldValidator.validateDate(context.endDate())) {
             LOGGER.error("Invalid end date. Aborting");
             return MessageResponseFactory.createInvalidRequestResponse("Invalid endDate");
           }
@@ -1309,22 +1307,5 @@ class MessageProcessor implements Processor {
         } catch (Exception e) {
             return false;
         }
-    }
-
-    private boolean validateDate(String value) {
-      synchronized (sdf) {
-        Date date = null;
-        if (value != null) {
-          try {
-            date = sdf.parse(value);
-            if (!value.equals(sdf.format(date))) {
-              date = null;
-            }
-          } catch (Exception ex) {
-            LOGGER.error("Invalid date format...");
-          }
-        }
-        return date != null;
-      }
     }
 }

@@ -1,5 +1,8 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.validators;
 
+import java.time.DateTimeException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 import io.vertx.core.json.JsonArray;
@@ -84,4 +87,21 @@ public interface FieldValidator {
     }
 
     boolean validateField(Object value);
+  /**
+   * 
+   * @param date - validating yyyy-MM-dd format date. 
+   * @return
+   */
+  static boolean validateDate(String date) {
+    if (date != null) {
+      try {
+        LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        return true;
+      } catch (DateTimeException dte) {
+        return false;
+      }
+    } else {
+      return false;
+    }
+  }
 }
