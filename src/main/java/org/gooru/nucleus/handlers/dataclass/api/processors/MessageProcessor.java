@@ -1312,18 +1312,19 @@ class MessageProcessor implements Processor {
     }
 
     private boolean validateDate(String value) {
-      Date date = null;
-      if (value != null) {
-        try {
-            // TODO: AM: This access to SDF is not thread safe
+      synchronized (sdf) {
+        Date date = null;
+        if (value != null) {
+          try {
             date = sdf.parse(value);
-          if (!value.equals(sdf.format(date))) {
-            date = null;
+            if (!value.equals(sdf.format(date))) {
+              date = null;
+            }
+          } catch (Exception ex) {
+            LOGGER.error("Invalid date format...");
           }
-        } catch (Exception ex) {
-          LOGGER.error("Invalid date format...");
         }
+        return date != null;
       }
-      return date != null;
     }
 }

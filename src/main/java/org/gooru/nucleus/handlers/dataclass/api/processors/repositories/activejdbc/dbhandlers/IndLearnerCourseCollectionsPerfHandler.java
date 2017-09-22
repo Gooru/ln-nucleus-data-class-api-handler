@@ -217,17 +217,18 @@ public class IndLearnerCourseCollectionsPerfHandler implements DBHandler {
       }
 
     public boolean isValidFormat(String value) {
-      Date date = null;
-      try {
-          // TODO: AM: This access to SDF is not thread safe
-        date = sdf.parse(value);
-        if (!value.equals(sdf.format(date))) {
-          date = null;
+      synchronized (sdf) {
+        Date date = null;
+        try {
+          date = sdf.parse(value);
+          if (!value.equals(sdf.format(date))) {
+            date = null;
+          }
+        } catch (Exception ex) {
+          LOGGER.error("Invalid date format...");
         }
-      } catch (Exception ex) {
-        LOGGER.error("Invalid date format...");
+        return date != null;
       }
-      return date != null;
     }
 
     @Override
