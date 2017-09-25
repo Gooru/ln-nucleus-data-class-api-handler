@@ -102,12 +102,8 @@ public class IndLearnerAllCoursesPerfHandler implements DBHandler {
 
     	        courseKPI.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, courseTotalCount != null ? Integer.valueOf(courseTotalCount.toString()) : 0);
     	        List<Map> cScoreCompletion = null;
-    	        if (!StringUtil.isNullOrEmpty(this.userId)) {
     	          cScoreCompletion = Base.findAll(AJEntityBaseReports.SELECT_IL_ALL_COURSE_COMPLETION_SCORE,
     	                  courseData.get(AJEntityBaseReports.COURSE_GOORU_OID).toString(), this.userId);
-    	        }
-
-				// TODO: AM - If we are not returning in above statement when userID is null, we are going to produce NPE
     	        if (!cScoreCompletion.isEmpty()) {
     	          cScoreCompletion.forEach(scoreKPI -> {
     	            LOGGER.debug("completedCount : {} ", scoreKPI.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT));

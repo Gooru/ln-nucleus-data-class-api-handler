@@ -55,7 +55,14 @@ public class StudentLocationAllClassesHandler implements DBHandler {
 	  public ExecutionResult<MessageResponse> executeRequest() {
 
           String userId = this.context.request().getString(REQUEST_USERID);
-		  JsonArray classIds = this.context.request().getJsonArray(EventConstants.CLASS_IDS);
+          if (StringUtil.isNullOrEmpty(userId)) {
+            LOGGER.warn("UserID is mandatory for fetching Student Performance in classes");
+            return new ExecutionResult<>(
+                    MessageResponseFactory.createInvalidRequestResponse("User Id Missing. Cannot fetch Student Performance in Classes"),
+                    ExecutionStatus.FAILED);
+
+          }
+          JsonArray classIds = this.context.request().getJsonArray(EventConstants.CLASS_IDS);
 	    LOGGER.debug("userId : {} - classIds:{}", userId, classIds);
 
 	    if (classIds.isEmpty()) {
@@ -70,12 +77,8 @@ public class StudentLocationAllClassesHandler implements DBHandler {
 
 
 	    List<Map> studLocData = null;
-	    if (!StringUtil.isNullOrEmpty(userId)) {
 	      studLocData = Base.findAll(AJEntityBaseReports.GET_STUDENT_LOCATION_ALL_CLASSES, userId, listToPostgresArrayString(
 			  classIds));
-	    }
-
-	    // TODO: AM - If we are not returning in above statement when userID is null, we are going to produce NPE
 	    if (!studLocData.isEmpty()) {
 	      studLocData.forEach(m -> {
 	        JsonObject studLoc = new JsonObject();

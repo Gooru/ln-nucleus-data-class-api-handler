@@ -804,7 +804,7 @@ public class AJEntityBaseReports extends Model {
           + "FROM (SELECT time_spent, FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) "
           + "AS scoreInPercentage, reaction AS reaction, views AS attempts, collection_id,event_name FROM base_reports "
           + "WHERE class_id IS NULL AND course_id = ? AND unit_id = ? AND lesson_id = ? "
-          + "AND collection_id = ANY(?::varchar[]) AND actor_id = ? AND path_id IS NULL) AS agg "
+          + "AND collection_id = ANY(?::varchar[]) AND actor_id = ? AND event_name = 'collection.resource.play' AND path_id IS NULL) AS agg "
           + "GROUP BY agg.collection_id";
     
     public static final String GET_INDEPENDENT_LEARNER_LATEST_COMPLETED_SESSION_ID = "SELECT session_id FROM base_reports WHERE"

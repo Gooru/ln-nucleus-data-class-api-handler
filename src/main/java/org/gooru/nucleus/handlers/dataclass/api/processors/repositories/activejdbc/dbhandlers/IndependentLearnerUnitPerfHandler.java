@@ -167,8 +167,6 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
                 // FIXME : revisit completed count and total count
                 assData.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 1);
                 assData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
-                assData.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.valueOf(ass.get(AJEntityBaseReports.ATTR_SCORE).toString())));
-                // FIXME: This logic to be revisited.
                 if (this.collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {
                   List<Map> collectionQuestionCount;
                   collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_COLLECTION_QUESTION_COUNT, context.courseId(),
@@ -202,6 +200,8 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
                   assData.remove(AJEntityBaseReports.ATTR_ASSESSMENT_ID);
                   assData.put(EventConstants.VIEWS, assData.getInteger(EventConstants.ATTEMPTS));
                   assData.remove(EventConstants.ATTEMPTS);
+                }else {
+                  assData.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.valueOf(ass.get(AJEntityBaseReports.ATTR_SCORE).toString())));
                 }
                 assessmentArray.add(assData);
               });

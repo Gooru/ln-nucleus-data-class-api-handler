@@ -31,7 +31,6 @@ public class StudentPerfInAllClasses implements DBHandler {
 
   private final ProcessorContext context;
   private static final String REQUEST_USERID = "userId";
-  private String userId;
 
     StudentPerfInAllClasses(ProcessorContext context) {
     this.context = context;
@@ -55,7 +54,7 @@ public class StudentPerfInAllClasses implements DBHandler {
   @SuppressWarnings("rawtypes")
   public ExecutionResult<MessageResponse> executeRequest() {
 
-    this.userId = this.context.request().getString(REQUEST_USERID);
+    String userId = this.context.request().getString(REQUEST_USERID);
       JsonArray classIds = this.context.request().getJsonArray(EventConstants.CLASS_IDS);
     LOGGER.debug("userId : {} - classIds:{}", userId, classIds);
 
@@ -81,9 +80,9 @@ public class StudentPerfInAllClasses implements DBHandler {
     List<String> userList = new ArrayList<>();
 
     // Student All Class Data
-    if (!StringUtil.isNullOrEmpty(this.userId)) {
+    if (!StringUtil.isNullOrEmpty(userId)) {
     	classPerfData = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_ALL_CLASS_DATA, jArrayToPostgresArrayString(
-            classIds), this.userId);
+            classIds), userId);
 
     	if (!classPerfData.isEmpty()) {
     	      classPerfData.forEach(classData -> {
@@ -98,12 +97,9 @@ public class StudentPerfInAllClasses implements DBHandler {
     	        classKPI.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, classTotalCount != null ? Integer.valueOf(classTotalCount.toString()) : 0);
     	        //classKPI.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
     	        List<Map> classScoreCompletion = null;
-    	        if (!StringUtil.isNullOrEmpty(this.userId)) {
     	          classScoreCompletion = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_ALL_CLASS_COMPLETION_SCORE,
-    	                  classData.get(AJEntityBaseReports.CLASS_GOORU_OID).toString(), this.userId);
-    	        }
+    	                  classData.get(AJEntityBaseReports.CLASS_GOORU_OID).toString(), userId);
 
-				// TODO: AM - If we are not returning in above statement when userID is null, we are going to produce NPE
     	        if (!classScoreCompletion.isEmpty()) {
     	          classScoreCompletion.forEach(scoreKPI -> {
     	            LOGGER.debug("completedCount : {} ", scoreKPI.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT));
@@ -120,7 +116,7 @@ public class StudentPerfInAllClasses implements DBHandler {
     	      }
     	      });
     	    }
-    } else if (StringUtil.isNullOrEmpty(this.userId)) { // TEACHER All Class Data
+    } else if (StringUtil.isNullOrEmpty(userId)) { // TEACHER All Class Data
 
 		for (String clId : clsIds){
 			JsonObject classKPI = new JsonObject();
@@ -165,9 +161,9 @@ public class StudentPerfInAllClasses implements DBHandler {
     // Form the required Json pass it on
     result.put(JsonConstants.USAGE_DATA, ClassKpiArray);
 
-    if (!StringUtil.isNullOrEmpty(this.userId)) {
-    	result.put(JsonConstants.USERID, this.userId);
-    } else if (StringUtil.isNullOrEmpty(this.userId)) {
+    if (!StringUtil.isNullOrEmpty(userId)) {
+    	result.put(JsonConstants.USERID, userId);
+    } else if (StringUtil.isNullOrEmpty(userId)) {
     	result.putNull(JsonConstants.USERID);
     }
 

@@ -17,8 +17,6 @@ import org.javalite.activejdbc.Base;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hazelcast.util.StringUtil;
-
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -60,21 +58,6 @@ public class IndependentLearnerAssessmentPerfHandler implements DBHandler {
   public ExecutionResult<MessageResponse> executeRequest() {
     JsonObject resultBody = new JsonObject();
     JsonArray resultarray = new JsonArray();
-
-    // FIXME: Collection Type Accepted "assessment" only.
-    String collectionType = "assessment";
-
-    // TODO: AM - What exactly are we checking in the condition below - should collectionType be present or it should
-    // be present and equal to "assessment. Kindly check
-    if (StringUtil.isNullOrEmpty(collectionType)
-            || (StringUtil.isNullOrEmpty(collectionType) && collectionType.equalsIgnoreCase(AJEntityBaseReports.ATTR_ASSESSMENT))) {
-      LOGGER.warn("CollectionType is mandatory to fetch Student Performance in assessment");
-      return new ExecutionResult<>(
-              MessageResponseFactory.createInvalidRequestResponse(
-                      "CollectionType is missing or make sure collectionType is assessment . Cannot fetch Student Performance in Assessment"),
-              ExecutionStatus.FAILED);
-    }
-
     String userId = this.context.userIdFromSession();
     List<String> userIds = new ArrayList<>(1);
 
