@@ -95,7 +95,7 @@ public interface FieldValidator {
   static boolean validateDate(String date) {
     if (date != null) {
       try {
-        LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        LocalDate.parse(date, DateTimeFormatter.ISO_LOCAL_DATE);
         return true;
       } catch (DateTimeException dte) {
         return false;
