@@ -1,8 +1,6 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -10,6 +8,7 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.validators.FieldValidator;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
@@ -28,16 +27,9 @@ public class IndLearnerCourseCollectionsPerfHandler implements DBHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(IndLearnerCourseCollectionsPerfHandler.class);
     private static final String REQUEST_USERID = "userId";
-    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
     private final ProcessorContext context;
     private int questionCount;
-    private String userId;
-    private String courseId;
-    private String unitId;
-    private String lessonId;
-    private String classId;
 
-    
     public IndLearnerCourseCollectionsPerfHandler(ProcessorContext context) {
         this.context = context;
     }
@@ -65,101 +57,101 @@ public class IndLearnerCourseCollectionsPerfHandler implements DBHandler {
     @Override
     @SuppressWarnings("rawtypes")
     public ExecutionResult<MessageResponse> executeRequest() {
-    	
+
     	//NOTE: This code will need to be refactored going ahead. (based on changes/updates to Student Performance Reports)
-    	
+
         StringBuilder query = new StringBuilder(AJEntityBaseReports.GET_IL_COURSE_DISTINCT_COLLECTIONS);
         List<String> params = new ArrayList<>();
-        JsonObject resultBody = new JsonObject();        
+        JsonObject resultBody = new JsonObject();
         JsonArray collectionArray = new JsonArray();
 
-    	this.userId = this.context.request().getString(REQUEST_USERID);        
-        
+        String userId = this.context.request().getString(REQUEST_USERID);
+
       if (StringUtil.isNullOrEmpty(userId)) {
         LOGGER.warn("UserID is mandatory for fetching Student Performance in a Collection");
         return new ExecutionResult<>(
                 MessageResponseFactory.createInvalidRequestResponse("User Id Missing. Cannot fetch Student Performance in Collection"),
                 ExecutionStatus.FAILED);
-  
+
       } else {
-      	params.add(userId);        	
+      	params.add(userId);
       }
-      
+
       params.add(AJEntityBaseReports.ATTR_COLLECTION);
-      
-      this.classId = this.context.request().getString(MessageConstants.CLASS_ID); 
-      if(StringUtil.isNullOrEmpty(this.classId)){
+
+        String classId = this.context.request().getString(MessageConstants.CLASS_ID);
+      if(StringUtil.isNullOrEmpty(classId)){
         query.append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append("class_id IS NULL").append(AJEntityBaseReports.SPACE);
       } else{
         query.append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.CLASS_ID).append(AJEntityBaseReports.SPACE);
-        params.add(classId);  
+        params.add(classId);
       }
-      
-      this.courseId = this.context.request().getString(MessageConstants.COURSE_ID);      
+
+        String courseId = this.context.request().getString(MessageConstants.COURSE_ID);
       if (StringUtil.isNullOrEmpty(courseId)) {
           LOGGER.warn("CourseID is mandatory for fetching Student Performance in a Collection");
           return new ExecutionResult<>(
                   MessageResponseFactory.createInvalidRequestResponse("Course Id Missing. Cannot fetch Student Performance in Collection"),
                   ExecutionStatus.FAILED);
-    
+
         } else {
           query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.COURSE_ID);
-        	params.add(courseId);        	
+        	params.add(courseId);
         }
 
-      this.unitId = this.context.request().getString(MessageConstants.UNIT_ID);
+        String unitId = this.context.request().getString(MessageConstants.UNIT_ID);
       if (!StringUtil.isNullOrEmpty(unitId)) {
     	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.UNIT_ID);
-    	  params.add(unitId);    
-        } 
-      
-      this.lessonId = this.context.request().getString(MessageConstants.LESSON_ID);
+    	  params.add(unitId);
+        }
+
+        String lessonId = this.context.request().getString(MessageConstants.LESSON_ID);
       if (!StringUtil.isNullOrEmpty(lessonId)) {
     	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.LESSON_ID);
-    	  params.add(lessonId);    
-        } 
-      
+    	  params.add(lessonId);
+        }
+
       String startDate = this.context.request().getString(MessageConstants.START_DATE);
-      if (!StringUtil.isNullOrEmpty(startDate)&&!isValidFormat(startDate)) {
+      if (!StringUtil.isNullOrEmpty(startDate)&&!FieldValidator.validateDate(startDate)) {
         LOGGER.error("Invalid startDate");
         return new ExecutionResult<>(
                 MessageResponseFactory.createInvalidRequestResponse("Invalid startDate. Cannot fetch Student Performance in Collection"),
                 ExecutionStatus.FAILED);
-  
+
       }
       if (!StringUtil.isNullOrEmpty(startDate)) {
         query.append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.UPDATDED_AT_GREATER_THAN_OR_EQUAL);
         params.add(startDate);
       }
       String endDate = this.context.request().getString(MessageConstants.END_DATE);
-      if (!StringUtil.isNullOrEmpty(endDate)&&!isValidFormat(endDate)) {
+      if (!StringUtil.isNullOrEmpty(endDate)&&!FieldValidator.validateDate(endDate)) {
         LOGGER.error("Invalid endDate");
         return new ExecutionResult<>(
                 MessageResponseFactory.createInvalidRequestResponse("Invalid endDate. Cannot fetch Student Performance in Collection"),
                 ExecutionStatus.FAILED);
-  
+
       }
       if (!StringUtil.isNullOrEmpty(endDate)) {
         query.append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.UPDATDED_AT_LESS_THAN_OR_EQUAL);
         params.add(endDate);
       }
-      LOGGER.debug("Query : " + query.toString());
+      LOGGER.debug("Query : " + query);
       LazyList<AJEntityBaseReports> collectionList = AJEntityBaseReports.findBySQL(query.toString(), params.toArray());
-      
+
       //Populate collIds from the Context in API
-      List<String> collIds = new ArrayList<>();
-      if (!collectionList.isEmpty()) {          
+      List<String> collIds = new ArrayList<>(collectionList.size());
+      if (!collectionList.isEmpty()) {
           collectionList.forEach(c -> collIds.add(c.getString(AJEntityBaseReports.COLLECTION_OID)));
       }
-      
-        for (String collId : collIds) {        	
-          LazyList<AJEntityBaseReports> collTSA = null;
+
+        for (String collId : collIds) {
+          LazyList<AJEntityBaseReports> collTSA;
         	JsonObject collectionKpi = new JsonObject();
           List<String> collTSAParams = new ArrayList<>();
-          collTSAParams.add(this.courseId);
+          collTSAParams.add(courseId);
           collTSAParams.add(collId);
           collTSAParams.add(AJEntityBaseReports.ATTR_COLLECTION);
-          collTSAParams.add(this.userId);
+          collTSAParams.add(userId);
 
           StringBuilder collTSAQuery = new StringBuilder(AJEntityBaseReports.GET_IL_COURSE_COLLECTION_PERF);
           if (!StringUtil.isNullOrEmpty(startDate)) {
@@ -171,20 +163,20 @@ public class IndLearnerCourseCollectionsPerfHandler implements DBHandler {
             collTSAParams.add(endDate);
           }
           collTSAQuery.append(" GROUP BY collection_id");
-          LOGGER.debug("collTSAQuery : " + collTSAQuery.toString());
+          LOGGER.debug("collTSAQuery : " + collTSAQuery);
         	//Find Timespent and Attempts
         	collTSA = AJEntityBaseReports.findBySQL(collTSAQuery.toString(),collTSAParams.toArray());
-        	
+
         	if (!collTSA.isEmpty()) {
         	collTSA.forEach(m -> {
         		collectionKpi.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.parseLong(m.get(AJEntityBaseReports.TIME_SPENT).toString()));
         		collectionKpi.put(AJEntityBaseReports.VIEWS, Integer.parseInt(m.get(AJEntityBaseReports.VIEWS).toString()));
 	    		});
         	}
-        	
-            List<Map> collectionQuestionCount = null;
-            collectionQuestionCount = Base.findAll(AJEntityBaseReports.GET_IL_COLLECTION_QUESTION_COUNT, this.courseId,
-                    collId, this.userId);
+
+            List<Map> collectionQuestionCount;
+            collectionQuestionCount = Base.findAll(AJEntityBaseReports.GET_IL_COLLECTION_QUESTION_COUNT, courseId,
+                    collId, userId);
 
             //If questions are not present then Question Count is always zero, however this additional check needs to be added
             //since during migration of data from 3.0 chances are that QC may be null instead of zero
@@ -197,9 +189,9 @@ public class IndLearnerCourseCollectionsPerfHandler implements DBHandler {
             });
             double scoreInPercent = 0;
             if (this.questionCount > 0) {
-              Object collectionScore = null;
-              collectionScore = Base.firstCell(AJEntityBaseReports.GET_IL_COLLECTION_SCORE, this.courseId,
-                      collId, this.userId);
+              Object collectionScore;
+              collectionScore = Base.firstCell(AJEntityBaseReports.GET_IL_COLLECTION_SCORE, courseId,
+                      collId, userId);
               if (collectionScore != null) {
                 scoreInPercent = (((Double.valueOf(collectionScore.toString())) / this.questionCount) * 100);
               }
@@ -208,32 +200,19 @@ public class IndLearnerCourseCollectionsPerfHandler implements DBHandler {
             	//If Collections have No Questions then score should be NULL
             	collectionKpi.putNull(AJEntityBaseReports.ATTR_SCORE);
             }
-            
+
             //As per the current philosophy in Gooru (3.0/4.0) as soon as a collection is viewed, it is assumed to be completed.
             //So whenever we have an entry of a collection_id in Analytics, it is by default complete.
-            collectionKpi.put(JsonConstants.STATUS, JsonConstants.COMPLETE);        		
+            collectionKpi.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
         	collectionKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collId);
-        	collectionArray.add(collectionKpi);        		
+        	collectionArray.add(collectionKpi);
         	}
 
-        resultBody.put(JsonConstants.USAGE_DATA, collectionArray).put(JsonConstants.USERID, this.userId);
-      
-      return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);  
+        resultBody.put(JsonConstants.USAGE_DATA, collectionArray).put(JsonConstants.USERID, userId);
 
-      }       
-      
-    public boolean isValidFormat(String value) {
-      Date date = null;
-      try {
-        date = sdf.parse(value);
-        if (!value.equals(sdf.format(date))) {
-          date = null;
-        }
-      } catch (Exception ex) {
-        LOGGER.error("Invalid date format...");
+      return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
+
       }
-      return date != null;
-    }
 
     @Override
     public boolean handlerReadOnly() {

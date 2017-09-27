@@ -68,7 +68,7 @@ public class DCASessionTaxonomyReportHandler implements DBHandler {
 	                listToPostgresArrayInteger(taxonomyRow.get(AJEntityDCACompetencyReport.BASE_REPORT_ID).toString()));
 
 	        if (!aggTaxonomyResults.isEmpty()) {
-	          aggTaxonomyResults.stream().forEach(aggData -> {
+	          aggTaxonomyResults.forEach(aggData -> {
 	            aggResult.put(JsonConstants.TIMESPENT, Long.valueOf(aggData.get(AJEntityDailyClassActivity.TIMESPENT).toString()));
 	            aggResult.put(JsonConstants.REACTION, Integer.valueOf(aggData.get(AJEntityDailyClassActivity.REACTION).toString()));
 	            aggResult.put(JsonConstants.SCORE, Math.round(Double.valueOf(aggData.get(AJEntityDailyClassActivity.SCORE).toString())));
@@ -81,7 +81,7 @@ public class DCASessionTaxonomyReportHandler implements DBHandler {
 	        // Generate questions array
 	        if (!sessionTaxonomyQuestionResults.isEmpty()) {
 	          JsonArray questionsArray = new JsonArray();
-	          sessionTaxonomyQuestionResults.stream().forEach(question -> {
+	          sessionTaxonomyQuestionResults.forEach(question -> {
 	            JsonObject questionData = ValueMapper.map(ResponseAttributeIdentifier.getSessionTaxReportQuestionAttributesMap(), question);
 	            questionData.put(JsonConstants.SCORE, Math.round(Double.valueOf(question.get(AJEntityDailyClassActivity.SCORE).toString())));
 	            questionsArray.add(questionData);
@@ -103,15 +103,13 @@ public class DCASessionTaxonomyReportHandler implements DBHandler {
 	      return "{}";
 	    } else {
 	      int approxSize = (in.length() + 3);
-	      StringBuilder sb = new StringBuilder(approxSize);
-	      sb.append('{');
-	      sb.append(in);
-	      return sb.append('}').toString();
+			String sb = "{" + in + '}';
+			return sb;
 	    }
 	  }
 
 	  @Override
-	  public boolean handlerReadOnly() {	    
+	  public boolean handlerReadOnly() {
 	    return true;
 	  }
 }

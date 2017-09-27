@@ -24,69 +24,68 @@ import io.vertx.core.json.JsonObject;
  */
 
   public class StudentPeersInLessonHandler implements DBHandler {
-  
+
     private static final Logger LOGGER = LoggerFactory.getLogger(StudentPeersInLessonHandler.class);
-  
+
     private final ProcessorContext context;
-  
+
     private static final long timeDiff = 900000;
-  
-    String cId = new String();
+
+    String cId = "";
     //String user = new String();
     Integer activeUser = 0;
     Integer inactiveUser = 0;
-    private String userId;
-  
+
     public StudentPeersInLessonHandler(ProcessorContext context) {
       this.context = context;
     }
-  
+
     @Override
     public ExecutionResult<MessageResponse> checkSanity() {
-  
+
       // No Sanity Check required since, no params are being passed in Request
       // Body
-  
+
       LOGGER.debug("checkSanity() OK");
       return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
     }
-  
+
     @Override
     public ExecutionResult<MessageResponse> validateRequest() {
       LOGGER.debug("validateRequest() OK");
       return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
     }
-  
+
     @Override
     public ExecutionResult<MessageResponse> executeRequest() {
-      JsonObject resultBody = new JsonObject(); 
+      JsonObject resultBody = new JsonObject();
       JsonArray peerArray = new JsonArray();
-      
-      this.userId = this.context.userIdFromSession();
-      LOGGER.info("The userId is" + userId);
-      if (StringUtil.isNullOrEmpty(userId)) {
+
+        String userId1 = this.context.userIdFromSession();
+      LOGGER.info("The userId is" + userId1);
+      if (StringUtil.isNullOrEmpty(userId1)) {
 	      LOGGER.warn("userID is mandatory to fetch student list for this question");
 	      return new ExecutionResult<>(
 	              MessageResponseFactory.createInvalidRequestResponse("UserId Missing. Cannot fetch student list"),
 	              ExecutionStatus.FAILED);
 
-	    } 
-      
+	    }
+
       // If CollectionType is Assessment
       //@NU Resource as Suggestions - include event_name = 'collection.play' to ensure peers at C/A level
       LazyList<AJEntityBaseReports> collIDforAssessment =
-              AJEntityBaseReports.findBySQL(AJEntityBaseReports.GET_PEERS_IN_LESSON, context.classId(), this.userId,
+              AJEntityBaseReports.findBySQL(AJEntityBaseReports.GET_PEERS_IN_LESSON, context.classId(), userId1,
                       context.courseId(), context.unitId(), context.lessonId());
-  
-      if (!collIDforAssessment.isEmpty()) {  
+
+      if (!collIDforAssessment.isEmpty()) {
         collIDforAssessment.forEach(coll -> {
           String assessmentId = coll.get(AJEntityBaseReports.COLLECTION_OID).toString();
           String userId = coll.get(AJEntityBaseReports.GOORUUID).toString();
           String timestamp = coll.get(AJEntityBaseReports.UPDATE_TIMESTAMP).toString();
           String collectionType = coll.get(AJEntityBaseReports.COLLECTION_TYPE).toString();
           String collTypeParam = collectionType.equalsIgnoreCase(JsonConstants.COLLECTION) ? JsonConstants.COLLECTIONID : JsonConstants.ASSESSMENTID;
-          
-            Timestamp currTs = new Timestamp(System.currentTimeMillis());              
+
+            Timestamp currTs = new Timestamp(System.currentTimeMillis());
             Timestamp userTs = Timestamp.valueOf(timestamp);
             if (((currTs.getTime() - userTs.getTime()) < timeDiff)) {
               peerArray.add(new JsonObject().put(collTypeParam, assessmentId).put(JsonConstants.USERUID, userId).put(JsonConstants.STATUS,
@@ -95,18 +94,18 @@ import io.vertx.core.json.JsonObject;
               peerArray.add(new JsonObject().put(collTypeParam, assessmentId).put(JsonConstants.USERUID, userId).put(JsonConstants.STATUS,
                       JsonConstants.INACTIVE));
             }
-        
+
          });
-  
+
       } else {
           LOGGER.error("Student Peers Count for Lessons cannot be obtained. There may be no peers for this Lessons");
         }
-  
-      resultBody.put(JsonConstants.CONTENT, peerArray).putNull(JsonConstants.MESSAGE).putNull(JsonConstants.PAGINATE);  
+
+      resultBody.put(JsonConstants.CONTENT, peerArray).putNull(JsonConstants.MESSAGE).putNull(JsonConstants.PAGINATE);
       return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
-  
+
     }
-  
+
     @Override
     public boolean handlerReadOnly() {
       return true;

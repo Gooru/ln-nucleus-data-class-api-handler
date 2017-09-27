@@ -17,8 +17,6 @@ import org.javalite.activejdbc.Base;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hazelcast.util.StringUtil;
-
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -30,8 +28,6 @@ public class IndependentLearnerAssessmentPerfHandler implements DBHandler {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IndependentLearnerAssessmentPerfHandler.class);
   private final ProcessorContext context;
-  private String collectionType;
-  private String userId;
 
   public IndependentLearnerAssessmentPerfHandler(ProcessorContext context) {
     this.context = context;
@@ -62,28 +58,16 @@ public class IndependentLearnerAssessmentPerfHandler implements DBHandler {
   public ExecutionResult<MessageResponse> executeRequest() {
     JsonObject resultBody = new JsonObject();
     JsonArray resultarray = new JsonArray();
+    String userId = this.context.userIdFromSession();
+    List<String> userIds = new ArrayList<>(1);
 
-    // FIXME: Collection Type Accepted "assessment" only.
-    this.collectionType = "assessment";
-    if (StringUtil.isNullOrEmpty(collectionType)
-            || (StringUtil.isNullOrEmpty(collectionType) && this.collectionType.equalsIgnoreCase(AJEntityBaseReports.ATTR_ASSESSMENT))) {
-      LOGGER.warn("CollectionType is mandatory to fetch Student Performance in assessment");
-      return new ExecutionResult<>(
-              MessageResponseFactory.createInvalidRequestResponse(
-                      "CollectionType is missing or make sure collectionType is assessment . Cannot fetch Student Performance in Assessment"),
-              ExecutionStatus.FAILED);
-    }
+    userIds.add(userId);
 
-    this.userId = this.context.userIdFromSession();
-    List<String> userIds = new ArrayList<>();
-
-    userIds.add(this.userId);
-
-    LOGGER.debug("UID is " + this.userId);
+    LOGGER.debug("UID is " + userId);
 
     for (String userID : userIds) {
       JsonObject contentBody = new JsonObject();
-      List<Map> studentLatestAttempt = null;
+      List<Map> studentLatestAttempt;
       studentLatestAttempt = Base.findAll(AJEntityBaseReports.GET_INDEPENDENT_LEARNER_LATEST_COMPLETED_SESSION_ID, context.courseId(), context.unitId(),
               context.lessonId(), context.collectionId(), userID);
       if (!studentLatestAttempt.isEmpty()) {
@@ -92,7 +76,7 @@ public class IndependentLearnerAssessmentPerfHandler implements DBHandler {
                   attempts.get(AJEntityBaseReports.SESSION_ID).toString(), AJEntityBaseReports.ATTR_CRP_EVENTNAME);
           JsonArray questionsArray = new JsonArray();
           if (!assessmentQuestionsKPI.isEmpty()) {
-            assessmentQuestionsKPI.stream().forEach(questions -> {
+            assessmentQuestionsKPI.forEach(questions -> {
               JsonObject qnData = ValueMapper.map(ResponseAttributeIdentifier.getSessionAssessmentQuestionAttributesMap(), questions);
               // FIXME :: This is to be revisited. We should alter the schema
               // column type from TEXT to JSONB. After this change we can remove

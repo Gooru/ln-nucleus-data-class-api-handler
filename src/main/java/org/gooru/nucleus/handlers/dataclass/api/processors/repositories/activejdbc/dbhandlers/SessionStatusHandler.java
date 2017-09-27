@@ -22,23 +22,21 @@ import io.vertx.core.json.JsonObject;
  */
 
 public class SessionStatusHandler implements DBHandler {
-	
-	private static final Logger LOGGER = LoggerFactory.getLogger(SessionStatusHandler.class);
-	    
-	private final ProcessorContext context;
-    private AJEntityBaseReports baseReport;
 
-    private String collectionId;
+	private static final Logger LOGGER = LoggerFactory.getLogger(SessionStatusHandler.class);
+
+	private final ProcessorContext context;
+
     private String sessionId;
-        
+
     public SessionStatusHandler(ProcessorContext context) {
         this.context = context;
     }
 
     @Override
     public ExecutionResult<MessageResponse> checkSanity() {
-    	
-    	//No Sanity Check required since, no params are being passed in Request Body 
+
+    	//No Sanity Check required since, no params are being passed in Request Body
         LOGGER.debug("checkSanity() OK");
         return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
     }
@@ -51,45 +49,45 @@ public class SessionStatusHandler implements DBHandler {
 
     @Override
     public ExecutionResult<MessageResponse> executeRequest() {
-    	
-    	JsonObject resultBody = new JsonObject();       	
-    	baseReport = new AJEntityBaseReports();
-    
-        this.collectionId = context.collectionId();
-        LOGGER.debug("collectionId is " + this.collectionId);
-    	
+
+    	JsonObject resultBody = new JsonObject();
+        AJEntityBaseReports baseReport = new AJEntityBaseReports();
+
+        String collectionId = context.collectionId();
+        LOGGER.debug("collectionId is " + collectionId);
+
         this.sessionId = context.sessionId();
         LOGGER.debug("UID is " + this.sessionId);
-        
-    	 List<Map> sessionStatusMap = Base.findAll( AJEntityBaseReports.GET_SESSION_STATUS, 
-    			 this.sessionId, this.collectionId,EventConstants.COLLECTION_PLAY, EventConstants.STOP);
-    	 
+
+    	 List<Map> sessionStatusMap = Base.findAll( AJEntityBaseReports.GET_SESSION_STATUS,
+    			 this.sessionId, collectionId,EventConstants.COLLECTION_PLAY, EventConstants.STOP);
+
     	 if (!sessionStatusMap.isEmpty()){
-    		
+
     		sessionStatusMap.forEach(m -> {
-    			Integer x = Integer.valueOf(m.get(AJEntityBaseReports.ATTR_COUNT).toString());    			
-    			if (x.intValue() == 0){
-    				resultBody.putNull(JsonConstants.CONTENT).put(JsonConstants.MESSAGE, 
+    			Integer x = Integer.valueOf(m.get(AJEntityBaseReports.ATTR_COUNT).toString());
+    			if (x == 0){
+    				resultBody.putNull(JsonConstants.CONTENT).put(JsonConstants.MESSAGE,
     						new JsonObject().put(AJEntityBaseReports.SESSION_ID, this.sessionId)
     						.put(JsonConstants.STATUS, JsonConstants.IN_PROGRESS))
     				.putNull(JsonConstants.PAGINATE);
-    				
+
     			} else {
-    				resultBody.putNull(JsonConstants.CONTENT).put(JsonConstants.MESSAGE, 
+    				resultBody.putNull(JsonConstants.CONTENT).put(JsonConstants.MESSAGE,
     						new JsonObject().put(AJEntityBaseReports.SESSION_ID, this.sessionId)
     						.put(JsonConstants.STATUS, JsonConstants.COMPLETE))
     				.putNull(JsonConstants.PAGINATE);
     			}
     		});
-    	    		
+
     	 } else {
-            LOGGER.info("Session status cannot be obtained");            
+            LOGGER.info("Session status cannot be obtained");
          }
-   	        
+
     	 return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody),
-                ExecutionStatus.SUCCESSFUL);    	
-    }   
-    
+                ExecutionStatus.SUCCESSFUL);
+    }
+
 
     @Override
     public boolean handlerReadOnly() {

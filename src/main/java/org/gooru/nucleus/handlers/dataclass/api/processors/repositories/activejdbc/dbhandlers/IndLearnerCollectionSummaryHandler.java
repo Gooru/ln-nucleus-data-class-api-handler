@@ -25,13 +25,13 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 public class IndLearnerCollectionSummaryHandler implements DBHandler {
-	
+
 	  private static final Logger LOGGER = LoggerFactory.getLogger(StudentCollectionSummaryHandler.class);
 	    private final ProcessorContext context;
 	    private String userId;
 	    private int questionCount = 0 ;
 	    private long lastAccessedTime;
-	    
+
 	    public IndLearnerCollectionSummaryHandler(ProcessorContext context) {
 	        this.context = context;
 	    }
@@ -69,16 +69,16 @@ public class IndLearnerCollectionSummaryHandler implements DBHandler {
 
 	      this.userId = context.getUserIdFromRequest();
 	      LOGGER.debug("User ID is " + this.userId);
-	      
+
 	      String courseId = context.request().getString(EventConstants.COURSE_GOORU_OID);
 	      String unitId = context.request().getString(EventConstants.UNIT_GOORU_OID);
 	      String lessonId = context.request().getString(EventConstants.LESSON_GOORU_OID);
 	      String collectionId = context.collectionId();
 	      JsonArray contentArray = new JsonArray();
-	      
-	        
-	        //Getting Question Count 
-	        List<Map> collectionQuestionCount = null;
+
+
+	        //Getting Question Count
+	        List<Map> collectionQuestionCount;
 	        if (!StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
 	          collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_IL_COLLECTION_QUESTION_COUNT, courseId,unitId,lessonId,collectionId,this.userId);
 	        }else {
@@ -96,16 +96,16 @@ public class IndLearnerCollectionSummaryHandler implements DBHandler {
 	        	}
 	          this.lastAccessedTime = Timestamp.valueOf(qc.get(AJEntityBaseReports.UPDATE_TIMESTAMP).toString()).getTime();
 	        });
-	        List<Map> collectionData = null;
+	        List<Map> collectionData;
 	        if (!StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
 	          collectionData = Base.findAll(AJEntityBaseReports.SELECT_IL_COLLECTION_AGG_DATA,courseId,unitId,lessonId,collectionId,this.userId);
 	        }else{
 		      //Currently, data for Collections at the IL Landing page should be inclusive of CUL and Standalone collections
-	          collectionData = Base.findAll(AJEntityBaseReports.SELECT_IL_STANDALONE_COLLECTION_AGG_DATA,collectionId, this.userId);          
+	          collectionData = Base.findAll(AJEntityBaseReports.SELECT_IL_STANDALONE_COLLECTION_AGG_DATA,collectionId, this.userId);
 	        }
 	        if (!collectionData.isEmpty()) {
 	          LOGGER.debug("Collection Attributes obtained");
-	          collectionData.stream().forEach(m -> {
+	          collectionData.forEach(m -> {
 	            JsonObject assessmentData = ValueMapper.map(ResponseAttributeIdentifier.getSessionCollectionAttributesMap(), m);
 	            assessmentData.put(EventConstants.EVENT_TIME, this.lastAccessedTime);
 	            assessmentData.put(EventConstants.SESSION_ID, EventConstants.NA);
@@ -115,23 +115,23 @@ public class IndLearnerCollectionSummaryHandler implements DBHandler {
 	            double scoreInPercent=0;
 	            int reaction=0;
 	            if(this.questionCount > 0){
-	              Object collectionScore = null;
+	              Object collectionScore;
 	              if (!StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
 	               collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_IL_COLLECTION_AGG_SCORE, courseId,unitId,lessonId,collectionId,this.userId);
 	              }else{
 	               collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_IL_STANDALONE_COLLECTION_AGG_SCORE,collectionId,this.userId);
 	              }
 	              if(collectionScore != null){
-	                scoreInPercent =  (((double) Double.valueOf(collectionScore.toString()) / this.questionCount) * 100);
+	                scoreInPercent =  ((Double.valueOf(collectionScore.toString()) / this.questionCount) * 100);
 	              }
 	            }
 	            LOGGER.debug("Collection score : {} - collectionId : {}" , Math.round(scoreInPercent), collectionId);
-	            assessmentData.put(AJEntityBaseReports.SCORE, Math.round(scoreInPercent)); 
-	            Object collectionReaction = null;
+	            assessmentData.put(AJEntityBaseReports.SCORE, Math.round(scoreInPercent));
+	            Object collectionReaction;
 	            if (!StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
 	              collectionReaction = Base.firstCell(AJEntityBaseReports.SELECT_IL_COLLECTION_AGG_REACTION, courseId,unitId,lessonId,collectionId,this.userId);
 	            }else{
-	              collectionReaction = Base.firstCell(AJEntityBaseReports.SELECT_IL_STANDALONE_COLLECTION_AGG_REACTION,collectionId,this.userId);              
+	              collectionReaction = Base.firstCell(AJEntityBaseReports.SELECT_IL_STANDALONE_COLLECTION_AGG_REACTION,collectionId,this.userId);
 	            }
 	            if(collectionReaction != null){
 	              reaction = Integer.valueOf(collectionReaction.toString());
@@ -141,7 +141,7 @@ public class IndLearnerCollectionSummaryHandler implements DBHandler {
 	            assessmentDataKPI.put(JsonConstants.COLLECTION, assessmentData);
 	          });
 	          LOGGER.debug("Collection resource Attributes started");
-	          List<Map> assessmentQuestionsKPI = null;
+	          List<Map> assessmentQuestionsKPI;
 	          if (!StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
 	            assessmentQuestionsKPI = Base.findAll(AJEntityBaseReports.SELECT_IL_COLLECTION_RESOURCE_AGG_DATA,
 	                  courseId,unitId,lessonId,collectionId,this.userId);
@@ -151,7 +151,7 @@ public class IndLearnerCollectionSummaryHandler implements DBHandler {
 	          }
 	          JsonArray questionsArray = new JsonArray();
 	          if(!assessmentQuestionsKPI.isEmpty()){
-	            assessmentQuestionsKPI.stream().forEach(questions -> {
+	            assessmentQuestionsKPI.forEach(questions -> {
 	              JsonObject qnData = ValueMapper.map(ResponseAttributeIdentifier.getSessionCollectionResourceAttributesMap(), questions);
 	              //FIXME :: This is to be revisited. We should alter the schema column type from TEXT to JSONB. After this change we can remove this logic
 	              if(questions.get(AJEntityBaseReports.ANSWER_OBECT) != null){
@@ -163,7 +163,7 @@ public class IndLearnerCollectionSummaryHandler implements DBHandler {
 	              }
 	              qnData.put(JsonConstants.SCORE, Math.round(Double.valueOf(questions.get(AJEntityBaseReports.SCORE).toString())));
 	              if(this.questionCount > 0){
-	                List<Map> questionScore = null;
+	                List<Map> questionScore;
 	                if (!StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
 	                  questionScore = Base.findAll(AJEntityBaseReports.SELECT_IL_COLLECTION_QUESTION_AGG_SCORE, courseId,unitId,lessonId,collectionId,questions.get(AJEntityBaseReports.RESOURCE_ID),this.userId);
 	                }else{
@@ -178,7 +178,7 @@ public class IndLearnerCollectionSummaryHandler implements DBHandler {
 	                });
 	                }
 	               }
-	              List<Map> resourceReaction = null;
+	              List<Map> resourceReaction;
 	              if (!StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
 	                resourceReaction = Base.findAll(AJEntityBaseReports.SELECT_IL_COLLECTION_RESOURCE_AGG_REACTION, courseId,unitId,lessonId,collectionId,questions.get(AJEntityBaseReports.RESOURCE_ID),this.userId);
 	              }else{
@@ -205,8 +205,8 @@ public class IndLearnerCollectionSummaryHandler implements DBHandler {
 	        }
 	        resultBody.put(JsonConstants.CONTENT, contentArray);
 	        return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
-	      
-	    }   
+
+	    }
 
 	    @Override
 	    public boolean handlerReadOnly() {

@@ -86,7 +86,7 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
 
     this.userId = this.context.userIdFromSession();
 
-    List<String> userIds = new ArrayList<>();
+    List<String> userIds = new ArrayList<>(1);
     List<String> lessonIds = new ArrayList<>();
 
     userIds.add(this.userId);
@@ -95,7 +95,7 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
       JsonObject contentBody = new JsonObject();
       JsonArray UnitKpiArray = new JsonArray();
 
-      LazyList<AJEntityBaseReports> lessonIDforUnit = null;
+      LazyList<AJEntityBaseReports> lessonIDforUnit;
 
       lessonIDforUnit = AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_DISTINCT_LESSON_ID_FOR_UNIT_ID_FITLERBY_COLLTYPE,
               context.courseId(), context.unitId(), this.collectionType, userID);
@@ -103,7 +103,7 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
         LOGGER.debug("Got a list of Distinct lessonIDs for this Unit");
 
         lessonIDforUnit.forEach(lesson -> lessonIds.add(lesson.getString(AJEntityBaseReports.LESSON_GOORU_OID)));
-        List<Map> lessonKpi = null;
+        List<Map> lessonKpi;
         if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
           lessonKpi = Base.findAll(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_UNIT_PERF_FOR_COLLECTION, context.courseId(), context.unitId(),
                   this.collectionType, userID, listToPostgresArrayString(lessonIds));
@@ -115,7 +115,7 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
           lessonKpi.forEach(m -> {
             this.lessonId = m.get(AJEntityBaseReports.ATTR_LESSON_ID).toString();
             LOGGER.debug("The Value of LESSONID " + lessonId);
-            List<Map> completedCountMap = null;
+            List<Map> completedCountMap;
             if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
 
               completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLL_COUNT_FOREACH_INDEPENDENT_LEARNER_LESSON_ID, context.courseId(),
@@ -143,7 +143,7 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
               lessonData.remove(EventConstants.ATTEMPTS);
             }
             JsonArray assessmentArray = new JsonArray();
-            LazyList<AJEntityBaseReports> collIDforlesson = null;
+            LazyList<AJEntityBaseReports> collIDforlesson;
             collIDforlesson = AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_DISTINCT_COLLID_FOR_LESSON_ID_FILTERBY_COLLTYPE_WO_PATH_ID,
                     context.courseId(), context.unitId(), this.lessonId, this.collectionType, userID);
 
@@ -152,7 +152,7 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
               LOGGER.info("Got a list of Distinct collectionIDs for this lesson");
               collIDforlesson.forEach(coll -> collIds.add(coll.getString(AJEntityBaseReports.COLLECTION_OID)));
             }
-            List<Map> assessmentKpi = null;
+            List<Map> assessmentKpi;
             if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
 
               assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_LESSON_PERF_FOR_COLLECTION_WO_PATH_ID, context.courseId(), context.unitId(),
@@ -167,10 +167,8 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
                 // FIXME : revisit completed count and total count
                 assData.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 1);
                 assData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
-                assData.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.valueOf(ass.get(AJEntityBaseReports.ATTR_SCORE).toString())));
-                // FIXME: This logic to be revisited.
                 if (this.collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {
-                  List<Map> collectionQuestionCount = null;
+                  List<Map> collectionQuestionCount;
                   collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_COLLECTION_QUESTION_COUNT, context.courseId(),
                           context.unitId(), this.lessonId, assData.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID), this.userId);
 
@@ -181,27 +179,29 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
                   		this.questionCount = Integer.valueOf(qc.get(AJEntityBaseReports.QUESTION_COUNT).toString());
                   	} else {
                   		this.questionCount = 0;
-                  	}                    
+                  	}
                   });
                   double scoreInPercent = 0;
                   if (this.questionCount > 0) {
-                    Object collectionScore = null;
+                    Object collectionScore;
 
                     collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_COLLECTION_AGG_SCORE, context.courseId(), context.unitId(),
                             this.lessonId, assData.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID), this.userId);
 
                     if (collectionScore != null) {
-                      scoreInPercent = (((double) Double.valueOf(collectionScore.toString()) / this.questionCount) * 100);
-                    }                    
+                      scoreInPercent = ((Double.valueOf(collectionScore.toString()) / this.questionCount) * 100);
+                    }
                     assData.put(AJEntityBaseReports.ATTR_SCORE, Math.round(scoreInPercent));
                   } else {
                   	//If Collections have No Questions then score should be NULL
                   	assData.putNull(AJEntityBaseReports.ATTR_SCORE);
-                  }                  
+                  }
                   assData.put(AJEntityBaseReports.ATTR_COLLECTION_ID, assData.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID));
                   assData.remove(AJEntityBaseReports.ATTR_ASSESSMENT_ID);
                   assData.put(EventConstants.VIEWS, assData.getInteger(EventConstants.ATTEMPTS));
                   assData.remove(EventConstants.ATTEMPTS);
+                }else {
+                  assData.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.valueOf(ass.get(AJEntityBaseReports.ATTR_SCORE).toString())));
                 }
                 assessmentArray.add(assData);
               });

@@ -18,7 +18,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 
-public class DataSourceRegistry implements Initializer, Finalizer {
+public final class DataSourceRegistry implements Initializer, Finalizer {
 
     private static final String DEFAULT_DATA_SOURCE = "defaultDataSource";
     private static final String DEFAULT_DATA_SOURCE_TYPE = "nucleus.ds.type";

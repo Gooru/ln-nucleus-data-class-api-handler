@@ -7,20 +7,16 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
-import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassMember;
-import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityContent;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityCourseCollectionCount;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
 import org.javalite.activejdbc.Base;
-import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,19 +28,18 @@ import io.vertx.core.json.JsonObject;
 
 /**
  * Created by mukul@gooru
- * 
+ *
  */
 
 public class IndLearnerAllCoursesPerfHandler implements DBHandler {
-	
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(IndLearnerAllCoursesPerfHandler.class);
 
 	  private final ProcessorContext context;
 	  private static final String REQUEST_USERID = "userId";
 	  private String userId;
-	  private JsonArray courseIds;
-	  
-	  IndLearnerAllCoursesPerfHandler(ProcessorContext context) {
+
+	IndLearnerAllCoursesPerfHandler(ProcessorContext context) {
 	    this.context = context;
 	  }
 
@@ -72,8 +67,8 @@ public class IndLearnerAllCoursesPerfHandler implements DBHandler {
                 ExecutionStatus.FAILED);
       }
 
-    this.courseIds = this.context.request().getJsonArray(MessageConstants.COURSE_IDS);
-    LOGGER.debug("userId : {} - courseIds:{}", userId, this.courseIds);
+		  JsonArray courseIds = this.context.request().getJsonArray(MessageConstants.COURSE_IDS);
+    LOGGER.debug("userId : {} - courseIds:{}", userId, courseIds);
 
     if (courseIds.isEmpty()) {
       LOGGER.warn("CourseIds are mandatory to fetch Independent Learner's Performance in Courses");
@@ -81,9 +76,9 @@ public class IndLearnerAllCoursesPerfHandler implements DBHandler {
               MessageResponseFactory.createInvalidRequestResponse("CourseIds is Missing. Cannot fetch IL Performance in Course"),
               ExecutionStatus.FAILED);
     }
-    
-    List<String> clsIds = new ArrayList<>();
-    for (Object s : this.courseIds) {
+
+    List<String> clsIds = new ArrayList<>(courseIds.size());
+    for (Object s : courseIds) {
       clsIds.add(s.toString());
     }
 
@@ -91,26 +86,24 @@ public class IndLearnerAllCoursesPerfHandler implements DBHandler {
     JsonArray CourseKpiArray = new JsonArray();
 
     // Getting timespent and attempts.
-    List<Map> coursePerfData = null;
-    
-    // Student All Class Data    
-    	coursePerfData = Base.findAll(AJEntityBaseReports.SELECT_IL_ALL_COURSE_DATA, jArrayToPostgresArrayString(this.courseIds), this.userId);
-    	
+    List<Map> coursePerfData;
+
+    // Student All Class Data
+    	coursePerfData = Base.findAll(AJEntityBaseReports.SELECT_IL_ALL_COURSE_DATA, jArrayToPostgresArrayString(
+			courseIds), this.userId);
+
     	if (!coursePerfData.isEmpty()) {
     	      coursePerfData.forEach(courseData -> {
     	        if(courseData.get(AJEntityBaseReports.COURSE_GOORU_OID) != null){
-    	        JsonObject courseKPI = new JsonObject();    	        
+    	        JsonObject courseKPI = new JsonObject();
     	        courseKPI.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.valueOf(courseData.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()));
     	        Object courseTotalCount = Base.firstCell(AJEntityCourseCollectionCount.GET_COURSE_ASSESSMENT_COUNT,
     	                courseData.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
-    	        
+
     	        courseKPI.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, courseTotalCount != null ? Integer.valueOf(courseTotalCount.toString()) : 0);
     	        List<Map> cScoreCompletion = null;
-    	        if (!StringUtil.isNullOrEmpty(this.userId)) {
     	          cScoreCompletion = Base.findAll(AJEntityBaseReports.SELECT_IL_ALL_COURSE_COMPLETION_SCORE,
     	                  courseData.get(AJEntityBaseReports.COURSE_GOORU_OID).toString(), this.userId);
-    	        }
-    	        
     	        if (!cScoreCompletion.isEmpty()) {
     	          cScoreCompletion.forEach(scoreKPI -> {
     	            LOGGER.debug("completedCount : {} ", scoreKPI.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT));
@@ -130,13 +123,13 @@ public class IndLearnerAllCoursesPerfHandler implements DBHandler {
     	    } else {
         LOGGER.info("Could not get Independent Learner Course Performance data");
       }
-    
+
     // Form the required Json pass it on
     result.put(JsonConstants.USAGE_DATA, CourseKpiArray);
-    
+
     if (!StringUtil.isNullOrEmpty(this.userId)) {
-    	result.put(JsonConstants.USERID, this.userId);    	    	
-    } else if (StringUtil.isNullOrEmpty(this.userId)) {    	
+    	result.put(JsonConstants.USERID, this.userId);
+    } else if (StringUtil.isNullOrEmpty(this.userId)) {
     	result.putNull(JsonConstants.USERID);
     }
 
@@ -147,7 +140,7 @@ public class IndLearnerAllCoursesPerfHandler implements DBHandler {
 	  public boolean handlerReadOnly() {
 	    return true;
 	  }
-	  
+
 	  private String jArrayToPostgresArrayString(JsonArray inputArrary) {
 		    List<String> input = new ArrayList<>();
 		    for (Object s : inputArrary) {
