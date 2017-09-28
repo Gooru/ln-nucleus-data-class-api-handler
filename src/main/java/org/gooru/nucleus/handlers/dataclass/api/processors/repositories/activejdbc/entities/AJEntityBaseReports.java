@@ -697,6 +697,7 @@ public class AJEntityBaseReports extends Model {
             + "event_name = 'collection.resource.play' AND resource_type = 'question' AND resource_attempt_status <> 'skipped' ) AS coll "
             + "GROUP BY coll.collection_id";
 
+    
     public static final String GET_COLLECTION_MAX_SCORE = "SELECT SUM(coll.max_score) AS max_score FROM "
             + "(SELECT DISTINCT ON (resource_id) collection_id, "
             + "FIRST_VALUE(max_score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS max_score "
