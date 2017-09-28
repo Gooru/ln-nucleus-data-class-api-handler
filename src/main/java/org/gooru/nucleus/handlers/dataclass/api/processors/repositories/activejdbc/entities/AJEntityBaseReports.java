@@ -363,7 +363,7 @@ public class AJEntityBaseReports extends Model {
             + "WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND actor_id = ? AND event_name = 'collection.play'"
             + " ORDER BY updated_at DESC LIMIT 1";
     public static final String SELECT_COURSE_IL_COLLECTION_LAST_ACCESSED_TIME = "SELECT updated_at, session_id FROM base_reports "
-            + "WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND actor_id = ? AND event_name = 'collection.play'"
+            + "WHERE class_id IS NULL AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND actor_id = ? AND event_name = 'collection.play'"
             + " ORDER BY updated_at DESC LIMIT 1";
     public static final String SELECT_CLASS_COLLECTION_LAST_ACCESSED_TIME = "SELECT updated_at, session_id FROM base_reports "
             + "WHERE collection_id = ? AND actor_id = ? AND event_name = 'collection.play'"
