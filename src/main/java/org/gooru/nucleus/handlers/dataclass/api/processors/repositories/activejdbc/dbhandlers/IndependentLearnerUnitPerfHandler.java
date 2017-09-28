@@ -185,7 +185,7 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
                 assData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
                 if (this.collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {
                   List<Map> collectionQuestionCount;
-                    collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_SCORE_AND_MAX_SCORE,
+                    collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_IL_COLLECTION_SCORE_AND_MAX_SCORE,
                           context.courseId(), context.unitId(), this.lessonId, assData.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID),userID);
                   if (collectionQuestionCount != null && !collectionQuestionCount.isEmpty()) {
                     collectionQuestionCount.forEach(score -> {

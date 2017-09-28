@@ -189,8 +189,15 @@ public class IndLearnerCourseCollectionsPerfHandler implements DBHandler {
           double scoreInPercent = 0;
           if (this.maxScore > 0) {
             Object collectionScore;
-            collectionScore = Base.firstCell(AJEntityBaseReports.GET_COLLECTION_SCORE, classId, courseId,
-                    collId, userId);
+            
+            if(!StringUtil.isNullOrEmpty(classId)){
+              collectionScore = Base.firstCell(AJEntityBaseReports.GET_COLLECTION_SCORE, classId, courseId,
+                      collId, userId);
+            } else{
+              collectionScore = Base.firstCell(AJEntityBaseReports.GET_IL_COLLECTION_SCORE,  courseId,
+                      collId, userId);
+            }
+            
             if (collectionScore != null) {
               scoreInPercent = (((Double.valueOf(collectionScore.toString())) / this.maxScore) * 100);
             }
