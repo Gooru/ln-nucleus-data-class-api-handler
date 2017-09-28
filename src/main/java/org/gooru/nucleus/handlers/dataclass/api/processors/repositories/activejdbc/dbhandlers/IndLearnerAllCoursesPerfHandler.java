@@ -110,7 +110,7 @@ public class IndLearnerAllCoursesPerfHandler implements DBHandler {
     	            LOGGER.debug("score : {} ", scoreKPI.get(AJEntityBaseReports.ATTR_SCORE));
     	            courseKPI.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT,
     	                    Integer.valueOf(scoreKPI.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
-    	            courseKPI.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.valueOf(scoreKPI.get(AJEntityBaseReports.ATTR_SCORE).toString())));
+    	            courseKPI.put(AJEntityBaseReports.ATTR_SCORE, scoreKPI.get(AJEntityBaseReports.ATTR_SCORE) == null ? 0 : Math.round(Double.valueOf(scoreKPI.get(AJEntityBaseReports.ATTR_SCORE).toString())));
     	          });
     	        } else {
         	        courseKPI.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 0);

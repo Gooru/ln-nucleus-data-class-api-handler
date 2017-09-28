@@ -36,7 +36,6 @@ public class IndependentLearnerLessonPerfHandler implements DBHandler {
   private final ProcessorContext context;
   private String collectionType;
   private String userId;
-  private long questionCount;
 
   public IndependentLearnerLessonPerfHandler(ProcessorContext context) {
     this.context = context;
@@ -114,44 +113,33 @@ public class IndependentLearnerLessonPerfHandler implements DBHandler {
         assessmentKpi.forEach(m -> {
           JsonObject lessonKpi = ValueMapper.map(ResponseAttributeIdentifier.getLessonPerformanceAttributesMap(), m);
           // FIXME : revisit completed count and total count
+          String cId = m.get(AJEntityBaseReports.ATTR_COLLECTION_ID).toString();
           lessonKpi.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 1);
           lessonKpi.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 1);
-          lessonKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.valueOf(m.get(AJEntityBaseReports.ATTR_SCORE).toString())));
           // FIXME: This logic to be revisited.
           if (this.collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {
             List<Map> collectionQuestionCount;
-
-            collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_COLLECTION_QUESTION_COUNT, context.courseId(), context.unitId(),
-                    context.lessonId(), lessonKpi.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID), this.userId);
-
-            //If questions are not present then Question Count is always zero, however this additional check needs to be added
-            //since during migration of data from 3.0 chances are that QC may be null instead of zero
-            collectionQuestionCount.forEach(qc -> {
-            	if (qc.get(AJEntityBaseReports.QUESTION_COUNT) != null) {
-            		this.questionCount = Integer.valueOf(qc.get(AJEntityBaseReports.QUESTION_COUNT).toString());
-            	} else {
-            		this.questionCount = 0;
-            	}
-            });
-            double scoreInPercent = 0;
-            if (this.questionCount > 0) {
-              Object collectionScore;
-
-              collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_COLLECTION_AGG_SCORE, context.courseId(), context.unitId(),
-                      context.lessonId(), lessonKpi.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID), this.userId);
-
-              if (collectionScore != null) {
-                scoreInPercent = (Double.valueOf(collectionScore.toString()) / this.questionCount) * 100;
+            collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_IL_COLLECTION_SCORE_AND_MAX_SCORE, context.courseId(),
+                    context.unitId(), context.lessonId(), cId , userID);
+            collectionQuestionCount.forEach(score -> {
+              double maxScore = Double.valueOf(score.get(AJEntityBaseReports.MAX_SCORE).toString());
+              if(maxScore > 0 && (score.get(AJEntityBaseReports.SCORE) != null)) {
+                double sumOfScore = Double.valueOf(score.get(AJEntityBaseReports.SCORE).toString());
+                  LOGGER.debug("maxScore : {} , sumOfScore : {} ", maxScore, sumOfScore);
+                  lessonKpi.put(AJEntityBaseReports.ATTR_SCORE, ((sumOfScore / maxScore) * 100));
+              } else {
+                lessonKpi.putNull(AJEntityBaseReports.ATTR_SCORE);
               }
-              lessonKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(scoreInPercent));
-            } else {
-            	//If Collections have No Questions then score should be NULL
-            	lessonKpi.putNull(AJEntityBaseReports.ATTR_SCORE);
-            }
+            });
+
             lessonKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, lessonKpi.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID));
             lessonKpi.remove(AJEntityBaseReports.ATTR_ASSESSMENT_ID);
             lessonKpi.put(EventConstants.VIEWS, lessonKpi.getInteger(EventConstants.ATTEMPTS));
             lessonKpi.remove(EventConstants.ATTEMPTS);
+          
+          }else {
+            lessonKpi.put(AJEntityBaseReports.ATTR_SCORE, m.get(AJEntityBaseReports.ATTR_SCORE) != null ?
+                    Math.round(Double.valueOf(m.get(AJEntityBaseReports.ATTR_SCORE).toString())) : null);
           }
           LessonKpiArray.add(lessonKpi);
         });

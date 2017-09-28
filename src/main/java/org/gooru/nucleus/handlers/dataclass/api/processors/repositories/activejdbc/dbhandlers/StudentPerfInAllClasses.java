@@ -106,7 +106,7 @@ public class StudentPerfInAllClasses implements DBHandler {
     	            LOGGER.debug("score : {} ", scoreKPI.get(AJEntityBaseReports.ATTR_SCORE));
     	            classKPI.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT,
     	                    Integer.valueOf(scoreKPI.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
-    	            classKPI.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.valueOf(scoreKPI.get(AJEntityBaseReports.ATTR_SCORE).toString())));
+    	            classKPI.put(AJEntityBaseReports.ATTR_SCORE, scoreKPI.get(AJEntityBaseReports.ATTR_SCORE) == null ? 0: Math.round(Double.valueOf(scoreKPI.get(AJEntityBaseReports.ATTR_SCORE).toString())));
     	          });
     	        } else {
         	        classKPI.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 0);
@@ -144,7 +144,7 @@ public class StudentPerfInAllClasses implements DBHandler {
 	    		classPerfList.forEach(scoData -> {
     	            classKPI.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT,
     	                    Integer.valueOf(scoData.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
-    	            classKPI.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.valueOf(scoData.get(AJEntityBaseReports.ATTR_SCORE).toString())));
+    	            classKPI.put(AJEntityBaseReports.ATTR_SCORE, scoData.get(AJEntityBaseReports.ATTR_SCORE) == null ? 0 : Math.round(Double.valueOf(scoData.get(AJEntityBaseReports.ATTR_SCORE).toString())));
 	    	});
   	    	}else {
     	        classKPI.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 0);

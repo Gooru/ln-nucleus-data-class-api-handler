@@ -110,12 +110,16 @@ class IndependentLearnerCoursePerfHandler implements DBHandler {
             unitId = m.get(AJEntityBaseReports.UNIT_GOORU_OID).toString();
             LOGGER.debug("The Value of UNITID " + unitId);
             List<Map> completedCountMap;
+            List<Map> scoreMap = null;
+
             if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
               // FIXME: Score will not be useful in CUL if collection so could
               // be incorrect from this below query.
               completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLL_COUNT_FOREACH_INDEPENDENT_LEARNER_UNIT_ID, context.courseId(), unitId,
                       this.collectionType, userID, EventConstants.COLLECTION_PLAY);
 
+              scoreMap = Base.findAll(AJEntityBaseReports.GET_SCORE_FOREACH_IL_UNIT_ID,context.courseId(),
+                      unitId, this.collectionType, userID);
             } else {
               completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLLID_COUNT_FOREACH_INDEPENDENT_LEARNER_UNIT_ID, context.courseId(), unitId,
                       this.collectionType, userID, EventConstants.COLLECTION_PLAY);
@@ -131,6 +135,19 @@ class IndependentLearnerCoursePerfHandler implements DBHandler {
                       Integer.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
 
             });
+            
+            if(scoreMap != null && !scoreMap.isEmpty() && this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
+              scoreMap.forEach(score ->{
+                double maxScore = Double.valueOf(score.get(AJEntityBaseReports.MAX_SCORE).toString());
+                if(maxScore > 0 && (score.get(AJEntityBaseReports.SCORE) != null)) {
+                double sumOfScore = Double.valueOf(score.get(AJEntityBaseReports.SCORE).toString());
+                LOGGER.debug("maxScore : {} , sumOfScore : {} ", maxScore, sumOfScore);
+                  unitData.put(AJEntityBaseReports.ATTR_SCORE, (Math.round((sumOfScore / maxScore) * 100)));
+                }else {
+                  unitData.putNull(AJEntityBaseReports.ATTR_SCORE);
+                }
+              });
+            }
             // FIXME: Total count will be taken from nucleus core.
             unitData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
             // FIXME : Revisit this logic in future.

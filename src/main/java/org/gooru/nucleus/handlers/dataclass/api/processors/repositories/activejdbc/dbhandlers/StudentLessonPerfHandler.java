@@ -38,7 +38,6 @@ public class StudentLessonPerfHandler implements DBHandler {
     private static final String REQUEST_USERID = "userUid";
     private final ProcessorContext context;
     private String collectionType;
-    private double maxScore;
     private boolean isTeacher = false;
 
     public StudentLessonPerfHandler(ProcessorContext context) {
