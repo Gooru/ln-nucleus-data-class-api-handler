@@ -190,11 +190,11 @@ public class IndLearnerCourseCollectionsPerfHandler implements DBHandler {
           if (this.maxScore > 0) {
             Object collectionScore;
             
-            if(StringUtil.isNullOrEmpty(classId)){
+            if(!StringUtil.isNullOrEmpty(classId)){
               collectionScore = Base.firstCell(AJEntityBaseReports.GET_COLLECTION_SCORE, classId, courseId,
                       collId, userId);
             } else{
-              collectionScore = Base.firstCell(AJEntityBaseReports.GET_IL_COLLECTION_SCORE, classId, courseId,
+              collectionScore = Base.firstCell(AJEntityBaseReports.GET_IL_COLLECTION_SCORE,  courseId,
                       collId, userId);
             }
             
