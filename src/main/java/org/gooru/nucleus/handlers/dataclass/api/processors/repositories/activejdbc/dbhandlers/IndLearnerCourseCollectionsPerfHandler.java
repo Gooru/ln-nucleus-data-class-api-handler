@@ -28,7 +28,7 @@ public class IndLearnerCourseCollectionsPerfHandler implements DBHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(IndLearnerCourseCollectionsPerfHandler.class);
     private static final String REQUEST_USERID = "userId";
     private final ProcessorContext context;
-    private int questionCount;
+    private double maxScore;
 
     public IndLearnerCourseCollectionsPerfHandler(ProcessorContext context) {
         this.context = context;
@@ -173,33 +173,32 @@ public class IndLearnerCourseCollectionsPerfHandler implements DBHandler {
         		collectionKpi.put(AJEntityBaseReports.VIEWS, Integer.parseInt(m.get(AJEntityBaseReports.VIEWS).toString()));
 	    		});
         	}
+          List<Map> collectionMaximumScore;
+          collectionMaximumScore = Base.findAll(AJEntityBaseReports.GET_IL_COLLECTION_MAX_SCORE, courseId,
+                  collId, userId);
 
-            List<Map> collectionQuestionCount;
-            collectionQuestionCount = Base.findAll(AJEntityBaseReports.GET_IL_COLLECTION_QUESTION_COUNT, courseId,
-                    collId, userId);
-
-            //If questions are not present then Question Count is always zero, however this additional check needs to be added
-            //since during migration of data from 3.0 chances are that QC may be null instead of zero
-            collectionQuestionCount.forEach(qc -> {
-            	if (qc.get(AJEntityBaseReports.QUESTION_COUNT) != null) {
-            		this.questionCount = Integer.valueOf(qc.get(AJEntityBaseReports.QUESTION_COUNT).toString());
-            	} else {
-            		this.questionCount = 0;
-            	}
-            });
-            double scoreInPercent = 0;
-            if (this.questionCount > 0) {
-              Object collectionScore;
-              collectionScore = Base.firstCell(AJEntityBaseReports.GET_IL_COLLECTION_SCORE, courseId,
-                      collId, userId);
-              if (collectionScore != null) {
-                scoreInPercent = (((Double.valueOf(collectionScore.toString())) / this.questionCount) * 100);
-              }
-              collectionKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(scoreInPercent));
+          //If questions are not present then Question Count is always zero, however this additional check needs to be added
+          //since during migration of data from 3.0 chances are that QC may be null instead of zero
+          collectionMaximumScore.forEach(ms -> {
+            if (ms.get(AJEntityBaseReports.MAX_SCORE) != null) {
+              this.maxScore = Double.valueOf(ms.get(AJEntityBaseReports.MAX_SCORE).toString());
             } else {
-            	//If Collections have No Questions then score should be NULL
-            	collectionKpi.putNull(AJEntityBaseReports.ATTR_SCORE);
+              this.maxScore = 0;
             }
+          });
+          double scoreInPercent = 0;
+          if (this.maxScore > 0) {
+            Object collectionScore;
+            collectionScore = Base.firstCell(AJEntityBaseReports.GET_COLLECTION_SCORE, classId, courseId,
+                    collId, userId);
+            if (collectionScore != null) {
+              scoreInPercent = (((Double.valueOf(collectionScore.toString())) / this.maxScore) * 100);
+            }
+            collectionKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(scoreInPercent));
+          } else {
+            //If Collections have No Questions then score should be NULL
+            collectionKpi.putNull(AJEntityBaseReports.ATTR_SCORE);
+          }
 
             //As per the current philosophy in Gooru (3.0/4.0) as soon as a collection is viewed, it is assumed to be completed.
             //So whenever we have an entry of a collection_id in Analytics, it is by default complete.
