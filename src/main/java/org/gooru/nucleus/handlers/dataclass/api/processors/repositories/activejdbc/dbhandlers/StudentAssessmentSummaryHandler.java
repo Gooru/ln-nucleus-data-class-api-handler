@@ -24,8 +24,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 /**
- * Created by mukul@gooru
- *
+ * Created by mukul@gooru 
  * modified by daniel
  */
 
@@ -104,8 +103,8 @@ public class StudentAssessmentSummaryHandler implements DBHandler {
             assessmentDataKPI.put(JsonConstants.ASSESSMENT, assessmentData);
           });
 
-          LOGGER.debug("Assessment question Attributes started");
-
+          LOGGER.debug("Assessment question Attributes started");          
+          //Include event_type = 'stop'
           List<Map> assessmentQuestionsKPI = Base.findAll(AJEntityBaseReports.SELECT_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSION_ID,context.collectionId(),
                   sessionId, AJEntityBaseReports.ATTR_CRP_EVENTNAME);
 

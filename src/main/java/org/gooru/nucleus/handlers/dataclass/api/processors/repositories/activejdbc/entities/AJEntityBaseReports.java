@@ -342,7 +342,7 @@ public class AJEntityBaseReports extends Model {
             + "FIRST_VALUE(views) OVER (PARTITION BY resource_id ORDER BY updated_at asc) AS resourceViews, "
             + "resource_type, question_type,"
             + "FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) as answer_object "
-            + "from base_reports WHERE collection_id = ? AND session_id = ? AND event_name = ? ";
+            + "from base_reports WHERE collection_id = ? AND session_id = ? AND event_name = ? AND event_type = 'stop' ";
     
     public static final String SELECT_ASSESSMENT_RESOURCE_REACTION = " SELECT FIRST_VALUE(reaction) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS reaction "
             + "FROM base_reports WHERE collection_id = ? AND session_id = ?  and resource_id = ? AND reaction > 0 AND event_name = 'reaction.create'";
@@ -436,7 +436,8 @@ public class AJEntityBaseReports extends Model {
             + "ORDER BY updated_at desc) AS score,FIRST_VALUE(resource_attempt_status) OVER (PARTITION BY resource_id ORDER BY updated_at desc) "
             + "AS attemptStatus, FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS answer_object "
             + "FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND resource_id = ? "
-            + "AND actor_id = ? AND event_name = 'collection.resource.play' AND resource_type = 'question' AND resource_attempt_status <> 'skipped'";
+            + "AND actor_id = ? AND event_name = 'collection.resource.play' AND event_type = 'stop' AND resource_type = 'question' "
+            + "AND resource_attempt_status <> 'skipped'";
     
   //Getting RESOURCE DATA (reaction)
     public static final String SELECT_COLLECTION_RESOURCE_AGG_REACTION = "SELECT DISTINCT ON (resource_id) "
@@ -495,7 +496,9 @@ public class AJEntityBaseReports extends Model {
             + "ORDER BY updated_at desc) AS score,FIRST_VALUE(resource_attempt_status) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS attemptStatus, "
             + "FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS answer_object "
             + "FROM base_reports WHERE class_id IS NULL AND course_id IS NULL AND unit_id IS NULL AND lesson_id IS NULL AND collection_id = ? AND resource_id = ? "
-            + "AND actor_id = ? AND event_name = 'collection.resource.play' AND resource_type = 'question' AND resource_attempt_status <> 'skipped'";
+            + "AND actor_id = ? AND event_name = 'collection.resource.play' AND event_type = 'stop' AND resource_type = 'question' "
+            + "AND resource_attempt_status <> 'skipped'";
+    
   //Getting RESOURCE DATA (reaction)
     public static final String SELECT_COLLECTION_RESOURCE_AGG_REACTION_ = "SELECT DISTINCT ON (resource_id) "
             + "FIRST_VALUE(reaction) OVER (PARTITION BY resource_id "
