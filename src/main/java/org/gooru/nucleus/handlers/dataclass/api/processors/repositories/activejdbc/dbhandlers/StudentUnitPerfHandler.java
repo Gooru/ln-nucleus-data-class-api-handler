@@ -190,12 +190,12 @@ import io.vertx.core.json.JsonObject;
                 if (!assessmentKpi.isEmpty()) {
                   assessmentKpi.forEach(ass -> {
                     JsonObject assData = ValueMapper.map(ResponseAttributeIdentifier.getLessonPerformanceAttributesMap(), ass);
-                    // FIXME : revisit completed count and total count
+                    
                     assData.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 1);
                     assData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
                     assData.put(AJEntityBaseReports.ATTR_SCORE, ass.get(AJEntityBaseReports.ATTR_SCORE) != null ?
                     		Math.round(Double.valueOf(ass.get(AJEntityBaseReports.ATTR_SCORE).toString())) : null);
-                    // FIXME: This logic to be revisited.
+
                     if (this.collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {
                       List<Map> collectionQuestionCount;
                         collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_SCORE_AND_MAX_SCORE, context.classId(),
