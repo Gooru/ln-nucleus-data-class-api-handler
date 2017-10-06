@@ -223,5 +223,9 @@ public final class DBHandlerBuilder {
     public static DBHandler getCoursesComptencyCompletion(ProcessorContext context) {
       return new CoursesCompetencyCompletionHandler(context);
     }
+  
+    public static DBHandler getTimelyDCAReport(ProcessorContext context) {
+      return new DCATimeDimensionReport(context);
+    }
 }
 

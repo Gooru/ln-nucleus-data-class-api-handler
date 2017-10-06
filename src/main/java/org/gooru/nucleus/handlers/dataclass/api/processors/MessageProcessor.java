@@ -192,6 +192,10 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_NU_COURSES_COMPETENCY_COMPLETION:
               result = getCoursesCompetencyCompletion();
               break;
+            case MessageConstants.MSG_OP_STUDENT_PERF_DAILY_TIMELY_CLASS_ACTIVITY:
+              result = getTimelyDCAReport();
+              break;
+
             default:
                 LOGGER.error("Invalid operation type passed in, not able to handle");
                 return MessageResponseFactory
@@ -1203,7 +1207,23 @@ class MessageProcessor implements Processor {
 
       }
 
-
+    private MessageResponse getTimelyDCAReport() {
+      try {
+        ProcessorContext context = createContext();
+  
+        if (!checkClassId(context)) {
+          LOGGER.error("Class id not available to obtain Weekly/Monthly DCA Report. Aborting");
+          return MessageResponseFactory.createInvalidRequestResponse("Invalid collectionId");
+        }
+  
+        return new RepoBuilder().buildReportRepo(context).getTimelyDCAReport();
+  
+      } catch (Throwable t) {
+        LOGGER.error("Exception while getting Weekly/Monthly DCA Report", t);
+        return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+      }
+  
+    }
     private ProcessorContext createContext() {
     	String classId = message.headers().get(MessageConstants.CLASS_ID);
         String courseId = message.headers().get(MessageConstants.COURSE_ID);
