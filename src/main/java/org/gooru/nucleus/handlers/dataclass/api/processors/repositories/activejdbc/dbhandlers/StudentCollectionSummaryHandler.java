@@ -138,7 +138,8 @@ public class StudentCollectionSummaryHandler implements DBHandler {
             assessmentData.put(EventConstants.EVENT_TIME, this.lastAccessedTime);
             assessmentData.put(EventConstants.SESSION_ID, this.sessionId);
             assessmentData.put(EventConstants.RESOURCE_TYPE, AJEntityBaseReports.ATTR_COLLECTION);
-            assessmentData.put(JsonConstants.SCORE, Math.round(Double.valueOf(m.get(AJEntityBaseReports.SCORE).toString())));
+            assessmentData.put(JsonConstants.SCORE, m.get(AJEntityBaseReports.SCORE) != null ? 
+            		Math.round(Double.valueOf(m.get(AJEntityBaseReports.SCORE).toString())) : null);
 
             //With Rubrics Score can be Null (for FR questions)
             double scoreInPercent;

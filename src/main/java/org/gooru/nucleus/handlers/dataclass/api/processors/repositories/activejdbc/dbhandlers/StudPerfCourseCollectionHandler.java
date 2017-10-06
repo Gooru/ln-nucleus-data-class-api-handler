@@ -166,8 +166,10 @@ public class StudPerfCourseCollectionHandler implements DBHandler {
                       collId, userId);
               if (collectionScore != null) {
                 scoreInPercent = (((Double.valueOf(collectionScore.toString())) / this.maxScore) * 100);
-              }
-              collectionKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(scoreInPercent));
+                collectionKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(scoreInPercent));
+              } else {
+            	  collectionKpi.putNull(AJEntityBaseReports.ATTR_SCORE);
+              }              
             } else {
             	//If Collections have No Questions then score should be NULL
             	collectionKpi.putNull(AJEntityBaseReports.ATTR_SCORE);

@@ -150,8 +150,7 @@ class StudentCoursePerfHandler implements DBHandler {
                 scoreMap.forEach(score ->{
                   double maxScore = Double.valueOf(score.get(AJEntityBaseReports.MAX_SCORE).toString());
                   if(maxScore > 0 && (score.get(AJEntityBaseReports.SCORE) != null)) {
-                	double sumOfScore = Double.valueOf(score.get(AJEntityBaseReports.SCORE).toString());
-                	LOGGER.debug("maxScore : {} , sumOfScore : {} ", maxScore, sumOfScore);
+                	double sumOfScore = Double.valueOf(score.get(AJEntityBaseReports.SCORE).toString());                	
                     unitData.put(AJEntityBaseReports.ATTR_SCORE, (Math.round((sumOfScore / maxScore) * 100)));
                   }else {
                     unitData.putNull(AJEntityBaseReports.ATTR_SCORE);

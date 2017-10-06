@@ -93,12 +93,13 @@ public class StudentAssessmentSummaryHandler implements DBHandler {
       if (!StringUtil.isNullOrEmpty(sessionId)) {
         List<Map> assessmentKPI = Base.findAll(AJEntityBaseReports.SELECT_ASSESSMENT_FOREACH_COLLID_AND_SESSION_ID, context.collectionId(), sessionId , AJEntityBaseReports.ATTR_CP_EVENTNAME);
        Object assessmentReactionObject =  Base.firstCell(AJEntityBaseReports.SELECT_ASSESSMENT_REACTION_AND_SESSION_ID, context.collectionId(), sessionId);
-        LOGGER.info("cID : {} , SID : {} ", context.collectionId(), sessionId);
+        LOGGER.debug("cID : {} , SID : {} ", context.collectionId(), sessionId);
         if (!assessmentKPI.isEmpty()) {
           LOGGER.debug("Assessment Attributes obtained");
           assessmentKPI.forEach(m -> {
             JsonObject assessmentData = ValueMapper.map(ResponseAttributeIdentifier.getSessionAssessmentAttributesMap(), m);
-            assessmentData.put(JsonConstants.SCORE, Math.round(Double.valueOf(m.get(AJEntityBaseReports.SCORE).toString())));
+            assessmentData.put(JsonConstants.SCORE, m.get(AJEntityBaseReports.SCORE) != null ? 
+            		Math.round(Double.valueOf(m.get(AJEntityBaseReports.SCORE).toString())) : null);
             assessmentData.put(JsonConstants.REACTION, assessmentReactionObject != null ? ((Number)assessmentReactionObject).intValue() : 0);
             assessmentDataKPI.put(JsonConstants.ASSESSMENT, assessmentData);
           });

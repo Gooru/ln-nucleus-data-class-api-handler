@@ -63,7 +63,7 @@ public class SessionTaxonomyReportHandler implements DBHandler {
           aggResult.put(JsonConstants.STANDARDS_ID, taxonomyRow.get(AJEntityCompetencyReport.TAX_STANDARD_ID));
         }
 
-        LOGGER.debug("Base Reports IDS : {}", listToPostgresArrayInteger(taxonomyRow.get(AJEntityCompetencyReport.BASE_REPORT_ID).toString()));
+        LOGGER.debug("Base Reports Id : {}", listToPostgresArrayInteger(taxonomyRow.get(AJEntityCompetencyReport.BASE_REPORT_ID).toString()));
         List<Map> aggTaxonomyResults = Base.findAll(AJEntityCompetencyReport.GET_AGG_TAX_DATA,
                 listToPostgresArrayInteger(taxonomyRow.get(AJEntityCompetencyReport.BASE_REPORT_ID).toString()));
 
@@ -71,7 +71,8 @@ public class SessionTaxonomyReportHandler implements DBHandler {
           aggTaxonomyResults.forEach(aggData -> {
             aggResult.put(JsonConstants.TIMESPENT, Long.valueOf(aggData.get(AJEntityBaseReports.TIME_SPENT).toString()));
             aggResult.put(JsonConstants.REACTION, Integer.valueOf(aggData.get(AJEntityBaseReports.REACTION).toString()));
-            aggResult.put(JsonConstants.SCORE, Math.round(Double.valueOf(aggData.get(AJEntityBaseReports.SCORE).toString())));
+            aggResult.put(JsonConstants.SCORE, aggData.get(AJEntityBaseReports.SCORE) != null ? 
+            		Math.round(Double.valueOf(aggData.get(AJEntityBaseReports.SCORE).toString())) : null);            
 
           });
         }
@@ -83,7 +84,8 @@ public class SessionTaxonomyReportHandler implements DBHandler {
           JsonArray questionsArray = new JsonArray();
           sessionTaxonomyQuestionResults.forEach(question -> {
             JsonObject questionData = ValueMapper.map(ResponseAttributeIdentifier.getSessionTaxReportQuestionAttributesMap(), question);
-            questionData.put(JsonConstants.SCORE, Math.round(Double.valueOf(question.get(AJEntityBaseReports.SCORE).toString())));
+            questionData.put(JsonConstants.SCORE, question.get(AJEntityBaseReports.SCORE) != null ? 
+            		Math.round(Double.valueOf(question.get(AJEntityBaseReports.SCORE).toString())) : null);
             questionsArray.add(questionData);
           });
           aggResult.put(JsonConstants.QUESTIONS, questionsArray);
