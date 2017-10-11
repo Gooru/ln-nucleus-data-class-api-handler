@@ -35,7 +35,7 @@ public class StudPerfDailyActivityHandler implements DBHandler {
 
   private final ProcessorContext context;
   private String classId;
-  private long questionCount;
+  private double maxScore;
 
   public StudPerfDailyActivityHandler(ProcessorContext context) {
     this.context = context;
@@ -171,35 +171,32 @@ public class StudPerfDailyActivityHandler implements DBHandler {
             collectionKpi.put(AJEntityDailyClassActivity.ATTR_LAST_SESSION_ID, AJEntityDailyClassActivity.NA);
             collectionKpi.put(AJEntityDailyClassActivity.ATTR_ATTEMPTS, Integer.parseInt(m.get(AJEntityDailyClassActivity.ATTR_ATTEMPTS).toString()));
             collectionKpi.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
-            List<Map> collectionQuestionCount;
-            collectionQuestionCount = Base.findAll(AJEntityDailyClassActivity.SELECT_CLASS_COLLECTION_QUESTION_COUNT, classId,
-                    m.get(AJEntityDailyClassActivity.ATTR_COLLECTION_ID).toString(), userId);
-
-            //If questions are not present then Question Count is always zero, however this additional check needs to be added
-            //since during migration of data from 3.0 chances are that QC may be null instead of zero
-            collectionQuestionCount.forEach(qc -> {
-            	if (qc.get(AJEntityBaseReports.QUESTION_COUNT) != null) {
-            		this.questionCount = Integer.valueOf(qc.get(AJEntityBaseReports.QUESTION_COUNT).toString());
-            	} else {
-            		this.questionCount = 0;
-            	}
-            });
-//            collectionQuestionCount.forEach(qc -> {
-//              this.questionCount = Integer.valueOf(qc.get(AJEntityDailyClassActivity.QUESTION_COUNT).toString());
-//            });
-            double scoreInPercent = 0;
-            if (this.questionCount > 0) {
-              Object collectionScore;
-              collectionScore = Base.firstCell(AJEntityDailyClassActivity.GET_PERFORMANCE_FOR_CLASS_COLLECTIONS_SCORE, classId,
+          
+            if (!StringUtil.isNullOrEmpty(classId)) {
+              List<Map> collectionMaximumScore = Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_MAX_SCORE, classId,
                       m.get(AJEntityDailyClassActivity.ATTR_COLLECTION_ID).toString(), userId,
                       Date.valueOf(m.get(AJEntityDailyClassActivity.ACTIVITY_DATE).toString()));
-              if (collectionScore != null) {
-                scoreInPercent = (((Double.valueOf(collectionScore.toString())) / this.questionCount) * 100);
-              }
-              collectionKpi.put(AJEntityDailyClassActivity.ATTR_SCORE, Math.round(scoreInPercent));
+              collectionMaximumScore.forEach(ms -> {
+                if (ms.get(AJEntityBaseReports.MAX_SCORE) != null) {
+                  this.maxScore = Double.valueOf(ms.get(AJEntityBaseReports.MAX_SCORE).toString());
+                } else {
+                  this.maxScore = 0;
+                }
+              });
             } else {
-            	//If Collections have No Questions then score should be NULL
-            	collectionKpi.putNull(AJEntityBaseReports.ATTR_SCORE);
+              this.maxScore = 0;
+            }
+
+            double scoreInPercent = 0;
+            Object collectionScore = Base.firstCell(AJEntityDailyClassActivity.GET_PERFORMANCE_FOR_CLASS_COLLECTIONS_SCORE, classId,
+                    m.get(AJEntityDailyClassActivity.ATTR_COLLECTION_ID).toString(), userId,
+                    Date.valueOf(m.get(AJEntityDailyClassActivity.ACTIVITY_DATE).toString()));
+
+            if (collectionScore != null && (this.maxScore > 0)) {
+              scoreInPercent = ((Double.valueOf(collectionScore.toString()) / this.maxScore) * 100);
+              collectionKpi.put(AJEntityBaseReports.SCORE, Math.round(scoreInPercent));
+            } else {
+              collectionKpi.putNull(AJEntityBaseReports.SCORE);
             }
             assessmentArray.add(collectionKpi);
           });
