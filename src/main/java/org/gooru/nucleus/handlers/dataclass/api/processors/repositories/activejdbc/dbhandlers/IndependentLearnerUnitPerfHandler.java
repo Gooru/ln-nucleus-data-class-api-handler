@@ -131,9 +131,9 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
             completedCountMap.forEach(scoreCompletonMap -> {
               lessonData.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT,
                       Integer.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
-              lessonData.put(AJEntityBaseReports.ATTR_SCORE, Double.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE).toString()));
-              LOGGER.debug("UnitID : {} - UserID : {} - Score : {}", lessonId, userID,
-                      Double.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE).toString()));
+              lessonData.put(AJEntityBaseReports.ATTR_SCORE, scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE) != null ? Double.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE).toString()) : null);
+              LOGGER.debug("UnitID : {} - UserID : {} - Score : {}", lessonId, userID, scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE) != null ?
+                      Double.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE).toString()) : null);
               LOGGER.debug("UnitID : {} - UserID : {} - completedCount : {}", lessonId, userID,
                       Integer.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
 
