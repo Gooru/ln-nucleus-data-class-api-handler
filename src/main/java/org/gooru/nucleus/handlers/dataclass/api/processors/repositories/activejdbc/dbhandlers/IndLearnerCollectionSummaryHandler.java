@@ -124,7 +124,7 @@ public class IndLearnerCollectionSummaryHandler implements DBHandler {
 	            assessmentData.put(EventConstants.EVENT_TIME, this.lastAccessedTime);
 	            assessmentData.put(EventConstants.SESSION_ID, EventConstants.NA);
 	            assessmentData.put(EventConstants.RESOURCE_TYPE, AJEntityBaseReports.ATTR_COLLECTION);
-	            assessmentData.put(JsonConstants.SCORE, Math.round(Double.valueOf(m.get(AJEntityBaseReports.SCORE).toString())));
+	            assessmentData.put(JsonConstants.SCORE, m.get(AJEntityBaseReports.SCORE) != null ? Math.round(Double.valueOf(m.get(AJEntityBaseReports.SCORE).toString())) : null);
 
 	            double scoreInPercent=0;
 	            int reaction=0;

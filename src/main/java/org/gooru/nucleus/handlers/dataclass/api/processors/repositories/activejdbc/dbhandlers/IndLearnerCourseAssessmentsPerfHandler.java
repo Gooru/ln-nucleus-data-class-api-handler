@@ -193,7 +193,7 @@ public class IndLearnerCourseAssessmentsPerfHandler implements DBHandler {
 
         	if (!assessScore.isEmpty()){
         		assessScore.forEach(m -> {
-            		assessmentKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.valueOf((m.get(AJEntityBaseReports.SCORE).toString()))));
+            		assessmentKpi.put(AJEntityBaseReports.ATTR_SCORE, m.get(AJEntityBaseReports.SCORE) != null ? Math.round(Double.valueOf((m.get(AJEntityBaseReports.SCORE).toString()))) : null);
             		assessmentKpi.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
     	    		});
             	}

@@ -207,7 +207,7 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
                   assData.remove(EventConstants.ATTEMPTS);
                 
                 }else {
-                  assData.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.valueOf(ass.get(AJEntityBaseReports.ATTR_SCORE).toString())));
+                  assData.put(AJEntityBaseReports.ATTR_SCORE, ass.get(AJEntityBaseReports.ATTR_SCORE) != null ?  Math.round(Double.valueOf(ass.get(AJEntityBaseReports.ATTR_SCORE).toString())) : null);
                 }
                 assessmentArray.add(assData);
               });

@@ -178,8 +178,8 @@ public class IndependentLearnerPerformanceHandler implements DBHandler {
                 List<Map> assessmentCompletionKpi = Base.findAll(AJEntityBaseReports.GET_IL_ALL_ASSESSMENT_SCORE_COMPLETION, userId,
                         assessmentTsKpi.get(AJEntityBaseReports.COLLECTION_OID).toString());
                 if (!assessmentCompletionKpi.isEmpty()) {
-                  assessmentCompletionKpi.forEach(courseComplettion -> assesmentObject.put(AJEntityBaseReports.ATTR_SCORE,
-                          Math.round(Double.valueOf(courseComplettion.get(AJEntityBaseReports.ATTR_SCORE).toString()))));
+                  assessmentCompletionKpi.forEach(courseComplettion -> assesmentObject.put(AJEntityBaseReports.ATTR_SCORE, courseComplettion.get(AJEntityBaseReports.ATTR_SCORE) != null ?
+                          Math.round(Double.valueOf(courseComplettion.get(AJEntityBaseReports.ATTR_SCORE).toString())): null));
                 } else {
                   assesmentObject.putNull(AJEntityBaseReports.ATTR_SCORE);
                 }
