@@ -75,9 +75,9 @@ public class IndLearnerAllIndAssessmentPerfHandler implements DBHandler {
                   assessmentTsKpi.get(AJEntityBaseReports.COLLECTION_OID).toString());
           if (!assessmentCompletionKpi.isEmpty()) {
             assessmentCompletionKpi.forEach(courseComplettion -> assesmentObject.put(AJEntityBaseReports.ATTR_SCORE,
-                    courseComplettion.get(AJEntityBaseReports.ATTR_SCORE) == null ? 0 : Math.round(Double.valueOf(courseComplettion.get(AJEntityBaseReports.ATTR_SCORE).toString()))));
+                    courseComplettion.get(AJEntityBaseReports.ATTR_SCORE) == null ? null : Math.round(Double.valueOf(courseComplettion.get(AJEntityBaseReports.ATTR_SCORE).toString()))));
           } else {
-            assesmentObject.put(AJEntityBaseReports.ATTR_SCORE, 0);
+            assesmentObject.putNull(AJEntityBaseReports.ATTR_SCORE);
           }
           Object title = Base.firstCell(AJEntityContent.GET_TITLE, assessmentTsKpi.get(AJEntityBaseReports.COLLECTION_OID).toString());
           assesmentObject.put(JsonConstants.COLLECTION_TITLE, title);

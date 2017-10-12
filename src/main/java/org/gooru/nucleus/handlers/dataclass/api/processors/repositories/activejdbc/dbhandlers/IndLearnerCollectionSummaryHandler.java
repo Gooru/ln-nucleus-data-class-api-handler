@@ -124,7 +124,7 @@ public class IndLearnerCollectionSummaryHandler implements DBHandler {
 	            assessmentData.put(EventConstants.EVENT_TIME, this.lastAccessedTime);
 	            assessmentData.put(EventConstants.SESSION_ID, EventConstants.NA);
 	            assessmentData.put(EventConstants.RESOURCE_TYPE, AJEntityBaseReports.ATTR_COLLECTION);
-	            assessmentData.put(JsonConstants.SCORE, Math.round(Double.valueOf(m.get(AJEntityBaseReports.SCORE).toString())));
+	            assessmentData.put(JsonConstants.SCORE, m.get(AJEntityBaseReports.SCORE) != null ? Math.round(Double.valueOf(m.get(AJEntityBaseReports.SCORE).toString())) : null);
 
 	            double scoreInPercent=0;
 	            int reaction=0;
@@ -175,7 +175,7 @@ public class IndLearnerCollectionSummaryHandler implements DBHandler {
 	              if(qnData.getString(EventConstants.RESOURCE_TYPE).equalsIgnoreCase(EventConstants.QUESTION)){
 	                qnData.put(EventConstants.ANSWERSTATUS, EventConstants.SKIPPED);
 	              }
-	              qnData.put(JsonConstants.SCORE, Math.round(Double.valueOf(questions.get(AJEntityBaseReports.SCORE).toString())));
+	              qnData.put(JsonConstants.SCORE, questions.get(AJEntityBaseReports.SCORE) != null ? Math.round(Double.valueOf(questions.get(AJEntityBaseReports.SCORE).toString())) : null);
 	          
 	              List<Map> questionScore;
                 if (!StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
@@ -190,7 +190,7 @@ public class IndLearnerCollectionSummaryHandler implements DBHandler {
                         ? new JsonArray(qs.get(AJEntityBaseReports.ANSWER_OBECT).toString()) : null);
                     //Rubrics - Score may be NULL only incase of OE questions
                     qnData.put(JsonConstants.SCORE, qs.get(AJEntityBaseReports.SCORE) != null ?
-                        Math.round(Double.valueOf(qs.get(AJEntityBaseReports.SCORE).toString()) * 100) : "NA");
+                        Math.round(Double.valueOf(qs.get(AJEntityBaseReports.SCORE).toString()) * 100) : null);
                   qnData.put(EventConstants.ANSWERSTATUS, qs.get(AJEntityBaseReports.ATTR_ATTEMPT_STATUS).toString());
                 });
                 }
