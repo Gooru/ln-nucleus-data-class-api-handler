@@ -185,6 +185,13 @@ public class AJEntityDailyClassActivity extends Model{
             + "WHERE class_id = ? AND collection_id = ? AND actor_id = ? AND event_name = 'collection.play' AND date_in_time_zone = ? "
             + "ORDER BY updated_at DESC LIMIT 1";
     
+    public static final String SELECT_COLLECTION_MAX_SCORE = "SELECT SUM(agg.max_score) AS max_score FROM "
+            + "(SELECT DISTINCT ON (resource_id) collection_id, FIRST_VALUE(updated_at) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS updated_at, "
+            + "FIRST_VALUE(max_score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS max_score "
+            + "FROM daily_class_activity WHERE class_id = ? AND actor_id = ? AND date_in_time_zone = ? AND "
+            + "event_name = 'collection.resource.play' AND resource_type = 'question') AS agg "
+            + "GROUP BY agg.collection_id";
+    
     //Getting COLLECTION DATA (views, time_spent)
     public static final String SELECT_COLLECTION_AGG_DATA = "SELECT SUM(CASE WHEN (agg.event_name = 'collection.resource.play') "
     		+ "THEN agg.time_spent ELSE 0 END) AS collectionTimeSpent, "
