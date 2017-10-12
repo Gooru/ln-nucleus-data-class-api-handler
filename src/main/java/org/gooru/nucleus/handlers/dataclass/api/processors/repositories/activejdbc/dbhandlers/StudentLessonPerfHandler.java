@@ -38,7 +38,6 @@ public class StudentLessonPerfHandler implements DBHandler {
     private static final String REQUEST_USERID = "userUid";
     private final ProcessorContext context;
     private String collectionType;
-    private double maxScore;
     private boolean isTeacher = false;
 
     public StudentLessonPerfHandler(ProcessorContext context) {
@@ -133,14 +132,12 @@ public class StudentLessonPerfHandler implements DBHandler {
       if (!assessmentKpi.isEmpty()) {
         assessmentKpi.forEach(m -> {
           JsonObject lessonKpi = ValueMapper.map(ResponseAttributeIdentifier.getLessonPerformanceAttributesMap(), m);
-          String cId = m.get(AJEntityBaseReports.ATTR_COLLECTION_ID).toString();
-          // FIXME : revisit completed count and total count
+          String cId = m.get(AJEntityBaseReports.ATTR_COLLECTION_ID).toString();          
           lessonKpi.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 1);
           //In Gooru 3.0, total_count was hardcoded to 1 at this last mile, assessment/collection level
           //Replicating the same here.
           lessonKpi.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 1);
-
-          // FIXME: This logic to be revisited.
+          
           if (this.collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {
             List<Map> collectionQuestionCount;
             collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_SCORE_AND_MAX_SCORE, context.classId(), context.courseId(),
@@ -148,8 +145,7 @@ public class StudentLessonPerfHandler implements DBHandler {
             collectionQuestionCount.forEach(score -> {
               double maxScore = Double.valueOf(score.get(AJEntityBaseReports.MAX_SCORE).toString());
               if(maxScore > 0 && (score.get(AJEntityBaseReports.SCORE) != null)) {
-              	double sumOfScore = Double.valueOf(score.get(AJEntityBaseReports.SCORE).toString());
-                	LOGGER.debug("maxScore : {} , sumOfScore : {} ", maxScore, sumOfScore);
+              	double sumOfScore = Double.valueOf(score.get(AJEntityBaseReports.SCORE).toString());                	
                   lessonKpi.put(AJEntityBaseReports.ATTR_SCORE, ((sumOfScore / maxScore) * 100));
               } else {
                 lessonKpi.putNull(AJEntityBaseReports.ATTR_SCORE);

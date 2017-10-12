@@ -171,6 +171,14 @@ public class AJEntityBaseReports extends Model {
             + "AND collection_type =? AND actor_id = ? AND event_name = 'collection.resource.play' "
             + "AND resource_type = 'question' AND path_id IS NULL) AS lessonData GROUP BY unit_id";  
     
+    public static final String GET_SCORE_FOREACH_IL_UNIT_ID = 
+            "SELECT SUM(score) as score, SUM(max_score) as max_score  FROM "
+            + "(SELECT DISTINCT ON (collection_id,resource_id) unit_id, FIRST_VALUE(score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) "
+            + "AS score,FIRST_VALUE(max_score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS max_score "
+            + "FROM base_reports WHERE class_id IS NULL AND course_id = ? AND unit_id = ?  "
+            + "AND collection_type =? AND actor_id = ? AND event_name = 'collection.resource.play' "
+            + "AND resource_type = 'question' AND path_id IS NULL) AS lessonData GROUP BY unit_id";  
+    
     //*************************************************************************************************************************
     //String Constants and Queries for STUDENT PERFORMANCE REPORTS IN UNIT    
     public static final String SELECT_DISTINCT_LESSON_ID_FOR_UNIT_ID_FITLERBY_COLLTYPE =
@@ -227,6 +235,14 @@ public class AJEntityBaseReports extends Model {
             + "(SELECT DISTINCT ON (collection_id,resource_id) lesson_id, FIRST_VALUE(score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) "
             + "AS score,FIRST_VALUE(max_score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS max_score "
             + "FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ?  "
+            + "AND collection_type =? AND actor_id = ? AND event_name = 'collection.resource.play' "
+            + "AND resource_type = 'question' AND path_id IS NULL) AS lessonData GROUP BY lesson_id;";  
+    
+    public static final String GET_SCORE_FOREACH_IL_LESSON_ID = 
+            "SELECT SUM(score) as score, SUM(max_score) as max_score  FROM "
+            + "(SELECT DISTINCT ON (collection_id,resource_id) lesson_id, FIRST_VALUE(score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) "
+            + "AS score,FIRST_VALUE(max_score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS max_score "
+            + "FROM base_reports WHERE class_id IS NULL AND course_id = ? AND unit_id = ? AND lesson_id = ?  "
             + "AND collection_type =? AND actor_id = ? AND event_name = 'collection.resource.play' "
             + "AND resource_type = 'question' AND path_id IS NULL) AS lessonData GROUP BY lesson_id;";  
     
@@ -326,7 +342,7 @@ public class AJEntityBaseReports extends Model {
             + "FIRST_VALUE(views) OVER (PARTITION BY resource_id ORDER BY updated_at asc) AS resourceViews, "
             + "resource_type, question_type,"
             + "FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) as answer_object "
-            + "from base_reports WHERE collection_id = ? AND session_id = ? AND event_name = ? ";
+            + "from base_reports WHERE collection_id = ? AND session_id = ? AND event_name = ? AND event_type = 'stop' ";
     
     public static final String SELECT_ASSESSMENT_RESOURCE_REACTION = " SELECT FIRST_VALUE(reaction) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS reaction "
             + "FROM base_reports WHERE collection_id = ? AND session_id = ?  and resource_id = ? AND reaction > 0 AND event_name = 'reaction.create'";
@@ -346,8 +362,14 @@ public class AJEntityBaseReports extends Model {
     public static final String SELECT_COLLECTION_LAST_ACCESSED_TIME = "SELECT updated_at, session_id FROM base_reports "
             + "WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND actor_id = ? AND event_name = 'collection.play'"
             + " ORDER BY updated_at DESC LIMIT 1";
+    public static final String SELECT_COURSE_IL_COLLECTION_LAST_ACCESSED_TIME = "SELECT updated_at, session_id FROM base_reports "
+            + "WHERE class_id IS NULL AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND actor_id = ? AND event_name = 'collection.play'"
+            + " ORDER BY updated_at DESC LIMIT 1";
     public static final String SELECT_CLASS_COLLECTION_LAST_ACCESSED_TIME = "SELECT updated_at, session_id FROM base_reports "
             + "WHERE collection_id = ? AND actor_id = ? AND event_name = 'collection.play'"
+            + " ORDER BY updated_at DESC LIMIT 1";
+    public static final String SELECT_IL_COLLECTION_LAST_ACCESSED_TIME = "SELECT updated_at, session_id FROM base_reports "
+            + "WHERE class_id is null and course_id is null and unit_id is null and lesson_id is null and collection_id = ? AND actor_id = ? AND event_name = 'collection.play'"
             + " ORDER BY updated_at DESC LIMIT 1";
     //Getting COLLECTION DATA (views, time_spent)
     public static final String SELECT_COLLECTION_AGG_DATA = "SELECT SUM(CASE WHEN (agg.event_name = 'collection.resource.play') THEN agg.time_spent ELSE 0 END) AS collectionTimeSpent, "
@@ -372,6 +394,13 @@ public class AJEntityBaseReports extends Model {
             + "event_name = 'collection.resource.play' AND resource_type = 'question') AS agg "
             + "GROUP BY agg.collection_id";
     
+    public static final String SELECT_IL_COLLECTION_MAX_SCORE = "SELECT SUM(agg.max_score) AS max_score FROM "
+            + "(SELECT DISTINCT ON (resource_id) collection_id, FIRST_VALUE(updated_at) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS updated_at, "
+            + "FIRST_VALUE(max_score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS max_score "
+            + "FROM base_reports WHERE class_id IS NULL AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND actor_id = ? AND "
+            + "event_name = 'collection.resource.play' AND resource_type = 'question') AS agg "
+            + "GROUP BY agg.collection_id";
+    
     public static final String SELECT_COLLECTION_SCORE_AND_MAX_SCORE = "SELECT SUM(agg.score) AS score, SUM(agg.max_score) AS max_score FROM "
             + "(SELECT DISTINCT ON (resource_id) collection_id, "
             + "FIRST_VALUE(updated_at) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS updated_at, "
@@ -380,7 +409,15 @@ public class AJEntityBaseReports extends Model {
             + "FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? "
             + "AND collection_id = ? AND actor_id = ? AND event_name = 'collection.resource.play' "
             + "AND resource_type = 'question') AS agg GROUP BY agg.collection_id";
-    
+  
+    public static final String SELECT_IL_COLLECTION_SCORE_AND_MAX_SCORE = "SELECT SUM(agg.score) AS score, SUM(agg.max_score) AS max_score FROM "
+            + "(SELECT DISTINCT ON (resource_id) collection_id, "
+            + "FIRST_VALUE(updated_at) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS updated_at, "
+            + "FIRST_VALUE(score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score, "
+            + "FIRST_VALUE(max_score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS max_score "
+            + "FROM base_reports WHERE class_id IS NULL AND course_id = ? AND unit_id = ? AND lesson_id = ? "
+            + "AND collection_id = ? AND actor_id = ? AND event_name = 'collection.resource.play' "
+            + "AND resource_type = 'question') AS agg GROUP BY agg.collection_id";
     //Getting COLLECTION DATA (reaction)
     public static final String SELECT_COLLECTION_AGG_REACTION = "SELECT ROUND(AVG(agg.reaction)) AS reaction "
             + "FROM (SELECT DISTINCT ON (resource_id) collection_id,  "
@@ -399,7 +436,9 @@ public class AJEntityBaseReports extends Model {
             + "ORDER BY updated_at desc) AS score,FIRST_VALUE(resource_attempt_status) OVER (PARTITION BY resource_id ORDER BY updated_at desc) "
             + "AS attemptStatus, FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS answer_object "
             + "FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND resource_id = ? "
-            + "AND actor_id = ? AND event_name = 'collection.resource.play' AND resource_type = 'question' AND resource_attempt_status <> 'skipped'";
+            + "AND actor_id = ? AND event_name = 'collection.resource.play' AND event_type = 'stop' AND resource_type = 'question' "
+            + "AND resource_attempt_status <> 'skipped'";
+    
   //Getting RESOURCE DATA (reaction)
     public static final String SELECT_COLLECTION_RESOURCE_AGG_REACTION = "SELECT DISTINCT ON (resource_id) "
             + "FIRST_VALUE(reaction) OVER (PARTITION BY resource_id "
@@ -457,7 +496,9 @@ public class AJEntityBaseReports extends Model {
             + "ORDER BY updated_at desc) AS score,FIRST_VALUE(resource_attempt_status) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS attemptStatus, "
             + "FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS answer_object "
             + "FROM base_reports WHERE class_id IS NULL AND course_id IS NULL AND unit_id IS NULL AND lesson_id IS NULL AND collection_id = ? AND resource_id = ? "
-            + "AND actor_id = ? AND event_name = 'collection.resource.play' AND resource_type = 'question' AND resource_attempt_status <> 'skipped'";
+            + "AND actor_id = ? AND event_name = 'collection.resource.play' AND event_type = 'stop' AND resource_type = 'question' "
+            + "AND resource_attempt_status <> 'skipped'";
+    
   //Getting RESOURCE DATA (reaction)
     public static final String SELECT_COLLECTION_RESOURCE_AGG_REACTION_ = "SELECT DISTINCT ON (resource_id) "
             + "FIRST_VALUE(reaction) OVER (PARTITION BY resource_id "
@@ -659,10 +700,18 @@ public class AJEntityBaseReports extends Model {
             + "event_name = 'collection.resource.play' AND resource_type = 'question' AND resource_attempt_status <> 'skipped' ) AS coll "
             + "GROUP BY coll.collection_id";
 
+    
     public static final String GET_COLLECTION_MAX_SCORE = "SELECT SUM(coll.max_score) AS max_score FROM "
             + "(SELECT DISTINCT ON (resource_id) collection_id, "
             + "FIRST_VALUE(max_score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS max_score "
             + "FROM base_reports WHERE class_id = ? AND course_id = ? AND collection_id = ? AND actor_id = ? AND "
+            + "event_name = 'collection.resource.play' AND resource_type = 'question') AS coll "
+            + "GROUP BY coll.collection_id";
+    
+    public static final String GET_IL_COLLECTION_MAX_SCORE = "SELECT SUM(coll.max_score) AS max_score FROM "
+            + "(SELECT DISTINCT ON (resource_id) collection_id, "
+            + "FIRST_VALUE(max_score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS max_score "
+            + "FROM base_reports WHERE class_id IS NULL AND course_id = ? AND collection_id = ? AND actor_id = ? AND "
             + "event_name = 'collection.resource.play' AND resource_type = 'question') AS coll "
             + "GROUP BY coll.collection_id";
     
@@ -804,7 +853,7 @@ public class AJEntityBaseReports extends Model {
           + "FROM (SELECT time_spent, FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) "
           + "AS scoreInPercentage, reaction AS reaction, views AS attempts, collection_id,event_name FROM base_reports "
           + "WHERE class_id IS NULL AND course_id = ? AND unit_id = ? AND lesson_id = ? "
-          + "AND collection_id = ANY(?::varchar[]) AND actor_id = ? AND event_name = 'collection.resource.play' AND path_id IS NULL) AS agg "
+          + "AND collection_id = ANY(?::varchar[]) AND actor_id = ? AND path_id IS NULL) AS agg "
           + "GROUP BY agg.collection_id";
     
     public static final String GET_INDEPENDENT_LEARNER_LATEST_COMPLETED_SESSION_ID = "SELECT session_id FROM base_reports WHERE"

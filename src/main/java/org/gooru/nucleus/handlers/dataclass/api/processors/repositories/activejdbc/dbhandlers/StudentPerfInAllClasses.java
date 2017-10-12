@@ -89,24 +89,20 @@ public class StudentPerfInAllClasses implements DBHandler {
     	        if(classData.get(AJEntityBaseReports.COURSE_GOORU_OID) != null){
     	        JsonObject classKPI = new JsonObject();
     	        classKPI.put(AJEntityBaseReports.ATTR_CLASS_ID, classData.get(AJEntityBaseReports.CLASS_GOORU_OID).toString());
-    	        classKPI.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.valueOf(classData.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()));
-    	        //classKPI.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 0);
-    	        //classKPI.put(AJEntityBaseReports.ATTR_SCORE, 0);
+    	        classKPI.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.valueOf(classData.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString())); 
     	        Object classTotalCount = Base.firstCell(AJEntityCourseCollectionCount.GET_COURSE_ASSESSMENT_COUNT,
     	                classData.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
-    	        classKPI.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, classTotalCount != null ? Integer.valueOf(classTotalCount.toString()) : 0);
-    	        //classKPI.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
+    	        classKPI.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, classTotalCount != null ? Integer.valueOf(classTotalCount.toString()) : 0);    	        
     	        List<Map> classScoreCompletion = null;
     	          classScoreCompletion = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_ALL_CLASS_COMPLETION_SCORE,
     	                  classData.get(AJEntityBaseReports.CLASS_GOORU_OID).toString(), userId);
 
     	        if (!classScoreCompletion.isEmpty()) {
-    	          classScoreCompletion.forEach(scoreKPI -> {
-    	            LOGGER.debug("completedCount : {} ", scoreKPI.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT));
-    	            LOGGER.debug("score : {} ", scoreKPI.get(AJEntityBaseReports.ATTR_SCORE));
+    	          classScoreCompletion.forEach(scoreKPI -> {    	            
     	            classKPI.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT,
     	                    Integer.valueOf(scoreKPI.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
-    	            classKPI.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.valueOf(scoreKPI.get(AJEntityBaseReports.ATTR_SCORE).toString())));
+    	            classKPI.put(AJEntityBaseReports.ATTR_SCORE, scoreKPI.get(AJEntityBaseReports.ATTR_SCORE) == null 
+    	            		? null : Math.round(Double.valueOf(scoreKPI.get(AJEntityBaseReports.ATTR_SCORE).toString())));
     	          });
     	        } else {
         	        classKPI.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 0);
@@ -130,7 +126,8 @@ public class StudentPerfInAllClasses implements DBHandler {
         	        classKPI.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.valueOf(classData.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()));
         	        Object classTotalCount = Base.firstCell(AJEntityCourseCollectionCount.GET_COURSE_ASSESSMENT_COUNT,
         	        		classData.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
-        	        classKPI.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, classTotalCount != null ? (Integer.valueOf(classTotalCount.toString()) * activeUsersCount) : 0);
+        	        classKPI.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, classTotalCount != null 
+        	        		? (Integer.valueOf(classTotalCount.toString()) * activeUsersCount) : 0);
         	        //classKPI.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
 	    	});
 	      	        LazyList<AJEntityBaseReports> studClass =
@@ -144,7 +141,8 @@ public class StudentPerfInAllClasses implements DBHandler {
 	    		classPerfList.forEach(scoData -> {
     	            classKPI.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT,
     	                    Integer.valueOf(scoData.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
-    	            classKPI.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.valueOf(scoData.get(AJEntityBaseReports.ATTR_SCORE).toString())));
+    	            classKPI.put(AJEntityBaseReports.ATTR_SCORE, scoData.get(AJEntityBaseReports.ATTR_SCORE) == null 
+    	            		? null : Math.round(Double.valueOf(scoData.get(AJEntityBaseReports.ATTR_SCORE).toString())));
 	    	});
   	    	}else {
     	        classKPI.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 0);

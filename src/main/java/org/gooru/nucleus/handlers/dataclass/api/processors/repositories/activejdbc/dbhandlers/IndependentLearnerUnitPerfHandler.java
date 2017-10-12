@@ -116,10 +116,13 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
             this.lessonId = m.get(AJEntityBaseReports.ATTR_LESSON_ID).toString();
             LOGGER.debug("The Value of LESSONID " + lessonId);
             List<Map> completedCountMap;
+            List<Map> scoreMap = null;
             if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
 
               completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLL_COUNT_FOREACH_INDEPENDENT_LEARNER_LESSON_ID, context.courseId(),
                       context.unitId(), this.lessonId, this.collectionType, userID, EventConstants.COLLECTION_PLAY);
+              scoreMap = Base.findAll(AJEntityBaseReports.GET_SCORE_FOREACH_IL_LESSON_ID,
+                      context.courseId(), context.unitId(), this.lessonId, this.collectionType, userID);
             } else {
               completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLLID_COUNT_FOREACH_INDEPENDENT_LEARNER_LESSON_ID, context.courseId(),
                       context.unitId(), this.lessonId, this.collectionType, userID, EventConstants.COLLECTION_PLAY);
@@ -135,6 +138,19 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
                       Integer.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
 
             });
+            
+            if(scoreMap != null && !scoreMap.isEmpty() && this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
+              scoreMap.forEach(score ->{
+                double maxScore = Double.valueOf(score.get(AJEntityBaseReports.MAX_SCORE).toString());
+                if(maxScore > 0 && (score.get(AJEntityBaseReports.SCORE) != null)) {
+                  double sumOfScore = Double.valueOf(score.get(AJEntityBaseReports.SCORE).toString());
+                    LOGGER.debug("maxScore : {} , sumOfScore : {} ", maxScore, sumOfScore);
+                    lessonData.put(AJEntityBaseReports.ATTR_SCORE, Math.round((sumOfScore / maxScore) * 100));
+                } else {
+                  lessonData.putNull(AJEntityBaseReports.ATTR_SCORE);
+                }
+              });
+            }
             // FIXME: Total count will be taken from nucleus core.
             lessonData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
             // FIXME : Revisit this logic in future.
@@ -169,37 +185,27 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
                 assData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
                 if (this.collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {
                   List<Map> collectionQuestionCount;
-                  collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_COLLECTION_QUESTION_COUNT, context.courseId(),
-                          context.unitId(), this.lessonId, assData.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID), this.userId);
-
-                  //If questions are not present then Question Count is always zero, however this additional check needs to be added
-                  //since during migration of data from 3.0 chances are that QC may be null instead of zero
-                  collectionQuestionCount.forEach(qc -> {
-                  	if (qc.get(AJEntityBaseReports.QUESTION_COUNT) != null) {
-                  		this.questionCount = Integer.valueOf(qc.get(AJEntityBaseReports.QUESTION_COUNT).toString());
-                  	} else {
-                  		this.questionCount = 0;
-                  	}
-                  });
-                  double scoreInPercent = 0;
-                  if (this.questionCount > 0) {
-                    Object collectionScore;
-
-                    collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_COLLECTION_AGG_SCORE, context.courseId(), context.unitId(),
-                            this.lessonId, assData.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID), this.userId);
-
-                    if (collectionScore != null) {
-                      scoreInPercent = ((Double.valueOf(collectionScore.toString()) / this.questionCount) * 100);
-                    }
-                    assData.put(AJEntityBaseReports.ATTR_SCORE, Math.round(scoreInPercent));
+                    collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_IL_COLLECTION_SCORE_AND_MAX_SCORE,
+                          context.courseId(), context.unitId(), this.lessonId, assData.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID),userID);
+                  if (collectionQuestionCount != null && !collectionQuestionCount.isEmpty()) {
+                    collectionQuestionCount.forEach(score -> {
+                      double maxScore = Double.valueOf(score.get(AJEntityBaseReports.MAX_SCORE).toString());
+                      if(maxScore > 0 && (score.get(AJEntityBaseReports.SCORE) != null)) {
+                      double sumOfScore = Double.valueOf(score.get(AJEntityBaseReports.SCORE).toString());
+                      LOGGER.debug("maxScore : {} , sumOfScore : {} ", maxScore, sumOfScore);
+                        assData.put(AJEntityBaseReports.ATTR_SCORE, Math.round((sumOfScore / maxScore) * 100));
+                      } else {
+                        assData.putNull(AJEntityBaseReports.ATTR_SCORE);
+                      }
+                    });
                   } else {
-                  	//If Collections have No Questions then score should be NULL
-                  	assData.putNull(AJEntityBaseReports.ATTR_SCORE);
+                    assData.putNull(AJEntityBaseReports.ATTR_SCORE);
                   }
                   assData.put(AJEntityBaseReports.ATTR_COLLECTION_ID, assData.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID));
                   assData.remove(AJEntityBaseReports.ATTR_ASSESSMENT_ID);
                   assData.put(EventConstants.VIEWS, assData.getInteger(EventConstants.ATTEMPTS));
                   assData.remove(EventConstants.ATTEMPTS);
+                
                 }else {
                   assData.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.valueOf(ass.get(AJEntityBaseReports.ATTR_SCORE).toString())));
                 }
