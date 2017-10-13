@@ -74,12 +74,13 @@ public class IndLearnerAssessmentSummaryHandler implements DBHandler {
       if (!StringUtil.isNullOrEmpty(sessionId)) {
         List<Map> assessmentKPI = Base.findAll(AJEntityBaseReports.SELECT_IL_ASSESSMENT_FOREACH_COLLID_AND_SESSION_ID, context.collectionId(), sessionId , AJEntityBaseReports.ATTR_CP_EVENTNAME);
         Object assessmentReactionObject =  Base.firstCell(AJEntityBaseReports.SELECT_IL_ASSESSMENT_REACTION_AND_SESSION_ID, context.collectionId(), sessionId);
-        LOGGER.info("cID : {} , SID : {} ", context.collectionId(), sessionId);
+        
         if (!assessmentKPI.isEmpty()) {
           LOGGER.debug("Assessment Attributes obtained");
           assessmentKPI.forEach(m -> {
             JsonObject assessmentData = ValueMapper.map(ResponseAttributeIdentifier.getSessionAssessmentAttributesMap(), m);
-            assessmentData.put(JsonConstants.SCORE, Math.round(Double.valueOf(m.get(AJEntityBaseReports.SCORE).toString())));
+            assessmentData.put(JsonConstants.SCORE, m.get(AJEntityBaseReports.SCORE) != null 
+            		? Math.round(Double.valueOf(m.get(AJEntityBaseReports.SCORE).toString())) : null);
             assessmentData.put(JsonConstants.REACTION, assessmentReactionObject != null ? ((Number)assessmentReactionObject).intValue() : 0);
             assessmentDataKPI.put(JsonConstants.ASSESSMENT, assessmentData);
           });
@@ -97,7 +98,7 @@ public class IndLearnerAssessmentSummaryHandler implements DBHandler {
                       sessionId,questions.get(AJEntityBaseReports.RESOURCE_ID).toString());
               qnData.put(JsonConstants.REACTION, reactionObj != null ? ((Number)reactionObj).intValue() : 0);
               qnData.put(JsonConstants.ANSWER_OBJECT, new JsonArray(questions.get(AJEntityBaseReports.ANSWER_OBECT).toString()));
-              qnData.put(JsonConstants.SCORE, questions.get(AJEntityBaseReports.SCORE) != null ? 0 : Math.round(Double.valueOf(questions.get(AJEntityBaseReports.SCORE).toString())));
+              qnData.put(JsonConstants.SCORE, questions.get(AJEntityBaseReports.SCORE) != null ? Math.round(Double.valueOf(questions.get(AJEntityBaseReports.SCORE).toString())) : null );
               questionsArray.add(qnData);
             });
           }

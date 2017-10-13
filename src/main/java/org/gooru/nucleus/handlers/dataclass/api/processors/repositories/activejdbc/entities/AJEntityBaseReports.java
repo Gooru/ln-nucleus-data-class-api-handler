@@ -1083,7 +1083,8 @@ public class AJEntityBaseReports extends Model {
             + "FIRST_VALUE(views) OVER (PARTITION BY resource_id ORDER BY updated_at asc) AS resourceViews, "
             + "resource_type,question_type,"
             + "FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) as answer_object "
-            + "from base_reports WHERE class_id IS NULL AND collection_id = ? AND session_id = ? AND event_name = ? ";
+            + "from base_reports WHERE class_id IS NULL AND collection_id = ? AND session_id = ? AND event_name = ? "
+            + "AND event_type = 'stop' ";
 
     public static final String SELECT_IL_ASSESSMENT_RESOURCE_REACTION = " SELECT FIRST_VALUE(reaction) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS reaction "
             + "FROM base_reports WHERE class_id IS NULL AND collection_id = ? AND session_id = ?  and resource_id = ? AND reaction > 0 AND event_name = 'reaction.create'";
