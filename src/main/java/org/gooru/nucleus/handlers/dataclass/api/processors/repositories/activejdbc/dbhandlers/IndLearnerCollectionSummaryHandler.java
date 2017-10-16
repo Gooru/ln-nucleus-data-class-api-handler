@@ -82,7 +82,7 @@ public class IndLearnerCollectionSummaryHandler implements DBHandler {
 	        if (!StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
 	          collectionMaximumScore = Base.findAll(AJEntityBaseReports.SELECT_IL_COLLECTION_MAX_SCORE, courseId,unitId,lessonId,collectionId,this.userId);
 	        }else{
-	          collectionMaximumScore = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_MAX_SCORE_, collectionId,this.userId);
+	          collectionMaximumScore = Base.findAll(AJEntityBaseReports.SELECT_IL_STANDALONE_COLLECTION_MAX_SCORE, collectionId,this.userId);
 	        }
 
 	        collectionMaximumScore.forEach(ms -> {
@@ -97,7 +97,7 @@ public class IndLearnerCollectionSummaryHandler implements DBHandler {
 	        if ( !StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
 	          lastAccessedTime = Base.findAll(AJEntityBaseReports.SELECT_COURSE_IL_COLLECTION_LAST_ACCESSED_TIME, courseId,unitId,lessonId,collectionId,this.userId);
 	        }else{
-	          lastAccessedTime = Base.findAll(AJEntityBaseReports.SELECT_IL_COLLECTION_LAST_ACCESSED_TIME, collectionId,this.userId);
+	          lastAccessedTime = Base.findAll(AJEntityBaseReports.SELECT_IL_STANDALONE_COLLECTION_LAST_ACCESSED_TIME, collectionId,this.userId);
 	        }
 
 	        if (!lastAccessedTime.isEmpty()) {
@@ -132,7 +132,7 @@ public class IndLearnerCollectionSummaryHandler implements DBHandler {
               if (!StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
                collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_IL_COLLECTION_AGG_SCORE, courseId,unitId,lessonId,collectionId,this.userId);
               }else{
-               collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_SCORE_,collectionId,this.userId);
+               collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_IL_STANDALONE_COLLECTION_AGG_SCORE,collectionId,this.userId);
               }
 
               if(collectionScore != null && (this.maxScore > 0)){
@@ -181,7 +181,7 @@ public class IndLearnerCollectionSummaryHandler implements DBHandler {
                 if (!StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
                   questionScore = Base.findAll(AJEntityBaseReports.SELECT_IL_COLLECTION_QUESTION_AGG_SCORE, courseId,unitId,lessonId,collectionId,questions.get(AJEntityBaseReports.RESOURCE_ID),this.userId);
                 }else{
-                  questionScore = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_QUESTION_AGG_SCORE_, collectionId,
+                  questionScore = Base.findAll(AJEntityBaseReports.SELECT_IL_STANDALONE_COLLECTION_QUESTION_AGG_SCORE, collectionId,
                       questions.get(AJEntityBaseReports.RESOURCE_ID),this.userId);
                 }
                 if(!questionScore.isEmpty()){
