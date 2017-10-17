@@ -267,6 +267,12 @@ class AJReportRepo implements ReportRepo {
     public MessageResponse getDCASessionTaxonomyReport() {
       return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildDCASessionTaxonomyReportHandler(context));
     }
+    
+    @Override
+    public MessageResponse getDCAMonthlyTeacherReport() {
+      return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildDCAMonthlyTeacherReportHandler(context));
+    }
+
 
     @Override
     public MessageResponse getDataReports() {
@@ -278,9 +284,5 @@ class AJReportRepo implements ReportRepo {
       return TransactionExecutor.executeTransaction(DBHandlerBuilder.getCoursesComptencyCompletion(context));
     }
   
-    @Override
-    public MessageResponse getTimelyDCAReport() {
-      return TransactionExecutor.executeTransaction(DBHandlerBuilder.getTimelyDCAReport(context));
-    }
 
 }

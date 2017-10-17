@@ -193,7 +193,7 @@ class MessageProcessor implements Processor {
               result = getCoursesCompetencyCompletion();
               break;
             case MessageConstants.MSG_OP_STUDENT_PERF_DAILY_TIMELY_CLASS_ACTIVITY:
-              result = getTimelyDCAReport();
+              result = getDCATeacherReport();
               break;
 
             default:
@@ -211,6 +211,19 @@ class MessageProcessor implements Processor {
 
     //************ DAILY CLASS ACTIVITY ******************************************************************************************
 
+    private MessageResponse getStudentPerfDailyClassActivity() {
+        try {
+              ProcessorContext context = createContext();
+              return new RepoBuilder().buildReportRepo(context).getStudPerfDailyClassActivity();
+
+          } catch (Throwable t) {
+              LOGGER.error("Exception while getting Student Performance in Daily Class Activity.", t);
+              return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+          }
+
+      }
+
+    
     private MessageResponse getStudentSummaryInDCACollection() {
     	try {
             ProcessorContext context = createContext();
@@ -275,6 +288,26 @@ class MessageProcessor implements Processor {
           }
 
       }
+    
+    private MessageResponse getDCATeacherReport() {
+        try {
+          ProcessorContext context = createContext();
+    
+          if (!checkClassId(context)) {
+            LOGGER.error("Class id not available to obtain Weekly/Monthly DCA Report. Aborting");
+            return MessageResponseFactory.createInvalidRequestResponse("Invalid classId");
+          }
+    
+          return new RepoBuilder().buildReportRepo(context).getDCAMonthlyTeacherReport();
+    
+        } catch (Throwable t) {
+          LOGGER.error("Exception while getting Weekly/Monthly DCA Report", t);
+          return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+        }
+    
+      }
+    
+  //*************************************************************************************************************************
 
       private MessageResponse getDataReports() {
         try {
@@ -1045,9 +1078,6 @@ class MessageProcessor implements Processor {
 
     }
 
-     //Mukul
-    //*********************************************************************************************************************
-
     private MessageResponse getIndependentLearnerSummaryInCollection() {
     	try {
             ProcessorContext context = createContext();
@@ -1171,17 +1201,6 @@ class MessageProcessor implements Processor {
 
       }
 
-    private MessageResponse getStudentPerfDailyClassActivity() {
-        try {
-              ProcessorContext context = createContext();
-              return new RepoBuilder().buildReportRepo(context).getStudPerfDailyClassActivity();
-
-          } catch (Throwable t) {
-              LOGGER.error("Exception while getting Student Performance in Daily Class Activity.", t);
-              return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
-          }
-
-      }
 
     private MessageResponse getStudentPerfCourseAssessments() {
         try {
@@ -1207,23 +1226,7 @@ class MessageProcessor implements Processor {
 
       }
 
-    private MessageResponse getTimelyDCAReport() {
-      try {
-        ProcessorContext context = createContext();
-  
-        if (!checkClassId(context)) {
-          LOGGER.error("Class id not available to obtain Weekly/Monthly DCA Report. Aborting");
-          return MessageResponseFactory.createInvalidRequestResponse("Invalid collectionId");
-        }
-  
-        return new RepoBuilder().buildReportRepo(context).getTimelyDCAReport();
-  
-      } catch (Throwable t) {
-        LOGGER.error("Exception while getting Weekly/Monthly DCA Report", t);
-        return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
-      }
-  
-    }
+
     private ProcessorContext createContext() {
     	String classId = message.headers().get(MessageConstants.CLASS_ID);
         String courseId = message.headers().get(MessageConstants.COURSE_ID);

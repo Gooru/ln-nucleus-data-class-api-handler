@@ -116,6 +116,6 @@ public interface ReportRepo {
        
     MessageResponse getCoursesComptencyCompletion();
 
-    MessageResponse getTimelyDCAReport();
+    MessageResponse getDCAMonthlyTeacherReport();
         
 }

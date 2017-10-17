@@ -7,6 +7,7 @@ import java.util.Map;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityDailyClassActivity;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
@@ -19,8 +20,8 @@ import org.slf4j.LoggerFactory;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
-public class DCATimeDimensionReport implements DBHandler {
-  private static final Logger LOGGER = LoggerFactory.getLogger(DCATimeDimensionReport.class);
+public class DCAMonthlyTeacherReportHandler implements DBHandler {
+  private static final Logger LOGGER = LoggerFactory.getLogger(DCAMonthlyTeacherReportHandler.class);
 
   private final ProcessorContext context;
   private static final String REQUEST_COLLECTION_TYPE = "collectionType";
@@ -30,7 +31,7 @@ public class DCATimeDimensionReport implements DBHandler {
 
   private static Integer year;
 
-  public DCATimeDimensionReport(ProcessorContext context) {
+  public DCAMonthlyTeacherReportHandler(ProcessorContext context) {
     this.context = context;
   }
 
@@ -80,7 +81,7 @@ public class DCATimeDimensionReport implements DBHandler {
     if (year == null || year == 0) {
       year = currentYear;
     }
-    StringBuilder userIdsQueryBuilder = new StringBuilder(AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_DCA);
+    StringBuilder userIdsQueryBuilder = new StringBuilder(AJEntityDailyClassActivity.SELECT_DISTINCT_USERID_FOR_DCA);
     if (dimension.equalsIgnoreCase("weekly")) {
       userIdsQueryBuilder.append(" AND to_char(updated_at,'Mon') = '" + month + "'");
     }
@@ -89,27 +90,27 @@ public class DCATimeDimensionReport implements DBHandler {
     JsonArray studentArray = new JsonArray();
 
     LOGGER.debug("UserFindQuery  : {}", userIdsQueryBuilder.toString());
-    LazyList<AJEntityBaseReports> userIdList = AJEntityBaseReports.findBySQL(userIdsQueryBuilder.toString(), context.classId(), collectionType, year);
+    LazyList<AJEntityBaseReports> userIdList = AJEntityDailyClassActivity.findBySQL(userIdsQueryBuilder.toString(), context.classId(), collectionType, year);
     userIdList.stream().forEach(users -> {
       JsonObject studentObject = new JsonObject();
       JsonArray monthlyArray = new JsonArray();
-      studentObject.put(AJEntityBaseReports.ATTR_USER_ID, users.get(AJEntityBaseReports.GOORUUID));
+      studentObject.put(AJEntityBaseReports.ATTR_USER_ID, users.get(AJEntityDailyClassActivity.GOORUUID));
 
       if (collectionType.equalsIgnoreCase(JsonConstants.ASSESSMENT)) {
         // collectionType=assessment
         // Generate Aggregated Data Monthly wise...
         List<Map> monthlyAggData = null;
         if (dimension.equalsIgnoreCase("weekly")) {
-          monthlyAggData = Base.findAll(AJEntityBaseReports.DCA_WEEKLY_USAGE_ASSESSMENT_AGG_DATA, context.classId(),
-                  users.get(AJEntityBaseReports.GOORUUID), year, month);
+          monthlyAggData = Base.findAll(AJEntityDailyClassActivity.DCA_WEEKLY_USAGE_ASSESSMENT_AGG_DATA, context.classId(),
+                  users.get(AJEntityDailyClassActivity.GOORUUID), year, month);
         } else {
-          monthlyAggData = Base.findAll(AJEntityBaseReports.DCA_MONTHLY_USAGE_ASSESSMENT_AGG_DATA, context.classId(),
-                  users.get(AJEntityBaseReports.GOORUUID), year);
+          monthlyAggData = Base.findAll(AJEntityDailyClassActivity.DCA_MONTHLY_USAGE_ASSESSMENT_AGG_DATA, context.classId(),
+                  users.get(AJEntityDailyClassActivity.GOORUUID), year);
         }
         monthlyAggData.stream().forEach(monthAggData -> {
           JsonObject monthUsage = new JsonObject();
-          monthUsage.put(AJEntityBaseReports.ATTR_SCORE, Math.round(Double.parseDouble(monthAggData.get(AJEntityBaseReports.SCORE).toString())));
-          monthUsage.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.parseLong(monthAggData.get(AJEntityBaseReports.TIME_SPENT).toString()));
+          monthUsage.put(AJEntityDailyClassActivity.ATTR_SCORE, Math.round(Double.parseDouble(monthAggData.get(AJEntityBaseReports.SCORE).toString())));
+          monthUsage.put(AJEntityDailyClassActivity.ATTR_TIME_SPENT, Long.parseLong(monthAggData.get(AJEntityBaseReports.TIME_SPENT).toString()));
           if (dimension.equalsIgnoreCase("weekly")) {
             monthUsage.put("week", monthAggData.get("week"));
           } else {
@@ -119,20 +120,20 @@ public class DCATimeDimensionReport implements DBHandler {
           // Generate Aggregated Data Assessment wise...
           List<Map> monthlyAssessmentData = null;
           if (dimension.equalsIgnoreCase("weekly")) {
-            monthlyAssessmentData = Base.findAll(AJEntityBaseReports.DCA_WEEKLY_USAGE_ASSESSMENT_DATA, context.classId(),
-                    users.get(AJEntityBaseReports.GOORUUID), year, month, monthAggData.get("week"));
+            monthlyAssessmentData = Base.findAll(AJEntityDailyClassActivity.DCA_WEEKLY_USAGE_ASSESSMENT_DATA, context.classId(),
+                    users.get(AJEntityDailyClassActivity.GOORUUID), year, month, monthAggData.get("week"));
           } else {
-            monthlyAssessmentData = Base.findAll(AJEntityBaseReports.DCA_MONTHLY_USAGE_ASSESSMENT_DATA, context.classId(),
-                    users.get(AJEntityBaseReports.GOORUUID), year, monthAggData.get("month"));
+            monthlyAssessmentData = Base.findAll(AJEntityDailyClassActivity.DCA_MONTHLY_USAGE_ASSESSMENT_DATA, context.classId(),
+                    users.get(AJEntityDailyClassActivity.GOORUUID), year, monthAggData.get("month"));
           }
           JsonArray monthlyAssessmentArray = new JsonArray();
           monthlyAssessmentData.stream().forEach(monthAssessmentData -> {
             JsonObject assessmentUsage = new JsonObject();
-            assessmentUsage.put(AJEntityBaseReports.ATTR_SCORE,
-                    Math.round(Double.parseDouble(monthAssessmentData.get(AJEntityBaseReports.SCORE).toString())));
-            assessmentUsage.put(AJEntityBaseReports.ATTR_TIME_SPENT,
-                    Long.parseLong(monthAssessmentData.get(AJEntityBaseReports.TIME_SPENT).toString()));
-            assessmentUsage.put(AJEntityBaseReports.ATTR_ASSESSMENT_ID, monthAssessmentData.get(AJEntityBaseReports.COLLECTION_OID).toString());
+            assessmentUsage.put(AJEntityDailyClassActivity.ATTR_SCORE,
+                    Math.round(Double.parseDouble(monthAssessmentData.get(AJEntityDailyClassActivity.SCORE).toString())));
+            assessmentUsage.put(AJEntityDailyClassActivity.ATTR_TIME_SPENT,
+                    Long.parseLong(monthAssessmentData.get(AJEntityDailyClassActivity.TIMESPENT).toString()));
+            assessmentUsage.put(AJEntityDailyClassActivity.ATTR_ASSESSMENT_ID, monthAssessmentData.get(AJEntityDailyClassActivity.COLLECTION_OID).toString());
             monthlyAssessmentArray.add(assessmentUsage);
           });
           monthUsage.put("assessments", monthlyAssessmentArray);
@@ -144,24 +145,23 @@ public class DCATimeDimensionReport implements DBHandler {
         // Generate Aggregated Data Monthly wise...
         List<Map> monthlyAggData = null;
         if (dimension.equalsIgnoreCase("weekly")) {
-          monthlyAggData = Base.findAll(AJEntityBaseReports.DCA_WEEKLY_USAGE_COLLECTION_AGG_DATA, context.classId(),
-                  users.get(AJEntityBaseReports.GOORUUID), year, month);
+          monthlyAggData = Base.findAll(AJEntityDailyClassActivity.DCA_WEEKLY_USAGE_COLLECTION_AGG_DATA, context.classId(),
+                  users.get(AJEntityDailyClassActivity.GOORUUID), year, month);
         } else {
-          monthlyAggData = Base.findAll(AJEntityBaseReports.DCA_MONTHLY_USAGE_COLLECTION_AGG_DATA, context.classId(),
-                  users.get(AJEntityBaseReports.GOORUUID), year);
+          monthlyAggData = Base.findAll(AJEntityDailyClassActivity.DCA_MONTHLY_USAGE_COLLECTION_AGG_DATA, context.classId(),
+                  users.get(AJEntityDailyClassActivity.GOORUUID), year);
         }
         monthlyAggData.stream().forEach(monthAggData -> {
           JsonObject monthUsage = new JsonObject();
-          double monthMaxScore = Double.valueOf(monthAggData.get(AJEntityBaseReports.MAX_SCORE).toString());
-          if (monthMaxScore > 0 && (monthAggData.get(AJEntityBaseReports.SCORE) != null)) {
-            double sumOfScore = Double.valueOf(monthAggData.get(AJEntityBaseReports.SCORE).toString());
-            LOGGER.debug("maxScore : {} , sumOfScore : {} ", monthMaxScore, sumOfScore);
-            monthUsage.put(AJEntityBaseReports.ATTR_SCORE, ((sumOfScore / monthMaxScore) * 100));
+          double monthMaxScore = Double.valueOf(monthAggData.get(AJEntityDailyClassActivity.MAX_SCORE).toString());
+          if (monthMaxScore > 0 && (monthAggData.get(AJEntityDailyClassActivity.SCORE) != null)) {
+            double sumOfScore = Double.valueOf(monthAggData.get(AJEntityDailyClassActivity.SCORE).toString());            
+            monthUsage.put(AJEntityDailyClassActivity.ATTR_SCORE, ((sumOfScore / monthMaxScore) * 100));
           } else {
-            monthUsage.putNull(AJEntityBaseReports.ATTR_SCORE);
+            monthUsage.putNull(AJEntityDailyClassActivity.ATTR_SCORE);
           }
 
-          monthUsage.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.parseLong(monthAggData.get(AJEntityBaseReports.TIME_SPENT).toString()));
+          monthUsage.put(AJEntityDailyClassActivity.ATTR_TIME_SPENT, Long.parseLong(monthAggData.get(AJEntityDailyClassActivity.TIMESPENT).toString()));
           if (dimension.equalsIgnoreCase("weekly")) {
             monthUsage.put("month", monthAggData.get("month"));
           } else {
@@ -170,26 +170,26 @@ public class DCATimeDimensionReport implements DBHandler {
           // Generate Aggregated Data Collection wise...
           List<Map> monthlyCollectionData = null;
           if (dimension.equalsIgnoreCase("weekly")) {
-            monthlyCollectionData = Base.findAll(AJEntityBaseReports.DCA_WEEKLY_USAGE_COLLECTION_DATA, context.classId(),
-                    users.get(AJEntityBaseReports.GOORUUID), year, month);
+            monthlyCollectionData = Base.findAll(AJEntityDailyClassActivity.DCA_WEEKLY_USAGE_COLLECTION_DATA, context.classId(),
+                    users.get(AJEntityDailyClassActivity.GOORUUID), year, month);
           } else {
-            monthlyCollectionData = Base.findAll(AJEntityBaseReports.DCA_MONTHLY_USAGE_COLLECTION_DATA, context.classId(),
-                    users.get(AJEntityBaseReports.GOORUUID), year, month, monthAggData.get("week"));
+            monthlyCollectionData = Base.findAll(AJEntityDailyClassActivity.DCA_MONTHLY_USAGE_COLLECTION_DATA, context.classId(),
+                    users.get(AJEntityDailyClassActivity.GOORUUID), year, month, monthAggData.get("week"));
           }
           JsonArray monthlyCollectionArray = new JsonArray();
           monthlyCollectionData.stream().forEach(monthCollectionData -> {
             JsonObject collectionUsage = new JsonObject();
-            double maxScore = Double.valueOf(monthCollectionData.get(AJEntityBaseReports.MAX_SCORE).toString());
-            if (maxScore > 0 && (monthCollectionData.get(AJEntityBaseReports.SCORE) != null)) {
-              double sumOfScore = Double.valueOf(monthCollectionData.get(AJEntityBaseReports.SCORE).toString());
+            double maxScore = Double.valueOf(monthCollectionData.get(AJEntityDailyClassActivity.MAX_SCORE).toString());
+            if (maxScore > 0 && (monthCollectionData.get(AJEntityDailyClassActivity.SCORE) != null)) {
+              double sumOfScore = Double.valueOf(monthCollectionData.get(AJEntityDailyClassActivity.SCORE).toString());
               LOGGER.debug("maxScore : {} , sumOfScore : {} ", maxScore, sumOfScore);
-              collectionUsage.put(AJEntityBaseReports.ATTR_SCORE, ((sumOfScore / maxScore) * 100));
+              collectionUsage.put(AJEntityDailyClassActivity.ATTR_SCORE, ((sumOfScore / maxScore) * 100));
             } else {
-              collectionUsage.putNull(AJEntityBaseReports.ATTR_SCORE);
+              collectionUsage.putNull(AJEntityDailyClassActivity.ATTR_SCORE);
             }
-            collectionUsage.put(AJEntityBaseReports.ATTR_TIME_SPENT,
-                    Long.parseLong(monthCollectionData.get(AJEntityBaseReports.TIME_SPENT).toString()));
-            collectionUsage.put(AJEntityBaseReports.ATTR_ASSESSMENT_ID, monthCollectionData.get(AJEntityBaseReports.COLLECTION_OID).toString());
+            collectionUsage.put(AJEntityDailyClassActivity.ATTR_TIME_SPENT,
+                    Long.parseLong(monthCollectionData.get(AJEntityDailyClassActivity.TIMESPENT).toString()));
+            collectionUsage.put(AJEntityDailyClassActivity.ATTR_ASSESSMENT_ID, monthCollectionData.get(AJEntityDailyClassActivity.COLLECTION_OID).toString());
             monthlyCollectionArray.add(collectionUsage);
           });
           monthUsage.put("collections", monthlyCollectionArray);
