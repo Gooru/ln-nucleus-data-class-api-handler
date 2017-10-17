@@ -216,6 +216,10 @@ public final class DBHandlerBuilder {
     	return new DCASessionTaxonomyReportHandler(context);
     }
     
+    public static DBHandler buildDCAMonthlyTeacherReportHandler(ProcessorContext context) {
+        return new DCAMonthlyTeacherReportHandler(context);
+      }
+    
     public static DBHandler getDataReports(ProcessorContext context) {
       return new DataReportsHandler(context);
     }
@@ -223,9 +227,6 @@ public final class DBHandlerBuilder {
     public static DBHandler getCoursesComptencyCompletion(ProcessorContext context) {
       return new CoursesCompetencyCompletionHandler(context);
     }
-  
-    public static DBHandler getTimelyDCAReport(ProcessorContext context) {
-      return new DCATimeDimensionReport(context);
-    }
+    
 }
 
