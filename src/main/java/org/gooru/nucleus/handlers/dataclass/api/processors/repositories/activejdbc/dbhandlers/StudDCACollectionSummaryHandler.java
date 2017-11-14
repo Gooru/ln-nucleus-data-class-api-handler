@@ -1,7 +1,6 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
 import java.sql.Date;
-import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
 
@@ -10,14 +9,13 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.converters.ResponseAttributeIdentifier;
-
-
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityDailyClassActivity;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.converters.ValueMapper;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
+import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
-import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.javalite.activejdbc.Base;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,14 +26,13 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 public class StudDCACollectionSummaryHandler implements DBHandler {
-
-
-	  private static final Logger LOGGER = LoggerFactory.getLogger(StudDCACollectionSummaryHandler.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(StudDCACollectionSummaryHandler.class);
   private final ProcessorContext context;
   private static final String DATE = "date";
   private String userId;
   private int questionCount = 0 ;
   private long lastAccessedTime;
+  private double maxScore;
 
   public StudDCACollectionSummaryHandler(ProcessorContext context) {
       this.context = context;
@@ -77,9 +74,6 @@ public class StudDCACollectionSummaryHandler implements DBHandler {
     String classId = context.request().getString(MessageConstants.CLASS_ID);
     // For DCA activities, the summary report should be fetched based only on
     // classId and collectionId. (CourseId, UnitId and lessonId are not expected)
-    String courseId = context.request().getString(MessageConstants.COURSE_ID);
-    String unitId = context.request().getString(MessageConstants.UNIT_ID);
-    String lessonId = context.request().getString(MessageConstants.LESSON_ID);
     String todayDate = this.context.request().getString(DATE);
     String collectionId = context.collectionId();
     JsonArray contentArray = new JsonArray();
@@ -105,20 +99,21 @@ public class StudDCACollectionSummaryHandler implements DBHandler {
     LOGGER.debug("cID : {} , ClassID : {} ", collectionId, classId);
 
     Date date = Date.valueOf(todayDate);
-      //Getting Question Count
-      List<Map> collectionQuestionCount;
-        collectionQuestionCount = Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_QUESTION_COUNT, classId, collectionId, this.userId, date);
+  
+      if (!StringUtil.isNullOrEmpty(classId) && !StringUtil.isNullOrEmpty(collectionId)) {
+        List<Map> collectionMaximumScore =
+                Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_MAX_SCORE, classId, collectionId, this.userId, date);
+        collectionMaximumScore.forEach(ms -> {
+          if (ms.get(AJEntityBaseReports.MAX_SCORE) != null) {
+            this.maxScore = Double.valueOf(ms.get(AJEntityBaseReports.MAX_SCORE).toString());
+          } else {
+            this.maxScore = 0;
+          }
+        });
+      } else {
+        this.maxScore = 0;
+      }
 
-      //If questions are not present then Question Count is always zero, however this additional check needs to be added
-      //since during migration of data from 3.0 chances are that QC may be null instead of zero
-      collectionQuestionCount.forEach(qc -> {
-      	if (qc.get(AJEntityDailyClassActivity.QUESTION_COUNT) != null) {
-      		this.questionCount = Integer.valueOf(qc.get(AJEntityDailyClassActivity.QUESTION_COUNT).toString());
-      	} else {
-      		this.questionCount = 0;
-      	}
-        this.lastAccessedTime = Timestamp.valueOf(qc.get(AJEntityDailyClassActivity.UPDATE_TIMESTAMP).toString()).getTime();
-      });
       List<Map> collectionData;
         collectionData = Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_AGG_DATA, classId, collectionId, this.userId, date);
 
@@ -134,14 +129,15 @@ public class StudDCACollectionSummaryHandler implements DBHandler {
 
           double scoreInPercent=0;
           int reaction=0;
-          if(this.questionCount > 0){
-            Object collectionScore;
-             collectionScore = Base.firstCell(AJEntityDailyClassActivity.SELECT_COLLECTION_AGG_SCORE, classId, collectionId, this.userId, date);
+          Object collectionScore = Base.firstCell(AJEntityDailyClassActivity.SELECT_COLLECTION_AGG_SCORE, classId, collectionId, this.userId, date);
 
-            if(collectionScore != null){
-              scoreInPercent =  ((Double.valueOf(collectionScore.toString()) / this.questionCount) * 100);
-            }
+          if(collectionScore != null && (this.maxScore > 0)){
+            scoreInPercent =  ((Double.valueOf(collectionScore.toString()) / this.maxScore) * 100);
+            assessmentData.put(AJEntityBaseReports.SCORE, Math.round(scoreInPercent));
+          } else {
+            assessmentData.putNull(AJEntityBaseReports.SCORE);
           }
+          
           LOGGER.debug("Collection score : {} - collectionId : {}" , Math.round(scoreInPercent), collectionId);
           assessmentData.put(AJEntityDailyClassActivity.SCORE, Math.round(scoreInPercent));
           Object collectionReaction;

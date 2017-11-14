@@ -1015,9 +1015,10 @@ public class AJEntityBaseReports extends Model {
             + "WHERE class_id IS NULL AND collection_id = ? AND actor_id = ? AND event_name = 'collection.play'"
             + " ORDER BY updated_at DESC LIMIT 1";
     
-    public static final String GET_IL_ALL_COLLECTION_SCORE = "SELECT SUM(coll.score) AS score FROM "
+    public static final String GET_IL_ALL_COLLECTION_SCORE = "SELECT SUM(coll.score) AS score,SUM(coll.max_score) AS max_score FROM "
             + "(SELECT DISTINCT ON (resource_id) collection_id, "
-            + "FIRST_VALUE(score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score "
+            + "FIRST_VALUE(score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score, "
+            + "FIRST_VALUE(max_score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS max_score "
             + "FROM base_reports WHERE class_id IS NULL AND collection_id = ? AND actor_id = ? AND "
             + "event_name = 'collection.resource.play' AND resource_type = 'question' AND resource_attempt_status <> 'skipped' ) AS coll "
             + "GROUP BY coll.collection_id";
@@ -1160,6 +1161,8 @@ public class AJEntityBaseReports extends Model {
             + "FROM base_reports WHERE class_id IS NULL AND collection_id = ? AND actor_id = ? AND "
             + "event_name = 'collection.resource.play' AND resource_type = 'question' AND resource_attempt_status <> 'skipped' ) AS agg "
             + "GROUP BY agg.collection_id";
+
+   
     //Getting COLLECTION DATA (reaction)
     public static final String SELECT_IL_STANDALONE_COLLECTION_AGG_REACTION = "SELECT ROUND(AVG(agg.reaction)) AS reaction "
             + "FROM (SELECT DISTINCT ON (resource_id) collection_id,  "
@@ -1175,7 +1178,8 @@ public class AJEntityBaseReports extends Model {
   //Getting RESOURCE DATA (score)
     public static final String SELECT_IL_STANDALONE_COLLECTION_QUESTION_AGG_SCORE = "SELECT DISTINCT ON (resource_id) "
             + "FIRST_VALUE(score) OVER (PARTITION BY resource_id "
-            + "ORDER BY updated_at desc) AS score,FIRST_VALUE(resource_attempt_status) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS attemptStatus, FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS answer_object "
+            + "ORDER BY updated_at desc) AS score,FIRST_VALUE(resource_attempt_status) OVER (PARTITION BY resource_id ORDER BY updated_at"
+            + " desc) AS attemptStatus, FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS answer_object "
             + "FROM base_reports WHERE class_id IS NULL AND collection_id = ? AND resource_id = ?"
             + "AND actor_id = ? AND event_name = 'collection.resource.play' AND resource_type = 'question' AND resource_attempt_status <> 'skipped'";
   //Getting RESOURCE DATA (reaction)
@@ -1184,6 +1188,18 @@ public class AJEntityBaseReports extends Model {
             + "ORDER BY updated_at desc) AS reaction "
             + "FROM base_reports WHERE class_id IS NULL AND collection_id = ? AND resource_id = ? "
             + "AND actor_id = ? AND event_name = 'reaction.create' AND reaction <> 0";
+    
+    //Getting COLLECTION DATA (max_score)
+    public static final String SELECT_IL_STANDALONE_COLLECTION_MAX_SCORE = "SELECT SUM(agg.max_score) AS score FROM "
+            + "(SELECT DISTINCT ON (resource_id) collection_id, FIRST_VALUE(updated_at) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS updated_at, "
+            + "FIRST_VALUE(max_score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS max_score "
+            + "FROM base_reports WHERE class_id IS NULL AND collection_id = ? AND actor_id = ? AND "
+            + "event_name = 'collection.resource.play' AND resource_type = 'question') AS agg "
+            + "GROUP BY agg.collection_id";
+    
+    public static final String SELECT_IL_STANDALONE_COLLECTION_LAST_ACCESSED_TIME = "SELECT updated_at, session_id FROM base_reports "
+            + "WHERE class_id IS NULL AND collection_id = ? AND actor_id = ? AND event_name = 'collection.play' "
+            + "ORDER BY updated_at DESC LIMIT 1";
       
     //*************************************************************************************************************************
 
@@ -1332,5 +1348,8 @@ public class AJEntityBaseReports extends Model {
             + "FROM static_collection_competency scc INNER JOIN base_reports br ON br.course_id = scc.course_id AND br.unit_id = scc.unit_id "
             + "AND br.lesson_id = scc.lesson_id AND br.collection_id = scc.collection_id "
             + "WHERE br.course_id = ? AND br.actor_id = ? AND br.event_name = 'collection.play' AND br.score >= 80) AS completionData;";
+    
+    /********************************************************************************************************************************************/
+
 }
 

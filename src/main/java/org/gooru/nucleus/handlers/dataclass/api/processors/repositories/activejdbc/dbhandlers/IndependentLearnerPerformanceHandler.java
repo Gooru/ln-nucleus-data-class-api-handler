@@ -128,8 +128,8 @@ public class IndependentLearnerPerformanceHandler implements DBHandler {
 	            List<Map> courseCompletionKpi = Base.findAll(AJEntityBaseReports.GET_IL_ALL_COURSE_SCORE_COMPLETION, userId,
 	                    courseTS.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
 	            courseCompletionKpi.forEach(courseComplettion -> {
-	              courseDataObject.put(AJEntityBaseReports.ATTR_SCORE,
-	                      Math.round(Double.valueOf(courseComplettion.get(AJEntityBaseReports.ATTR_SCORE).toString())));
+	              courseDataObject.put(AJEntityBaseReports.ATTR_SCORE, courseComplettion.get(AJEntityBaseReports.ATTR_SCORE) != null ?
+	                      Math.round(Double.valueOf(courseComplettion.get(AJEntityBaseReports.ATTR_SCORE).toString())) : null);
 	              courseDataObject.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT,
 	                      Integer.parseInt(courseComplettion.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
 	            });
@@ -178,10 +178,10 @@ public class IndependentLearnerPerformanceHandler implements DBHandler {
                 List<Map> assessmentCompletionKpi = Base.findAll(AJEntityBaseReports.GET_IL_ALL_ASSESSMENT_SCORE_COMPLETION, userId,
                         assessmentTsKpi.get(AJEntityBaseReports.COLLECTION_OID).toString());
                 if (!assessmentCompletionKpi.isEmpty()) {
-                  assessmentCompletionKpi.forEach(courseComplettion -> assesmentObject.put(AJEntityBaseReports.ATTR_SCORE,
-                          Math.round(Double.valueOf(courseComplettion.get(AJEntityBaseReports.ATTR_SCORE).toString()))));
+                  assessmentCompletionKpi.forEach(courseComplettion -> assesmentObject.put(AJEntityBaseReports.ATTR_SCORE, courseComplettion.get(AJEntityBaseReports.ATTR_SCORE) != null ?
+                          Math.round(Double.valueOf(courseComplettion.get(AJEntityBaseReports.ATTR_SCORE).toString())): null));
                 } else {
-                  assesmentObject.put(AJEntityBaseReports.ATTR_SCORE, 0);
+                  assesmentObject.putNull(AJEntityBaseReports.ATTR_SCORE);
                 }
                 Object title = Base.firstCell(AJEntityContent.GET_TITLE, assessmentTsKpi.get(AJEntityBaseReports.COLLECTION_OID).toString());
                 assesmentObject.put(JsonConstants.COLLECTION_TITLE, (title != null ? title.toString() : "NA"));
@@ -229,34 +229,20 @@ public class IndependentLearnerPerformanceHandler implements DBHandler {
 	                collectionObj.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collId );
 	                collectionObj.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.parseLong(collectionsKpi.get(AJEntityBaseReports.TIME_SPENT).toString()));
 	                collectionObj.put(AJEntityBaseReports.VIEWS, Long.parseLong(collectionsKpi.get(AJEntityBaseReports.VIEWS).toString()));
-
-	                List<Map> collectionQuestionCount;
-	                collectionQuestionCount = Base.findAll(AJEntityBaseReports.GET_IL_ALL_COLLECTION_QUESTION_COUNT,
-	                        collId, userId);
-
-	                //If questions are not present then Question Count is always zero, however this additional check needs to be added
-	                //since during migration of data from 3.0 chances are that QC may be null instead of zero
-	                collectionQuestionCount.forEach(qc -> {
-	                	if (qc.get(AJEntityBaseReports.QUESTION_COUNT) != null) {
-	                		questionCount = Integer.valueOf(qc.get(AJEntityBaseReports.QUESTION_COUNT).toString());
-	                	} else {
-	                		this.questionCount = 0;
-	                	}
-	                  });
-
-	                double scoreInPercent = 0;
-	                if (questionCount > 0) {
-	                  Object collectionScore;
-	                  collectionScore = Base.firstCell(AJEntityBaseReports.GET_IL_ALL_COLLECTION_SCORE,
-	                          collId, userId);
-	                  if (collectionScore != null) {
-	                    scoreInPercent = (((Double.valueOf(collectionScore.toString())) / questionCount) * 100);
+	               
+	                List<Map> collectionScore = Base.findAll(AJEntityBaseReports.GET_IL_ALL_COLLECTION_SCORE,
+                          collId, userId);
+	                collectionScore.forEach(score -> {
+	                  double maxScore = Double.valueOf(score.get(AJEntityBaseReports.MAX_SCORE).toString());
+	                  if(maxScore > 0 && (score.get(AJEntityBaseReports.SCORE) != null)) {
+	                    double sumOfScore = Double.valueOf(score.get(AJEntityBaseReports.SCORE).toString());
+	                      LOGGER.debug("maxScore : {} , sumOfScore : {} ", maxScore, sumOfScore);
+	                      collectionObj.put(AJEntityBaseReports.ATTR_SCORE, ((sumOfScore / maxScore) * 100));
+	                  } else {
+	                    collectionObj.putNull(AJEntityBaseReports.ATTR_SCORE);
 	                  }
-	                  collectionObj.put(AJEntityBaseReports.ATTR_SCORE, Math.round(scoreInPercent));
-	                }else {
-	                	//If Collections have No Questions then score should be NULL
-	                	collectionObj.putNull(AJEntityBaseReports.ATTR_SCORE);
-	                }
+	                });
+	                
 	                Object title = Base.firstCell(AJEntityContent.GET_TITLE, collectionsKpi.get(AJEntityBaseReports.COLLECTION_OID).toString());
 	                collectionObj.put(JsonConstants.COLLECTION_TITLE, (title != null ? title.toString() : "NA"));
 	                ILPerfArray.add(collectionObj);

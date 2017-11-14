@@ -84,7 +84,7 @@ public class IndependentLearnerAssessmentPerfHandler implements DBHandler {
               qnData.put(JsonConstants.ANSWER_OBJECT, new JsonArray(questions.get(AJEntityBaseReports.ANSWER_OBECT).toString()));
               // FIXME :: it can be removed once we fix writer code.
               qnData.put(JsonConstants.RESOURCE_TYPE, JsonConstants.QUESTION);
-              qnData.put(JsonConstants.SCORE, Math.round(Double.valueOf(questions.get(AJEntityBaseReports.SCORE).toString())));
+              qnData.put(JsonConstants.SCORE, questions.get(AJEntityBaseReports.SCORE) != null ? Math.round(Double.valueOf(questions.get(AJEntityBaseReports.SCORE).toString())) : null);
               questionsArray.add(qnData);
             });
           }

@@ -192,6 +192,10 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_NU_COURSES_COMPETENCY_COMPLETION:
               result = getCoursesCompetencyCompletion();
               break;
+            case MessageConstants.MSG_OP_STUDENT_PERF_DAILY_TIMELY_CLASS_ACTIVITY:
+              result = getDCATeacherReport();
+              break;
+
             default:
                 LOGGER.error("Invalid operation type passed in, not able to handle");
                 return MessageResponseFactory
@@ -207,6 +211,19 @@ class MessageProcessor implements Processor {
 
     //************ DAILY CLASS ACTIVITY ******************************************************************************************
 
+    private MessageResponse getStudentPerfDailyClassActivity() {
+        try {
+              ProcessorContext context = createContext();
+              return new RepoBuilder().buildReportRepo(context).getStudPerfDailyClassActivity();
+
+          } catch (Throwable t) {
+              LOGGER.error("Exception while getting Student Performance in Daily Class Activity.", t);
+              return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+          }
+
+      }
+
+    
     private MessageResponse getStudentSummaryInDCACollection() {
     	try {
             ProcessorContext context = createContext();
@@ -271,6 +288,26 @@ class MessageProcessor implements Processor {
           }
 
       }
+    
+    private MessageResponse getDCATeacherReport() {
+        try {
+          ProcessorContext context = createContext();
+    
+          if (!checkClassId(context)) {
+            LOGGER.error("Class id not available to obtain Weekly/Monthly DCA Report. Aborting");
+            return MessageResponseFactory.createInvalidRequestResponse("Invalid classId");
+          }
+    
+          return new RepoBuilder().buildReportRepo(context).getDCAMonthlyTeacherReport();
+    
+        } catch (Throwable t) {
+          LOGGER.error("Exception while getting Weekly/Monthly DCA Report", t);
+          return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+        }
+    
+      }
+    
+  //*************************************************************************************************************************
 
       private MessageResponse getDataReports() {
         try {
@@ -1041,9 +1078,6 @@ class MessageProcessor implements Processor {
 
     }
 
-     //Mukul
-    //*********************************************************************************************************************
-
     private MessageResponse getIndependentLearnerSummaryInCollection() {
     	try {
             ProcessorContext context = createContext();
@@ -1167,17 +1201,6 @@ class MessageProcessor implements Processor {
 
       }
 
-    private MessageResponse getStudentPerfDailyClassActivity() {
-        try {
-              ProcessorContext context = createContext();
-              return new RepoBuilder().buildReportRepo(context).getStudPerfDailyClassActivity();
-
-          } catch (Throwable t) {
-              LOGGER.error("Exception while getting Student Performance in Daily Class Activity.", t);
-              return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
-          }
-
-      }
 
     private MessageResponse getStudentPerfCourseAssessments() {
         try {

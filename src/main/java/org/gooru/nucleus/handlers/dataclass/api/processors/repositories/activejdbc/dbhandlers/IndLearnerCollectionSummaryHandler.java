@@ -82,7 +82,7 @@ public class IndLearnerCollectionSummaryHandler implements DBHandler {
 	        if (!StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
 	          collectionMaximumScore = Base.findAll(AJEntityBaseReports.SELECT_IL_COLLECTION_MAX_SCORE, courseId,unitId,lessonId,collectionId,this.userId);
 	        }else{
-	          collectionMaximumScore = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_MAX_SCORE_, collectionId,this.userId);
+	          collectionMaximumScore = Base.findAll(AJEntityBaseReports.SELECT_IL_STANDALONE_COLLECTION_MAX_SCORE, collectionId,this.userId);
 	        }
 
 	        collectionMaximumScore.forEach(ms -> {
@@ -97,7 +97,7 @@ public class IndLearnerCollectionSummaryHandler implements DBHandler {
 	        if ( !StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
 	          lastAccessedTime = Base.findAll(AJEntityBaseReports.SELECT_COURSE_IL_COLLECTION_LAST_ACCESSED_TIME, courseId,unitId,lessonId,collectionId,this.userId);
 	        }else{
-	          lastAccessedTime = Base.findAll(AJEntityBaseReports.SELECT_IL_COLLECTION_LAST_ACCESSED_TIME, collectionId,this.userId);
+	          lastAccessedTime = Base.findAll(AJEntityBaseReports.SELECT_IL_STANDALONE_COLLECTION_LAST_ACCESSED_TIME, collectionId,this.userId);
 	        }
 
 	        if (!lastAccessedTime.isEmpty()) {
@@ -124,7 +124,7 @@ public class IndLearnerCollectionSummaryHandler implements DBHandler {
 	            assessmentData.put(EventConstants.EVENT_TIME, this.lastAccessedTime);
 	            assessmentData.put(EventConstants.SESSION_ID, EventConstants.NA);
 	            assessmentData.put(EventConstants.RESOURCE_TYPE, AJEntityBaseReports.ATTR_COLLECTION);
-	            assessmentData.put(JsonConstants.SCORE, Math.round(Double.valueOf(m.get(AJEntityBaseReports.SCORE).toString())));
+	            assessmentData.put(JsonConstants.SCORE, m.get(AJEntityBaseReports.SCORE) != null ? Math.round(Double.valueOf(m.get(AJEntityBaseReports.SCORE).toString())) : null);
 
 	            double scoreInPercent=0;
 	            int reaction=0;
@@ -132,7 +132,7 @@ public class IndLearnerCollectionSummaryHandler implements DBHandler {
               if (!StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
                collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_IL_COLLECTION_AGG_SCORE, courseId,unitId,lessonId,collectionId,this.userId);
               }else{
-               collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_SCORE_,collectionId,this.userId);
+               collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_IL_STANDALONE_COLLECTION_AGG_SCORE,collectionId,this.userId);
               }
 
               if(collectionScore != null && (this.maxScore > 0)){
@@ -175,13 +175,13 @@ public class IndLearnerCollectionSummaryHandler implements DBHandler {
 	              if(qnData.getString(EventConstants.RESOURCE_TYPE).equalsIgnoreCase(EventConstants.QUESTION)){
 	                qnData.put(EventConstants.ANSWERSTATUS, EventConstants.SKIPPED);
 	              }
-	              qnData.put(JsonConstants.SCORE, Math.round(Double.valueOf(questions.get(AJEntityBaseReports.SCORE).toString())));
+	              qnData.put(JsonConstants.SCORE, questions.get(AJEntityBaseReports.SCORE) != null ? Math.round(Double.valueOf(questions.get(AJEntityBaseReports.SCORE).toString())) : null);
 	          
 	              List<Map> questionScore;
                 if (!StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
                   questionScore = Base.findAll(AJEntityBaseReports.SELECT_IL_COLLECTION_QUESTION_AGG_SCORE, courseId,unitId,lessonId,collectionId,questions.get(AJEntityBaseReports.RESOURCE_ID),this.userId);
                 }else{
-                  questionScore = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_QUESTION_AGG_SCORE_, collectionId,
+                  questionScore = Base.findAll(AJEntityBaseReports.SELECT_IL_STANDALONE_COLLECTION_QUESTION_AGG_SCORE, collectionId,
                       questions.get(AJEntityBaseReports.RESOURCE_ID),this.userId);
                 }
                 if(!questionScore.isEmpty()){
@@ -190,7 +190,7 @@ public class IndLearnerCollectionSummaryHandler implements DBHandler {
                         ? new JsonArray(qs.get(AJEntityBaseReports.ANSWER_OBECT).toString()) : null);
                     //Rubrics - Score may be NULL only incase of OE questions
                     qnData.put(JsonConstants.SCORE, qs.get(AJEntityBaseReports.SCORE) != null ?
-                        Math.round(Double.valueOf(qs.get(AJEntityBaseReports.SCORE).toString()) * 100) : "NA");
+                        Math.round(Double.valueOf(qs.get(AJEntityBaseReports.SCORE).toString()) * 100) : null);
                   qnData.put(EventConstants.ANSWERSTATUS, qs.get(AJEntityBaseReports.ATTR_ATTEMPT_STATUS).toString());
                 });
                 }
