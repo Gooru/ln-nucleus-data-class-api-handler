@@ -16,7 +16,6 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResp
 import org.javalite.activejdbc.Base;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -25,6 +24,9 @@ public class SessionTaxonomyReportHandler implements DBHandler {
   private static final Logger LOGGER = LoggerFactory.getLogger(SessionTaxonomyReportHandler.class);
 
   private final ProcessorContext context;
+  private double maxScore = 0;
+  private Object taxScore;
+  private double scoreInPercent;
 
   SessionTaxonomyReportHandler(ProcessorContext context) {
     this.context = context;
@@ -50,6 +52,7 @@ public class SessionTaxonomyReportHandler implements DBHandler {
   public ExecutionResult<MessageResponse> executeRequest() {
     JsonArray taxonomyKpiArray = new JsonArray();
     JsonObject result = new JsonObject();
+    
     List<Map> sessionTaxonomyResults = Base.findAll(AJEntityCompetencyReport.SELECT_BASE_REPORT_IDS, this.context.sessionId());
     if (!sessionTaxonomyResults.isEmpty()) {
       sessionTaxonomyResults.forEach(taxonomyRow -> {
@@ -64,16 +67,33 @@ public class SessionTaxonomyReportHandler implements DBHandler {
         }
 
         LOGGER.debug("Base Reports Id : {}", listToPostgresArrayInteger(taxonomyRow.get(AJEntityCompetencyReport.BASE_REPORT_ID).toString()));
+
+        List<Map> taxonomyMaximumScore;
+          taxonomyMaximumScore = Base.findAll(AJEntityCompetencyReport.SELECT_TAXONOMY_MAX_SCORE, 
+        		  listToPostgresArrayInteger(taxonomyRow.get(AJEntityCompetencyReport.BASE_REPORT_ID).toString()));
+
+        taxonomyMaximumScore.forEach(ms -> {
+        	if (ms.get(AJEntityBaseReports.MAX_SCORE) != null) {
+        		this.maxScore = Double.valueOf(ms.get(AJEntityBaseReports.MAX_SCORE).toString());
+        	} else {
+        		this.maxScore = 0;
+        	}
+        });
+        
         List<Map> aggTaxonomyResults = Base.findAll(AJEntityCompetencyReport.GET_AGG_TAX_DATA,
-                listToPostgresArrayInteger(taxonomyRow.get(AJEntityCompetencyReport.BASE_REPORT_ID).toString()));
+                listToPostgresArrayInteger(taxonomyRow.get(AJEntityCompetencyReport.BASE_REPORT_ID).toString()));        
 
         if (!aggTaxonomyResults.isEmpty()) {
           aggTaxonomyResults.forEach(aggData -> {
             aggResult.put(JsonConstants.TIMESPENT, Long.valueOf(aggData.get(AJEntityBaseReports.TIME_SPENT).toString()));
-            aggResult.put(JsonConstants.REACTION, Integer.valueOf(aggData.get(AJEntityBaseReports.REACTION).toString()));
-            aggResult.put(JsonConstants.SCORE, aggData.get(AJEntityBaseReports.SCORE) != null ? 
-            		Math.round(Double.valueOf(aggData.get(AJEntityBaseReports.SCORE).toString())) : null);            
-
+            aggResult.put(JsonConstants.REACTION, Integer.valueOf(aggData.get(AJEntityBaseReports.REACTION).toString()));            
+            taxScore = aggData.get(AJEntityBaseReports.SCORE);            
+            if(taxScore != null && (this.maxScore > 0)){
+            	scoreInPercent =  ((Double.valueOf(taxScore.toString()) / this.maxScore) * 100);
+            	aggResult.put(JsonConstants.SCORE, Math.round(scoreInPercent));
+            } else {
+            	  aggResult.putNull(AJEntityBaseReports.SCORE);
+            }
           });
         }
         List<Map> sessionTaxonomyQuestionResults = Base.findAll(AJEntityCompetencyReport.GET_QUESTIONS_TAX_PERF,
@@ -105,7 +125,7 @@ public class SessionTaxonomyReportHandler implements DBHandler {
       return "{}";
     } else {
       int approxSize = (in.length() + 3);
-      String sb = "{" + in + '}';
+      String sb = "{" + in + "}";
       return sb;
     }
   }
