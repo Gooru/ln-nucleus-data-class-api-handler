@@ -189,6 +189,9 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_DCA_STUDENT_ASSESSMENT_PERF:
                 result = getStudentPerfInDCAAssessment();
                   break;
+            case MessageConstants.MSG_OP_DCA_STUDENT_ASSESSMENT_ALL_SESSIONS:
+                result = getStudDCAAssessmentSessions();
+                  break;
             case MessageConstants.MSG_OP_NU_DATA_REPORT:
                 result = getDataReports();
                 break;
@@ -331,6 +334,25 @@ class MessageProcessor implements Processor {
               return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
           }    	
     }
+    
+    private MessageResponse getStudDCAAssessmentSessions() {
+    	try {
+            ProcessorContext context = createContext();
+
+            if (!checkCollectionId(context)) {
+                LOGGER.error("Collection id not available to obtain User Sessions. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid collectionId");
+            }
+
+            return new RepoBuilder().buildReportRepo(context).getStudentDCAAssessmentSessions();
+
+        } catch (Throwable t) {
+            LOGGER.error("Exception while getting User Sessions for Assessment", t);
+            return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+        }
+
+    }
+    
   //*************************************************************************************************************************
 
       private MessageResponse getDataReports() {

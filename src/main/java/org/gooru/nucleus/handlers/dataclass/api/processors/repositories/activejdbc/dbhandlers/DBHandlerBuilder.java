@@ -219,6 +219,10 @@ public final class DBHandlerBuilder {
     	return new StudentDCAAssessmentPerfHandler(context);
     }
     
+    public static DBHandler buildStudentDCAAssessmentSessionsHandler (ProcessorContext context) {
+    	return new StudDCAAssessmentSessionHandler(context);
+    }
+    
     public static DBHandler buildDCAMonthlyTeacherReportHandler(ProcessorContext context) {
         return new DCAMonthlyTeacherReportHandler(context);
       }
