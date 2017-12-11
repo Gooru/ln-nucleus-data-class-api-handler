@@ -216,7 +216,11 @@ public final class DBHandlerBuilder {
     }
     
     public static DBHandler buildStudentDCAAssessmentPerformanceHandler (ProcessorContext context) {
-    	return new StudentDCAAssessmentPerfHandler(context);
+    	return new StudDCAAssessmentPerfHandler(context);
+    }
+    
+    public static DBHandler buildStudentDCACollectionPerformanceHandler (ProcessorContext context) {
+    	return new StudDCACollectionPerfHandler(context);
     }
     
     public static DBHandler buildStudentDCAAssessmentSessionsHandler (ProcessorContext context) {

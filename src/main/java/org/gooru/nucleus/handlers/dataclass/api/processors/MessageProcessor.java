@@ -189,6 +189,9 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_DCA_STUDENT_ASSESSMENT_PERF:
                 result = getStudentPerfInDCAAssessment();
                   break;
+            case MessageConstants.MSG_OP_DCA_STUDENT_COLLECTION_PERF:
+                result = getStudentPerfInDCACollection();
+                  break;
             case MessageConstants.MSG_OP_DCA_STUDENT_ASSESSMENT_ALL_SESSIONS:
                 result = getStudDCAAssessmentSessions();
                   break;
@@ -331,6 +334,28 @@ class MessageProcessor implements Processor {
 
           } catch (Throwable t) {
               LOGGER.error("Exception while getting Student performance in a DCA Assessment", t);
+              return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+          }    	
+    }
+    
+    private MessageResponse getStudentPerfInDCACollection() {
+    	
+    	try {
+            ProcessorContext context = createContext();
+      
+            if (!checkClassId(context)) {
+              LOGGER.error("Class id not available to obtain Student DCA Collection Performance. Aborting");
+              return MessageResponseFactory.createInvalidRequestResponse("Invalid classId");
+            }
+      
+            if (!checkCollectionId(context)) {
+                LOGGER.error("CollectionId not available to obtain Student DCA Collection Performance. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid collectionId");
+              }
+              return new RepoBuilder().buildReportRepo(context).getStudentPerformanceInDCACollection();
+
+          } catch (Throwable t) {
+              LOGGER.error("Exception while getting Student performance in a DCA Collection", t);
               return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
           }    	
     }

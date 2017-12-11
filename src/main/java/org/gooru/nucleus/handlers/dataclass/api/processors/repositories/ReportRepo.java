@@ -114,6 +114,8 @@ public interface ReportRepo {
     
     MessageResponse getStudentPerformanceInDCAAssessment();
     
+    MessageResponse getStudentPerformanceInDCACollection();
+    
     MessageResponse getDCAMonthlyTeacherReport();
     
     MessageResponse getStudentDCAAssessmentSessions();
