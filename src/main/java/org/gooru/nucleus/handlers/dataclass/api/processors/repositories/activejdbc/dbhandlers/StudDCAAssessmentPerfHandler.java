@@ -26,9 +26,9 @@ import com.hazelcast.util.StringUtil;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
-public class StudentDCAAssessmentPerfHandler implements DBHandler {
+public class StudDCAAssessmentPerfHandler implements DBHandler {
 	
-	private static final Logger LOGGER = LoggerFactory.getLogger(StudentDCAAssessmentPerfHandler.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(StudDCAAssessmentPerfHandler.class);
 	private static final String REQUEST_USERID = "userId";
 	private static final String START_DATE = "startDate";
 	private static final String END_DATE = "endDate";
@@ -36,7 +36,7 @@ public class StudentDCAAssessmentPerfHandler implements DBHandler {
 	//private static final String REQUEST_USERID = "userUid";
     private final ProcessorContext context;
 
-    public StudentDCAAssessmentPerfHandler(ProcessorContext context) {
+    public StudDCAAssessmentPerfHandler(ProcessorContext context) {
         this.context = context;
     }
 
@@ -91,9 +91,9 @@ public class StudentDCAAssessmentPerfHandler implements DBHandler {
 
     List<String> userIds = new ArrayList<>();
     if (this.context.classId() != null && StringUtil.isNullOrEmpty(userId)) {
-      LOGGER.warn("UserID is not in the request to fetch Student Performance in Lesson. Assume user is a teacher");
+      LOGGER.warn("UserID is not in the request to fetch Student Performance in DCA Collection. Assume user is a teacher");
       LazyList<AJEntityDailyClassActivity> userIdforlesson =
-              AJEntityDailyClassActivity.findBySQL(AJEntityDailyClassActivity.SELECT_DISTINCT_USERID_FOR_COLLECTION_ID_FILTERBY_COLLTYPE, context.classId(),
+              AJEntityDailyClassActivity.findBySQL(AJEntityDailyClassActivity.SELECT_DISTINCT_USERID_FOR_ASSESSMENT_ID_FILTERBY_COLLTYPE, context.classId(),
                       context.collectionId(), collectionType, startDate, endDate);
       userIdforlesson.forEach(coll -> userIds.add(coll.getString(AJEntityDailyClassActivity.GOORUUID)));
     } else {

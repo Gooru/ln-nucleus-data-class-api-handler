@@ -242,7 +242,7 @@ public class AJEntityDailyClassActivity extends Model{
     
     //***************************************************************************************
     //STUDENT PERFORMANCE in Assessment    
-    public static final String SELECT_DISTINCT_USERID_FOR_COLLECTION_ID_FILTERBY_COLLTYPE =
+    public static final String SELECT_DISTINCT_USERID_FOR_ASSESSMENT_ID_FILTERBY_COLLTYPE =
             "SELECT DISTINCT(actor_id) FROM daily_class_activity "
             + "WHERE class_id = ? AND collection_id = ? AND collection_type =? AND date_in_time_zone BETWEEN ? AND ?";
 
@@ -258,6 +258,14 @@ public class AJEntityDailyClassActivity extends Model{
             + "from daily_class_activity WHERE collection_id = ? AND session_id = ? AND event_name = ? AND event_type = 'stop' ";
   
     //*****************************************************************************************************************************
+    //Collection Performance Report Queries
+    
+    //STUDENT PERFORMANCE in Assessment    
+    public static final String SELECT_DISTINCT_USERID_FOR_COLLECTION_ID_FILTERBY_COLLTYPE =
+            "SELECT DISTINCT(actor_id) FROM daily_class_activity "
+            + "WHERE class_id = ? AND collection_id = ? AND collection_type = ? AND date_in_time_zone = ?";
+    
+    //**************************************************************************************************************************************************     
     
     //GET SESSION STATUS
     
