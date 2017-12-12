@@ -54,17 +54,27 @@ public class StudDCAAssessmentSummaryHandler implements DBHandler {
 	    @Override
 	    @SuppressWarnings("rawtypes")
 	    public ExecutionResult<MessageResponse> validateRequest() {
-	      if (context.getUserIdFromRequest() == null
-	              || (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
-	        List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, this.context.classId(), this.context.userIdFromSession());
-	        if (owner.isEmpty()) {
-	            LOGGER.debug("validateRequest() FAILED");
-	            return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"), ExecutionStatus.FAILED);
+	        if (context.getUserIdFromRequest() == null
+	                || (!context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
+	          LOGGER.debug("Request by Teacher/collaborator....");
+	          this.sessionId = this.context.request().getString(REQUEST_SESSION_ID);
+	          LOGGER.debug("The Session Id is: " + this.sessionId );
+	          Object classID = Base.firstCell(AJEntityDailyClassActivity.SELECT_CLASS_BY_SESSION_ID,context.collectionId(), sessionId);
+	          LOGGER.debug("classID : {}", classID);
+	          if (classID == null) {
+	            LOGGER.error("validateRequest() FAILED, No Class Association found.");
+	            return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("No Class Associated. DCA data can't be fetched by teacher/collaborator"),
+	                    ExecutionStatus.FAILED);
+	          } else {
+	            List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER,classID, this.context.userIdFromSession());
+	            if (owner.isEmpty()) {
+	              LOGGER.error("validateRequest() FAILED, User is not a Teacher");
+	              return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"), ExecutionStatus.FAILED);
+	            }
+	          }
 	        }
-	      }
-	      
-	      LOGGER.debug("validateRequest() OK");
-	      return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
+	        LOGGER.debug("validateRequest() OK");
+	        return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
 	    }
 
 	    @Override
