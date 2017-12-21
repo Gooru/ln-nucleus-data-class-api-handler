@@ -57,10 +57,9 @@ public class StudDCAAssessmentSummaryHandler implements DBHandler {
 	        if (context.getUserIdFromRequest() == null
 	                || (!context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
 	          LOGGER.debug("Request by Teacher/collaborator....");
-	          this.sessionId = this.context.request().getString(REQUEST_SESSION_ID);
-	          LOGGER.debug("The Session Id is: " + this.sessionId );
+	          this.sessionId = this.context.request().getString(REQUEST_SESSION_ID);	          
 	          Object classID = Base.firstCell(AJEntityDailyClassActivity.SELECT_CLASS_BY_SESSION_ID,context.collectionId(), sessionId);
-	          LOGGER.debug("classID : {}", classID);
+
 	          if (classID == null) {
 	            LOGGER.error("validateRequest() FAILED, No Class Association found.");
 	            return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("No Class Associated. DCA data can't be fetched by teacher/collaborator"),
@@ -83,25 +82,26 @@ public class StudDCAAssessmentSummaryHandler implements DBHandler {
 	      JsonObject resultBody = new JsonObject();
 	      JsonObject assessmentDataKPI = new JsonObject();
 		  String userId = context.getUserIdFromRequest();
-
-	      LOGGER.debug("UID is " + userId);
+	      
 	      this.sessionId = this.context.request().getString(REQUEST_SESSION_ID);
 	      JsonArray contentArray = new JsonArray();
 	      
 	      String aDate = this.context.request().getString(DATE);
 
 	      if (StringUtil.isNullOrEmpty(aDate)) {
-	        LOGGER.warn("Start Date and End Date are mandatory to fetch Student Performance in Daily Class Activity.");
+	        LOGGER.warn("Date is mandatory to fetch Student Performance in Daily Class Activity.");
 	        return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse(
-	                "Start Date and End Date are Missing. Cannot fetch Student Performance in Daily Class Activity"), ExecutionStatus.FAILED);
+	                "Date is Missing. Cannot fetch Student Performance in Daily Class Activity"), ExecutionStatus.FAILED);
 
 	      }
 	      Date assessmentDate = Date.valueOf(aDate);
 	      LOGGER.debug("The assessment Id " + assessmentDate);
 	      
 	      if (!StringUtil.isNullOrEmpty(sessionId)) {
-	        List<Map> assessmentKPI = Base.findAll(AJEntityDailyClassActivity.SELECT_ASSESSMENT_FOREACH_COLLID_AND_SESSION_ID, context.collectionId(), sessionId , AJEntityDailyClassActivity.ATTR_CP_EVENTNAME);
-	        Object assessmentReactionObject =  Base.firstCell(AJEntityDailyClassActivity.SELECT_ASSESSMENT_REACTION_AND_SESSION_ID, context.collectionId(), sessionId);
+	        List<Map> assessmentKPI = Base.findAll(AJEntityDailyClassActivity.SELECT_ASSESSMENT_FOREACH_COLLID_AND_SESSION_ID, context.collectionId(), 
+	        		sessionId , userId, assessmentDate, AJEntityDailyClassActivity.ATTR_CP_EVENTNAME);
+	        Object assessmentReactionObject =  Base.firstCell(AJEntityDailyClassActivity.SELECT_ASSESSMENT_REACTION_AND_SESSION_ID, 
+	        		context.collectionId(), sessionId, userId);
 
 	        LOGGER.info("cID : {} , SID : {} ", context.collectionId(), sessionId);
 	        if (!assessmentKPI.isEmpty()) {

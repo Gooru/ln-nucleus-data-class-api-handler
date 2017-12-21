@@ -142,12 +142,12 @@ public class AJEntityDailyClassActivity extends Model{
             + "collection_id,FIRST_VALUE(reaction) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS reaction,"
             + "FIRST_VALUE(time_spent) OVER (PARTITION BY collection_id ORDER BY updated_at desc) as collectionTimeSpent,"
             + "updated_at,session_id,collection_type,FIRST_VALUE(views) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS collectionViews "
-            + "from daily_class_activity WHERE collection_id = ? AND session_id = ? AND event_name = ? ";
+            + "from daily_class_activity WHERE collection_id = ? AND session_id = ? AND actor_id = ? AND date_in_time_zone = ? AND event_name = ? ";
     
     public static final String SELECT_ASSESSMENT_REACTION_AND_SESSION_ID = "SELECT round(avg(data.reaction)) as reaction FROM "
             + "(SELECT DISTINCT ON (resource_id) collection_id, "
             + "FIRST_VALUE(reaction) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS reaction "
-            + "FROM daily_class_activity where collection_id = ? AND session_id = ? AND reaction > 0 "
+            + "FROM daily_class_activity where collection_id = ? AND session_id = ? AND actor_id = ? AND reaction > 0 "
             + "AND event_name = 'reaction.create') AS data group by data.collection_id;";
     
     public static final String SELECT_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSION_ID_FOR_SUMMARY =
