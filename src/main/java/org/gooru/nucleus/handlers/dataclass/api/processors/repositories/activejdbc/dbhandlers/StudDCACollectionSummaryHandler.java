@@ -10,7 +10,7 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.converters.ResponseAttributeIdentifier;
-
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityDailyClassActivity;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.converters.ValueMapper;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
@@ -56,11 +56,14 @@ public class StudDCACollectionSummaryHandler implements DBHandler {
   @Override
   @SuppressWarnings("rawtypes")
   public ExecutionResult<MessageResponse> validateRequest() {
-    if (context.getUserIdFromRequest() == null
-            || (!context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
-                LOGGER.debug("validateRequest() FAILED");
-          return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User Auth Failed"), ExecutionStatus.FAILED);
-    }
+      if (context.getUserIdFromRequest() == null
+              || (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
+        List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, this.context.classId(), this.context.userIdFromSession());
+        if (owner.isEmpty()) {
+            LOGGER.debug("validateRequest() FAILED");
+            return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"), ExecutionStatus.FAILED);
+        }
+      }
     LOGGER.debug("validateRequest() OK");
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
   }
@@ -71,8 +74,7 @@ public class StudDCACollectionSummaryHandler implements DBHandler {
     JsonObject resultBody = new JsonObject();
     JsonObject assessmentDataKPI = new JsonObject();
 
-    this.userId = context.getUserIdFromRequest();
-    LOGGER.debug("User ID is " + this.userId);
+    this.userId = context.getUserIdFromRequest();    
     String classId = context.request().getString(MessageConstants.CLASS_ID);
     // For DCA activities, the summary report should be fetched based only on
     // classId and collectionId. (CourseId, UnitId and lessonId are not expected)
@@ -97,9 +99,7 @@ public class StudDCACollectionSummaryHandler implements DBHandler {
                 ExecutionStatus.FAILED);
 
       }
-
-    LOGGER.debug("cID : {} , ClassID : {} ", collectionId, classId);
-
+    
     Date date = Date.valueOf(todayDate);
   
       if (!StringUtil.isNullOrEmpty(classId) && !StringUtil.isNullOrEmpty(collectionId)) {
@@ -158,8 +158,7 @@ public class StudDCACollectionSummaryHandler implements DBHandler {
 
           if(collectionReaction != null){
             reaction = Integer.valueOf(collectionReaction.toString());
-          }
-          LOGGER.debug("Collection reaction : {} - collectionId : {}" , reaction, collectionId);
+          }    
           assessmentData.put(AJEntityDailyClassActivity.ATTR_REACTION, (reaction));
           assessmentDataKPI.put(JsonConstants.COLLECTION, assessmentData);
         });
@@ -223,8 +222,7 @@ public class StudDCACollectionSummaryHandler implements DBHandler {
         }
         assessmentDataKPI.put(JsonConstants.RESOURCES, questionsArray);
         LOGGER.debug("Collection Attributes obtained");
-        contentArray.add(assessmentDataKPI);
-        LOGGER.debug("Done");
+        contentArray.add(assessmentDataKPI);        
       } else {
         LOGGER.info("Collection Attributes cannot be obtained");
       }

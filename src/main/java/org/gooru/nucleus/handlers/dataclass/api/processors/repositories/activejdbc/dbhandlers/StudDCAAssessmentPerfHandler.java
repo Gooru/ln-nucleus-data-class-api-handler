@@ -32,8 +32,7 @@ public class StudDCAAssessmentPerfHandler implements DBHandler {
 	private static final String REQUEST_USERID = "userId";
 	private static final String START_DATE = "startDate";
 	private static final String END_DATE = "endDate";
-
-	//private static final String REQUEST_USERID = "userUid";
+	
     private final ProcessorContext context;
 
     public StudDCAAssessmentPerfHandler(ProcessorContext context) {
@@ -56,14 +55,14 @@ public class StudDCAAssessmentPerfHandler implements DBHandler {
     @Override
     @SuppressWarnings("rawtypes")
     public ExecutionResult<MessageResponse> validateRequest() {
-//      if (context.getUserIdFromRequest() == null
-//              || (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
-//        List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, this.context.classId(), this.context.userIdFromSession());
-//        if (owner.isEmpty()) {
-//            LOGGER.debug("validateRequest() FAILED");
-//            return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"), ExecutionStatus.FAILED);
-//        }
-//      }
+      if (context.getUserIdFromRequest() == null
+              || (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
+        List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, this.context.classId(), this.context.userIdFromSession());
+        if (owner.isEmpty()) {
+            LOGGER.debug("validateRequest() FAILED");
+            return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"), ExecutionStatus.FAILED);
+        }
+      }
       LOGGER.debug("validateRequest() OK");
       return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
     }
@@ -72,8 +71,7 @@ public class StudDCAAssessmentPerfHandler implements DBHandler {
     @SuppressWarnings("rawtypes")
   public ExecutionResult<MessageResponse> executeRequest() {
     JsonObject resultBody = new JsonObject();
-    JsonArray resultarray = new JsonArray();
-    JsonObject assessmentDataKPI = new JsonObject();
+    JsonArray resultarray = new JsonArray();   
 
     
     String sDate = this.context.request().getString(START_DATE);
@@ -113,13 +111,14 @@ public class StudDCAAssessmentPerfHandler implements DBHandler {
         JsonObject contentBody = new JsonObject();
         studentLatestAttempt.forEach(attempts -> {
         	String sessionId = attempts.get(AJEntityDailyClassActivity.SESSION_ID).toString();
+        	LOGGER.debug("latestSessionId : " + attempts.get(AJEntityDailyClassActivity.SESSION_ID).toString());
 	        List<Map> assessmentKPI = Base.findAll(AJEntityDailyClassActivity.SELECT_ASSESSMENT_FOREACH_COLLID_AND_SESSION_ID, context.collectionId(), 
 	        		sessionId , userID, startDate, AJEntityDailyClassActivity.ATTR_CP_EVENTNAME);
 	        Object assessmentReactionObject =  Base.firstCell(AJEntityDailyClassActivity.SELECT_ASSESSMENT_REACTION_AND_SESSION_ID, 
 	        		context.collectionId(), sessionId, userID);
 	        
         	if (!assessmentKPI.isEmpty()) {
-		          LOGGER.debug("Assessment Attributes obtained");
+		          JsonObject assessmentDataKPI = new JsonObject();
 		          assessmentKPI.forEach(m -> {
 		            JsonObject assessmentData = ValueMapper.map(ResponseAttributeIdentifier.getSessionDCAAssessmentAttributesMap(), m);
 		            assessmentData.put(JsonConstants.SCORE, m.get(AJEntityDailyClassActivity.SCORE) != null ? 
@@ -127,12 +126,10 @@ public class StudDCAAssessmentPerfHandler implements DBHandler {
 		            assessmentData.put(JsonConstants.REACTION, assessmentReactionObject != null ? ((Number)assessmentReactionObject).intValue() : 0);	            
 		            assessmentDataKPI.put(JsonConstants.ASSESSMENT, assessmentData);
 		          });
-
-		          LOGGER.debug("Assessment question Attributes started");
-      	
+		          
         List<Map> assessmentQuestionsKPI = Base.findAll(AJEntityDailyClassActivity.SELECT_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSION_ID,context.collectionId(),
                 attempts.get(AJEntityDailyClassActivity.SESSION_ID).toString(), AJEntityDailyClassActivity.ATTR_CRP_EVENTNAME);
-        LOGGER.debug("latestSessionId : " + attempts.get(AJEntityDailyClassActivity.SESSION_ID));
+        
         JsonArray questionsArray = new JsonArray();
         if (!assessmentQuestionsKPI.isEmpty()) {
           assessmentQuestionsKPI.forEach(questions -> {
@@ -150,9 +147,8 @@ public class StudDCAAssessmentPerfHandler implements DBHandler {
           });
         }        
         assessmentDataKPI.put(JsonConstants.QUESTIONS, questionsArray);
-        LOGGER.debug("Assessment question Attributes obtained");
         contentArray.add(assessmentDataKPI);
-        contentBody.put(JsonConstants.USAGE_DATA, contentArray).put(JsonConstants.USERUID, userID);        	
+        contentBody.put(JsonConstants.USAGE_DATA, contentArray).put(JsonConstants.USERUID, userID);
         } // AssessmentKPI End
         }); //Before this
         resultarray.add(contentBody);
@@ -163,7 +159,6 @@ public class StudDCAAssessmentPerfHandler implements DBHandler {
     }
     resultBody.put(JsonConstants.CONTENT, resultarray);
     return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
-
   }
 
     @Override
