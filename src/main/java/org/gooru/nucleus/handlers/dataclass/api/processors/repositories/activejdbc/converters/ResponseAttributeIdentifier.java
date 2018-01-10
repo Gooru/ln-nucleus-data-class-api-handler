@@ -85,7 +85,7 @@ public final class ResponseAttributeIdentifier {
         // sessionDCAAssessmentQuestionAttributes.put("reaction", "reaction");
         sessionDCAAssessmentQuestionAttributes.put("resourceTimeSpent", "timeSpent");
         sessionDCAAssessmentQuestionAttributes.put("updated_at", "eventTime");
-        sessionDCAAssessmentQuestionAttributes.put("session_id", "sessionId");
+        //sessionDCAAssessmentQuestionAttributes.put("session_id", "sessionId");
         sessionDCAAssessmentQuestionAttributes.put("resource_type", "resourceType");
         sessionDCAAssessmentQuestionAttributes.put("question_type", "questionType");
         sessionDCAAssessmentQuestionAttributes.put("resourceViews", "views");

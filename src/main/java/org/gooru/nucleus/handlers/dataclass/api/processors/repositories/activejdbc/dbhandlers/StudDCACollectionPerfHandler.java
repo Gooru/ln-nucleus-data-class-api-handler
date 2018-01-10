@@ -33,8 +33,9 @@ public class StudDCACollectionPerfHandler implements DBHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(StudDCACollectionPerfHandler.class);
 	private static final String REQUEST_USERID = "userId";
 	private static final String DATE = "date";
+	private double maxScore = 0 ;
 	private long lastAccessedTime;	  
-
+	
     private final ProcessorContext context;
     public StudDCACollectionPerfHandler(ProcessorContext context) {
         this.context = context;
@@ -56,14 +57,14 @@ public class StudDCACollectionPerfHandler implements DBHandler {
     @Override
     @SuppressWarnings("rawtypes")
     public ExecutionResult<MessageResponse> validateRequest() {
-//      if (context.getUserIdFromRequest() == null
-//              || (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
-//        List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, this.context.classId(), this.context.userIdFromSession());
-//        if (owner.isEmpty()) {
-//            LOGGER.debug("validateRequest() FAILED");
-//            return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"), ExecutionStatus.FAILED);
-//        }
-//      }
+      if (context.getUserIdFromRequest() == null
+              || (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
+        List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, this.context.classId(), this.context.userIdFromSession());
+        if (owner.isEmpty()) {
+            LOGGER.debug("validateRequest() FAILED");
+            return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"), ExecutionStatus.FAILED);
+        }
+      }
       LOGGER.debug("validateRequest() OK");
       return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
     }
@@ -78,11 +79,6 @@ public class StudDCACollectionPerfHandler implements DBHandler {
     // For DCA activities, the summary report should be fetched based only on
     // classId and collectionId. (CourseId, UnitId and lessonId are not expected)    
     String collectionId = context.collectionId();
-    LOGGER.info("The classId is " + classId);
-    LOGGER.info("The collectionId is " + collectionId);
-    
-    LOGGER.info("The class Id from context is " + context.classId());
-    //JsonArray contentArray = new JsonArray();
 
     // For DCA activities, the summary report should be fetched based only on classId and collectionId. (CourseId, UnitId and lessonId are not expected)
     if (StringUtil.isNullOrEmpty(classId)) {
@@ -103,9 +99,6 @@ public class StudDCACollectionPerfHandler implements DBHandler {
     Date date = Date.valueOf(tDate);    
     String collectionType = "collection";
     String userId = this.context.request().getString(REQUEST_USERID);
-    
-    LOGGER.debug("Date is " + date);
-    LOGGER.debug("Collection Type is " + collectionType);
 
     List<String> userIds = new ArrayList<>();
     if (context.classId() != null && StringUtil.isNullOrEmpty(userId)) {
@@ -118,9 +111,58 @@ public class StudDCACollectionPerfHandler implements DBHandler {
       userIds.add(userId);
     }
 
-    LOGGER.debug("UID is " + userId);
-    for (String userID : userIds) {      
-      JsonObject contentBody = new JsonObject();
+    for (String userID : userIds) {
+      JsonArray contentArray = new JsonArray();
+      List<Map> collectionMaximumScore;
+        collectionMaximumScore = Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_MAX_SCORE, classId, collectionId, userID, date);
+
+      collectionMaximumScore.forEach(ms -> {
+      	if (ms.get(AJEntityDailyClassActivity.MAX_SCORE) != null) {
+      		this.maxScore = Double.valueOf(ms.get(AJEntityDailyClassActivity.MAX_SCORE).toString());
+      	} else {
+      		this.maxScore = 0;
+      	}
+      });
+      
+      List<Map> collectionData;
+        collectionData = Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_AGG_DATA, classId, collectionId, userID, date);
+
+      if (!collectionData.isEmpty()) {
+    	JsonObject contentBody = new JsonObject();  
+        LOGGER.debug("Collection Attributes obtained");
+        JsonObject collectionDataKPI = new JsonObject();
+        collectionData.forEach(m -> {
+          JsonObject colData = ValueMapper.map(ResponseAttributeIdentifier.getSessionDCACollectionAttributesMap(), m);
+          colData.put(EventConstants.EVENT_TIME, this.lastAccessedTime);
+          colData.put(EventConstants.SESSION_ID, EventConstants.NA);
+          colData.put(EventConstants.COLLECTION_TYPE, AJEntityDailyClassActivity.ATTR_COLLECTION);
+          colData.put(JsonConstants.SCORE, m.get(AJEntityDailyClassActivity.SCORE) != null ? 
+          		Math.round(Double.valueOf(m.get(AJEntityDailyClassActivity.SCORE).toString())) : null);
+
+          //With Rubrics Score can be Null (for FR questions)
+          double scoreInPercent;
+          int reaction=0;
+            Object collectionScore;
+             collectionScore = Base.firstCell(AJEntityDailyClassActivity.SELECT_COLLECTION_AGG_SCORE, classId, collectionId, userID, date);
+
+            if(collectionScore != null && (this.maxScore > 0)){
+              scoreInPercent =  ((Double.valueOf(collectionScore.toString()) / this.maxScore) * 100);
+              colData.put(AJEntityDailyClassActivity.SCORE, Math.round(scoreInPercent));
+            } else {
+          	  colData.putNull(AJEntityDailyClassActivity.SCORE);
+            }
+            
+          Object collectionReaction;
+            collectionReaction = Base.firstCell(AJEntityDailyClassActivity.SELECT_COLLECTION_AGG_REACTION, classId, collectionId, userID, date);
+            
+          if(collectionReaction != null){
+            reaction = Integer.valueOf(collectionReaction.toString());
+          }
+    
+          colData.put(AJEntityDailyClassActivity.ATTR_REACTION, (reaction));
+          collectionDataKPI.put(JsonConstants.COLLECTION, colData);
+        });
+      
           LOGGER.debug("Collection resource Attributes started");
           List<Map> assessmentQuestionsKPI;
             assessmentQuestionsKPI = Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_RESOURCE_AGG_DATA,
@@ -130,9 +172,6 @@ public class StudDCACollectionPerfHandler implements DBHandler {
           if(!assessmentQuestionsKPI.isEmpty()){
             assessmentQuestionsKPI.forEach(questions -> {
               JsonObject qnData = ValueMapper.map(ResponseAttributeIdentifier.getSessionDCACollectionResourceAttributesMap(), questions);
-              if(questions.get(AJEntityDailyClassActivity.ANSWER_OBJECT) != null){
-                qnData.put(JsonConstants.ANSWER_OBJECT, new JsonArray(questions.get(AJEntityDailyClassActivity.ANSWER_OBJECT).toString()));
-              }
               //Default answerStatus will be skipped
               if(qnData.getString(EventConstants.RESOURCE_TYPE).equalsIgnoreCase(EventConstants.QUESTION)){
                 qnData.put(EventConstants.ANSWERSTATUS, EventConstants.SKIPPED);
@@ -171,14 +210,13 @@ public class StudDCACollectionPerfHandler implements DBHandler {
               if(!resourceReaction.isEmpty()){
               resourceReaction.forEach(rs -> qnData.put(JsonConstants.REACTION, Integer.valueOf(rs.get(AJEntityDailyClassActivity.REACTION).toString())));
               }
-              qnData.put(EventConstants.EVENT_TIME, this.lastAccessedTime);
-              qnData.put(EventConstants.SESSION_ID, EventConstants.NA);
               questionsArray.add(qnData);
-            });            
-            contentBody.put(JsonConstants.USAGE_DATA, questionsArray).put(JsonConstants.USERUID, userID);
-            LOGGER.info("Content Body" + contentBody.encodePrettily());
-            resultarray.add(contentBody);
-            LOGGER.info("Result Array" + resultarray.encodePrettily());
+            });
+            collectionDataKPI.put(JsonConstants.QUESTIONS, questionsArray);
+            contentArray.add(collectionDataKPI);
+            contentBody.put(JsonConstants.USAGE_DATA, contentArray).put(JsonConstants.USERUID, userID);
+            resultarray.add(contentBody);       
+          }          
           } else {
         	  LOGGER.debug("No data returned for Student Perf in DCA Collection");
           }         

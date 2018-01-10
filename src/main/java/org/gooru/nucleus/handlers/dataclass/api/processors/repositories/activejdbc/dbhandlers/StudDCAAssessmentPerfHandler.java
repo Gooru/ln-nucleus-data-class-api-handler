@@ -32,8 +32,7 @@ public class StudDCAAssessmentPerfHandler implements DBHandler {
 	private static final String REQUEST_USERID = "userId";
 	private static final String START_DATE = "startDate";
 	private static final String END_DATE = "endDate";
-
-	//private static final String REQUEST_USERID = "userUid";
+	
     private final ProcessorContext context;
 
     public StudDCAAssessmentPerfHandler(ProcessorContext context) {
@@ -72,7 +71,8 @@ public class StudDCAAssessmentPerfHandler implements DBHandler {
     @SuppressWarnings("rawtypes")
   public ExecutionResult<MessageResponse> executeRequest() {
     JsonObject resultBody = new JsonObject();
-    JsonArray resultarray = new JsonArray();
+    JsonArray resultarray = new JsonArray();   
+
     
     String sDate = this.context.request().getString(START_DATE);
     String eDate = this.context.request().getString(END_DATE);
@@ -103,33 +103,54 @@ public class StudDCAAssessmentPerfHandler implements DBHandler {
     LOGGER.debug("UID is " + userId);
     for (String userID : userIds) {
       List<Map> studentLatestAttempt;
+      JsonArray contentArray = new JsonArray();
       studentLatestAttempt = Base.findAll(AJEntityDailyClassActivity.GET_LATEST_COMPLETED_SESSION_ID, context.classId(), 
     		  context.collectionId(), userID, startDate, endDate);
 
       if (!studentLatestAttempt.isEmpty()) {
         JsonObject contentBody = new JsonObject();
         studentLatestAttempt.forEach(attempts -> {
-          List<Map> assessmentQuestionsKPI = Base.findAll(AJEntityDailyClassActivity.SELECT_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSION_ID,context.collectionId(),
-                  attempts.get(AJEntityDailyClassActivity.SESSION_ID).toString(), AJEntityDailyClassActivity.ATTR_CRP_EVENTNAME);
-          LOGGER.debug("latestSessionId : " + attempts.get(AJEntityDailyClassActivity.SESSION_ID));
-          JsonArray questionsArray = new JsonArray();
-          if (!assessmentQuestionsKPI.isEmpty()) {
-            assessmentQuestionsKPI.forEach(questions -> {
-              JsonObject qnData = ValueMapper.map(ResponseAttributeIdentifier.getSessionDCAAssessmentQuestionAttributesMap(), questions);
-              String sessionId = attempts.get(AJEntityDailyClassActivity.SESSION_ID).toString(); 
-              qnData.put(JsonConstants.RESOURCE_TYPE, JsonConstants.QUESTION);
-              qnData.put(JsonConstants.SESSIONID, attempts.get(AJEntityDailyClassActivity.SESSION_ID).toString());
-              Object reactionObj = Base.firstCell(AJEntityDailyClassActivity.SELECT_ASSESSMENT_RESOURCE_REACTION, context.collectionId(),
-            		  sessionId, questions.get(AJEntityDailyClassActivity.RESOURCE_ID).toString());
-              qnData.put(JsonConstants.REACTION, reactionObj != null ? ((Number)reactionObj).intValue() : 0);
-              //Rubrics - Score should be NULL only incase of OE questions
-              qnData.put(JsonConstants.SCORE, questions.get(AJEntityDailyClassActivity.SCORE) != null ?
-            		  Math.round(Double.valueOf(questions.get(AJEntityDailyClassActivity.SCORE).toString())) : "NA");              
-              questionsArray.add(qnData);
-            });
-          }
-          contentBody.put(JsonConstants.USAGE_DATA, questionsArray).put(JsonConstants.USERUID, userID);
-        });
+        	String sessionId = attempts.get(AJEntityDailyClassActivity.SESSION_ID).toString();
+        	LOGGER.debug("latestSessionId : " + attempts.get(AJEntityDailyClassActivity.SESSION_ID).toString());
+	        List<Map> assessmentKPI = Base.findAll(AJEntityDailyClassActivity.SELECT_ASSESSMENT_FOREACH_COLLID_AND_SESSION_ID, context.collectionId(), 
+	        		sessionId , userID, startDate, AJEntityDailyClassActivity.ATTR_CP_EVENTNAME);
+	        Object assessmentReactionObject =  Base.firstCell(AJEntityDailyClassActivity.SELECT_ASSESSMENT_REACTION_AND_SESSION_ID, 
+	        		context.collectionId(), sessionId, userID);
+	        
+        	if (!assessmentKPI.isEmpty()) {
+		          JsonObject assessmentDataKPI = new JsonObject();
+		          assessmentKPI.forEach(m -> {
+		            JsonObject assessmentData = ValueMapper.map(ResponseAttributeIdentifier.getSessionDCAAssessmentAttributesMap(), m);
+		            assessmentData.put(JsonConstants.SCORE, m.get(AJEntityDailyClassActivity.SCORE) != null ? 
+		            		Math.round(Double.valueOf(m.get(AJEntityDailyClassActivity.SCORE).toString())) : null);
+		            assessmentData.put(JsonConstants.REACTION, assessmentReactionObject != null ? ((Number)assessmentReactionObject).intValue() : 0);	            
+		            assessmentDataKPI.put(JsonConstants.ASSESSMENT, assessmentData);
+		          });
+		          
+        List<Map> assessmentQuestionsKPI = Base.findAll(AJEntityDailyClassActivity.SELECT_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSION_ID,context.collectionId(),
+                attempts.get(AJEntityDailyClassActivity.SESSION_ID).toString(), AJEntityDailyClassActivity.ATTR_CRP_EVENTNAME);
+        
+        JsonArray questionsArray = new JsonArray();
+        if (!assessmentQuestionsKPI.isEmpty()) {
+          assessmentQuestionsKPI.forEach(questions -> {
+            JsonObject qnData = ValueMapper.map(ResponseAttributeIdentifier.getSessionDCAAssessmentQuestionAttributesMap(), questions);
+            //String sessionId = attempts.get(AJEntityDailyClassActivity.SESSION_ID).toString(); 
+            qnData.put(JsonConstants.RESOURCE_TYPE, JsonConstants.QUESTION);
+            //qnData.put(JsonConstants.SESSIONID, attempts.get(AJEntityDailyClassActivity.SESSION_ID).toString());
+            Object reactionObj = Base.firstCell(AJEntityDailyClassActivity.SELECT_ASSESSMENT_RESOURCE_REACTION, context.collectionId(),
+          		  sessionId, questions.get(AJEntityDailyClassActivity.RESOURCE_ID).toString());
+            qnData.put(JsonConstants.REACTION, reactionObj != null ? ((Number)reactionObj).intValue() : 0);
+            //Rubrics - Score should be NULL only incase of OE questions
+            qnData.put(JsonConstants.SCORE, questions.get(AJEntityDailyClassActivity.SCORE) != null ?
+          		  Math.round(Double.valueOf(questions.get(AJEntityDailyClassActivity.SCORE).toString())) : "NA");              
+            questionsArray.add(qnData);
+          });
+        }        
+        assessmentDataKPI.put(JsonConstants.QUESTIONS, questionsArray);
+        contentArray.add(assessmentDataKPI);
+        contentBody.put(JsonConstants.USAGE_DATA, contentArray).put(JsonConstants.USERUID, userID);
+        } // AssessmentKPI End
+        }); //Before this
         resultarray.add(contentBody);
       } else {
         // Return an empty resultBody instead of an Error
@@ -138,7 +159,6 @@ public class StudDCAAssessmentPerfHandler implements DBHandler {
     }
     resultBody.put(JsonConstants.CONTENT, resultarray);
     return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
-
   }
 
     @Override
