@@ -26,8 +26,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 public class StudPerfCourseAssessmentHandler implements DBHandler {
-
-
+	
 	private static final Logger LOGGER = LoggerFactory.getLogger(StudPerfCourseAssessmentHandler.class);
     private static final String REQUEST_USERID = "userId";
     private static final String ASSESSMENT = "assessment";
@@ -53,14 +52,14 @@ public class StudPerfCourseAssessmentHandler implements DBHandler {
     @Override
     @SuppressWarnings("rawtypes")
     public ExecutionResult<MessageResponse> validateRequest() {
-//      if (context.getUserIdFromRequest() == null
-//              || (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
-//        List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, this.context.classId(), this.context.userIdFromSession());
-//        if (owner.isEmpty()) {
-//          LOGGER.debug("validateRequest() FAILED");
-//          return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"), ExecutionStatus.FAILED);
-//        }
-//      }
+      if (context.getUserIdFromRequest() == null
+              || (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
+        List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, this.context.classId(), this.context.userIdFromSession());
+        if (owner.isEmpty()) {
+          LOGGER.debug("validateRequest() FAILED");
+          return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"), ExecutionStatus.FAILED);
+        }
+      }
       LOGGER.debug("validateRequest() OK");
       return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
     }
@@ -69,22 +68,10 @@ public class StudPerfCourseAssessmentHandler implements DBHandler {
     @SuppressWarnings("rawtypes")
     public ExecutionResult<MessageResponse> executeRequest() {
 
-    	//NOTE: This code will need to be refactored going ahead. (based on changes/updates to Student Performance Reports)
-
         StringBuilder query = new StringBuilder(AJEntityBaseReports.GET_DISTINCT_COLLECTIONS_BULK);
         List<String> params = new ArrayList<>();
         JsonObject resultBody = new JsonObject();
         JsonArray resultArray = new JsonArray();
-
-//      if (StringUtil.isNullOrEmpty(userId)) {
-//        LOGGER.warn("UserID is mandatory for fetching Student Performance in a Collection");
-//        return new ExecutionResult<>(
-//                MessageResponseFactory.createInvalidRequestResponse("User Id Missing. Cannot fetch Student Performance in Collection"),
-//                ExecutionStatus.FAILED);
-//
-//      } else {
-//      	params.add(userId);
-//      }
 
       params.add(AJEntityBaseReports.ATTR_ASSESSMENT);
       
@@ -140,12 +127,9 @@ public class StudPerfCourseAssessmentHandler implements DBHandler {
       
       for (String userID : userIds) {
     	  JsonObject contentBody = new JsonObject();
-    	  JsonArray assessmentArray = new JsonArray();
-    	    
+    	  JsonArray assessmentArray = new JsonArray();    	    
     		  //Add user Id to the query    	      
         	  params.add(userID);
-        	  
-              LOGGER.debug("StudPerfCourseAssessmentHandler Query : {}", query.toString());
               
               LazyList<AJEntityBaseReports> collectionList = AJEntityBaseReports.findBySQL(query.toString(), params.toArray());
               //Populate collIds from the Context in API
@@ -182,27 +166,13 @@ public class StudPerfCourseAssessmentHandler implements DBHandler {
             	    		});
                     	}
                 	
-//                    if (!StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
-//                    	assessmentKpi.put(AJEntityBaseReports.ATTR_UNIT_ID, unitId);
-//                    	assessmentKpi.put(AJEntityBaseReports.ATTR_LESSON_ID, lessonId);
-//                      } else {
-//                          LazyList<AJEntityBaseReports> UnitLessonList = AJEntityBaseReports.findBySQL(AJEntityBaseReports.GET_UNITID_LESSON_ID_FOR_ASSESSMENT,
-//                        		  classId, courseId, collId, ASSESSMENT, userID);
-//                          if (!UnitLessonList.isEmpty()) {
-//                              UnitLessonList.forEach(m -> {
-//                            	  assessmentKpi.put(AJEntityBaseReports.ATTR_UNIT_ID, m.get(AJEntityBaseReports.UNIT_GOORU_OID).toString());
-//                            	  assessmentKpi.put(AJEntityBaseReports.ATTR_LESSON_ID, m.get(AJEntityBaseReports.LESSON_GOORU_OID).toString());
-//                              });
-//                          }                          
-//                      }
-                	
                 	assessmentKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collId);
                 	assessmentArray.add(assessmentKpi);
                 	}
                 contentBody.put(JsonConstants.USAGE_DATA, assessmentArray).put(JsonConstants.USERID, userID);
                 resultArray.add(contentBody);
                 params.remove(userID);
-      } // End UserID Iterator
+      } 
       
       resultBody.put(JsonConstants.CONTENT, resultArray);
       return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
