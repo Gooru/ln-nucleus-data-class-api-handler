@@ -114,7 +114,7 @@ public class StudPerfCourseAssessmentHandler implements DBHandler {
       query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.ACTOR_ID_IS);
       List<String> userIds;
       if (StringUtil.isNullOrEmpty(userId1)) {
-        LOGGER.warn("UserID is not in the request to fetch Student Performance in Course. Asseume user is a teacher");
+        LOGGER.warn("UserID is not in the request to fetch Student Performance in Course. Assume user is a teacher");
         LazyList<AJEntityBaseReports> userIdOfClass =
       		  AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_COURSE_ID_FILTERBY_COLLTYPE, 
       				  classId, courseId, ASSESSMENT );
@@ -140,7 +140,7 @@ public class StudPerfCourseAssessmentHandler implements DBHandler {
                 for (String collId : collIds) {
                 	List<Map> assessScore;
                 	List<Map> assessTSA;
-                	LOGGER.debug("The collectionIds are" + collId);
+                	LOGGER.debug("The collectionId is " + collId);
                 	JsonObject assessmentKpi = new JsonObject();
 
                 	//Find Timespent and Attempts
@@ -149,8 +149,10 @@ public class StudPerfCourseAssessmentHandler implements DBHandler {
 
                 	if (!assessTSA.isEmpty()) {
                 	assessTSA.forEach(m -> {
-                		assessmentKpi.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.parseLong(m.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()));
-                		assessmentKpi.put(AJEntityBaseReports.ATTR_ATTEMPTS, Integer.parseInt(m.get(AJEntityBaseReports.ATTR_ATTEMPTS).toString()));
+                		assessmentKpi.put(AJEntityBaseReports.ATTR_TIME_SPENT, m.get(AJEntityBaseReports.ATTR_TIME_SPENT) != null ? 
+                				Long.parseLong(m.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()) : null);
+                		assessmentKpi.put(AJEntityBaseReports.ATTR_ATTEMPTS, m.get(AJEntityBaseReports.ATTR_TIME_SPENT) != null ? 
+                				Integer.parseInt(m.get(AJEntityBaseReports.ATTR_ATTEMPTS).toString()) : null);
         	    		});
                 	}
 
