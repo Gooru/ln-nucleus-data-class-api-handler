@@ -151,7 +151,7 @@ public class StudPerfCourseAssessmentHandler implements DBHandler {
                 	assessTSA.forEach(m -> {
                 		assessmentKpi.put(AJEntityBaseReports.ATTR_TIME_SPENT, m.get(AJEntityBaseReports.ATTR_TIME_SPENT) != null ? 
                 				Long.parseLong(m.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()) : null);
-                		assessmentKpi.put(AJEntityBaseReports.ATTR_ATTEMPTS, m.get(AJEntityBaseReports.ATTR_TIME_SPENT) != null ? 
+                		assessmentKpi.put(AJEntityBaseReports.ATTR_ATTEMPTS, m.get(AJEntityBaseReports.ATTR_ATTEMPTS) != null ? 
                 				Integer.parseInt(m.get(AJEntityBaseReports.ATTR_ATTEMPTS).toString()) : null);
         	    		});
                 	}
