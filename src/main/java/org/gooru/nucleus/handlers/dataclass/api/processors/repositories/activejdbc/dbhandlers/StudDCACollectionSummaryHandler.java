@@ -55,10 +55,11 @@ public class StudDCACollectionSummaryHandler implements DBHandler {
 
   @Override
   @SuppressWarnings("rawtypes")
-  public ExecutionResult<MessageResponse> validateRequest() {
+  public ExecutionResult<MessageResponse> validateRequest() {	  
       if (context.getUserIdFromRequest() == null
               || (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
-        List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, this.context.classId(), this.context.userIdFromSession());
+        List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, context.request().getString(MessageConstants.CLASS_ID), 
+        		this.context.userIdFromSession());
         if (owner.isEmpty()) {
             LOGGER.debug("validateRequest() FAILED");
             return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"), ExecutionStatus.FAILED);
@@ -83,7 +84,6 @@ public class StudDCACollectionSummaryHandler implements DBHandler {
     JsonArray contentArray = new JsonArray();
 
     // For DCA activities, the summary report should be fetched based only on classId and collectionId. (CourseId, UnitId and lessonId are not expected)
-//    if (StringUtil.isNullOrEmpty(classId) || StringUtil.isNullOrEmpty(courseId) || StringUtil.isNullOrEmpty(unitId) || StringUtil.isNullOrEmpty(lessonId)) {
     if (StringUtil.isNullOrEmpty(classId)) {
       LOGGER.warn("ClassId is mandatory to fetch Student Performance in a DCA Collection");
       return new ExecutionResult<>(
