@@ -112,10 +112,16 @@ public interface ReportRepo {
 	
     MessageResponse getDCASessionTaxonomyReport();
     
+    MessageResponse getStudentPerformanceInDCAAssessment();
+    
+    MessageResponse getStudentPerformanceInDCACollection();
+    
+    MessageResponse getDCAMonthlyTeacherReport();
+    
+    MessageResponse getStudentDCAAssessmentSessions();
+        
+    
     MessageResponse getDataReports();
        
-    MessageResponse getCoursesComptencyCompletion();
-
-    MessageResponse getDCAMonthlyTeacherReport();
-        
+    MessageResponse getCoursesComptencyCompletion();        
 }

@@ -186,6 +186,15 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_DCA_SESSION_TAXONOMY_REPORT:
                 result = getDCASessionTaxonomyReport();
                   break;
+            case MessageConstants.MSG_OP_DCA_STUDENT_ASSESSMENT_PERF:
+                result = getStudentPerfInDCAAssessment();
+                  break;
+            case MessageConstants.MSG_OP_DCA_STUDENT_COLLECTION_PERF:
+                result = getStudentPerfInDCACollection();
+                  break;
+            case MessageConstants.MSG_OP_DCA_STUDENT_ASSESSMENT_ALL_SESSIONS:
+                result = getStudDCAAssessmentSessions();
+                  break;
             case MessageConstants.MSG_OP_NU_DATA_REPORT:
                 result = getDataReports();
                 break;
@@ -306,6 +315,68 @@ class MessageProcessor implements Processor {
         }
     
       }
+    
+    private MessageResponse getStudentPerfInDCAAssessment() {
+
+    	try {
+            ProcessorContext context = createContext();
+      
+            if (!checkClassId(context)) {
+              LOGGER.error("Class id not available to obtain Student DCA Assessment Performance. Aborting");
+              return MessageResponseFactory.createInvalidRequestResponse("Invalid classId");
+            }
+      
+            if (!checkCollectionId(context)) {
+                LOGGER.error("AssessmentId not available to obtain Student DCA Assessment Performance. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid assessmentId");
+              }
+              return new RepoBuilder().buildReportRepo(context).getStudentPerformanceInDCAAssessment();
+
+          } catch (Throwable t) {
+              LOGGER.error("Exception while getting Student performance in a DCA Assessment", t);
+              return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+          }    	
+    }
+    
+    private MessageResponse getStudentPerfInDCACollection() {
+    	
+    	try {
+            ProcessorContext context = createContext();
+      
+            if (!checkClassId(context)) {
+              LOGGER.error("Class id not available to obtain Student DCA Collection Performance. Aborting");
+              return MessageResponseFactory.createInvalidRequestResponse("Invalid classId");
+            }
+      
+            if (!checkCollectionId(context)) {
+                LOGGER.error("CollectionId not available to obtain Student DCA Collection Performance. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid collectionId");
+              }
+              return new RepoBuilder().buildReportRepo(context).getStudentPerformanceInDCACollection();
+
+          } catch (Throwable t) {
+              LOGGER.error("Exception while getting Student performance in a DCA Collection", t);
+              return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+          }    	
+    }
+    
+    private MessageResponse getStudDCAAssessmentSessions() {
+    	try {
+            ProcessorContext context = createContext();
+
+            if (!checkCollectionId(context)) {
+                LOGGER.error("Collection id not available to obtain User Sessions. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid collectionId");
+            }
+
+            return new RepoBuilder().buildReportRepo(context).getStudentDCAAssessmentSessions();
+
+        } catch (Throwable t) {
+            LOGGER.error("Exception while getting User Sessions for Assessment", t);
+            return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+        }
+
+    }
     
   //*************************************************************************************************************************
 
@@ -685,7 +756,7 @@ class MessageProcessor implements Processor {
             return new RepoBuilder().buildReportRepo(context).getStudentPerformanceInAssessment();
 
         } catch (Throwable t) {
-            LOGGER.error("Exception while getting Student performance in Lesson", t);
+            LOGGER.error("Exception while getting Student performance in an Assessment", t);
             return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
         }
 

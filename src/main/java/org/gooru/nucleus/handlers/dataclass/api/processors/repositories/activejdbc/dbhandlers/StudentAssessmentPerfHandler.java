@@ -109,15 +109,16 @@ public class StudentAssessmentPerfHandler implements DBHandler {
           if (!assessmentQuestionsKPI.isEmpty()) {
             assessmentQuestionsKPI.forEach(questions -> {
               JsonObject qnData = ValueMapper.map(ResponseAttributeIdentifier.getSessionAssessmentQuestionAttributesMap(), questions);
-              // FIXME :: it can be removed once we fix writer code.
+              String sessionId = attempts.get(AJEntityBaseReports.SESSION_ID).toString(); 
               qnData.put(JsonConstants.RESOURCE_TYPE, JsonConstants.QUESTION);
-              //********
               qnData.put(JsonConstants.ANSWER_OBJECT, questions.get(AJEntityBaseReports.ANSWER_OBECT) != null
             		  ? new JsonArray(questions.get(AJEntityBaseReports.ANSWER_OBECT).toString()) : null);
               //Rubrics - Score should be NULL only incase of OE questions
               qnData.put(JsonConstants.SCORE, questions.get(AJEntityBaseReports.SCORE) != null ?
             		  Math.round(Double.valueOf(questions.get(AJEntityBaseReports.SCORE).toString())) : "NA");
-              //*********
+              Object reactionObj = Base.firstCell(AJEntityBaseReports.SELECT_ASSESSMENT_RESOURCE_REACTION, context.collectionId(),
+            		  sessionId, questions.get(AJEntityBaseReports.RESOURCE_ID).toString());
+              qnData.put(JsonConstants.REACTION, reactionObj != null ? ((Number)reactionObj).intValue() : 0);
 
               questionsArray.add(qnData);
             });

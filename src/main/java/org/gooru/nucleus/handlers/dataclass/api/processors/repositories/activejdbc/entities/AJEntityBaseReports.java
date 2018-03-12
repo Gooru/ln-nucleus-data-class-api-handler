@@ -105,6 +105,7 @@ public class AJEntityBaseReports extends Model {
     public static final String UNIT_ID = "unit_id = ? ";
     public static final String LESSON_ID = "lesson_id = ?";
     public static final String CLASS_ID = "class_id = ? ";
+    public static final String ACTOR_ID_IS = "actor_id = ? ";
     public static final String ASSESSMENT_ID = "collection_id";
     public static final String DATE = "date";
     public static final String ACTIVITY_DATE = "activityDate";
@@ -681,7 +682,10 @@ public class AJEntityBaseReports extends Model {
     public static final String GET_TOTAL_TIME_SPENT_ATTEMPTS_FOR_ASSESSMENT = "SELECT SUM(time_spent) AS timeSpent, "
     		+ "SUM(views) AS attempts, collection_id FROM base_reports WHERE class_id = ? AND course_id = ? AND collection_id = ? AND collection_type = ? "
     		+ "AND event_name = ? AND actor_id = ? AND event_type = ? GROUP BY collection_id";
-        
+
+    public static final String GET_UNITID_LESSON_ID_FOR_ASSESSMENT = "SELECT unit_id, lesson_id from base_reports WHERE class_id = ? AND course_id = ? "
+    		+ "AND collection_id = ? AND collection_type = ? AND actor_id = ? LIMIT 1";
+
     // Update for collection Timespent
     public static final String GET_PERFORMANCE_FOR_COLLECTION = "SELECT SUM(CASE WHEN (event_name = 'collection.resource.play') "
             + "THEN time_spent ELSE 0 END) AS timeSpent, "
@@ -721,7 +725,10 @@ public class AJEntityBaseReports extends Model {
 
     public static final String GET_DISTINCT_COLLECTIONS = "SELECT distinct(collection_id) from base_reports where "
     		+ "actor_id = ? AND collection_type = ? AND class_id = ? AND course_id = ? AND path_id IS NULL ";
-    
+
+    public static final String GET_DISTINCT_COLLECTIONS_BULK = "SELECT distinct(collection_id) from base_reports where "
+    		+ "collection_type = ? AND class_id = ? AND course_id = ? AND path_id IS NULL ";
+
         
     //**********************************************************INDEPENDENT LEARNER QUERIES************************************//
    

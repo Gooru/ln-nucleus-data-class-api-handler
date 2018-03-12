@@ -198,8 +198,7 @@ public final class DBHandlerBuilder {
     	return new RubricQuestionSummaryHandler(context);
     }
     
-    //DCA
-        
+    //DCA        
     public static DBHandler buildStudPerfDailyClassActivityHandler(ProcessorContext context) {
         return new StudPerfDailyActivityHandler(context);
       }
@@ -214,6 +213,18 @@ public final class DBHandlerBuilder {
     
     public static DBHandler buildDCASessionTaxonomyReportHandler(ProcessorContext context) {
     	return new DCASessionTaxonomyReportHandler(context);
+    }
+    
+    public static DBHandler buildStudentDCAAssessmentPerformanceHandler (ProcessorContext context) {
+    	return new StudDCAAssessmentPerfHandler(context);
+    }
+    
+    public static DBHandler buildStudentDCACollectionPerformanceHandler (ProcessorContext context) {
+    	return new StudDCACollectionPerfHandler(context);
+    }
+    
+    public static DBHandler buildStudentDCAAssessmentSessionsHandler (ProcessorContext context) {
+    	return new StudDCAAssessmentSessionHandler(context);
     }
     
     public static DBHandler buildDCAMonthlyTeacherReportHandler(ProcessorContext context) {

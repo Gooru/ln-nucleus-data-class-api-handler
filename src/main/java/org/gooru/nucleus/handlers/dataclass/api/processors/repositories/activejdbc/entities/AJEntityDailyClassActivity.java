@@ -142,15 +142,15 @@ public class AJEntityDailyClassActivity extends Model{
             + "collection_id,FIRST_VALUE(reaction) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS reaction,"
             + "FIRST_VALUE(time_spent) OVER (PARTITION BY collection_id ORDER BY updated_at desc) as collectionTimeSpent,"
             + "updated_at,session_id,collection_type,FIRST_VALUE(views) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS collectionViews "
-            + "from daily_class_activity WHERE collection_id = ? AND session_id = ? AND event_name = ? ";
+            + "from daily_class_activity WHERE collection_id = ? AND session_id = ? AND actor_id = ? AND date_in_time_zone = ? AND event_name = ? ";
     
     public static final String SELECT_ASSESSMENT_REACTION_AND_SESSION_ID = "SELECT round(avg(data.reaction)) as reaction FROM "
             + "(SELECT DISTINCT ON (resource_id) collection_id, "
             + "FIRST_VALUE(reaction) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS reaction "
-            + "FROM daily_class_activity where collection_id = ? AND session_id = ? AND reaction > 0 "
+            + "FROM daily_class_activity where collection_id = ? AND session_id = ? AND actor_id = ? AND reaction > 0 "
             + "AND event_name = 'reaction.create') AS data group by data.collection_id;";
     
-    public static final String SELECT_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSION_ID =
+    public static final String SELECT_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSION_ID_FOR_SUMMARY =
             "select  distinct on (resource_id) FIRST_VALUE(score * 100) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score,"
             + "resource_id,FIRST_VALUE(reaction) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS reaction,"
             + "FIRST_VALUE(time_spent) OVER (PARTITION BY resource_id ORDER BY updated_at desc) as resourceTimeSpent,"
@@ -165,9 +165,12 @@ public class AJEntityDailyClassActivity extends Model{
     
     public static final String SELECT_CLASS_BY_SESSION_ID = "SELECT class_id FROM daily_class_activity WHERE collection_id = ? "
     		+ "AND session_id = ? AND class_id IS NOT NULL LIMIT 1";
-
-    //Collection Summary report Queries
     
+    public static final String GET_ASMT_OE_QUE_GRADE_STATUS = "SELECT is_graded FROM daily_class_activity "
+    		+ "WHERE collection_id = ? AND session_id = ?  and resource_id = ? AND event_name = 'collection.resource.play' "
+    		+ "AND event_type = 'stop'"; 
+
+    //Collection Summary report Queries    
     public static final String SELECT_COLLECTION_QUESTION_COUNT = "SELECT question_count,updated_at FROM daily_class_activity "
             + "WHERE class_id = ? AND collection_id = ? AND actor_id = ? AND event_name = 'collection.play' AND date_in_time_zone = ? "
             + "ORDER BY updated_at DESC LIMIT 1";
@@ -214,18 +217,69 @@ public class AJEntityDailyClassActivity extends Model{
   //Getting RESOURCE DATA (score)
     public static final String SELECT_COLLECTION_QUESTION_AGG_SCORE = "SELECT DISTINCT ON (resource_id) "
             + "FIRST_VALUE(score) OVER (PARTITION BY resource_id "
-            + "ORDER BY updated_at desc) AS score,FIRST_VALUE(resource_attempt_status) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS attemptStatus, FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS answer_object "
+            + "ORDER BY updated_at desc) AS score,FIRST_VALUE(resource_attempt_status) OVER (PARTITION BY resource_id ORDER BY updated_at desc) "
+            + "AS attemptStatus, FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS answer_object "
             + "FROM daily_class_activity WHERE class_id = ? AND collection_id = ? AND resource_id = ? "
-            + "AND actor_id = ? AND date_in_time_zone = ? AND event_name = 'collection.resource.play' AND resource_type = 'question' AND resource_attempt_status <> 'skipped'";
+            + "AND actor_id = ? AND date_in_time_zone = ? AND event_name = 'collection.resource.play' AND resource_type = 'question' "
+            + "AND resource_attempt_status <> 'skipped'";
+    
     
   //Getting RESOURCE DATA (reaction)
     public static final String SELECT_COLLECTION_RESOURCE_AGG_REACTION = "SELECT DISTINCT ON (resource_id) "
             + "FIRST_VALUE(reaction) OVER (PARTITION BY resource_id "
             + "ORDER BY updated_at desc) AS reaction "
             + "FROM daily_class_activity WHERE class_id = ? AND collection_id = ? AND resource_id = ? "
-            + "AND actor_id = ? AND event_name = 'reaction.create' AND reaction <> 0";
+            + "AND actor_id = ? AND date_in_time_zone = ? AND event_name = 'reaction.create' AND reaction <> 0";
+    
+    public static final String SELECT_COLLECTION_LAST_ACCESSED_TIME = "SELECT updated_at, session_id FROM daily_class_activity "
+            + "WHERE class_id = ? AND collection_id = ? AND actor_id = ? AND date_in_time_zone = ? AND event_name = 'collection.play'"
+            + " ORDER BY updated_at DESC LIMIT 1";
+    
+    public static final String GET_COLL_OE_QUE_GRADE_STATUS = "SELECT is_graded FROM daily_class_activity "
+    		+ "WHERE class_id = ? AND collection_id = ? AND resource_id = ? "
+            + "AND actor_id = ? AND date_in_time_zone = ? AND event_name = 'collection.resource.play' AND event_type = 'stop'"; 
 
+    
+    //***************************************************************************************
+    //STUDENT PERFORMANCE in Assessment    
+    public static final String SELECT_DISTINCT_USERID_FOR_ASSESSMENT_ID_FILTERBY_COLLTYPE =
+            "SELECT DISTINCT(actor_id) FROM daily_class_activity "
+            + "WHERE class_id = ? AND collection_id = ? AND collection_type =? AND date_in_time_zone BETWEEN ? AND ?";
+
+    public static final String GET_LATEST_COMPLETED_SESSION_ID = "SELECT session_id FROM daily_class_activity WHERE "
+            +" class_id = ? AND collection_id = ? AND actor_id = ? AND event_name = 'collection.play' AND event_type = 'stop' "
+            +" AND date_in_time_zone BETWEEN ? AND ? ORDER BY created_at DESC LIMIT 1";
+    
+    //Reactions need not be included in these queries, since that should be obtained from separate event
+    public static final String SELECT_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSION_ID =
+            "select distinct on (resource_id) FIRST_VALUE(score * 100) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score, "
+            + "resource_id, FIRST_VALUE(time_spent) OVER (PARTITION BY resource_id ORDER BY updated_at desc) as resourceTimeSpent,"
+            + "updated_at, session_id, collection_type, resource_type, question_type "
+            + "from daily_class_activity WHERE collection_id = ? AND session_id = ? AND event_name = ? AND event_type = 'stop' ";
+  
     //*****************************************************************************************************************************
+    //Collection Performance Report Queries
+    
+    //STUDENT PERFORMANCE in Assessment    
+    public static final String SELECT_DISTINCT_USERID_FOR_COLLECTION_ID_FILTERBY_COLLTYPE =
+            "SELECT DISTINCT(actor_id) FROM daily_class_activity "
+            + "WHERE class_id = ? AND collection_id = ? AND collection_type = ? AND date_in_time_zone = ?";
+    
+    //**************************************************************************************************************************************************     
+    
+    //GET SESSION STATUS
+    
+    public static final String GET_SESSION_STATUS =  "SELECT event_name, event_type, updated_at from daily_class_activity WHERE session_id = ? "
+	+ " AND collection_id = ? AND event_name = ? ";
+    
+    //GET USER ALL SESSIONS FROM ASSESSMENT    
+    public static final String GET_USER_SESSIONS_FOR_COLLID =  "SELECT DISTINCT s.session_id, s.updated_at FROM "
+            + "(SELECT FIRST_VALUE(updated_at) OVER (PARTITION BY session_id ORDER BY updated_at DESC) AS updated_at, session_id "
+            + "FROM daily_class_activity WHERE class_id = ? AND collection_id = ? AND collection_type = ? AND actor_id = ? "
+            + "AND date_in_time_zone BETWEEN ? AND ? ) AS s ORDER BY s.updated_at ASC";
+    
+  //*************************************************************************************************************************
+
 
     public static final String SELECT_DISTINCT_USERID_FOR_DCA =
             "SELECT DISTINCT(actor_id) FROM daily_class_activity "

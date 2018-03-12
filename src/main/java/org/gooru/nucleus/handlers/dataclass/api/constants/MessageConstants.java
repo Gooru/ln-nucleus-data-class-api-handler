@@ -121,6 +121,9 @@ public final class MessageConstants {
     public static final String MSG_OP_STUDENT_PERF_DAILY_CLASS_ACTIVITY = "student.daily.class.activity.performance";
     public static final String MSG_OP_DCA_SESSION_TAXONOMY_REPORT = "dca.session.taxonomy.report";
     public static final String MSG_OP_STUDENT_PERF_DAILY_TIMELY_CLASS_ACTIVITY = "student.daily.timely.class.activity.performance";
+    public static final String MSG_OP_DCA_STUDENT_ASSESSMENT_PERF = "dca.student.assessment.performance";
+    public static final String MSG_OP_DCA_STUDENT_COLLECTION_PERF = "dca.student.collection.performance";
+    public static final String MSG_OP_DCA_STUDENT_ASSESSMENT_ALL_SESSIONS = "dca.student.assessment.all.sessions";
     
     //DATA REPORTS
     public static final String MSG_OP_NU_DATA_REPORT = "nu.data.report";
