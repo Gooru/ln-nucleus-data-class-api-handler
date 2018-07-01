@@ -102,7 +102,7 @@ public final class JsonConstants {
   	
   	public static final String PERCENT_COMPLETION = "percentCompletion";
   	
-  	public static final String PERCENT_SCORE = "PercentScore";
+  	public static final String PERCENT_SCORE = "percentScore";
 
 	private JsonConstants() {
 		throw new AssertionError();
