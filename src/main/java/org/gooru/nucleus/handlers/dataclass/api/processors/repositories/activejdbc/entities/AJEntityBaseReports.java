@@ -1357,6 +1357,12 @@ public class AJEntityBaseReports extends Model {
             + "WHERE br.course_id = ? AND br.actor_id = ? AND br.event_name = 'collection.play' AND br.score >= 80) AS completionData;";
     
     /********************************************************************************************************************************************/
-
+    //ATC	
+    public static final String SELECT_ALL_STUDENT_CLASS_PERFORMANCE_COMPLETION = "SELECT class_id, actor_id, SUM(classData.completion) AS "
+    		+ "completedCount, (AVG(scoreInPercentage)) AS scoreInPercentage FROM (SELECT DISTINCT ON (collection_id, actor_id) CASE  WHEN "
+    		+ "(event_type = 'stop') THEN 1 ELSE 0 END AS completion, FIRST_VALUE(score) OVER (PARTITION BY collection_id, actor_id ORDER BY "
+    		+ "updated_at desc) AS scoreInPercentage, class_id, actor_id FROM base_reports WHERE class_id = ? AND course_id = ? AND "
+    		+ "actor_id = ANY(?::varchar[]) AND event_name = 'collection.play' AND event_type = 'stop' AND collection_type = 'assessment'  "
+    		+ "AND path_id IS NULL ORDER BY collection_id, actor_id, updated_at DESC) AS classData GROUP BY class_id, actor_id";
 }
 

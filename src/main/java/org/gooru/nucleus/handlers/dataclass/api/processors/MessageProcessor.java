@@ -204,6 +204,11 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_STUDENT_PERF_DAILY_TIMELY_CLASS_ACTIVITY:
               result = getDCATeacherReport();
               break;
+              //ATC
+            case MessageConstants.MSG_OP_STUDENTS_PERF_VS_COMPLETION:
+                result = getStudentPerfVsCompletionReport();
+                break;
+
 
             default:
                 LOGGER.error("Invalid operation type passed in, not able to handle");
@@ -1292,6 +1297,19 @@ class MessageProcessor implements Processor {
 
           } catch (Throwable t) {
               LOGGER.error("Exception while getting Student Performance in Course Collections", t);
+              return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+          }
+
+      }
+    
+    //ATC
+    private MessageResponse getStudentPerfVsCompletionReport() {
+        try {
+              ProcessorContext context = createContext();
+              return new RepoBuilder().buildReportRepo(context).getStudentPerfVsCompletion();
+
+          } catch (Throwable t) {
+              LOGGER.error("Exception while getting Student Performance Vs Completion Report", t);
               return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
           }
 

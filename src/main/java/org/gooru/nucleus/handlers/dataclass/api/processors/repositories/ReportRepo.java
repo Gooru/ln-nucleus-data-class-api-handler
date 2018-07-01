@@ -120,8 +120,12 @@ public interface ReportRepo {
     
     MessageResponse getStudentDCAAssessmentSessions();
         
-    
+    //NU
     MessageResponse getDataReports();
        
-    MessageResponse getCoursesComptencyCompletion();        
+    MessageResponse getCoursesComptencyCompletion();
+    
+    //ATC
+    
+    MessageResponse getStudentPerfVsCompletion();
 }
