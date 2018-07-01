@@ -238,6 +238,10 @@ public final class DBHandlerBuilder {
     public static DBHandler getCoursesComptencyCompletion(ProcessorContext context) {
       return new CoursesCompetencyCompletionHandler(context);
     }
-    
+
+    public static DBHandler buildStudentPerfVsCompletionHandler(ProcessorContext context) {
+        return new ClassPerfVsCompletionHandler(context);
+      }
+
 }
 

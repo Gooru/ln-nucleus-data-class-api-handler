@@ -99,6 +99,10 @@ public final class JsonConstants {
   	public static final String QUE_RUBRICS = "queRubrics";
 
   	public static final String IS_GRADED = "isGraded";
+  	
+  	public static final String PERCENT_COMPLETION = "percentCompletion";
+  	
+  	public static final String PERCENT_SCORE = "PercentScore";
 
 	private JsonConstants() {
 		throw new AssertionError();
