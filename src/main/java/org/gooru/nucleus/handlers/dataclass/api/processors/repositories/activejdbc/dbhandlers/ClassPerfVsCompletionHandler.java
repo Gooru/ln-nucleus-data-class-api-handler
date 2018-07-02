@@ -48,17 +48,21 @@ public class ClassPerfVsCompletionHandler implements DBHandler {
 	    return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
 	  }
 
+	  
 	  @Override
 	  public ExecutionResult<MessageResponse> validateRequest() {
-	        if (context.getUserIdFromRequest() == null) {
-	          List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, this.context.classId(), this.context.userIdFromSession());
+		  if (context.getUserIdFromRequest() == null) {
+	        	LOGGER.debug("ClassId is " + this.context.request().getString(MessageConstants.CLASS_ID));
+	        	LOGGER.debug("UserId from session is " + this.context.userIdFromSession());
+	          List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, this.context.request().getString(MessageConstants.CLASS_ID), 
+	        		  this.context.userIdFromSession());
 	          if (owner.isEmpty()) {
 	            LOGGER.debug("validateRequest() FAILED");
 	            return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"), ExecutionStatus.FAILED);
 	          }
 	        }
 	        LOGGER.debug("validateRequest() OK");
-	        return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
+	        return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);	        
 	  }
 
 	  @Override
