@@ -194,7 +194,21 @@ public class IndLearnerCollectionSummaryHandler implements DBHandler {
                   qnData.put(EventConstants.ANSWERSTATUS, qs.get(AJEntityBaseReports.ATTR_ATTEMPT_STATUS).toString());
                 });
                 }
-                
+
+                    // Get grading status for Questions
+                    if (!StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId)  && !StringUtil.isNullOrEmpty(lessonId)) {
+                        if (qnData.getString(EventConstants.QUESTION_TYPE).equalsIgnoreCase(EventConstants.OPEN_ENDED_QUE)) {
+                            Object isGradedObj = Base.firstCell(AJEntityBaseReports.SELECT_IL_COLL_OE_QUE_GRADE_STATUS, courseId, unitId, lessonId, collectionId, questions.get(AJEntityBaseReports.RESOURCE_ID), this.userId);
+                            if (isGradedObj != null && (isGradedObj.toString().equalsIgnoreCase("t") || isGradedObj.toString().equalsIgnoreCase("true"))) {
+                                qnData.put(JsonConstants.IS_GRADED, true);
+                            } else {
+                                qnData.put(JsonConstants.IS_GRADED, false);
+                            }
+                        } else {
+                            qnData.put(JsonConstants.IS_GRADED, true);
+                        }
+                    }
+                    
 	              List<Map> resourceReaction;
 	              if (!StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
 	                resourceReaction = Base.findAll(AJEntityBaseReports.SELECT_IL_COLLECTION_RESOURCE_AGG_REACTION, courseId,unitId,lessonId,collectionId,questions.get(AJEntityBaseReports.RESOURCE_ID),this.userId);

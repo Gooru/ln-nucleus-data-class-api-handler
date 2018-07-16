@@ -169,8 +169,18 @@ public class StudPerfCourseAssessmentHandler implements DBHandler {
                     	}
                 	
                 	assessmentKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collId);
+                	
+                	//Fetch latest session for user and get grading status
+                	Object sessionId = Base.firstCell(AJEntityBaseReports.GET_LATEST_COMPLETED_SESSION_ID_WITH_USERS_CLASS_COURSE, classId,
+                        courseId, collId, userID);
+                	String latestSessionId = sessionId == null ? null : String.valueOf(sessionId);
+                	List<Map> incompleteListOfgradeStatus = Base.findAll(AJEntityBaseReports.FETCH_INCOMPLETE_ASMT_GRADE_STATUS, userID, latestSessionId, collId);
+                	String gradeStatus = JsonConstants.COMPLETE;
+                	if(incompleteListOfgradeStatus != null && !incompleteListOfgradeStatus.isEmpty()) gradeStatus = JsonConstants.IN_PROGRESS;
+                	assessmentKpi.put(AJEntityBaseReports.ATTR_GRADE_STATUS, gradeStatus);
+                	
                 	assessmentArray.add(assessmentKpi);
-                	}
+                }
                 contentBody.put(JsonConstants.USAGE_DATA, assessmentArray).put(JsonConstants.USERID, userID);
                 resultArray.add(contentBody);
                 params.remove(userID);

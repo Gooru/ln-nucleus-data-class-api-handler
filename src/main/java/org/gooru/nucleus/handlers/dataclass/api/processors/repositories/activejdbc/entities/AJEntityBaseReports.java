@@ -97,6 +97,7 @@ public class AJEntityBaseReports extends Model {
     public static final String ATTR_ANSWER_TEXT = "answerText";
     public static final String ATTR_QUESTION_TEXT = "questionText";
     public static final String ATTR_QUESTION_ID = "questionId";
+    public static final String ATTR_GRADE_STATUS = "gradeStatus";
 
     public static final String NA = "NA";
     public static final String AND = "AND";
@@ -730,6 +731,18 @@ public class AJEntityBaseReports extends Model {
     		+ "collection_type = ? AND class_id = ? AND course_id = ? AND path_id IS NULL ";
 
         
+    public static final String GET_LATEST_COMPLETED_SESSION_ID_WITH_USERS_CLASS_COURSE = "SELECT session_id FROM base_reports WHERE"
+        +" class_id = ? AND course_id = ? AND collection_id = ? AND actor_id = ? AND"
+        +" event_name = 'collection.play' AND event_type = 'stop'"
+        +" ORDER BY created_at DESC LIMIT 1";
+    
+    public static final String FETCH_INCOMPLETE_ASMT_GRADE_STATUS =
+        "SELECT is_graded FROM base_reports WHERE actor_id = ? AND session_id = ? AND collection_id = ? AND event_name = 'collection.resource.play' AND event_type = 'stop' AND is_graded = false";
+    
+    public static final String FETCH_INCOMPLETE_COLL_GRADE_STATUS = "SELECT is_graded FROM base_reports "
+        + "WHERE class_id = ? AND course_id = ? AND collection_id = ?  "
+        + "AND actor_id = ? AND event_name = 'collection.resource.play' AND event_type = 'stop' AND is_graded = false"; 
+    
     //**********************************************************INDEPENDENT LEARNER QUERIES************************************//
    
     public static final String SELECT_INDEPENDENT_LEARNER_DISTINCT_UNIT_ID_FOR_COURSE_ID_FILTERBY_COLLTYPE =
@@ -1208,6 +1221,15 @@ public class AJEntityBaseReports extends Model {
             + "WHERE class_id IS NULL AND collection_id = ? AND actor_id = ? AND event_name = 'collection.play' "
             + "ORDER BY updated_at DESC LIMIT 1";
       
+    
+    public static final String SELECT_IL_COLL_OE_QUE_GRADE_STATUS = "SELECT is_graded FROM base_reports "
+        + "WHERE class_id IS NULL AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND resource_id = ? "
+        + "AND actor_id = ? AND event_name = 'collection.resource.play' AND event_type = 'stop'"; 
+    
+    public static final String SELECT_IL_ASMT_OE_QUE_GRADE_STATUS = "SELECT is_graded FROM base_reports "
+        + "WHERE class_id IS NULL AND collection_id = ? AND session_id = ?  and resource_id = ? AND event_name = 'collection.resource.play' "
+        + "AND event_type = 'stop'"; 
+    
     //*************************************************************************************************************************
 
     //Rubric Grading    

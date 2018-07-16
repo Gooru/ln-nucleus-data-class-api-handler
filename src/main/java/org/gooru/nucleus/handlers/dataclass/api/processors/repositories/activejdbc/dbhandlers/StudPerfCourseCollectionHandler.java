@@ -185,8 +185,16 @@ public class StudPerfCourseCollectionHandler implements DBHandler {
                 collectionKpi.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
                 
                 collectionKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collId);
+                
+                //Fetch grading status for each collection
+                List<Map> incompleteListOfgradeStatus = Base.findAll(AJEntityBaseReports.FETCH_INCOMPLETE_COLL_GRADE_STATUS, classId, courseId,
+                    collId, userID);
+                String gradeStatus = JsonConstants.COMPLETE;
+                if(incompleteListOfgradeStatus != null && !incompleteListOfgradeStatus.isEmpty()) gradeStatus = JsonConstants.IN_PROGRESS;
+                collectionKpi.put(AJEntityBaseReports.ATTR_GRADE_STATUS, gradeStatus);
+                
                 collectionArray.add(collectionKpi);
-            	}
+            }
 
             contentBody.put(JsonConstants.USAGE_DATA, collectionArray).put(JsonConstants.USERID, userID);
             resultArray.add(contentBody);
