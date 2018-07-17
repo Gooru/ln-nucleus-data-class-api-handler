@@ -65,7 +65,7 @@ public class StudPerfCourseAssessmentHandler implements DBHandler {
     }
 
     @Override
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     public ExecutionResult<MessageResponse> executeRequest() {
 
         StringBuilder query = new StringBuilder(AJEntityBaseReports.GET_DISTINCT_COLLECTIONS_BULK);
@@ -159,8 +159,10 @@ public class StudPerfCourseAssessmentHandler implements DBHandler {
                 	//Get the latest Score
                 	assessScore = Base.findAll(AJEntityBaseReports.GET_LATEST_SCORE_FOR_ASSESSMENT, classId, courseId,
                     		collId, AJEntityBaseReports.ATTR_ASSESSMENT, userID, EventConstants.COLLECTION_PLAY, EventConstants.STOP);
+                	String latestSessionId = null;
 
                 	if (!assessScore.isEmpty()){
+                	    latestSessionId = (String) assessScore.get(0).getOrDefault(AJEntityBaseReports.SESSION_ID, null);
                 		assessScore.forEach(m -> {
                     		assessmentKpi.put(AJEntityBaseReports.ATTR_SCORE, m.get(AJEntityBaseReports.ATTR_SCORE) != null ? 
                     				Math.round(Double.valueOf(m.get(AJEntityBaseReports.ATTR_SCORE).toString())) : null);
@@ -170,13 +172,12 @@ public class StudPerfCourseAssessmentHandler implements DBHandler {
                 	
                 	assessmentKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collId);
                 	
-                	//Fetch latest session for user and get grading status
-                	Object sessionId = Base.firstCell(AJEntityBaseReports.GET_LATEST_COMPLETED_SESSION_ID_WITH_USERS_CLASS_COURSE, classId,
-                        courseId, collId, userID);
-                	String latestSessionId = sessionId == null ? null : String.valueOf(sessionId);
-                	List<Map> incompleteListOfgradeStatus = Base.findAll(AJEntityBaseReports.FETCH_INCOMPLETE_ASMT_GRADE_STATUS, userID, latestSessionId, collId);
-                	String gradeStatus = JsonConstants.COMPLETE;
-                	if(incompleteListOfgradeStatus != null && !incompleteListOfgradeStatus.isEmpty()) gradeStatus = JsonConstants.IN_PROGRESS;
+                	String gradeStatus = JsonConstants.IN_PROGRESS;
+                	//Check grading completion with latest session id
+                	if (latestSessionId != null) {
+                	    List<Map> inprogressListOfGradeStatus = Base.findAll(AJEntityBaseReports.FETCH_INPROGRESS_ASMT_GRADE_STATUS, userID, latestSessionId, collId);
+                	    if (inprogressListOfGradeStatus != null && !inprogressListOfGradeStatus.isEmpty()) gradeStatus = JsonConstants.COMPLETE;
+                	}
                 	assessmentKpi.put(AJEntityBaseReports.ATTR_GRADE_STATUS, gradeStatus);
                 	
                 	assessmentArray.add(assessmentKpi);

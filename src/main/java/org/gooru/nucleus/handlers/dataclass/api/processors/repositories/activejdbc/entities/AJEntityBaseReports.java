@@ -677,7 +677,7 @@ public class AJEntityBaseReports extends Model {
     //Student Performance for All Assessments/Collections in a Course
     public static final String GET_LATEST_SCORE_FOR_ASSESSMENT = "SELECT DISTINCT ON (collection_id) "
     		+ "FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage, "
-    		+ "collection_id from base_reports WHERE class_id = ? AND course_id = ? AND collection_id = ? AND collection_type = ? "
+    		+ "collection_id, session_id from base_reports WHERE class_id = ? AND course_id = ? AND collection_id = ? AND collection_type = ? "
     		+ "AND actor_id = ? AND event_name = ? AND event_type = ?";
     
     public static final String GET_TOTAL_TIME_SPENT_ATTEMPTS_FOR_ASSESSMENT = "SELECT SUM(time_spent) AS timeSpent, "
@@ -730,16 +730,10 @@ public class AJEntityBaseReports extends Model {
     public static final String GET_DISTINCT_COLLECTIONS_BULK = "SELECT distinct(collection_id) from base_reports where "
     		+ "collection_type = ? AND class_id = ? AND course_id = ? AND path_id IS NULL ";
 
-        
-    public static final String GET_LATEST_COMPLETED_SESSION_ID_WITH_USERS_CLASS_COURSE = "SELECT session_id FROM base_reports WHERE"
-        +" class_id = ? AND course_id = ? AND collection_id = ? AND actor_id = ? AND"
-        +" event_name = 'collection.play' AND event_type = 'stop'"
-        +" ORDER BY created_at DESC LIMIT 1";
-    
-    public static final String FETCH_INCOMPLETE_ASMT_GRADE_STATUS =
+    public static final String FETCH_INPROGRESS_ASMT_GRADE_STATUS =
         "SELECT is_graded FROM base_reports WHERE actor_id = ? AND session_id = ? AND collection_id = ? AND event_name = 'collection.resource.play' AND event_type = 'stop' AND is_graded = false";
     
-    public static final String FETCH_INCOMPLETE_COLL_GRADE_STATUS = "SELECT is_graded FROM base_reports "
+    public static final String FETCH_INPROGRESS_COLL_GRADE_STATUS = "SELECT is_graded FROM base_reports "
         + "WHERE class_id = ? AND course_id = ? AND collection_id = ?  "
         + "AND actor_id = ? AND event_name = 'collection.resource.play' AND event_type = 'stop' AND is_graded = false"; 
     
