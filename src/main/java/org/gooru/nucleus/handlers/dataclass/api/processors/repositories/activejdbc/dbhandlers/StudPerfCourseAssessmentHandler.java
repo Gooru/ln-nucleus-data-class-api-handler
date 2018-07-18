@@ -175,7 +175,7 @@ public class StudPerfCourseAssessmentHandler implements DBHandler {
                 	String gradeStatus = JsonConstants.IN_PROGRESS;
                 	//Check grading completion with latest session id
                 	if (latestSessionId != null) {
-                	    List<Map> inprogressListOfGradeStatus = Base.findAll(AJEntityBaseReports.FETCH_INPROGRESS_ASMT_GRADE_STATUS, userID, latestSessionId, collId);
+                	    List<Map> inprogressListOfGradeStatus = Base.findAll(AJEntityBaseReports.FETCH_INPROGRESS_GRADE_STATUS_BY_SESSION_ID, userID, latestSessionId, collId);
                 	    if (inprogressListOfGradeStatus != null && !inprogressListOfGradeStatus.isEmpty()) gradeStatus = JsonConstants.COMPLETE;
                 	}
                 	assessmentKpi.put(AJEntityBaseReports.ATTR_GRADE_STATUS, gradeStatus);

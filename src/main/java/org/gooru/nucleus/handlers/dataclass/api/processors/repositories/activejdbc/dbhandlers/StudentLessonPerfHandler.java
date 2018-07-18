@@ -181,7 +181,7 @@ public class StudentLessonPerfHandler implements DBHandler {
           String latestSessionId = m.get(AJEntityBaseReports.SESSION_ID).toString();
           //Check grading completion with latest session id
           if (latestSessionId != null) {
-              List<Map> inprogressListOfGradeStatus = Base.findAll(AJEntityBaseReports.FETCH_INPROGRESS_ASMT_GRADE_STATUS, userID, latestSessionId, cId);
+              List<Map> inprogressListOfGradeStatus = Base.findAll(AJEntityBaseReports.FETCH_INPROGRESS_GRADE_STATUS_BY_SESSION_ID, userID, latestSessionId, cId);
               if (inprogressListOfGradeStatus != null && !inprogressListOfGradeStatus.isEmpty()) gradeStatus = JsonConstants.COMPLETE;
           }
           lessonKpi.put(AJEntityBaseReports.ATTR_GRADE_STATUS, gradeStatus);

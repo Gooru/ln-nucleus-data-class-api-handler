@@ -729,7 +729,7 @@ public class AJEntityBaseReports extends Model {
     public static final String GET_DISTINCT_COLLECTIONS_BULK = "SELECT distinct(collection_id) from base_reports where "
     		+ "collection_type = ? AND class_id = ? AND course_id = ? AND path_id IS NULL ";
 
-    public static final String FETCH_INPROGRESS_ASMT_GRADE_STATUS =
+    public static final String FETCH_INPROGRESS_GRADE_STATUS_BY_SESSION_ID =
         "SELECT is_graded FROM base_reports WHERE actor_id = ? AND session_id = ? AND collection_id = ? AND event_name = 'collection.resource.play' AND event_type = 'stop' AND is_graded = false";
     
     public static final String FETCH_INPROGRESS_COLL_GRADE_STATUS = "SELECT is_graded FROM base_reports "
@@ -961,12 +961,13 @@ public class AJEntityBaseReports extends Model {
             + "WHERE class_id IS NULL AND course_id = ? AND collection_id = ? AND actor_id = ? AND event_name = 'collection.play'"
             + " ORDER BY updated_at DESC LIMIT 1";
     
-    public static final String GET_IL_COLLECTION_SCORE = "SELECT SUM(coll.score) AS score FROM "
+    public static final String GET_IL_COLLECTION_SCORE = "SELECT SUM(coll.score) AS score, coll.session_id FROM "
             + "(SELECT DISTINCT ON (resource_id) collection_id, "
-            + "FIRST_VALUE(score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score "
+            + "FIRST_VALUE(score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score, "
+            + "FIRST_VALUE(session_id) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS session_id "
             + "FROM base_reports WHERE class_id IS NULL AND course_id = ? AND collection_id = ? AND actor_id = ? AND "
             + "event_name = 'collection.resource.play' AND resource_type = 'question' AND resource_attempt_status <> 'skipped' ) AS coll "
-            + "GROUP BY coll.collection_id";
+            + "GROUP BY coll.collection_id, coll.session_id";
 
     
     //*****************************************************************************************************************************
@@ -1226,11 +1227,7 @@ public class AJEntityBaseReports extends Model {
     public static final String SELECT_IL_ASMT_OE_QUE_GRADE_STATUS = "SELECT is_graded FROM base_reports "
         + "WHERE class_id IS NULL AND collection_id = ? AND session_id = ?  and resource_id = ? AND event_name = 'collection.resource.play' "
         + "AND event_type = 'stop'"; 
-    
-    public static final String FETCH_IL_INPROGRESS_COLL_GRADE_STATUS = "SELECT is_graded FROM base_reports "
-        + "WHERE class_id IS NULL AND course_id = ? AND collection_id = ?  "
-        + "AND actor_id = ? AND event_name = 'collection.resource.play' AND event_type = 'stop' and is_graded = false"; 
-    
+     
     //*************************************************************************************************************************
 
     //Rubric Grading    
