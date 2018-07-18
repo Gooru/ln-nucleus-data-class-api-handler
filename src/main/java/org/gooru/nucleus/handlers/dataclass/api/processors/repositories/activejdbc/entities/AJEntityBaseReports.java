@@ -676,9 +676,8 @@ public class AJEntityBaseReports extends Model {
     
     //Student Performance for All Assessments/Collections in a Course
     public static final String GET_LATEST_SCORE_FOR_ASSESSMENT = "SELECT DISTINCT ON (collection_id) "
-    		+ "FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage, "
-    		+ "collection_id, session_id from base_reports WHERE class_id = ? AND course_id = ? AND collection_id = ? AND collection_type = ? "
-    		+ "AND actor_id = ? AND event_name = ? AND event_type = ?";
+    		+ "score AS scoreInPercentage, collection_id, session_id from base_reports WHERE class_id = ? AND course_id = ? AND collection_id = ? AND collection_type = ? "
+    		+ "AND actor_id = ? AND event_name = ? AND event_type = ? ORDER BY collection_id, updated_at DESC";
     
     public static final String GET_TOTAL_TIME_SPENT_ATTEMPTS_FOR_ASSESSMENT = "SELECT SUM(time_spent) AS timeSpent, "
     		+ "SUM(views) AS attempts, collection_id FROM base_reports WHERE class_id = ? AND course_id = ? AND collection_id = ? AND collection_type = ? "
@@ -938,7 +937,7 @@ public class AJEntityBaseReports extends Model {
     //Student Performance for All Assessments/Collections in a Course
     public static final String GET_IL_COURSE_ASSESSMENTS_SCORE = "SELECT DISTINCT ON (collection_id) "
     		+ "FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS score, "
-    		+ "collection_id from base_reports WHERE class_id IS NULL AND course_id = ? AND collection_id = ? AND collection_type = ? "
+    		+ "collection_id, FIRST_VALUE(session_id) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS sessionId from base_reports WHERE class_id IS NULL AND course_id = ? AND collection_id = ? AND collection_type = ? "
     		+ "AND actor_id = ? AND event_name = ? AND event_type = ?";
     
     public static final String GET_IL_COURSE_ASSESSMENTS_TOTAL_TIME_SPENT_ATTEMPTS = "SELECT SUM(time_spent) AS time_spent, "
@@ -1223,6 +1222,10 @@ public class AJEntityBaseReports extends Model {
     public static final String SELECT_IL_ASMT_OE_QUE_GRADE_STATUS = "SELECT is_graded FROM base_reports "
         + "WHERE class_id IS NULL AND collection_id = ? AND session_id = ?  and resource_id = ? AND event_name = 'collection.resource.play' "
         + "AND event_type = 'stop'"; 
+    
+    public static final String FETCH_IL_INPROGRESS_COLL_GRADE_STATUS = "SELECT is_graded FROM base_reports "
+        + "WHERE class_id IS NULL AND course_id = ? AND collection_id = ?  "
+        + "AND actor_id = ? AND event_name = 'collection.resource.play' AND event_type = 'stop' and is_graded = false"; 
     
     //*************************************************************************************************************************
 

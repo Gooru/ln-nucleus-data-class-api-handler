@@ -213,6 +213,15 @@ public class IndLearnerCourseCollectionsPerfHandler implements DBHandler {
             //So whenever we have an entry of a collection_id in Analytics, it is by default complete.
             collectionKpi.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
         	collectionKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collId);
+        	
+        	//Fetch grading status for each collection
+        	List<Map> inprogressListOfGradeStatus = null;
+        	inprogressListOfGradeStatus = Base.findAll(AJEntityBaseReports.FETCH_IL_INPROGRESS_COLL_GRADE_STATUS, courseId,
+                collId, userId);
+        	String gradeStatus = JsonConstants.IN_PROGRESS;
+        	if (inprogressListOfGradeStatus == null || inprogressListOfGradeStatus.isEmpty()) gradeStatus = JsonConstants.COMPLETE;
+        	collectionKpi.put(AJEntityBaseReports.ATTR_GRADE_STATUS, gradeStatus);
+            
         	collectionArray.add(collectionKpi);
         	}
 
