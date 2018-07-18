@@ -183,6 +183,7 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
                 // FIXME : revisit completed count and total count
                 assData.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 1);
                 assData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
+                String collId = assData.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID);
                 if (this.collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {
                   List<Map> collectionQuestionCount;
                     collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_IL_COLLECTION_SCORE_AND_MAX_SCORE,
@@ -209,6 +210,15 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
                 }else {
                   assData.put(AJEntityBaseReports.ATTR_SCORE, ass.get(AJEntityBaseReports.ATTR_SCORE) != null ?  Math.round(Double.valueOf(ass.get(AJEntityBaseReports.ATTR_SCORE).toString())) : null);
                 }
+                
+                String gradeStatus = JsonConstants.IN_PROGRESS;
+                String latestSessionId = m.get(AJEntityBaseReports.SESSION_ID).toString();
+                //Check grading completion with latest session id
+                if (latestSessionId != null) {
+                    List<Map> inprogressListOfGradeStatus = Base.findAll(AJEntityBaseReports.FETCH_INPROGRESS_ASMT_GRADE_STATUS, userID, latestSessionId, collId);
+                    if (inprogressListOfGradeStatus != null && !inprogressListOfGradeStatus.isEmpty()) gradeStatus = JsonConstants.COMPLETE;
+                }
+                assData.put(AJEntityBaseReports.ATTR_GRADE_STATUS, gradeStatus);
                 assessmentArray.add(assData);
               });
             }

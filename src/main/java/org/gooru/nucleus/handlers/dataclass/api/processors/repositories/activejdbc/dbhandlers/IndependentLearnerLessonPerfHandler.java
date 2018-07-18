@@ -116,6 +116,7 @@ public class IndependentLearnerLessonPerfHandler implements DBHandler {
           String cId = m.get(AJEntityBaseReports.ATTR_COLLECTION_ID).toString();
           lessonKpi.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 1);
           lessonKpi.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 1);
+          String collId = lessonKpi.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID);
           // FIXME: This logic to be revisited.
           if (this.collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {
             List<Map> collectionQuestionCount;
@@ -141,6 +142,14 @@ public class IndependentLearnerLessonPerfHandler implements DBHandler {
             lessonKpi.put(AJEntityBaseReports.ATTR_SCORE, m.get(AJEntityBaseReports.ATTR_SCORE) != null ?
                     Math.round(Double.valueOf(m.get(AJEntityBaseReports.ATTR_SCORE).toString())) : null);
           }
+          String gradeStatus = JsonConstants.IN_PROGRESS;
+          String latestSessionId = m.get(AJEntityBaseReports.SESSION_ID).toString();
+          //Check grading completion with latest session id
+          if (latestSessionId != null) {
+              List<Map> inprogressListOfGradeStatus = Base.findAll(AJEntityBaseReports.FETCH_INPROGRESS_ASMT_GRADE_STATUS, userID, latestSessionId, collId);
+              if (inprogressListOfGradeStatus != null && !inprogressListOfGradeStatus.isEmpty()) gradeStatus = JsonConstants.COMPLETE;
+          }
+          lessonKpi.put(AJEntityBaseReports.ATTR_GRADE_STATUS, gradeStatus);
           LessonKpiArray.add(lessonKpi);
         });
       } else {
