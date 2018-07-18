@@ -189,7 +189,6 @@ public class IndLearnerCourseCollectionsPerfHandler implements DBHandler {
           String latestSessionId = null;
           double scoreInPercent = 0;
           if (this.maxScore > 0) {
-            //Object collectionScore;
             List<Map> collectionScoreList = null;
             if(!StringUtil.isNullOrEmpty(classId)){
               collectionScoreList = Base.findAll(AJEntityBaseReports.GET_COLLECTION_SCORE, classId, courseId,

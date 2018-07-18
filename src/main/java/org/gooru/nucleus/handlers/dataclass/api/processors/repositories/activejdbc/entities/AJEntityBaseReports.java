@@ -697,12 +697,13 @@ public class AJEntityBaseReports extends Model {
             + "WHERE class_id = ? AND course_id = ? AND collection_id = ? AND actor_id = ? AND event_name = 'collection.play'"
             + " ORDER BY updated_at DESC LIMIT 1";
     
-    public static final String GET_COLLECTION_SCORE = "SELECT SUM(coll.score) AS score FROM "
+    public static final String GET_COLLECTION_SCORE = "SELECT SUM(coll.score) AS score, coll.session_id FROM "
             + "(SELECT DISTINCT ON (resource_id) collection_id, "
-            + "FIRST_VALUE(score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score "
+            + "FIRST_VALUE(score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score,"
+            + "FIRST_VALUE(session_id) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS session_id "
             + "FROM base_reports WHERE class_id = ? AND course_id = ? AND collection_id = ? AND actor_id = ? AND "
             + "event_name = 'collection.resource.play' AND resource_type = 'question' AND resource_attempt_status <> 'skipped' ) AS coll "
-            + "GROUP BY coll.collection_id";
+            + "GROUP BY coll.collection_id, coll.session_id";
 
     
     public static final String GET_COLLECTION_MAX_SCORE = "SELECT SUM(coll.max_score) AS max_score FROM "
