@@ -195,6 +195,7 @@ import io.vertx.core.json.JsonObject;
                     assData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
                     assData.put(AJEntityBaseReports.ATTR_SCORE, ass.get(AJEntityBaseReports.ATTR_SCORE) != null ?
                     		Math.round(Double.valueOf(ass.get(AJEntityBaseReports.ATTR_SCORE).toString())) : null);
+                    String collId = assData.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID);
 
                     if (this.collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {
                       List<Map> collectionQuestionCount;
@@ -215,11 +216,22 @@ import io.vertx.core.json.JsonObject;
                       } else {
                         assData.putNull(AJEntityBaseReports.ATTR_SCORE);
                       }
-                      assData.put(AJEntityBaseReports.ATTR_COLLECTION_ID, assData.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID));
+                      assData.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collId);
                       assData.remove(AJEntityBaseReports.ATTR_ASSESSMENT_ID);
                       assData.put(EventConstants.VIEWS, assData.getInteger(EventConstants.ATTEMPTS));
                       assData.remove(EventConstants.ATTEMPTS);
+                      
                     }
+                    
+                    String gradeStatus = JsonConstants.IN_PROGRESS;
+                    String latestSessionId = ass.get(AJEntityBaseReports.SESSION_ID).toString();
+                    //Check grading completion with latest session id
+                    if (latestSessionId != null) {
+                        List<Map> inprogressListOfGradeStatus = Base.findAll(AJEntityBaseReports.FETCH_INPROGRESS_ASMT_GRADE_STATUS, userID, latestSessionId, collId);
+                        if (inprogressListOfGradeStatus != null && !inprogressListOfGradeStatus.isEmpty()) gradeStatus = JsonConstants.COMPLETE;
+                    }
+                    assData.put(AJEntityBaseReports.ATTR_GRADE_STATUS, gradeStatus);
+                    
                     assessmentArray.add(assData);
                   });
                 }
