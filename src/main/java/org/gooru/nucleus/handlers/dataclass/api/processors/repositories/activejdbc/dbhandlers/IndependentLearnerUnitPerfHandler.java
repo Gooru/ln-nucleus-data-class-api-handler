@@ -211,12 +211,12 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
                   assData.put(AJEntityBaseReports.ATTR_SCORE, ass.get(AJEntityBaseReports.ATTR_SCORE) != null ?  Math.round(Double.valueOf(ass.get(AJEntityBaseReports.ATTR_SCORE).toString())) : null);
                 }
                 
-                String gradeStatus = JsonConstants.IN_PROGRESS;
-                String latestSessionId = m.get(AJEntityBaseReports.SESSION_ID).toString();
+                String gradeStatus = JsonConstants.COMPLETE;
+                String latestSessionId = m.get(AJEntityBaseReports.SESSION_ID) != null ? m.get(AJEntityBaseReports.SESSION_ID).toString() : null;
                 //Check grading completion with latest session id
                 if (latestSessionId != null) {
                     List<Map> inprogressListOfGradeStatus = Base.findAll(AJEntityBaseReports.FETCH_INPROGRESS_GRADE_STATUS_BY_SESSION_ID, userID, latestSessionId, collId);
-                    if (inprogressListOfGradeStatus != null && !inprogressListOfGradeStatus.isEmpty()) gradeStatus = JsonConstants.COMPLETE;
+                    if (inprogressListOfGradeStatus != null && !inprogressListOfGradeStatus.isEmpty()) gradeStatus = JsonConstants.IN_PROGRESS;
                 }
                 assData.put(AJEntityBaseReports.ATTR_GRADE_STATUS, gradeStatus);
                 assessmentArray.add(assData);

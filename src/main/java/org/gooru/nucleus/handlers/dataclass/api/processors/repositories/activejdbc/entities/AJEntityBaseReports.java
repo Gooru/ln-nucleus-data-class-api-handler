@@ -436,7 +436,8 @@ public class AJEntityBaseReports extends Model {
     public static final String SELECT_COLLECTION_QUESTION_AGG_SCORE = "SELECT DISTINCT ON (resource_id) "
             + "FIRST_VALUE(score) OVER (PARTITION BY resource_id "
             + "ORDER BY updated_at desc) AS score,FIRST_VALUE(resource_attempt_status) OVER (PARTITION BY resource_id ORDER BY updated_at desc) "
-            + "AS attemptStatus, FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS answer_object "
+            + "AS attemptStatus, FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS answer_object, "
+            + "FIRST_VALUE(session_id) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS session_id "
             + "FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND resource_id = ? "
             + "AND actor_id = ? AND event_name = 'collection.resource.play' AND event_type = 'stop' AND resource_type = 'question' "
             + "AND resource_attempt_status <> 'skipped'";
@@ -496,7 +497,8 @@ public class AJEntityBaseReports extends Model {
     public static final String SELECT_COLLECTION_QUESTION_AGG_SCORE_ = "SELECT DISTINCT ON (resource_id) "
             + "FIRST_VALUE(score) OVER (PARTITION BY resource_id "
             + "ORDER BY updated_at desc) AS score,FIRST_VALUE(resource_attempt_status) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS attemptStatus, "
-            + "FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS answer_object "
+            + "FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS answer_object,"
+            + "FIRST_VALUE(session_id) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS session_id "
             + "FROM base_reports WHERE class_id IS NULL AND course_id IS NULL AND unit_id IS NULL AND lesson_id IS NULL AND collection_id = ? AND resource_id = ? "
             + "AND actor_id = ? AND event_name = 'collection.resource.play' AND event_type = 'stop' AND resource_type = 'question' "
             + "AND resource_attempt_status <> 'skipped'";
@@ -731,12 +733,10 @@ public class AJEntityBaseReports extends Model {
     		+ "collection_type = ? AND class_id = ? AND course_id = ? AND path_id IS NULL ";
 
     public static final String FETCH_INPROGRESS_GRADE_STATUS_BY_SESSION_ID =
-        "SELECT is_graded FROM base_reports WHERE actor_id = ? AND session_id = ? AND collection_id = ? AND event_name = 'collection.resource.play' AND event_type = 'stop' AND is_graded = false";
-    
-    public static final String FETCH_INPROGRESS_COLL_GRADE_STATUS = "SELECT is_graded FROM base_reports "
-        + "WHERE class_id = ? AND course_id = ? AND collection_id = ?  "
-        + "AND actor_id = ? AND event_name = 'collection.resource.play' AND event_type = 'stop' AND is_graded = false"; 
-    
+        "SELECT is_graded FROM base_reports WHERE actor_id = ? AND session_id = ? AND collection_id = ? AND event_name = 'collection.resource.play' AND event_type = 'stop' "
+        + "AND is_graded = false AND resource_type = 'question' AND question_type = 'OE' AND resource_attempt_status = 'attempted' "
+        + "AND grading_type = 'teacher'";
+
     //**********************************************************INDEPENDENT LEARNER QUERIES************************************//
    
     public static final String SELECT_INDEPENDENT_LEARNER_DISTINCT_UNIT_ID_FOR_COURSE_ID_FILTERBY_COLLTYPE =
@@ -1146,7 +1146,8 @@ public class AJEntityBaseReports extends Model {
     public static final String SELECT_IL_COLLECTION_QUESTION_AGG_SCORE = "SELECT DISTINCT ON (resource_id) "
             + "FIRST_VALUE(score) OVER (PARTITION BY resource_id "
             + "ORDER BY updated_at desc) AS score,FIRST_VALUE(resource_attempt_status) OVER (PARTITION BY resource_id ORDER BY updated_at desc) "
-            + "AS attemptStatus, FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS answer_object "
+            + "AS attemptStatus, FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS answer_object,"
+            + "FIRST_VALUE(session_id) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS session_id "
             + "FROM base_reports WHERE class_id IS NULL AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND resource_id = ? "
             + "AND actor_id = ? AND event_name = 'collection.resource.play' AND resource_type = 'question' AND resource_attempt_status <> 'skipped'";
   //Getting RESOURCE DATA (reaction)
@@ -1198,7 +1199,8 @@ public class AJEntityBaseReports extends Model {
     public static final String SELECT_IL_STANDALONE_COLLECTION_QUESTION_AGG_SCORE = "SELECT DISTINCT ON (resource_id) "
             + "FIRST_VALUE(score) OVER (PARTITION BY resource_id "
             + "ORDER BY updated_at desc) AS score,FIRST_VALUE(resource_attempt_status) OVER (PARTITION BY resource_id ORDER BY updated_at"
-            + " desc) AS attemptStatus, FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS answer_object "
+            + " desc) AS attemptStatus, FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS answer_object,"
+            + "FIRST_VALUE(session_id) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS session_id "
             + "FROM base_reports WHERE class_id IS NULL AND collection_id = ? AND resource_id = ?"
             + "AND actor_id = ? AND event_name = 'collection.resource.play' AND resource_type = 'question' AND resource_attempt_status <> 'skipped'";
   //Getting RESOURCE DATA (reaction)
@@ -1220,12 +1222,7 @@ public class AJEntityBaseReports extends Model {
             + "WHERE class_id IS NULL AND collection_id = ? AND actor_id = ? AND event_name = 'collection.play' "
             + "ORDER BY updated_at DESC LIMIT 1";
       
-    
-    public static final String SELECT_IL_COLL_OE_QUE_GRADE_STATUS = "SELECT is_graded FROM base_reports "
-        + "WHERE class_id IS NULL AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND resource_id = ? "
-        + "AND actor_id = ? AND event_name = 'collection.resource.play' AND event_type = 'stop'"; 
-    
-    public static final String SELECT_IL_ASMT_OE_QUE_GRADE_STATUS = "SELECT is_graded FROM base_reports "
+    public static final String SELECT_IL_OE_QUE_GRADE_STATUS = "SELECT is_graded FROM base_reports "
         + "WHERE class_id IS NULL AND collection_id = ? AND session_id = ?  and resource_id = ? AND event_name = 'collection.resource.play' "
         + "AND event_type = 'stop'"; 
      
@@ -1270,13 +1267,9 @@ public class AJEntityBaseReports extends Model {
     		+ "resource_type = 'question' AND is_graded = 'false' AND resource_attempt_status = 'attempted' AND "
     		+ "grading_type = 'teacher' AND question_type = 'OE') AS q WHERE q.score IS NULL";
     
-    public static final String GET_ASMT_OE_QUE_GRADE_STATUS = "SELECT is_graded FROM base_reports "
+    public static final String GET_OE_QUE_GRADE_STATUS = "SELECT is_graded FROM base_reports "
     		+ "WHERE collection_id = ? AND session_id = ?  and resource_id = ? AND event_name = 'collection.resource.play' "
     		+ "AND event_type = 'stop'"; 
-    
-    public static final String GET_COLL_OE_QUE_GRADE_STATUS = "SELECT is_graded FROM base_reports "
-    		+ "WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND resource_id = ? "
-            + "AND actor_id = ? AND event_name = 'collection.resource.play' AND event_type = 'stop'"; 
     
    //*************************************************************************************************************************
    //NU Data Reports 

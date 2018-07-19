@@ -101,7 +101,7 @@ public class IndLearnerAssessmentSummaryHandler implements DBHandler {
               qnData.put(JsonConstants.ANSWER_OBJECT, new JsonArray(questions.get(AJEntityBaseReports.ANSWER_OBECT).toString()));
               qnData.put(JsonConstants.SCORE, questions.get(AJEntityBaseReports.SCORE) != null ? Math.round(Double.valueOf(questions.get(AJEntityBaseReports.SCORE).toString())) : null );
               if (qnData.getString(EventConstants.QUESTION_TYPE).equalsIgnoreCase(EventConstants.OPEN_ENDED_QUE)) {
-                  Object isGradedObj = Base.firstCell(AJEntityBaseReports.SELECT_IL_ASMT_OE_QUE_GRADE_STATUS, context.collectionId(),
+                  Object isGradedObj = Base.firstCell(AJEntityBaseReports.SELECT_IL_OE_QUE_GRADE_STATUS, context.collectionId(),
                           sessionId, questions.get(AJEntityBaseReports.RESOURCE_ID).toString());
                   if (isGradedObj != null && (isGradedObj.toString().equalsIgnoreCase("t") || isGradedObj.toString().equalsIgnoreCase("true"))) {
                       qnData.put(JsonConstants.IS_GRADED, true);

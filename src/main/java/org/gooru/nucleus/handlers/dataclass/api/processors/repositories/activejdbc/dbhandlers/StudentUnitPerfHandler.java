@@ -43,7 +43,6 @@ import io.vertx.core.json.JsonObject;
 
         // For stuffing Json
       private String lessonId;
-      private double maxScore;
 
       public StudentUnitPerfHandler(ProcessorContext context) {
         this.context = context;
@@ -200,7 +199,7 @@ import io.vertx.core.json.JsonObject;
                     if (this.collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {
                       List<Map> collectionQuestionCount;
                         collectionQuestionCount = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_SCORE_AND_MAX_SCORE, context.classId(),
-                              context.courseId(), context.unitId(), this.lessonId, assData.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID),userID);
+                              context.courseId(), context.unitId(), this.lessonId, collId, userID);
 
                       if (collectionQuestionCount != null && !collectionQuestionCount.isEmpty()) {
                         collectionQuestionCount.forEach(score -> {
@@ -223,12 +222,12 @@ import io.vertx.core.json.JsonObject;
                       
                     }
                     
-                    String gradeStatus = JsonConstants.IN_PROGRESS;
-                    String latestSessionId = ass.get(AJEntityBaseReports.SESSION_ID).toString();
+                    String gradeStatus = JsonConstants.COMPLETE;
+                    String latestSessionId = ass.get(AJEntityBaseReports.SESSION_ID) != null ? ass.get(AJEntityBaseReports.SESSION_ID).toString() : null;
                     //Check grading completion with latest session id
                     if (latestSessionId != null) {
                         List<Map> inprogressListOfGradeStatus = Base.findAll(AJEntityBaseReports.FETCH_INPROGRESS_GRADE_STATUS_BY_SESSION_ID, userID, latestSessionId, collId);
-                        if (inprogressListOfGradeStatus != null && !inprogressListOfGradeStatus.isEmpty()) gradeStatus = JsonConstants.COMPLETE;
+                        if (inprogressListOfGradeStatus != null && !inprogressListOfGradeStatus.isEmpty()) gradeStatus = JsonConstants.IN_PROGRESS;
                     }
                     assData.put(AJEntityBaseReports.ATTR_GRADE_STATUS, gradeStatus);
                     

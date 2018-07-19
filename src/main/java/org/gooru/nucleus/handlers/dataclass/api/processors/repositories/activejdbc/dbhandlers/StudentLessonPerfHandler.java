@@ -132,7 +132,7 @@ public class StudentLessonPerfHandler implements DBHandler {
       if (!assessmentKpi.isEmpty()) {
         assessmentKpi.forEach(m -> {
           JsonObject lessonKpi = ValueMapper.map(ResponseAttributeIdentifier.getLessonPerformanceAttributesMap(), m);
-          String cId = m.get(AJEntityBaseReports.ATTR_COLLECTION_ID).toString();          
+          String cId = lessonKpi.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID);          
           lessonKpi.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 1);
           //In Gooru 3.0, total_count was hardcoded to 1 at this last mile, assessment/collection level
           //Replicating the same here.
@@ -152,7 +152,7 @@ public class StudentLessonPerfHandler implements DBHandler {
               }
             });
 
-            lessonKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, lessonKpi.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID));
+            lessonKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, cId);
             lessonKpi.remove(AJEntityBaseReports.ATTR_ASSESSMENT_ID);
             lessonKpi.put(EventConstants.VIEWS, lessonKpi.getInteger(EventConstants.ATTEMPTS));
             lessonKpi.remove(EventConstants.ATTEMPTS);
@@ -177,12 +177,12 @@ public class StudentLessonPerfHandler implements DBHandler {
             }
           }
           
-          String gradeStatus = JsonConstants.IN_PROGRESS;
-          String latestSessionId = m.get(AJEntityBaseReports.SESSION_ID).toString();
+          String gradeStatus = JsonConstants.COMPLETE;
+          String latestSessionId = m.get(AJEntityBaseReports.SESSION_ID) != null ? m.get(AJEntityBaseReports.SESSION_ID).toString() : null;
           //Check grading completion with latest session id
           if (latestSessionId != null) {
               List<Map> inprogressListOfGradeStatus = Base.findAll(AJEntityBaseReports.FETCH_INPROGRESS_GRADE_STATUS_BY_SESSION_ID, userID, latestSessionId, cId);
-              if (inprogressListOfGradeStatus != null && !inprogressListOfGradeStatus.isEmpty()) gradeStatus = JsonConstants.COMPLETE;
+              if (inprogressListOfGradeStatus != null && !inprogressListOfGradeStatus.isEmpty()) gradeStatus = JsonConstants.IN_PROGRESS;
           }
           lessonKpi.put(AJEntityBaseReports.ATTR_GRADE_STATUS, gradeStatus);
           LessonKpiArray.add(lessonKpi);

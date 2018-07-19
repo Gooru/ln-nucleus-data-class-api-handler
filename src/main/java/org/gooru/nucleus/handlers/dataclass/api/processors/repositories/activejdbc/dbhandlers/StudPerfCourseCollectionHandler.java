@@ -170,8 +170,7 @@ public class StudPerfCourseCollectionHandler implements DBHandler {
                 String latestSessionId = null;
                 double scoreInPercent = 0;
                 if (this.maxScore > 0) {
-                    List<Map> collectionScoreList = null;
-                    collectionScoreList = Base.findAll(AJEntityBaseReports.GET_COLLECTION_SCORE, classId, courseId,
+                    List<Map> collectionScoreList = Base.findAll(AJEntityBaseReports.GET_COLLECTION_SCORE, classId, courseId,
                           collId, userID);
                   if (collectionScoreList != null && !collectionScoreList.isEmpty()) {
                       Map collectionMap = collectionScoreList.get(0);
@@ -192,11 +191,11 @@ public class StudPerfCourseCollectionHandler implements DBHandler {
                 
                 collectionKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collId);
                 
-                String gradeStatus = JsonConstants.IN_PROGRESS;
+                String gradeStatus = JsonConstants.COMPLETE;
                 //Check grading completion with latest session id
                 if (latestSessionId != null) {
                     List<Map> inprogressListOfGradeStatus = Base.findAll(AJEntityBaseReports.FETCH_INPROGRESS_GRADE_STATUS_BY_SESSION_ID, userId, latestSessionId, collId);
-                    if (inprogressListOfGradeStatus != null && !inprogressListOfGradeStatus.isEmpty()) gradeStatus = JsonConstants.COMPLETE;
+                    if (inprogressListOfGradeStatus != null && !inprogressListOfGradeStatus.isEmpty()) gradeStatus = JsonConstants.IN_PROGRESS;
                 }
                 collectionKpi.put(AJEntityBaseReports.ATTR_GRADE_STATUS, gradeStatus);
                 

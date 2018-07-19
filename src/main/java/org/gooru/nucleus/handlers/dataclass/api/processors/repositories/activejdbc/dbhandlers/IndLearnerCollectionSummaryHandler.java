@@ -184,7 +184,9 @@ public class IndLearnerCollectionSummaryHandler implements DBHandler {
                   questionScore = Base.findAll(AJEntityBaseReports.SELECT_IL_STANDALONE_COLLECTION_QUESTION_AGG_SCORE, collectionId,
                       questions.get(AJEntityBaseReports.RESOURCE_ID),this.userId);
                 }
+                String latestSessionId = null;
                 if(!questionScore.isEmpty()){
+                    latestSessionId = (questionScore.get(0).get(AJEntityBaseReports.SESSION_ID) != null) ? questionScore.get(0).get(AJEntityBaseReports.SESSION_ID).toString() : null;
                 questionScore.forEach(qs -> {
                     qnData.put(JsonConstants.ANSWER_OBJECT, qs.get(AJEntityBaseReports.ANSWER_OBECT) != null
                         ? new JsonArray(qs.get(AJEntityBaseReports.ANSWER_OBECT).toString()) : null);
@@ -197,8 +199,8 @@ public class IndLearnerCollectionSummaryHandler implements DBHandler {
 
                     // Get grading status for Questions
                     if (!StringUtil.isNullOrEmpty(courseId) && !StringUtil.isNullOrEmpty(unitId)  && !StringUtil.isNullOrEmpty(lessonId)) {
-                        if (qnData.getString(EventConstants.QUESTION_TYPE).equalsIgnoreCase(EventConstants.OPEN_ENDED_QUE)) {
-                            Object isGradedObj = Base.firstCell(AJEntityBaseReports.SELECT_IL_COLL_OE_QUE_GRADE_STATUS, courseId, unitId, lessonId, collectionId, questions.get(AJEntityBaseReports.RESOURCE_ID), this.userId);
+                        if (latestSessionId != null && qnData.getString(EventConstants.QUESTION_TYPE).equalsIgnoreCase(EventConstants.OPEN_ENDED_QUE)) {
+                            Object isGradedObj = Base.firstCell(AJEntityBaseReports.SELECT_IL_OE_QUE_GRADE_STATUS, collectionId, latestSessionId, questions.get(AJEntityBaseReports.RESOURCE_ID));
                             if (isGradedObj != null && (isGradedObj.toString().equalsIgnoreCase("t") || isGradedObj.toString().equalsIgnoreCase("true"))) {
                                 qnData.put(JsonConstants.IS_GRADED, true);
                             } else {

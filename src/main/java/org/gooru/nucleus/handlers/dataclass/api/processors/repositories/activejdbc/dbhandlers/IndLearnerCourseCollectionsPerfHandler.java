@@ -205,7 +205,7 @@ public class IndLearnerCourseCollectionsPerfHandler implements DBHandler {
                     scoreInPercent = ((score / this.maxScore) * 100);
                     collectionKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(scoreInPercent));
                 }
-                if (collectionMap.get(AJEntityBaseReports.SESSION_ID) != null) latestSessionId = collectionMap.get(AJEntityBaseReports.SESSION_ID).toString();
+                if (collectionMap.get(AJEntityBaseReports.SESSION_ID) != null) latestSessionId = collectionMap.get(AJEntityBaseReports.SESSION_ID) != null ? collectionMap.get(AJEntityBaseReports.SESSION_ID).toString() : null;
             } else {
               collectionKpi.putNull(AJEntityBaseReports.ATTR_SCORE); 
             }
@@ -219,11 +219,11 @@ public class IndLearnerCourseCollectionsPerfHandler implements DBHandler {
             collectionKpi.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
         	collectionKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collId);
         	
-            String gradeStatus = JsonConstants.IN_PROGRESS;
+            String gradeStatus = JsonConstants.COMPLETE;
             //Check grading completion with latest session id
             if (latestSessionId != null) {
                 List<Map> inprogressListOfGradeStatus = Base.findAll(AJEntityBaseReports.FETCH_INPROGRESS_GRADE_STATUS_BY_SESSION_ID, userId, latestSessionId, collId);
-                if (inprogressListOfGradeStatus != null && !inprogressListOfGradeStatus.isEmpty()) gradeStatus = JsonConstants.COMPLETE;
+                if (inprogressListOfGradeStatus != null && !inprogressListOfGradeStatus.isEmpty()) gradeStatus = JsonConstants.IN_PROGRESS;
             }
             collectionKpi.put(AJEntityBaseReports.ATTR_GRADE_STATUS, gradeStatus);
             
