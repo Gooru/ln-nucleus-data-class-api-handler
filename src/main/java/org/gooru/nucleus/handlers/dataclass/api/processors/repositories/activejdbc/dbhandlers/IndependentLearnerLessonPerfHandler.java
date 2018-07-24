@@ -141,6 +141,14 @@ public class IndependentLearnerLessonPerfHandler implements DBHandler {
             lessonKpi.put(AJEntityBaseReports.ATTR_SCORE, m.get(AJEntityBaseReports.ATTR_SCORE) != null ?
                     Math.round(Double.valueOf(m.get(AJEntityBaseReports.ATTR_SCORE).toString())) : null);
           }
+          String gradeStatus = JsonConstants.COMPLETE;
+          String latestSessionId = m.get(AJEntityBaseReports.SESSION_ID) != null ? m.get(AJEntityBaseReports.SESSION_ID).toString() : null;
+          //Check grading completion with latest session id
+          if (latestSessionId != null) {
+              List<Map> inprogressListOfGradeStatus = Base.findAll(AJEntityBaseReports.FETCH_INPROGRESS_GRADE_STATUS_BY_SESSION_ID, userID, latestSessionId, cId);
+              if (inprogressListOfGradeStatus != null && !inprogressListOfGradeStatus.isEmpty()) gradeStatus = JsonConstants.IN_PROGRESS;
+          }
+          lessonKpi.put(AJEntityBaseReports.ATTR_GRADE_STATUS, gradeStatus);
           LessonKpiArray.add(lessonKpi);
         });
       } else {
