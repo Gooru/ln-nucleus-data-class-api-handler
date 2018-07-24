@@ -117,7 +117,7 @@ public class StudentAssessmentSummaryHandler implements DBHandler {
                       sessionId,questions.get(AJEntityBaseReports.RESOURCE_ID).toString());
               qnData.put(JsonConstants.REACTION, reactionObj != null ? ((Number)reactionObj).intValue() : 0);
               if(qnData.getString(EventConstants.QUESTION_TYPE).equalsIgnoreCase(EventConstants.OPEN_ENDED_QUE)){
-                  Object isGradedObj = Base.firstCell(AJEntityBaseReports.GET_ASMT_OE_QUE_GRADE_STATUS, context.collectionId(),
+                  Object isGradedObj = Base.firstCell(AJEntityBaseReports.GET_OE_QUE_GRADE_STATUS, context.collectionId(),
                           sessionId, questions.get(AJEntityBaseReports.RESOURCE_ID).toString());
                   if (isGradedObj != null && (isGradedObj.toString().equalsIgnoreCase("t") || isGradedObj.toString().equalsIgnoreCase("true"))) {
                 	  qnData.put(JsonConstants.IS_GRADED, true);

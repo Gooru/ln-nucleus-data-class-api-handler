@@ -65,7 +65,7 @@ public class StudPerfCourseCollectionHandler implements DBHandler {
     }
 
     @Override
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     public ExecutionResult<MessageResponse> executeRequest() {
         StringBuilder query = new StringBuilder(AJEntityBaseReports.GET_DISTINCT_COLLECTIONS_BULK);
         List<String> params = new ArrayList<>();
@@ -167,14 +167,19 @@ public class StudPerfCourseCollectionHandler implements DBHandler {
                 		this.maxScore = 0;
                 	}
                 });
+                String latestSessionId = null;
                 double scoreInPercent = 0;
                 if (this.maxScore > 0) {
-                  Object collectionScore;
-                  collectionScore = Base.firstCell(AJEntityBaseReports.GET_COLLECTION_SCORE, classId, courseId,
+                    List<Map> collectionScoreList = Base.findAll(AJEntityBaseReports.GET_COLLECTION_SCORE, classId, courseId,
                           collId, userID);
-                  if (collectionScore != null) {
-                    scoreInPercent = (((Double.valueOf(collectionScore.toString())) / this.maxScore) * 100);
-                    collectionKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(scoreInPercent));
+                  if (collectionScoreList != null && !collectionScoreList.isEmpty()) {
+                      Map collectionMap = collectionScoreList.get(0);
+                      if (collectionMap.get(JsonConstants.SCORE) != null) {
+                          Double score = Double.valueOf(collectionMap.get(JsonConstants.SCORE).toString());
+                          scoreInPercent = (((score) / this.maxScore) * 100);
+                          collectionKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(scoreInPercent));
+                      }
+                      if (collectionMap.get(AJEntityBaseReports.SESSION_ID) != null) latestSessionId = collectionMap.get(AJEntityBaseReports.SESSION_ID).toString();
                   } else {
                 	  collectionKpi.putNull(AJEntityBaseReports.ATTR_SCORE);
                   }              
@@ -185,8 +190,17 @@ public class StudPerfCourseCollectionHandler implements DBHandler {
                 collectionKpi.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
                 
                 collectionKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collId);
+                
+                String gradeStatus = JsonConstants.COMPLETE;
+                //Check grading completion with latest session id
+                if (latestSessionId != null) {
+                    List<Map> inprogressListOfGradeStatus = Base.findAll(AJEntityBaseReports.FETCH_INPROGRESS_GRADE_STATUS_BY_SESSION_ID, userId, latestSessionId, collId);
+                    if (inprogressListOfGradeStatus != null && !inprogressListOfGradeStatus.isEmpty()) gradeStatus = JsonConstants.IN_PROGRESS;
+                }
+                collectionKpi.put(AJEntityBaseReports.ATTR_GRADE_STATUS, gradeStatus);
+                
                 collectionArray.add(collectionKpi);
-            	}
+            }
 
             contentBody.put(JsonConstants.USAGE_DATA, collectionArray).put(JsonConstants.USERID, userID);
             resultArray.add(contentBody);

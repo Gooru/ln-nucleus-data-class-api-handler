@@ -65,7 +65,7 @@ public class StudPerfCourseAssessmentHandler implements DBHandler {
     }
 
     @Override
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     public ExecutionResult<MessageResponse> executeRequest() {
 
         StringBuilder query = new StringBuilder(AJEntityBaseReports.GET_DISTINCT_COLLECTIONS_BULK);
@@ -159,8 +159,10 @@ public class StudPerfCourseAssessmentHandler implements DBHandler {
                 	//Get the latest Score
                 	assessScore = Base.findAll(AJEntityBaseReports.GET_LATEST_SCORE_FOR_ASSESSMENT, classId, courseId,
                     		collId, AJEntityBaseReports.ATTR_ASSESSMENT, userID, EventConstants.COLLECTION_PLAY, EventConstants.STOP);
+                	String latestSessionId = null;
 
                 	if (!assessScore.isEmpty()){
+                	    latestSessionId = (String) assessScore.get(0).getOrDefault(AJEntityBaseReports.SESSION_ID, null);
                 		assessScore.forEach(m -> {
                     		assessmentKpi.put(AJEntityBaseReports.ATTR_SCORE, m.get(AJEntityBaseReports.ATTR_SCORE) != null ? 
                     				Math.round(Double.valueOf(m.get(AJEntityBaseReports.ATTR_SCORE).toString())) : null);
@@ -169,8 +171,17 @@ public class StudPerfCourseAssessmentHandler implements DBHandler {
                     	}
                 	
                 	assessmentKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collId);
-                	assessmentArray.add(assessmentKpi);
+                	
+                	String gradeStatus = JsonConstants.COMPLETE;
+                	//Check grading completion with latest session id
+                	if (latestSessionId != null) {
+                	    List<Map> inprogressListOfGradeStatus = Base.findAll(AJEntityBaseReports.FETCH_INPROGRESS_GRADE_STATUS_BY_SESSION_ID, userID, latestSessionId, collId);
+                	    if (inprogressListOfGradeStatus != null && !inprogressListOfGradeStatus.isEmpty()) gradeStatus = JsonConstants.IN_PROGRESS;
                 	}
+                	assessmentKpi.put(AJEntityBaseReports.ATTR_GRADE_STATUS, gradeStatus);
+                	
+                	assessmentArray.add(assessmentKpi);
+                }
                 contentBody.put(JsonConstants.USAGE_DATA, assessmentArray).put(JsonConstants.USERID, userID);
                 resultArray.add(contentBody);
                 params.remove(userID);

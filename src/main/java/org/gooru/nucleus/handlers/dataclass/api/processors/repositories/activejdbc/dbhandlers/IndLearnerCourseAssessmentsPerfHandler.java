@@ -2,6 +2,7 @@ package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activej
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
@@ -13,6 +14,7 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionRe
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
+import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -190,13 +192,23 @@ public class IndLearnerCourseAssessmentsPerfHandler implements DBHandler {
            LOGGER.debug("assessScore Query :{} ", assessTSAQuery.toString());
         	//Get the latest Score
         	assessScore = AJEntityBaseReports.findBySQL(assessScoreQuery.toString(),assessTSAParams.toArray());
+        	String latestSessionId = null;
 
         	if (!assessScore.isEmpty()){
+        	    latestSessionId = ((AJEntityBaseReports) assessScore.get(0)).getString(AJEntityBaseReports.SESSION_ID);
         		assessScore.forEach(m -> {
             		assessmentKpi.put(AJEntityBaseReports.ATTR_SCORE, m.get(AJEntityBaseReports.SCORE) != null ? Math.round(Double.valueOf((m.get(AJEntityBaseReports.SCORE).toString()))) : null);
             		assessmentKpi.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
     	    		});
             	}
+        	
+        	String gradeStatus = JsonConstants.COMPLETE;
+        	//Check grading completion with latest session id
+        	if (latestSessionId != null) {
+        	    List<Map> inprogressListOfGradeStatus = Base.findAll(AJEntityBaseReports.FETCH_INPROGRESS_GRADE_STATUS_BY_SESSION_ID, userId, latestSessionId, collId);
+        	    if (inprogressListOfGradeStatus != null && !inprogressListOfGradeStatus.isEmpty()) gradeStatus = JsonConstants.IN_PROGRESS;
+        	}
+        	assessmentKpi.put(AJEntityBaseReports.ATTR_GRADE_STATUS, gradeStatus);
 
         	assessmentKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collId);
         	assessmentArray.add(assessmentKpi);
