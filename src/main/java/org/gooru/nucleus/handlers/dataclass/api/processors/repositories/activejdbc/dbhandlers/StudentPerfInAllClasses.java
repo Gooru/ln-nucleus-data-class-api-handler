@@ -77,7 +77,7 @@ public class StudentPerfInAllClasses implements DBHandler {
             classList.add(classObj);
         }
     }
-    if (!classList.isEmpty()) {
+    if (classList.isEmpty()) {
         LOGGER.warn("ClassIds and courseIds are mandatory to fetch Student Performance in Classes");
         return new ExecutionResult<>(
                 MessageResponseFactory.createInvalidRequestResponse("Both or either of classId or courseId is missing. Cannot fetch Student Performance in Classes"),
@@ -99,7 +99,8 @@ public class StudentPerfInAllClasses implements DBHandler {
     	      classPerfData.forEach(classData -> {
     	        JsonObject classKPI = new JsonObject();
     	        classKPI.put(AJEntityBaseReports.ATTR_CLASS_ID, clId);
-    	        classKPI.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.valueOf(classData.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString())); 
+    	        classKPI.put(AJEntityBaseReports.ATTR_TIME_SPENT, classData.get(AJEntityBaseReports.ATTR_TIME_SPENT) == null 
+                    ? 0 : Long.valueOf(classData.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString())); 
     	        Object classTotalCount = Base.firstCell(AJEntityCourseCollectionCount.GET_COURSE_ASSESSMENT_COUNT,
     	                courseId);
     	        classKPI.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, classTotalCount != null ? Integer.valueOf(classTotalCount.toString()) : 0);    	        
@@ -109,7 +110,8 @@ public class StudentPerfInAllClasses implements DBHandler {
     	        if (classScoreCompletion != null && !classScoreCompletion.isEmpty()) {
     	          classScoreCompletion.forEach(scoreKPI -> {    	            
     	            classKPI.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT,
-    	                    Integer.valueOf(scoreKPI.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
+    	                scoreKPI.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT) == null 
+                        ? 0 : Integer.valueOf(scoreKPI.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
     	            classKPI.put(AJEntityBaseReports.ATTR_SCORE, scoreKPI.get(AJEntityBaseReports.ATTR_SCORE) == null 
     	            		? null : Math.round(Double.valueOf(scoreKPI.get(AJEntityBaseReports.ATTR_SCORE).toString())));
     	          });
@@ -136,7 +138,8 @@ public class StudentPerfInAllClasses implements DBHandler {
 	    	if (!classPerfData.isEmpty()) {
 	    		classPerfData.forEach(classData -> {
 	    			classKPI.put(AJEntityBaseReports.ATTR_CLASS_ID, clId);
-        	        classKPI.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.valueOf(classData.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()));
+        	        classKPI.put(AJEntityBaseReports.ATTR_TIME_SPENT, classData.get(AJEntityBaseReports.ATTR_TIME_SPENT) == null 
+                        ? 0 : Long.valueOf(classData.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()));
         	        Object classTotalCount = Base.firstCell(AJEntityCourseCollectionCount.GET_COURSE_ASSESSMENT_COUNT,
         	            courseId);
         	        classKPI.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, classTotalCount != null 
@@ -153,8 +156,8 @@ public class StudentPerfInAllClasses implements DBHandler {
 
   	    	if (!classPerfList.isEmpty()) {
 	    		classPerfList.forEach(scoData -> {
-    	            classKPI.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT,
-    	                    Integer.valueOf(scoData.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
+    	            classKPI.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, scoData.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT) == null 
+                        ? 0 : Integer.valueOf(scoData.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
     	            classKPI.put(AJEntityBaseReports.ATTR_SCORE, scoData.get(AJEntityBaseReports.ATTR_SCORE) == null 
     	            		? null : Math.round(Double.valueOf(scoData.get(AJEntityBaseReports.ATTR_SCORE).toString())));
 	    		});
