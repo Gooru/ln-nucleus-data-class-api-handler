@@ -1,7 +1,6 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -67,17 +66,13 @@ public class StudentPerfInAllClasses implements DBHandler {
               ExecutionStatus.FAILED);
     }
 
-    List<Map<String, String>> classList = new ArrayList<>(classes.size());
+    JsonObject classObj = new JsonObject();
     for (Object cls : classes) {
         JsonObject classObject = (JsonObject) cls;
-        if ((classObject.containsKey(EventConstants.CLASS_ID) && !StringUtil.isNullOrEmpty(classObject.getString(EventConstants.CLASS_ID))) && classObject.containsKey(EventConstants.COURSE_ID) && !StringUtil.isNullOrEmpty(classObject.getString(EventConstants.COURSE_ID))) {
-            Map<String, String> classObj = new HashMap<>();
-            classObj.put(EventConstants.CLASS_ID, classObject.getString(EventConstants.CLASS_ID));
-            classObj.put(EventConstants.COURSE_ID, classObject.getString(EventConstants.COURSE_ID));
-            classList.add(classObj);
-        }
+        if ((classObject.containsKey(EventConstants.CLASS_ID) && !StringUtil.isNullOrEmpty(classObject.getString(EventConstants.CLASS_ID))) && classObject.containsKey(EventConstants.COURSE_ID) && !StringUtil.isNullOrEmpty(classObject.getString(EventConstants.COURSE_ID))) 
+            classObj.put(classObject.getString(EventConstants.CLASS_ID), classObject.getString(EventConstants.COURSE_ID));
     }
-    if (!classList.isEmpty()) {
+    if (!classObj.isEmpty()) {
         LOGGER.warn("ClassIds and courseIds are mandatory to fetch Student Performance in Classes");
         return new ExecutionResult<>(
                 MessageResponseFactory.createInvalidRequestResponse("Both or either of classId or courseId is missing. Cannot fetch Student Performance in Classes"),
@@ -89,22 +84,20 @@ public class StudentPerfInAllClasses implements DBHandler {
 
     // Student All Class Data
     if (!StringUtil.isNullOrEmpty(userId)) {
-    	for (Map<String, String> classMap : classList) {
-            //JsonObject classJson =  (JsonObject) o;
-            String clId = classMap.get(EventConstants.CLASS_ID);
-            String courseId = classMap.get(EventConstants.COURSE_ID);
+    	for (String classId : classObj.fieldNames()) {
+            String courseId = classObj.getString(classId);
             if (!StringUtil.isNullOrEmpty(courseId)) {
-            List<Map> classPerfData = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_ALL_CLASS_DATA, clId, courseId, userId);
+            List<Map> classPerfData = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_ALL_CLASS_DATA, classId, courseId, userId);
     	if (!classPerfData.isEmpty()) {
     	      classPerfData.forEach(classData -> {
     	        JsonObject classKPI = new JsonObject();
-    	        classKPI.put(AJEntityBaseReports.ATTR_CLASS_ID, clId);
+    	        classKPI.put(AJEntityBaseReports.ATTR_CLASS_ID, classId);
     	        classKPI.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.valueOf(classData.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString())); 
     	        Object classTotalCount = Base.firstCell(AJEntityCourseCollectionCount.GET_COURSE_ASSESSMENT_COUNT,
     	                courseId);
     	        classKPI.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, classTotalCount != null ? Integer.valueOf(classTotalCount.toString()) : 0);    	        
     	        List<Map> classScoreCompletion = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_ALL_CLASS_COMPLETION_SCORE,
-    	                  clId, courseId, userId);
+    	                  classId, courseId, userId);
 
     	        if (classScoreCompletion != null && !classScoreCompletion.isEmpty()) {
     	          classScoreCompletion.forEach(scoreKPI -> {    	            
@@ -124,18 +117,17 @@ public class StudentPerfInAllClasses implements DBHandler {
     	}
     } else if (StringUtil.isNullOrEmpty(userId)) { // TEACHER All Class Data
 
-		for (Map<String, String> classMap : classList){
-		    String clId = classMap.get(EventConstants.CLASS_ID);
-		    String courseId = classMap.get(EventConstants.COURSE_ID);
+        for (String classId : classObj.fieldNames()) {
+            String courseId = classObj.getString(classId);
 		    if (!StringUtil.isNullOrEmpty(courseId)) {
 			JsonObject classKPI = new JsonObject();
-			Object activeUsersCountObj = Base.firstCell(AJEntityClassMember.SELECT_ACTIVE_USERS_COUNT, clId);
+			Object activeUsersCountObj = Base.firstCell(AJEntityClassMember.SELECT_ACTIVE_USERS_COUNT, classId);
 			//FIXME: It should not be null or 0. If activeUsersCount is null or 0, look at sync job is working..
 			int activeUsersCount = activeUsersCountObj == null ? 0 : Integer.valueOf(activeUsersCountObj.toString());
-			List<Map> classPerfData = Base.findAll(AJEntityBaseReports.SELECT_ALL_STUDENTS_CLASS_DATA, clId, courseId);
+			List<Map> classPerfData = Base.findAll(AJEntityBaseReports.SELECT_ALL_STUDENTS_CLASS_DATA, classId, courseId);
 	    	if (!classPerfData.isEmpty()) {
 	    		classPerfData.forEach(classData -> {
-	    			classKPI.put(AJEntityBaseReports.ATTR_CLASS_ID, clId);
+	    			classKPI.put(AJEntityBaseReports.ATTR_CLASS_ID, classId);
         	        classKPI.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.valueOf(classData.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()));
         	        Object classTotalCount = Base.firstCell(AJEntityCourseCollectionCount.GET_COURSE_ASSESSMENT_COUNT,
         	            courseId);
@@ -145,10 +137,10 @@ public class StudentPerfInAllClasses implements DBHandler {
 	    	});
 	            List<String> userList = new ArrayList<>();
 	      	        LazyList<AJEntityBaseReports> studClass =
-		              AJEntityBaseReports.findBySQL(AJEntityBaseReports.GET_DISTINCT_USERS_IN_CLASS, clId);
+		              AJEntityBaseReports.findBySQL(AJEntityBaseReports.GET_DISTINCT_USERS_IN_CLASS, classId);
 		      studClass.forEach(users -> userList.add(users.getString(AJEntityBaseReports.GOORUUID)));
 
-		      List<Map> classPerfList = Base.findAll(AJEntityBaseReports.SELECT_ALL_STUDENT_CLASS_COMPLETION_SCORE, clId, courseId,
+		      List<Map> classPerfList = Base.findAll(AJEntityBaseReports.SELECT_ALL_STUDENT_CLASS_COMPLETION_SCORE, classId, courseId,
   					listToPostgresArrayString(userList));
 
   	    	if (!classPerfList.isEmpty()) {
