@@ -632,17 +632,17 @@ public class AJEntityBaseReports extends Model {
     //Going ahead we may need to remove that check. 
     
     //CLASS DATA FOR A USER (attempts, time_spent)
-    public static final String SELECT_STUDENT_ALL_CLASS_DATA = "SELECT coalesce(SUM(time_spent), 0) AS timeSpent,  "
-            + "coalesce(SUM(views), 0) AS attempts "
+    public static final String SELECT_STUDENT_ALL_CLASS_DATA = "SELECT SUM(time_spent) AS timeSpent,  "
+            + "SUM(views) AS attempts "
             + "FROM base_reports WHERE class_id = ? AND course_id = ? AND actor_id = ? "
             + "AND collection_type = 'assessment' AND path_id IS NULL AND event_name = 'collection.play'";
 
     //CLASS DATA FOR ALL USER(attempts, time_spent)
-    public static final String SELECT_ALL_STUDENTS_CLASS_DATA = "SELECT coalesce(SUM(time_spent), 0) AS timeSpent,  coalesce(SUM(views), 0) AS attempts "
+    public static final String SELECT_ALL_STUDENTS_CLASS_DATA = "SELECT SUM(time_spent) AS timeSpent,  SUM(views) AS attempts "
             + "FROM base_reports WHERE class_id = ? AND course_id = ? AND collection_type = 'assessment' AND path_id IS NULL AND event_name = 'collection.play'";
     
     //CLASS DATA FOR A USER(score, completion)
-    public static final String SELECT_STUDENT_ALL_CLASS_COMPLETION_SCORE = "SELECT coalesce(SUM(classData.completion), 0) AS completedCount, coalesce(AVG(scoreInPercentage), 0) AS scoreInPercentage "
+    public static final String SELECT_STUDENT_ALL_CLASS_COMPLETION_SCORE = "SELECT SUM(classData.completion) AS completedCount, AVG(scoreInPercentage) AS scoreInPercentage "
             + "FROM (SELECT DISTINCT ON (collection_id) CASE  WHEN (event_type = 'stop') THEN 1 ELSE 0 END AS completion, "
             + "FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage "
             + "FROM base_reports WHERE class_id = ?  AND course_id = ? AND actor_id = ? "
@@ -653,9 +653,9 @@ public class AJEntityBaseReports extends Model {
     		+ "AND class_id = ? and event_name =  'collection.play' and event_type = 'stop' AND path_id IS NULL";
     
     //Class Data for ALL Users (score, completion)		
-    public static final String SELECT_ALL_STUDENT_CLASS_COMPLETION_SCORE = "select coalesce(SUM(compCount), 0) AS completedCount, "
-    		+ "coalesce(AVG(scoreInPercentage), 0) AS scoreInPercentage FROM (SELECT actor_id, coalesce(SUM(classData.completion), 0) AS compCount, "
-    		+ "(coalesce(AVG(scoreInPercentage),0)) AS scoreInPercentage FROM (SELECT DISTINCT ON (collection_id, actor_id) "
+    public static final String SELECT_ALL_STUDENT_CLASS_COMPLETION_SCORE = "select SUM(compCount) AS completedCount, "
+    		+ "AVG(scoreInPercentage) AS scoreInPercentage FROM (SELECT actor_id, SUM(classData.completion) AS compCount, "
+    		+ "(AVG(scoreInPercentage)) AS scoreInPercentage FROM (SELECT DISTINCT ON (collection_id, actor_id) "
     		+ "CASE  WHEN (event_type = 'stop') THEN 1 ELSE 0 END AS completion, FIRST_VALUE(score) OVER "
     		+ "(PARTITION BY collection_id, actor_id ORDER BY updated_at desc) AS scoreInPercentage, actor_id "
     		+ "FROM base_reports WHERE class_id = ? AND course_id = ? AND actor_id = ANY(?::varchar[]) AND event_name = 'collection.play' "
