@@ -103,6 +103,8 @@ public final class JsonConstants {
   	public static final String PERCENT_COMPLETION = "percentCompletion";
   	
   	public static final String PERCENT_SCORE = "percentScore";
+  	
+  	public static final String MAX_SCORE = "maxScore";
 
 	private JsonConstants() {
 		throw new AssertionError();
