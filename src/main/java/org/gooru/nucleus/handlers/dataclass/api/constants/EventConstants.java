@@ -592,7 +592,7 @@ public final class EventConstants {
 	public static final String USER_GROUP_TYPE = "userGroupType";
 
 	public static final  String CLASS_ID = "classId";
-
+	
 	public static final  String CLASS_IDS = "classIds";
 
 	 public static final  String COURSE_IDS = "courseIds";
@@ -801,7 +801,7 @@ public final class EventConstants {
 
 	public static final String SUBJECT_ID = "subject_id";
 
-	public static final String COURSE_ID = "course_id";
+	public static final String COURSE_ID = "courseId";
 
 	public static final String DOMAIN_ID = "domain_id";
 
