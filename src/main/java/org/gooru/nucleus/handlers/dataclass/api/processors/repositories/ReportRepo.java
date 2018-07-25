@@ -23,6 +23,8 @@ public interface ReportRepo {
 	MessageResponse getStudentPerformanceInLesson();
 
 	MessageResponse getStudentPerformanceInAssessment();
+	
+	MessageResponse getStudentPerformanceInCollection();
 
 	MessageResponse getStudentSummaryInCollection();
 	

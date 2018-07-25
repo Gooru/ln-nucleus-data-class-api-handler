@@ -68,6 +68,7 @@ public final class MessageConstants {
     public static final String MSG_OP_STUDENT_COLLECTION_SUMMARY = "student.collection.summary";
     public static final String MSG_OP_STUDENT_ASSESSMENT_SUMMARY = "student.assessment.summary";
     public static final String MSG_OP_STUDENT_ASSESSMENT_PERF = "student.assessment.performance";
+    public static final String MSG_OP_STUDENT_COLLECTION_PERF = "student.collection.performance";
     public static final String MSG_OP_SESSION_STATUS = "session.status";
     public static final String MSG_OP_USER_ALL_ASSESSMENT_SESSIONS = "user.all.assessment.sessions";
     public static final String MSG_OP_USER_ALL_COLLECTION_SESSIONS = "user.all.collection.sessions";

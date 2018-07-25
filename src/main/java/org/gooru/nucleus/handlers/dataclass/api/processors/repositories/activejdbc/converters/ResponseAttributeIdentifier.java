@@ -122,7 +122,7 @@ public final class ResponseAttributeIdentifier {
         sessionCollectionResouceAttributes.put("resource_id", "gooruOId");
         sessionCollectionResouceAttributes.put("reaction", "reaction");
         sessionCollectionResouceAttributes.put("resourceTimeSpent", "timeSpent");
-        sessionCollectionResouceAttributes.put("created_at", "eventTime");
+        //sessionCollectionResouceAttributes.put("created_at", "eventTime");
         //sessionCollectionResouceAttributes.put("sessionid", "sessionId");
         sessionCollectionResouceAttributes.put("resource_type", "resourceType");
         sessionCollectionResouceAttributes.put("question_type", "questionType");
