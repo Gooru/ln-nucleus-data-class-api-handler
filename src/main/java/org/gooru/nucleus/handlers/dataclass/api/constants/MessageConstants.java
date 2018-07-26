@@ -68,6 +68,7 @@ public final class MessageConstants {
     public static final String MSG_OP_STUDENT_COLLECTION_SUMMARY = "student.collection.summary";
     public static final String MSG_OP_STUDENT_ASSESSMENT_SUMMARY = "student.assessment.summary";
     public static final String MSG_OP_STUDENT_ASSESSMENT_PERF = "student.assessment.performance";
+    public static final String MSG_OP_STUDENT_COLLECTION_PERF = "student.collection.performance";
     public static final String MSG_OP_SESSION_STATUS = "session.status";
     public static final String MSG_OP_USER_ALL_ASSESSMENT_SESSIONS = "user.all.assessment.sessions";
     public static final String MSG_OP_USER_ALL_COLLECTION_SESSIONS = "user.all.collection.sessions";
@@ -129,6 +130,9 @@ public final class MessageConstants {
     public static final String MSG_OP_NU_DATA_REPORT = "nu.data.report";
     public static final String MSG_OP_NU_COURSES_COMPETENCY_COMPLETION = "nu.courses.competency.completion";
 
+    //ATC
+    public static final String MSG_OP_STUDENTS_PERF_VS_COMPLETION = "all.students.performance.vs.completion";
+    
     public static final String PORT = "port";
     public static final String HOST = "host";
     public static final String REDIS = "redis.config";

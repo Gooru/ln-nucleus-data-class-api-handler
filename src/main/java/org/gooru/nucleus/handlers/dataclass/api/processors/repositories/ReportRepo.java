@@ -23,6 +23,8 @@ public interface ReportRepo {
 	MessageResponse getStudentPerformanceInLesson();
 
 	MessageResponse getStudentPerformanceInAssessment();
+	
+	MessageResponse getStudentPerformanceInCollection();
 
 	MessageResponse getStudentSummaryInCollection();
 	
@@ -120,8 +122,12 @@ public interface ReportRepo {
     
     MessageResponse getStudentDCAAssessmentSessions();
         
-    
+    //NU
     MessageResponse getDataReports();
        
-    MessageResponse getCoursesComptencyCompletion();        
+    MessageResponse getCoursesComptencyCompletion();
+    
+    //ATC
+    
+    MessageResponse getStudentPerfVsCompletion();
 }

@@ -60,9 +60,12 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_STUDENT_LESSON_PERF:
             	result = getStudentPerfInLesson();
                 break;
-            case MessageConstants.MSG_OP_STUDENT_ASSESSMENT_PERF:
-              result = getStudentPerfInAssessment();
+            case MessageConstants.MSG_OP_STUDENT_COLLECTION_PERF:
+              result = getStudentPerfInCollection();
                 break;
+            case MessageConstants.MSG_OP_STUDENT_ASSESSMENT_PERF:
+                result = getStudentPerfInAssessment();
+                  break;
             case MessageConstants.MSG_OP_STUDENT_COLLECTION_SUMMARY:
             	result = getStudentSummaryInCollection();
                 break;
@@ -204,6 +207,11 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_STUDENT_PERF_DAILY_TIMELY_CLASS_ACTIVITY:
               result = getDCATeacherReport();
               break;
+              //ATC
+            case MessageConstants.MSG_OP_STUDENTS_PERF_VS_COMPLETION:
+                result = getStudentPerfVsCompletionReport();
+                break;
+
 
             default:
                 LOGGER.error("Invalid operation type passed in, not able to handle");
@@ -761,6 +769,42 @@ class MessageProcessor implements Processor {
         }
 
     }
+    
+    private MessageResponse getStudentPerfInCollection() {
+        try {
+              ProcessorContext context = createContext();
+
+              if (!checkClassId(context)) {
+                  LOGGER.error("ClassId not available to obtain Student Performance. Aborting!");
+                  return MessageResponseFactory.createInvalidRequestResponse("Invalid ClassId");
+              }
+
+              if (!checkCourseId(context)) {
+                  LOGGER.error("CourseId not available to obtain Student Performance. Aborting");
+                  return MessageResponseFactory.createInvalidRequestResponse("Invalid CourseId");
+              }
+
+              if (!checkUnitId(context)) {
+                  LOGGER.error("UnitId not available to obtain Student Performance. Aborting");
+                  return MessageResponseFactory.createInvalidRequestResponse("Invalid UnitId");
+              }
+
+              if (!checkLessonId(context)) {
+                  LOGGER.error("LessonId not available to obtain Student Performance. Aborting");
+                  return MessageResponseFactory.createInvalidRequestResponse("Invalid LessonId");
+              }
+              if (!checkCollectionId(context)) {
+                LOGGER.error("CollectionId not available to obtain Student Performance. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid collectionId");
+              }
+              return new RepoBuilder().buildReportRepo(context).getStudentPerformanceInCollection();
+
+          } catch (Throwable t) {
+              LOGGER.error("Exception while getting Student performance in an Collection", t);
+              return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+          }
+
+      }
 
     private MessageResponse getStudentSummaryInCollection() {
     	try {
@@ -1292,6 +1336,19 @@ class MessageProcessor implements Processor {
 
           } catch (Throwable t) {
               LOGGER.error("Exception while getting Student Performance in Course Collections", t);
+              return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+          }
+
+      }
+    
+    //ATC
+    private MessageResponse getStudentPerfVsCompletionReport() {
+        try {
+              ProcessorContext context = createContext();
+              return new RepoBuilder().buildReportRepo(context).getStudentPerfVsCompletion();
+
+          } catch (Throwable t) {
+              LOGGER.error("Exception while getting Student Performance Vs Completion Report", t);
               return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
           }
 

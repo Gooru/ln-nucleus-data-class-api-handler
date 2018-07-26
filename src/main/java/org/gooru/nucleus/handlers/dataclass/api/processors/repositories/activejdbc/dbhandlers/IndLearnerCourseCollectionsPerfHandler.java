@@ -186,22 +186,27 @@ public class IndLearnerCourseCollectionsPerfHandler implements DBHandler {
               this.maxScore = 0;
             }
           });
+          String latestSessionId = null;
           double scoreInPercent = 0;
           if (this.maxScore > 0) {
-            Object collectionScore;
-            
+            List<Map> collectionScoreList = null;
             if(!StringUtil.isNullOrEmpty(classId)){
-              collectionScore = Base.firstCell(AJEntityBaseReports.GET_COLLECTION_SCORE, classId, courseId,
+              collectionScoreList = Base.findAll(AJEntityBaseReports.GET_COLLECTION_SCORE, classId, courseId,
                       collId, userId);
             } else{
-              collectionScore = Base.firstCell(AJEntityBaseReports.GET_IL_COLLECTION_SCORE,  courseId,
+              collectionScoreList = Base.findAll(AJEntityBaseReports.GET_IL_COLLECTION_SCORE,  courseId,
                       collId, userId);
             }
             
-            if (collectionScore != null) {
-              scoreInPercent = (((Double.valueOf(collectionScore.toString())) / this.maxScore) * 100);
-              collectionKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(scoreInPercent));
-            }else {
+            if (collectionScoreList != null && !collectionScoreList.isEmpty()) {
+                Map collectionMap = collectionScoreList.get(0);
+                if (collectionMap.get(JsonConstants.SCORE) != null) {
+                    Double score = Double.valueOf(collectionMap.get(JsonConstants.SCORE).toString());
+                    scoreInPercent = ((score / this.maxScore) * 100);
+                    collectionKpi.put(AJEntityBaseReports.ATTR_SCORE, Math.round(scoreInPercent));
+                }
+                if (collectionMap.get(AJEntityBaseReports.SESSION_ID) != null) latestSessionId = collectionMap.get(AJEntityBaseReports.SESSION_ID) != null ? collectionMap.get(AJEntityBaseReports.SESSION_ID).toString() : null;
+            } else {
               collectionKpi.putNull(AJEntityBaseReports.ATTR_SCORE); 
             }
           } else {
@@ -213,6 +218,15 @@ public class IndLearnerCourseCollectionsPerfHandler implements DBHandler {
             //So whenever we have an entry of a collection_id in Analytics, it is by default complete.
             collectionKpi.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
         	collectionKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collId);
+        	
+            String gradeStatus = JsonConstants.COMPLETE;
+            //Check grading completion with latest session id
+            if (latestSessionId != null) {
+                List<Map> inprogressListOfGradeStatus = Base.findAll(AJEntityBaseReports.FETCH_INPROGRESS_GRADE_STATUS_BY_SESSION_ID, userId, latestSessionId, collId);
+                if (inprogressListOfGradeStatus != null && !inprogressListOfGradeStatus.isEmpty()) gradeStatus = JsonConstants.IN_PROGRESS;
+            }
+            collectionKpi.put(AJEntityBaseReports.ATTR_GRADE_STATUS, gradeStatus);
+            
         	collectionArray.add(collectionKpi);
         	}
 

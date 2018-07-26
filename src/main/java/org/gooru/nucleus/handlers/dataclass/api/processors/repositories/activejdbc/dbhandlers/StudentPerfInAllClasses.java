@@ -1,6 +1,7 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -55,52 +56,62 @@ public class StudentPerfInAllClasses implements DBHandler {
   public ExecutionResult<MessageResponse> executeRequest() {
 
     String userId = this.context.request().getString(REQUEST_USERID);
-      JsonArray classIds = this.context.request().getJsonArray(EventConstants.CLASS_IDS);
-    LOGGER.debug("userId : {} - classIds:{}", userId, classIds);
+      JsonArray classes = this.context.request().getJsonArray(EventConstants.CLASSES);
 
-    if (classIds.isEmpty()) {
-      LOGGER.warn("ClassIds are mandatory to fetch Student Performance in Classess");
+    LOGGER.debug("userId : {} - classes:{}", userId, classes);
+
+    if (classes == null || classes.isEmpty()) {
+      LOGGER.warn("Classes array is mandatory to fetch Student Performance in Classes");
       return new ExecutionResult<>(
-              MessageResponseFactory.createInvalidRequestResponse("ClassIds is Missing. Cannot fetch Student Performance in Classes"),
+              MessageResponseFactory.createInvalidRequestResponse("Classes array is Missing. Cannot fetch Student Performance in Classes"),
               ExecutionStatus.FAILED);
     }
 
-    List<String> clsIds = new ArrayList<>(classIds.size());
-    for (Object s : classIds) {
-      clsIds.add(s.toString());
+    List<Map<String, String>> classList = new ArrayList<>(classes.size());
+    for (Object cls : classes) {
+        JsonObject classObject = (JsonObject) cls;
+        if ((classObject.containsKey(EventConstants.CLASS_ID) && !StringUtil.isNullOrEmpty(classObject.getString(EventConstants.CLASS_ID))) && classObject.containsKey(EventConstants.COURSE_ID) && !StringUtil.isNullOrEmpty(classObject.getString(EventConstants.COURSE_ID))) {
+            Map<String, String> classObj = new HashMap<>();
+            classObj.put(EventConstants.CLASS_ID, classObject.getString(EventConstants.CLASS_ID));
+            classObj.put(EventConstants.COURSE_ID, classObject.getString(EventConstants.COURSE_ID));
+            classList.add(classObj);
+        }
     }
-
+    if (classList.isEmpty()) {
+        LOGGER.warn("ClassIds and courseIds are mandatory to fetch Student Performance in Classes");
+        return new ExecutionResult<>(
+                MessageResponseFactory.createInvalidRequestResponse("Both or either of classId or courseId is missing. Cannot fetch Student Performance in Classes"),
+                ExecutionStatus.FAILED);
+    }
+    
     JsonObject result = new JsonObject();
-    JsonArray ClassKpiArray = new JsonArray();
-
-    // Getting timespent and attempts.
-    List<Map> classPerfData;
-
-    List<Map> classPerfList;
-    List<String> userList = new ArrayList<>();
+    JsonArray classKpiArray = new JsonArray();    
 
     // Student All Class Data
     if (!StringUtil.isNullOrEmpty(userId)) {
-    	classPerfData = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_ALL_CLASS_DATA, jArrayToPostgresArrayString(
-            classIds), userId);
-
+    	for (Map<String, String> classMap : classList) {
+            //JsonObject classJson =  (JsonObject) o;
+            String clId = classMap.get(EventConstants.CLASS_ID);
+            String courseId = classMap.get(EventConstants.COURSE_ID);
+            if (!StringUtil.isNullOrEmpty(courseId)) {
+            List<Map> classPerfData = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_ALL_CLASS_DATA, clId, courseId, userId);
     	if (!classPerfData.isEmpty()) {
     	      classPerfData.forEach(classData -> {
-    	        if(classData.get(AJEntityBaseReports.COURSE_GOORU_OID) != null){
     	        JsonObject classKPI = new JsonObject();
-    	        classKPI.put(AJEntityBaseReports.ATTR_CLASS_ID, classData.get(AJEntityBaseReports.CLASS_GOORU_OID).toString());
-    	        classKPI.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.valueOf(classData.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString())); 
+    	        classKPI.put(AJEntityBaseReports.ATTR_CLASS_ID, clId);
+    	        classKPI.put(AJEntityBaseReports.ATTR_TIME_SPENT, classData.get(AJEntityBaseReports.ATTR_TIME_SPENT) == null 
+                    ? 0 : Long.valueOf(classData.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString())); 
     	        Object classTotalCount = Base.firstCell(AJEntityCourseCollectionCount.GET_COURSE_ASSESSMENT_COUNT,
-    	                classData.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
+    	                courseId);
     	        classKPI.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, classTotalCount != null ? Integer.valueOf(classTotalCount.toString()) : 0);    	        
-    	        List<Map> classScoreCompletion = null;
-    	          classScoreCompletion = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_ALL_CLASS_COMPLETION_SCORE,
-    	                  classData.get(AJEntityBaseReports.CLASS_GOORU_OID).toString(), userId);
+    	        List<Map> classScoreCompletion = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_ALL_CLASS_COMPLETION_SCORE,
+    	                  clId, courseId, userId);
 
-    	        if (!classScoreCompletion.isEmpty()) {
+    	        if (classScoreCompletion != null && !classScoreCompletion.isEmpty()) {
     	          classScoreCompletion.forEach(scoreKPI -> {    	            
     	            classKPI.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT,
-    	                    Integer.valueOf(scoreKPI.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
+    	                scoreKPI.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT) == null 
+                        ? 0 : Integer.valueOf(scoreKPI.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
     	            classKPI.put(AJEntityBaseReports.ATTR_SCORE, scoreKPI.get(AJEntityBaseReports.ATTR_SCORE) == null 
     	            		? null : Math.round(Double.valueOf(scoreKPI.get(AJEntityBaseReports.ATTR_SCORE).toString())));
     	          });
@@ -108,48 +119,56 @@ public class StudentPerfInAllClasses implements DBHandler {
         	        classKPI.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 0);
         	        classKPI.putNull(AJEntityBaseReports.ATTR_SCORE);
     	        }
-    	        ClassKpiArray.add(classKPI);
-    	      }
+    	        classKpiArray.add(classKPI);
     	      });
     	    }
+            }
+    	}
     } else if (StringUtil.isNullOrEmpty(userId)) { // TEACHER All Class Data
 
-		for (String clId : clsIds){
+		for (Map<String, String> classMap : classList){
+		    String clId = classMap.get(EventConstants.CLASS_ID);
+		    String courseId = classMap.get(EventConstants.COURSE_ID);
+		    if (!StringUtil.isNullOrEmpty(courseId)) {
 			JsonObject classKPI = new JsonObject();
 			Object activeUsersCountObj = Base.firstCell(AJEntityClassMember.SELECT_ACTIVE_USERS_COUNT, clId);
 			//FIXME: It should not be null or 0. If activeUsersCount is null or 0, look at sync job is working..
 			int activeUsersCount = activeUsersCountObj == null ? 0 : Integer.valueOf(activeUsersCountObj.toString());
-			classPerfData = Base.findAll(AJEntityBaseReports.SELECT_ALL_STUDENTS_CLASS_DATA, clId);
+			List<Map> classPerfData = Base.findAll(AJEntityBaseReports.SELECT_ALL_STUDENTS_CLASS_DATA, clId, courseId);
 	    	if (!classPerfData.isEmpty()) {
 	    		classPerfData.forEach(classData -> {
-	    			classKPI.put(AJEntityBaseReports.ATTR_CLASS_ID, classData.get(AJEntityBaseReports.CLASS_GOORU_OID).toString());
-        	        classKPI.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.valueOf(classData.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()));
+	    			classKPI.put(AJEntityBaseReports.ATTR_CLASS_ID, clId);
+        	        classKPI.put(AJEntityBaseReports.ATTR_TIME_SPENT, classData.get(AJEntityBaseReports.ATTR_TIME_SPENT) == null 
+                        ? 0 : Long.valueOf(classData.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()));
         	        Object classTotalCount = Base.firstCell(AJEntityCourseCollectionCount.GET_COURSE_ASSESSMENT_COUNT,
-        	        		classData.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
+        	            courseId);
         	        classKPI.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, classTotalCount != null 
         	        		? (Integer.valueOf(classTotalCount.toString()) * activeUsersCount) : 0);
         	        //classKPI.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
 	    	});
+	            List<String> userList = new ArrayList<>();
 	      	        LazyList<AJEntityBaseReports> studClass =
 		              AJEntityBaseReports.findBySQL(AJEntityBaseReports.GET_DISTINCT_USERS_IN_CLASS, clId);
 		      studClass.forEach(users -> userList.add(users.getString(AJEntityBaseReports.GOORUUID)));
 
-		      classPerfList = Base.findAll(AJEntityBaseReports.SELECT_ALL_STUDENT_CLASS_COMPLETION_SCORE, clId,
+		      List<Map> classPerfList = Base.findAll(AJEntityBaseReports.SELECT_ALL_STUDENT_CLASS_COMPLETION_SCORE, clId, courseId,
   					listToPostgresArrayString(userList));
 
   	    	if (!classPerfList.isEmpty()) {
 	    		classPerfList.forEach(scoData -> {
-    	            classKPI.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT,
-    	                    Integer.valueOf(scoData.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
+    	            classKPI.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, scoData.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT) == null 
+                        ? 0 : Integer.valueOf(scoData.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
     	            classKPI.put(AJEntityBaseReports.ATTR_SCORE, scoData.get(AJEntityBaseReports.ATTR_SCORE) == null 
     	            		? null : Math.round(Double.valueOf(scoData.get(AJEntityBaseReports.ATTR_SCORE).toString())));
-	    	});
-  	    	}else {
+	    		});
+  	    	} else {
     	        classKPI.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 0);
     	        classKPI.putNull(AJEntityBaseReports.ATTR_SCORE);
 	        }
+  	    	
 		}
-	    	ClassKpiArray.add(classKPI);
+	    	classKpiArray.add(classKPI);
+		    }
 		}
 
     } else {
@@ -157,7 +176,7 @@ public class StudentPerfInAllClasses implements DBHandler {
       }
 
     // Form the required Json pass it on
-    result.put(JsonConstants.USAGE_DATA, ClassKpiArray);
+    result.put(JsonConstants.USAGE_DATA, classKpiArray);
 
     if (!StringUtil.isNullOrEmpty(userId)) {
     	result.put(JsonConstants.USERID, userId);
@@ -173,32 +192,8 @@ public class StudentPerfInAllClasses implements DBHandler {
     return true;
   }
 
-  private String jArrayToPostgresArrayString(JsonArray inputArrary) {
-    List<String> input = new ArrayList<>(inputArrary.size());
-    for (Object s : inputArrary) {
-      input.add(s.toString());
-    }
-    int approxSize = ((input.size() + 1) * 36);
-    Iterator<String> it = input.iterator();
-    if (!it.hasNext()) {
-      return "{}";
-    }
-    StringBuilder sb = new StringBuilder(approxSize);
-    sb.append('{');
-    for (;;) {
-      String s = it.next();
-      sb.append('"').append(s).append('"');
-      if (!it.hasNext()) {
-        return sb.append('}').toString();
-      }
-      sb.append(',');
-    }
-  }
-
   private String listToPostgresArrayString(List<String> input) {
-	    int approxSize = ((input.size() + 1) * 36); // Length of UUID is around
-	                                                // 36
-	                                                // chars
+	    int approxSize = ((input.size() + 1) * 36); // Length of UUID is around 36 chars
 	    Iterator<String> it = input.iterator();
 	    if (!it.hasNext()) {
 	      return "{}";
