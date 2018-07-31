@@ -1,6 +1,7 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +11,7 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.converters.ResponseAttributeIdentifier;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityCourseCollectionCount;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.converters.ValueMapper;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
@@ -32,7 +34,7 @@ class IndependentLearnerCoursePerfHandler implements DBHandler {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IndependentLearnerCoursePerfHandler.class);
   private static final String REQUEST_COLLECTION_TYPE = "collectionType";
-
+  int totalCount = 0;
   private final ProcessorContext context;
   private String collectionType;
     // For stuffing Json
@@ -68,6 +70,7 @@ class IndependentLearnerCoursePerfHandler implements DBHandler {
 
     JsonObject resultBody = new JsonObject();
     JsonArray resultarray = new JsonArray();
+    Map<String, Integer> unitAssessmentCountMap = new HashMap<String, Integer>();
 
     // CollectionType is a Mandatory Parameter
     this.collectionType = this.context.request().getString(REQUEST_COLLECTION_TYPE);
@@ -148,9 +151,16 @@ class IndependentLearnerCoursePerfHandler implements DBHandler {
                 }
               });
             }
-            // FIXME: Total count will be taken from nucleus core.
-            unitData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
-            // FIXME : Revisit this logic in future.
+            
+            if (unitAssessmentCountMap.containsKey(this.unitId)) {
+              	totalCount = unitAssessmentCountMap.get(this.unitId);
+              } else {
+              	Object classTotalCount = Base.firstCell(AJEntityCourseCollectionCount.GET_UNIT_ASSESSMENT_COUNT,
+              			context.courseId(), unitId);
+              	totalCount = classTotalCount != null ? (Integer.valueOf(classTotalCount.toString())) : 0;
+              	unitAssessmentCountMap.put(this.unitId, totalCount);
+              }
+            unitData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, totalCount);
             if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
               unitData.put(EventConstants.VIEWS, unitData.getInteger(EventConstants.ATTEMPTS));
               unitData.remove(EventConstants.ATTEMPTS);
@@ -159,17 +169,10 @@ class IndependentLearnerCoursePerfHandler implements DBHandler {
           });
         } else {
           LOGGER.info("No data returned for Student Perf in Assessment");
-          // return new
-          // ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(),
-          // ExecutionStatus.FAILED);
         }
 
       } else {
         LOGGER.info("Could not get Student Course Performance");
-        // Return an empty resultBody instead of an Error
-        // return new
-        // ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(),
-        // ExecutionStatus.FAILED);
       }
 
       // Form the required Json pass it on
