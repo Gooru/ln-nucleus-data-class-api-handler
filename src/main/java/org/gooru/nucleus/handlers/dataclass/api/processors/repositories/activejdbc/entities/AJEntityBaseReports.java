@@ -520,6 +520,10 @@ public class AJEntityBaseReports extends Model {
     		"select class_id, course_id, unit_id, lesson_id, collection_id,collection_type, created_at, updated_at from base_reports "
     		+ " WHERE class_id = ? AND actor_id = ? AND collection_type IS NOT NULL ORDER BY updated_at DESC LIMIT 1";
     
+    public static final String GET_STUDENT_LOCATION_IN_CLASS_AND_COURSE = 
+        "SELECT class_id, course_id, unit_id, lesson_id, collection_id, collection_type, session_id, created_at, updated_at FROM base_reports "
+        + " WHERE class_id = ? AND course_id = ? AND actor_id = ? AND collection_type IS NOT NULL ORDER BY updated_at DESC LIMIT 1";
+    
  // GET STUDENT's PEERS IN COURSE
     public static final String GET_PEERS_COUNT_IN_COURSE = 
         "SELECT count(aId) AS peerCount, unit_id FROM "
