@@ -1,6 +1,7 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +11,7 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.converters.ResponseAttributeIdentifier;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityCourseCollectionCount;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.converters.ValueMapper;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
@@ -33,9 +35,8 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IndependentLearnerUnitPerfHandler.class);
   private static final String REQUEST_COLLECTION_TYPE = "collectionType";
-
   private final ProcessorContext context;
-
+  int totalCount = 0;
   private String collectionType;
   private String userId;
 
@@ -73,8 +74,6 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
     JsonObject resultBody = new JsonObject();
     JsonArray resultarray = new JsonArray();
 
-    // TODO Confirm if collType is optional. In which case we need not check for
-    // null or Empty (and probably send data for both)
     this.collectionType = this.context.request().getString(REQUEST_COLLECTION_TYPE);
     if (StringUtil.isNullOrEmpty(collectionType)) {
       LOGGER.warn("CollectionType is mandatory to fetch Student Performance in Course");
@@ -82,10 +81,7 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
               MessageResponseFactory.createInvalidRequestResponse("CollectionType Missing. Cannot fetch Student Performance in course"),
               ExecutionStatus.FAILED);
     }
-    LOGGER.debug("Collection Type is " + this.collectionType);
-
     this.userId = this.context.userIdFromSession();
-
     List<String> userIds = new ArrayList<>(1);
     List<String> lessonIds = new ArrayList<>();
 
@@ -94,6 +90,7 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
     for (String userID : userIds) {
       JsonObject contentBody = new JsonObject();
       JsonArray UnitKpiArray = new JsonArray();
+      Map<String, Integer> lessonAssessmentCountMap = new HashMap<String, Integer>();
 
       LazyList<AJEntityBaseReports> lessonIDforUnit;
 
@@ -131,12 +128,8 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
             completedCountMap.forEach(scoreCompletonMap -> {
               lessonData.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT,
                       Integer.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
-              lessonData.put(AJEntityBaseReports.ATTR_SCORE, scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE) != null ? Double.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE).toString()) : null);
-              LOGGER.debug("UnitID : {} - UserID : {} - Score : {}", lessonId, userID, scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE) != null ?
-                      Double.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE).toString()) : null);
-              LOGGER.debug("UnitID : {} - UserID : {} - completedCount : {}", lessonId, userID,
-                      Integer.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
-
+              lessonData.put(AJEntityBaseReports.ATTR_SCORE, scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE) != null ? 
+            		  Double.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE).toString()) : null);
             });
             
             if(scoreMap != null && !scoreMap.isEmpty() && this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
@@ -144,16 +137,21 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
                 double maxScore = Double.valueOf(score.get(AJEntityBaseReports.MAX_SCORE).toString());
                 if(maxScore > 0 && (score.get(AJEntityBaseReports.SCORE) != null)) {
                   double sumOfScore = Double.valueOf(score.get(AJEntityBaseReports.SCORE).toString());
-                    LOGGER.debug("maxScore : {} , sumOfScore : {} ", maxScore, sumOfScore);
                     lessonData.put(AJEntityBaseReports.ATTR_SCORE, Math.round((sumOfScore / maxScore) * 100));
                 } else {
                   lessonData.putNull(AJEntityBaseReports.ATTR_SCORE);
                 }
               });
             }
-            // FIXME: Total count will be taken from nucleus core.
-            lessonData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
-            // FIXME : Revisit this logic in future.
+            
+            if (lessonAssessmentCountMap.containsKey(this.lessonId)) {
+            	totalCount = lessonAssessmentCountMap.get(this.lessonId);
+            } else {
+            	Object classTotalCount = Base.firstCell(AJEntityCourseCollectionCount.GET_LESSON_ASSESSMENT_COUNT,
+            			context.courseId(), context.unitId(), this.lessonId);
+            	totalCount = classTotalCount != null ? (Integer.valueOf(classTotalCount.toString())) : 0;
+            	lessonAssessmentCountMap.put(this.lessonId, totalCount);
+            }            lessonData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
             if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
               lessonData.put(EventConstants.VIEWS, lessonData.getInteger(EventConstants.ATTEMPTS));
               lessonData.remove(EventConstants.ATTEMPTS);
@@ -180,9 +178,10 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
             if (!assessmentKpi.isEmpty()) {
               assessmentKpi.forEach(ass -> {
                 JsonObject assData = ValueMapper.map(ResponseAttributeIdentifier.getLessonPerformanceAttributesMap(), ass);
-                // FIXME : revisit completed count and total count
                 assData.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 1);
-                assData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
+                //Since this is the leaf-level data, TOTAL_COUNT doesn't make sense here. It will be stuffed as 1
+                //for compatibility. (should not be used in any report calculations)
+                assData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 1);
                 String collId = assData.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID);
                 if (this.collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {
                   List<Map> collectionQuestionCount;
@@ -228,17 +227,10 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
           });
         } else {
           LOGGER.info("No data returned for Student Perf in Assessment");
-          // return new
-          // ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(),
-          // ExecutionStatus.FAILED);
         }
 
       } else {
         LOGGER.info("Could not get Student Unit Performance");
-        // Return an empty resultBody instead of an Error
-        // return new
-        // ExecutionResult<>(MessageResponseFactory.createNotFoundResponse(),
-        // ExecutionStatus.FAILED);
       }
 
       contentBody.put(JsonConstants.USAGE_DATA, UnitKpiArray).put(JsonConstants.USERUID, userID);
