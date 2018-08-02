@@ -109,9 +109,8 @@ public class StudentCollectionPerfHandler implements DBHandler {
              collectionQuestionsKPI = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_RESOURCE_AGG_DATA_
                     ,collectionId, userID);
           }
-          JsonObject contentBody = new JsonObject();
-          //JsonArray questionsArray = new JsonArray();
           if(!collectionQuestionsKPI.isEmpty()){
+              JsonObject contentBody = new JsonObject();
         	JsonArray questionsArray = new JsonArray();
             collectionQuestionsKPI.forEach(questions -> {
               JsonObject qnData = ValueMapper.map(ResponseAttributeIdentifier.getSessionCollectionResourceAttributesMap(), questions);
@@ -182,8 +181,8 @@ public class StudentCollectionPerfHandler implements DBHandler {
             });
             
             contentBody.put(JsonConstants.USAGE_DATA, questionsArray).put(JsonConstants.USERUID, userID);
+            resultarray.add(contentBody);          
           } 
-          resultarray.add(contentBody);          
 	    }
 	    resultBody.put(JsonConstants.CONTENT, resultarray).putNull(JsonConstants.MESSAGE).putNull(JsonConstants.PAGINATE);
 	    return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
