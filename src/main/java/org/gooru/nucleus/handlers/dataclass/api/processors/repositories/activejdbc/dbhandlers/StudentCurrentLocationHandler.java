@@ -95,6 +95,8 @@ public class StudentCurrentLocationHandler implements DBHandler {
         	Object collTitle = Base.firstCell(AJEntityContent.GET_TITLE, collId);
             loc.put(JsonConstants.COLLECTION_TITLE, (collTitle != null ? collTitle.toString() : "NA"));
           }
+          loc.put(AJEntityBaseReports.ATTR_PATH_ID, m.get(AJEntityBaseReports.ATTR_PATH_ID) == null ? 0L : Long.parseLong(m.get(AJEntityBaseReports.ATTR_PATH_ID).toString()));
+          loc.put(AJEntityBaseReports.ATTR_PATH_TYPE, m.get(AJEntityBaseReports.ATTR_PATH_TYPE) == null ? null : m.get(AJEntityBaseReports.ATTR_PATH_TYPE).toString());
           currentLocArray.add(loc);
         });
 

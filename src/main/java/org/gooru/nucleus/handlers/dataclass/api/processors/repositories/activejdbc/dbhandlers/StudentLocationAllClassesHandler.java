@@ -136,6 +136,8 @@ public class StudentLocationAllClassesHandler implements DBHandler {
                 } else {
                   studLoc.put(JsonConstants.STATUS, JsonConstants.IN_PROGRESS);
                 }
+                studLoc.put(AJEntityBaseReports.ATTR_PATH_ID, m.get(AJEntityBaseReports.ATTR_PATH_ID) == null ? 0L : Long.parseLong(m.get(AJEntityBaseReports.ATTR_PATH_ID).toString()));
+                studLoc.put(AJEntityBaseReports.ATTR_PATH_TYPE, m.get(AJEntityBaseReports.ATTR_PATH_TYPE) == null ? null : m.get(AJEntityBaseReports.ATTR_PATH_TYPE).toString());
                 locArray.add(studLoc);
             });
           } else {

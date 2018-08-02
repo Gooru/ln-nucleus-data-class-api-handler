@@ -167,7 +167,7 @@ public class StudentLessonPerfHandler implements DBHandler {
                     resourceKpi.forEach(res -> {
                     	JsonObject resKpi = new JsonObject();
                     	resKpi.put(AJEntityBaseReports.ATTR_ASSESSMENT_ID, cId);
-                    	resKpi.put(AJEntityBaseReports.ATTR_PATH_ID, res.get(AJEntityBaseReports.ATTR_PATH_ID).toString());
+                    	resKpi.put(AJEntityBaseReports.ATTR_PATH_ID, res.get(AJEntityBaseReports.ATTR_PATH_ID) == null ? 0L : Long.parseLong(res.get(AJEntityBaseReports.ATTR_PATH_ID).toString()));
                     	resKpi.put(AJEntityBaseReports.ATTR_RESOURCE_ID, res.get(AJEntityBaseReports.ATTR_RESOURCE_ID).toString());
                 		resKpi.put(AJEntityBaseReports.ATTR_TIME_SPENT, Long.parseLong(res.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()));
                 		resKpi.put(AJEntityBaseReports.VIEWS, Integer.parseInt(res.get(AJEntityBaseReports.VIEWS).toString()));

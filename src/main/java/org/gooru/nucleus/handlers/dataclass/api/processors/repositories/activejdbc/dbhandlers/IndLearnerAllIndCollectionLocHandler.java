@@ -1,7 +1,5 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -10,9 +8,9 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
+import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
-import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.javalite.activejdbc.Base;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,11 +26,6 @@ public class IndLearnerAllIndCollectionLocHandler implements DBHandler {
 
 	  private final ProcessorContext context;
 	  private static final String REQUEST_USERID = "userId";
-	  private static final String REQUEST_LIMIT = "limit";
-	  private static final String REQUEST_OFFSET = "offset";
-
-    private Integer limit;
-	  private Integer offset;
 
 	  IndLearnerAllIndCollectionLocHandler(ProcessorContext context) {
 	    this.context = context;
@@ -86,6 +79,8 @@ public class IndLearnerAllIndCollectionLocHandler implements DBHandler {
 	          }
 
 	          ILloc.put(JsonConstants.LAST_ACCESSED, m.get(JsonConstants.LAST_ACCESSED).toString());
+	          ILloc.put(AJEntityBaseReports.ATTR_PATH_ID, m.get(AJEntityBaseReports.ATTR_PATH_ID) == null ? 0L : Long.parseLong(m.get(AJEntityBaseReports.ATTR_PATH_ID).toString()));
+	          ILloc.put(AJEntityBaseReports.ATTR_PATH_TYPE, m.get(AJEntityBaseReports.ATTR_PATH_TYPE) == null ? null : m.get(AJEntityBaseReports.ATTR_PATH_TYPE).toString());
 	          locArray.add(ILloc);
 		      });
 		    } else {
@@ -101,28 +96,6 @@ public class IndLearnerAllIndCollectionLocHandler implements DBHandler {
 	  @Override
 	  public boolean handlerReadOnly() {
 	    return true;
-	  }
-
-	  private String listToPostgresArrayString(JsonArray inputArrary) {
-	    List<String> input = new ArrayList<>(inputArrary.size());
-	    for (Object s : inputArrary) {
-	      input.add(s.toString());
-	    }
-	    int approxSize = ((input.size() + 1) * 36);
-	    Iterator<String> it = input.iterator();
-	    if (!it.hasNext()) {
-	      return "{}";
-	    }
-	    StringBuilder sb = new StringBuilder(approxSize);
-	    sb.append('{');
-	    for (;;) {
-	      String s = it.next();
-	      sb.append('"').append(s).append('"');
-	      if (!it.hasNext()) {
-	        return sb.append('}').toString();
-	      }
-	      sb.append(',');
-	    }
 	  }
 
 }

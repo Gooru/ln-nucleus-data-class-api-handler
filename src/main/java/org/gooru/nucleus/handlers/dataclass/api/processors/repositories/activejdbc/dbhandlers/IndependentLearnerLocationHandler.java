@@ -173,7 +173,6 @@ public class IndependentLearnerLocationHandler implements DBHandler {
         
         if (contentType.equalsIgnoreCase(MessageConstants.COLLECTION)) {
         	String collectionId = m.get(AJEntityBaseReports.COLLECTION_OID).toString();
-            String sessionId = m.get(AJEntityBaseReports.SESSION_ID).toString();        
         	Object title = Base.firstCell(AJEntityContent.GET_TITLE, collectionId);
             ILloc.put(JsonConstants.COLLECTION_TITLE, (title != null ? title.toString() : "NA"));
             ILloc.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collectionId);
@@ -183,6 +182,8 @@ public class IndependentLearnerLocationHandler implements DBHandler {
         }        
 
         ILloc.put(JsonConstants.LAST_ACCESSED, m.get(JsonConstants.LAST_ACCESSED).toString());
+        ILloc.put(AJEntityBaseReports.ATTR_PATH_ID, m.get(AJEntityBaseReports.ATTR_PATH_ID) == null ? 0L : Long.parseLong(m.get(AJEntityBaseReports.ATTR_PATH_ID).toString()));
+        ILloc.put(AJEntityBaseReports.ATTR_PATH_TYPE, m.get(AJEntityBaseReports.ATTR_PATH_TYPE) == null ? null : m.get(AJEntityBaseReports.ATTR_PATH_TYPE).toString());
         locArray.add(ILloc);          
 	      });
 	    } else {

@@ -32,7 +32,6 @@ public class IndLearnerCourseCurrentLocationHandler implements DBHandler {
 	  private static final Logger LOGGER = LoggerFactory.getLogger(IndLearnerCourseCurrentLocationHandler.class);
 
 	  private final ProcessorContext context;
-	  private static final String REQUEST_USERID = "userId";
 
     IndLearnerCourseCurrentLocationHandler(ProcessorContext context) {
 	    this.context = context;
@@ -56,8 +55,6 @@ public class IndLearnerCourseCurrentLocationHandler implements DBHandler {
 
 		    JsonObject resultBody = new JsonObject();
 	    	JsonArray CurrentLocArray = new JsonArray();
-          AJEntityBaseReports baseReport = new AJEntityBaseReports();
-
 		  String courseId = context.courseId();
           String userId = context.getUserIdFromRequest();
 
@@ -79,6 +76,8 @@ public class IndLearnerCourseCurrentLocationHandler implements DBHandler {
 	        	Object collTitle = Base.firstCell(AJEntityContent.GET_TITLE, collId);
 	            loc.put(JsonConstants.COLLECTION_TITLE, (collTitle != null ? collTitle.toString() : "NA"));
 	          }
+	          loc.put(AJEntityBaseReports.ATTR_PATH_ID, m.get(AJEntityBaseReports.ATTR_PATH_ID) == null ? 0L : Long.parseLong(m.get(AJEntityBaseReports.ATTR_PATH_ID).toString()));
+	          loc.put(AJEntityBaseReports.ATTR_PATH_TYPE, m.get(AJEntityBaseReports.ATTR_PATH_TYPE) == null ? null : m.get(AJEntityBaseReports.ATTR_PATH_TYPE).toString());
 	          CurrentLocArray.add(loc);
 	        });
 
