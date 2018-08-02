@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
@@ -129,10 +130,16 @@ public class StudentLocationAllClassesHandler implements DBHandler {
                 studLoc.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collectionId);
                   Object collTitle = Base.firstCell(AJEntityContent.GET_TITLE, collectionId);
                 studLoc.put(JsonConstants.COLLECTION_TITLE, (collTitle != null ? collTitle.toString() : "NA"));
-                studLoc.put(AJEntityBaseReports.ATTR_COLLECTION_TYPE, m.get(AJEntityBaseReports.COLLECTION_TYPE).toString());
-                String sessionId = m.get(AJEntityBaseReports.SESSION_ID).toString();
-                if (!Base.findAll(AJEntityBaseReports.GET_COLLECTION_STATUS, sessionId, collectionId, EventConstants.COLLECTION_PLAY, EventConstants.STOP).isEmpty()){
+                String collectionType = m.get(AJEntityBaseReports.COLLECTION_TYPE).toString();
+                studLoc.put(AJEntityBaseReports.ATTR_COLLECTION_TYPE, collectionType);
+                List<Map> collectionStatus = Base.findAll(AJEntityBaseReports.GET_COLLECTION_STATUS, m.get(AJEntityBaseReports.SESSION_ID).toString(), collectionId, EventConstants.COLLECTION_PLAY, EventConstants.STOP);
+                if (!collectionStatus.isEmpty()){
                   studLoc.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
+                  if (Objects.equals(m.get(AJEntityBaseReports.COLLECTION_TYPE), EventConstants.ASSESSMENT)) {
+                      Map score = collectionStatus.get(0);
+                      studLoc.put(AJEntityBaseReports.ATTR_SCORE, score.get(AJEntityBaseReports.ATTR_SCORE) == null 
+                      ? null : Math.round(Double.valueOf(score.get(AJEntityBaseReports.ATTR_SCORE).toString())));
+                  }
                 } else {
                   studLoc.put(JsonConstants.STATUS, JsonConstants.IN_PROGRESS);
                 }

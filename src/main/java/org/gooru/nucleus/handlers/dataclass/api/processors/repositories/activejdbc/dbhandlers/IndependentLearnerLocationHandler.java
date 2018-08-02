@@ -135,52 +135,55 @@ public class IndependentLearnerLocationHandler implements DBHandler {
 	    if ((ILlocMap != null) && (!ILlocMap.isEmpty())) {
 	    ILlocMap.forEach(m -> {
 	    JsonObject ILloc = new JsonObject();
+	    String collectionId = m.get(AJEntityBaseReports.COLLECTION_OID).toString();
+        String sessionId = m.get(AJEntityBaseReports.SESSION_ID).toString();
         if (contentType.equalsIgnoreCase(MessageConstants.COURSE)) {
 
         	String coId = m.get(AJEntityBaseReports.COURSE_GOORU_OID) != null ? m.get(AJEntityBaseReports.COURSE_GOORU_OID).toString() : null;	    
     	    ILloc.put(AJEntityBaseReports.ATTR_COURSE_ID, coId);          
             ILloc.put(AJEntityBaseReports.ATTR_UNIT_ID,  m.get(AJEntityBaseReports.UNIT_GOORU_OID) != null ? m.get(AJEntityBaseReports.UNIT_GOORU_OID).toString() : null);
             ILloc.put(AJEntityBaseReports.ATTR_LESSON_ID, m.get(AJEntityBaseReports.LESSON_GOORU_OID) != null ? m.get(AJEntityBaseReports.LESSON_GOORU_OID).toString() : null);
-            String collectionId = m.get(AJEntityBaseReports.COLLECTION_OID).toString();
-            String sessionId = m.get(AJEntityBaseReports.SESSION_ID).toString();        
 
         	Object title = Base.firstCell(AJEntityContent.GET_TITLE, coId);
         	ILloc.put(JsonConstants.COURSE_TITLE, (title != null ? title.toString() : "NA"));
         	Object collTitle = Base.firstCell(AJEntityContent.GET_TITLE, collectionId);
             ILloc.put(JsonConstants.COLLECTION_TITLE, (collTitle != null ? collTitle.toString() : "NA"));
             ILloc.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collectionId);
-        	ILloc.put(AJEntityBaseReports.ATTR_COLLECTION_TYPE, m.get(AJEntityBaseReports.COLLECTION_TYPE).toString());
-        	if (!Base.findAll(AJEntityBaseReports.GET_IL_COURSE_COLLECTION_STATUS, coId, sessionId, collectionId, EventConstants.COLLECTION_PLAY, EventConstants.STOP).isEmpty()){
+            String collectionType = m.get(AJEntityBaseReports.COLLECTION_TYPE).toString();
+        	ILloc.put(AJEntityBaseReports.ATTR_COLLECTION_TYPE, collectionType);
+        	List<Map> completedCourseCollection = Base.findAll(AJEntityBaseReports.GET_IL_COURSE_COLLECTION_STATUS, coId, sessionId, collectionId, EventConstants.COLLECTION_PLAY, EventConstants.STOP);
+        	if (!completedCourseCollection.isEmpty()){
             	  ILloc.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
-              } else {
+            	  if (collectionType.equalsIgnoreCase(MessageConstants.ASSESSMENT)) {
+            	      Map score = completedCourseCollection.get(0);
+            	      ILloc.put(AJEntityBaseReports.ATTR_SCORE, score.get(AJEntityBaseReports.ATTR_SCORE) == null 
+                      ? null : Math.round(Double.valueOf(score.get(AJEntityBaseReports.ATTR_SCORE).toString())));
+            	  }
+            } else {
             	  ILloc.put(JsonConstants.STATUS, JsonConstants.IN_PROGRESS);
-              }        	
+            }        	
+        } else if (MessageConstants.COLLECTION_TYPES.matcher(contentType).matches()) {
+            List<Map> completedCollection = Base.findAll(AJEntityBaseReports.GET_IL_COLLECTION_STATUS, sessionId, collectionId, EventConstants.COLLECTION_PLAY, EventConstants.STOP);
+            if (contentType.equalsIgnoreCase(MessageConstants.ASSESSMENT)) {        
+                Object title = Base.firstCell(AJEntityContent.GET_TITLE, collectionId);
+                ILloc.put(JsonConstants.COLLECTION_TITLE, (title != null ? title.toString() : "NA"));
+                ILloc.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collectionId);
+                ILloc.put(AJEntityBaseReports.ATTR_COLLECTION_TYPE, AJEntityBaseReports.ATTR_ASSESSMENT);
+            } else if (contentType.equalsIgnoreCase(MessageConstants.COLLECTION)) {
+                Object title = Base.firstCell(AJEntityContent.GET_TITLE, collectionId);
+                ILloc.put(JsonConstants.COLLECTION_TITLE, (title != null ? title.toString() : "NA"));
+                ILloc.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collectionId);
+                ILloc.put(AJEntityBaseReports.ATTR_COLLECTION_TYPE, AJEntityBaseReports.ATTR_COLLECTION);
+            }
+            if (!completedCollection.isEmpty()) {
+                ILloc.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
+                Map score = completedCollection.get(0);
+                if (contentType.equalsIgnoreCase(MessageConstants.ASSESSMENT)) ILloc.put(AJEntityBaseReports.ATTR_SCORE, score.get(AJEntityBaseReports.ATTR_SCORE) == null 
+                    ? null : Math.round(Double.valueOf(score.get(AJEntityBaseReports.ATTR_SCORE).toString())));
+            } else {
+                ILloc.put(JsonConstants.STATUS, JsonConstants.IN_PROGRESS);
+            } 
         }
-        
-        if (contentType.equalsIgnoreCase(MessageConstants.ASSESSMENT)) {
-        	String collectionId = m.get(AJEntityBaseReports.COLLECTION_OID).toString();
-            String sessionId = m.get(AJEntityBaseReports.SESSION_ID).toString();        
-        	Object title = Base.firstCell(AJEntityContent.GET_TITLE, collectionId);
-            ILloc.put(JsonConstants.COLLECTION_TITLE, (title != null ? title.toString() : "NA"));
-            ILloc.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collectionId);
-        	ILloc.put(AJEntityBaseReports.ATTR_COLLECTION_TYPE, AJEntityBaseReports.ATTR_ASSESSMENT);
-        	if (!Base.findAll(AJEntityBaseReports.GET_IL_COLLECTION_STATUS, sessionId, collectionId, EventConstants.COLLECTION_PLAY, EventConstants.STOP).isEmpty()){
-            	  ILloc.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
-              } else {
-            	  ILloc.put(JsonConstants.STATUS, JsonConstants.IN_PROGRESS);
-              }        	
-        }
-        
-        if (contentType.equalsIgnoreCase(MessageConstants.COLLECTION)) {
-        	String collectionId = m.get(AJEntityBaseReports.COLLECTION_OID).toString();
-        	Object title = Base.firstCell(AJEntityContent.GET_TITLE, collectionId);
-            ILloc.put(JsonConstants.COLLECTION_TITLE, (title != null ? title.toString() : "NA"));
-            ILloc.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collectionId);
-        	ILloc.put(AJEntityBaseReports.ATTR_COLLECTION_TYPE, AJEntityBaseReports.ATTR_COLLECTION);
-        	//Status for collection will always be Complete.
-        	ILloc.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
-        }        
-
         ILloc.put(JsonConstants.LAST_ACCESSED, m.get(JsonConstants.LAST_ACCESSED).toString());
         ILloc.put(AJEntityBaseReports.ATTR_PATH_ID, m.get(AJEntityBaseReports.ATTR_PATH_ID) == null ? 0L : Long.parseLong(m.get(AJEntityBaseReports.ATTR_PATH_ID).toString()));
         ILloc.put(AJEntityBaseReports.ATTR_PATH_TYPE, m.get(AJEntityBaseReports.ATTR_PATH_TYPE) == null ? null : m.get(AJEntityBaseReports.ATTR_PATH_TYPE).toString());

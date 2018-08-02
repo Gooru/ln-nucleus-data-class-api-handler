@@ -74,8 +74,12 @@ public class IndLearnerAllIndAssessmentLocHandler implements DBHandler {
 	          ILloc.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collectionId);
 	          ILloc.put(JsonConstants.COLLECTION_TITLE, "NA");
 	          String sessionId = m.get(AJEntityBaseReports.SESSION_ID).toString();
-	          if (!Base.findAll(AJEntityBaseReports.GET_IL_COLLECTION_STATUS, sessionId, collectionId, EventConstants.COLLECTION_PLAY, EventConstants.STOP).isEmpty()){
-	        	  ILloc.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
+	          List<Map> completedAssessment = Base.findAll(AJEntityBaseReports.GET_IL_COLLECTION_STATUS, sessionId, collectionId, EventConstants.COLLECTION_PLAY, EventConstants.STOP);
+	          if (!completedAssessment.isEmpty()) {
+	              ILloc.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
+	              Map score = completedAssessment.get(0);
+	              ILloc.put(AJEntityBaseReports.ATTR_SCORE, score.get(AJEntityBaseReports.ATTR_SCORE) == null 
+                      ? null : Math.round(Double.valueOf(score.get(AJEntityBaseReports.ATTR_SCORE).toString())));
 	          } else {
 	        	  ILloc.put(JsonConstants.STATUS, JsonConstants.IN_PROGRESS);
 	          }

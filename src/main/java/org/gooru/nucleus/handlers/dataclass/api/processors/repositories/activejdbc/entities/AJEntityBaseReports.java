@@ -518,7 +518,7 @@ public class AJEntityBaseReports extends Model {
     // For NU, Suggestions can also be a resource. However, currently we will not point to the Suggested Resource as location.
     // (additional check collection_type IS NOT NULL added)
     public static final String GET_STUDENT_LOCATION = 
-    		"select class_id, course_id, unit_id, lesson_id, collection_id,collection_type, created_at, updated_at, path_id AS pathId, path_type AS pathType from base_reports "
+    		"select class_id, course_id, unit_id, lesson_id, collection_id, collection_type, created_at, updated_at, path_id AS pathId, path_type AS pathType, session_id from base_reports "
     		+ " WHERE class_id = ? AND actor_id = ? AND collection_type IS NOT NULL ORDER BY updated_at DESC LIMIT 1";
     
     public static final String GET_STUDENT_LOCATION_IN_CLASS_AND_COURSE = 
@@ -677,7 +677,7 @@ public class AJEntityBaseReports extends Model {
     		+ "lesson_id, collection_id, collection_type, session_id, updated_at, path_id AS pathId, path_type AS pathType FROM base_reports WHERE actor_id = ? AND class_id = ANY(?::varchar[]) "
     		+ "AND collection_type is NOT NULL ORDER BY class_id, updated_at DESC";
     
-    public static final String GET_COLLECTION_STATUS =  "SELECT event_name, event_type from base_reports WHERE session_id = ? "
+    public static final String GET_COLLECTION_STATUS =  "SELECT event_name, event_type, score AS scoreInPercentage from base_reports WHERE session_id = ? "
     		+ " AND collection_id = ? AND event_name = ? AND event_type = ?";
 
     //*************************************************************************************************************************
@@ -910,43 +910,43 @@ public class AJEntityBaseReports extends Model {
     		+ "AND unit_id IS NOT NULL AND lesson_id IS NOT NULL AND actor_id = ?) AS ce order by last_updated DESC";
     
     public static final String GET_INDEPENDENT_LEARNER_LOCATION_ALL_COURSES = "SELECT loc.course_id, loc.unit_id, "
-    		+ "loc.lesson_id, loc.collection_id, loc.lastAccessed, loc.session_id, loc.collection_type, loc.pathId, loc.pathType FROM "
+    		+ "loc.lesson_id, loc.collection_id, loc.lastAccessed, loc.session_id, loc.collection_type, loc.path_id AS pathId, loc.path_type AS pathType FROM "
     		+ "(select DISTINCT ON (course_id) course_id, unit_id, lesson_id, collection_id, collection_type, "
     		+ "FIRST_VALUE(updated_at) OVER (PARTITION BY course_id ORDER BY updated_at desc) AS lastAccessed, "
     		+ "FIRST_VALUE(session_id) OVER (PARTITION BY course_id ORDER BY updated_at desc) AS session_id,"
-    		+ "FIRST_VALUE(path_id) OVER (PARTITION BY course_id ORDER BY updated_at desc) AS pathId," 
-    		+ "FIRST_VALUE(path_type) OVER (PARTITION BY course_id ORDER BY updated_at desc) AS pathType "
+    		+ "FIRST_VALUE(path_id) OVER (PARTITION BY course_id ORDER BY updated_at desc) AS path_id," 
+    		+ "FIRST_VALUE(path_type) OVER (PARTITION BY course_id ORDER BY updated_at desc) AS path_type "
     		+ "FROM base_reports WHERE class_id IS NULL AND actor_id = ? "
     		+ "AND collection_type IS NOT NULL AND course_id = ANY(?::varchar[])) "
     		+ "AS loc order by loc.lastAccessed DESC LIMIT ? OFFSET ?";
     
     public static final String GET_DISTINCT_ASSESSMENT_FOR_INDEPENDENT_LEARNER = "SELECT asmt.collection_id as collection_id, asmt.updated_at as lastAccessed,"
-    		+ "asmt.session_id as session_id, asmt.pathId, asmt.pathType FROM "
+    		+ "asmt.session_id as session_id, asmt.path_id as pathId, asmt.path_type as pathType FROM "
     		+ "(SELECT distinct on (collection_id) collection_id,"
     		+ "FIRST_VALUE(updated_at) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS updated_at, "
     		+ "FIRST_VALUE(session_id) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS session_id, "
-    		+ "FIRST_VALUE(path_id) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS pathId, "
-    		+ "FIRST_VALUE(path_type) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS pathType"
+    		+ "FIRST_VALUE(path_id) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS path_id, "
+    		+ "FIRST_VALUE(path_type) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS path_type, "
     		+ "FROM base_reports where class_id IS NULL AND collection_id = ANY(?::varchar[]) AND "
     		+ "collection_type = 'assessment' AND actor_id = ?) "
     		+ "AS asmt order by lastAccessed DESC LIMIT ? OFFSET ?";
     
     public static final String GET_DISTINCT_COLLECTION_FOR_INDEPENDENT_LEARNER = "SELECT coll.collection_id as collection_id, "
     		+ "coll.updated_at as lastAccessed,"
-    		+ "coll.session_id as session_id, coll.pathId, coll.pathType FROM "
+    		+ "coll.session_id as session_id, coll.path_id AS pathId, coll.path_type AS pathType FROM "
     		+ "(SELECT distinct on (collection_id) collection_id,"
     		+ "FIRST_VALUE(updated_at) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS updated_at, "
     		+ "FIRST_VALUE(session_id) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS session_id, "
-    		+ "FIRST_VALUE(path_id) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS pathId, "
-    		+ "FIRST_VALUE(path_type) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS pathType "
+    		+ "FIRST_VALUE(path_id) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS path_id, "
+    		+ "FIRST_VALUE(path_type) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS path_type "
     		+ "FROM base_reports where class_id IS NULL AND collection_id = ANY(?::varchar[]) AND "
     		+ "collection_type = 'collection' AND actor_id = ?) "
     		+ "AS coll order by lastAccessed DESC LIMIT ? OFFSET ?";
     
-    public static final String GET_IL_COURSE_COLLECTION_STATUS =  "SELECT event_name, event_type from base_reports WHERE class_id IS NULL AND course_id = ? AND "
+    public static final String GET_IL_COURSE_COLLECTION_STATUS =  "SELECT event_name, event_type, score AS scoreInPercentage from base_reports WHERE class_id IS NULL AND course_id = ? AND "
     		+ "session_id = ? AND collection_id = ? AND event_name = ? AND event_type = ?";
     
-    public static final String GET_IL_COLLECTION_STATUS =  "SELECT event_name, event_type from base_reports WHERE class_id IS NULL "
+    public static final String GET_IL_COLLECTION_STATUS =  "SELECT event_name, event_type, score AS scoreInPercentage from base_reports WHERE class_id IS NULL "
     		+ "AND session_id = ? AND collection_id = ? AND event_name = ? AND event_type = ?";
     
     //*************************************************************************************************************************
@@ -1071,7 +1071,7 @@ public class AJEntityBaseReports extends Model {
             + "ORDER BY collection_id, updated_at DESC) AS courseData GROUP BY course_id";
   
     public static final String GET_IL_LOCATION = 
-    		"select course_id, unit_id, lesson_id, collection_id, collection_type, updated_at, path_id as pathId, path_type as pathType from base_reports "
+    		"select course_id, unit_id, lesson_id, collection_id, collection_type, updated_at, session_id, path_id as pathId, path_type as pathType from base_reports "
     		+ "WHERE class_id IS NULL AND course_id = ? AND actor_id = ? AND collection_type IS NOT NULL "
     		+ "ORDER BY updated_at DESC LIMIT 1";
     

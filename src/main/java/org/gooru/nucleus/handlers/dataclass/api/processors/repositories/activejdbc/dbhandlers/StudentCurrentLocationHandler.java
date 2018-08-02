@@ -97,6 +97,17 @@ public class StudentCurrentLocationHandler implements DBHandler {
           }
           loc.put(AJEntityBaseReports.ATTR_PATH_ID, m.get(AJEntityBaseReports.ATTR_PATH_ID) == null ? 0L : Long.parseLong(m.get(AJEntityBaseReports.ATTR_PATH_ID).toString()));
           loc.put(AJEntityBaseReports.ATTR_PATH_TYPE, m.get(AJEntityBaseReports.ATTR_PATH_TYPE) == null ? null : m.get(AJEntityBaseReports.ATTR_PATH_TYPE).toString());
+          List<Map> collectionStatus = Base.findAll(AJEntityBaseReports.GET_COLLECTION_STATUS, m.get(AJEntityBaseReports.SESSION_ID), collId, EventConstants.COLLECTION_PLAY, EventConstants.STOP);
+          if (!collectionStatus.isEmpty()) {
+              loc.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
+              if (Objects.equals(m.get(AJEntityBaseReports.COLLECTION_TYPE), EventConstants.ASSESSMENT)) {
+                  Map score = collectionStatus.get(0);
+                  loc.put(AJEntityBaseReports.ATTR_SCORE, score.get(AJEntityBaseReports.ATTR_SCORE) == null 
+                  ? null : Math.round(Double.valueOf(score.get(AJEntityBaseReports.ATTR_SCORE).toString())));
+              }
+          } else {
+              loc.put(JsonConstants.STATUS, JsonConstants.IN_PROGRESS);
+          }
           currentLocArray.add(loc);
         });
 

@@ -1,5 +1,7 @@
 package org.gooru.nucleus.handlers.dataclass.api.constants;
 
+import java.util.regex.Pattern;
+
 public final class MessageConstants {
 
     public static final String MSG_HEADER_OP = "mb.operation";
@@ -51,6 +53,7 @@ public final class MessageConstants {
     public static final String COURSE = "course";
     public static final String ASSESSMENT = "assessment";
     public static final String COLLECTION = "collection";
+    public static final Pattern COLLECTION_TYPES = Pattern.compile("assessment|collection");
     //Rubric Grading
     public static final String STUDENT_ID = "student_id";
     public static final String STUDENTID = "studentId";
