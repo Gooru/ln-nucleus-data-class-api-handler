@@ -1,6 +1,7 @@
     package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
     import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -11,6 +12,8 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.converters.ResponseAttributeIdentifier;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassMember;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityCourseCollectionCount;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.converters.ValueMapper;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
@@ -36,11 +39,9 @@ import io.vertx.core.json.JsonObject;
       private static final Logger LOGGER = LoggerFactory.getLogger(StudentUnitPerfHandler.class);
       private static final String REQUEST_COLLECTION_TYPE = "collectionType";
       private static final String REQUEST_USERID = "userUid";
-
+      int totalCount = 0;
       private final ProcessorContext context;
-
       private String collectionType;
-
         // For stuffing Json
       private String lessonId;
 
@@ -81,7 +82,8 @@ import io.vertx.core.json.JsonObject;
 
         JsonObject resultBody = new JsonObject();
         JsonArray resultarray = new JsonArray();
-
+        Map<String, Integer> lessonAssessmentCountMap = new HashMap<String, Integer>();
+        
         this.collectionType = this.context.request().getString(REQUEST_COLLECTION_TYPE);
         if (StringUtil.isNullOrEmpty(collectionType)) {
           LOGGER.warn("CollectionType is mandatory to fetch Student Performance in Units");
@@ -90,21 +92,22 @@ import io.vertx.core.json.JsonObject;
                   ExecutionStatus.FAILED);
         }
         LOGGER.debug("Collection Type is " + this.collectionType);
-
-          String userId = this.context.request().getString(REQUEST_USERID);
+        String userId = this.context.request().getString(REQUEST_USERID);
 
         List<String> userIds = new ArrayList<>();
         List<String> lessonIds = new ArrayList<>();
         if (StringUtil.isNullOrEmpty(userId)) {
-          LOGGER.warn("UserID is not in the request to fetch Student Performance in Units. Assume user is a teacher");
-          LazyList<AJEntityBaseReports> userIdforUnit =
-                  AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_UNIT_ID_FITLERBY_COLLTYPE, context.classId(),
-                          context.courseId(), context.unitId(), this.collectionType);
-          userIdforUnit.forEach(lesson -> userIds.add(lesson.getString(AJEntityBaseReports.GOORUUID)));
+        	LOGGER.warn("UserID is not in the request to fetch Student Performance in Units. Assume user is a teacher");
+        	LazyList<AJEntityBaseReports> userIdforUnit =
+        			AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_UNIT_ID_FITLERBY_COLLTYPE, context.classId(),
+        					context.courseId(), context.unitId(), this.collectionType);
+        	userIdforUnit.forEach(lesson -> userIds.add(lesson.getString(AJEntityBaseReports.GOORUUID)));
+        } else {        
 
-        } else {
-          userIds.add(userId);
+        	userIds.add(userId);
         }
+
+		
         for (String userID : userIds) {
           JsonObject contentBody = new JsonObject();
           JsonArray UnitKpiArray = new JsonArray();
@@ -158,12 +161,17 @@ import io.vertx.core.json.JsonObject;
                     }
                   });
                 }
-//                else {
-//                  lessonData.putNull(AJEntityBaseReports.ATTR_SCORE);
-//                }
-                // FIXME: Total count will be taken from nucleus core.
-                lessonData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
-                // FIXME : Revisit this logic in future.
+                
+                if (lessonAssessmentCountMap.containsKey(this.lessonId)) {
+                	totalCount = lessonAssessmentCountMap.get(this.lessonId);
+                } else {
+                	Object classTotalCount = Base.firstCell(AJEntityCourseCollectionCount.GET_LESSON_ASSESSMENT_COUNT,
+                			context.courseId(), context.unitId(), this.lessonId);
+                	totalCount = classTotalCount != null ? (Integer.valueOf(classTotalCount.toString())) : 0;
+                	lessonAssessmentCountMap.put(this.lessonId, totalCount);
+                }
+
+                lessonData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, totalCount);
                 if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
                   lessonData.put(EventConstants.VIEWS, lessonData.getInteger(EventConstants.ATTEMPTS));
                   lessonData.remove(EventConstants.ATTEMPTS);
@@ -191,7 +199,9 @@ import io.vertx.core.json.JsonObject;
                     JsonObject assData = ValueMapper.map(ResponseAttributeIdentifier.getLessonPerformanceAttributesMap(), ass);
                     
                     assData.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 1);
-                    assData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 0);
+                    //Since this is the leaf-level data, TOTAL_COUNT doesn't make sense here. It will be stuffed as 1
+                    //for compatibility. (should not be used in any report calculations)
+                    assData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, 1);
                     assData.put(AJEntityBaseReports.ATTR_SCORE, ass.get(AJEntityBaseReports.ATTR_SCORE) != null ?
                     		Math.round(Double.valueOf(ass.get(AJEntityBaseReports.ATTR_SCORE).toString())) : null);
                     String collId = assData.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID);
