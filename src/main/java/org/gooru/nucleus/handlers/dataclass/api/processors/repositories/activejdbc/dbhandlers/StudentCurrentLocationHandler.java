@@ -71,7 +71,8 @@ public class StudentCurrentLocationHandler implements DBHandler {
 
         String classId = context.classId();
         String userId = context.getUserIdFromRequest();
-        String courseId = context.courseId();
+        String courseId = context.request().getString(EventConstants.COURSE_ID);
+        
 
     	List<Map> currentLocMap = null;
     	
