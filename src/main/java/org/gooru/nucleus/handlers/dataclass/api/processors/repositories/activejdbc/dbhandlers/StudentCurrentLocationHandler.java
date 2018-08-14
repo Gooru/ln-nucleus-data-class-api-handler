@@ -18,6 +18,8 @@ import org.javalite.activejdbc.Base;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.hazelcast.util.StringUtil;
+
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -43,6 +45,7 @@ public class StudentCurrentLocationHandler implements DBHandler {
         return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
     }
 
+    @SuppressWarnings("rawtypes")
     @Override
     public ExecutionResult<MessageResponse> validateRequest() {
       if (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest())) {
@@ -58,21 +61,26 @@ public class StudentCurrentLocationHandler implements DBHandler {
       return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
     }
 
+    @SuppressWarnings("rawtypes")
     @Override
     public ExecutionResult<MessageResponse> executeRequest() {
 
     	JsonObject resultBody = new JsonObject();
 
-    	JsonArray CurrentLocArray = new JsonArray();
-        AJEntityBaseReports baseReport = new AJEntityBaseReports();
+    	JsonArray currentLocArray = new JsonArray();
 
         String classId = context.classId();
         String userId = context.getUserIdFromRequest();
+        String courseId = context.request().getString(EventConstants.COURSE_ID);
+        
 
-    	List<Map> CurrentLocMap = Base.findAll( AJEntityBaseReports.GET_STUDENT_LOCATION, classId, userId);
+    	List<Map> currentLocMap = null;
+    	
+    	if (StringUtil.isNullOrEmpty(courseId)) currentLocMap = Base.findAll( AJEntityBaseReports.GET_STUDENT_LOCATION, classId, userId);
+    	else currentLocMap = Base.findAll( AJEntityBaseReports.GET_STUDENT_LOCATION_IN_CLASS_AND_COURSE, classId, courseId, userId);
 
-    	if (!CurrentLocMap.isEmpty()){
-    	  CurrentLocMap.forEach(m -> {
+    	if (currentLocMap != null && !currentLocMap.isEmpty()){
+    	  currentLocMap.forEach(m -> {
           JsonObject loc = new JsonObject();
           loc.put(AJEntityBaseReports.ATTR_CLASS_ID, m.get(AJEntityBaseReports.CLASS_GOORU_OID).toString());
           loc.put(AJEntityBaseReports.ATTR_COURSE_ID, m.get(AJEntityBaseReports.COURSE_GOORU_OID) != null ? m.get(AJEntityBaseReports.COURSE_GOORU_OID).toString() :null);
@@ -88,7 +96,20 @@ public class StudentCurrentLocationHandler implements DBHandler {
         	Object collTitle = Base.firstCell(AJEntityContent.GET_TITLE, collId);
             loc.put(JsonConstants.COLLECTION_TITLE, (collTitle != null ? collTitle.toString() : "NA"));
           }
-          CurrentLocArray.add(loc);
+          loc.put(AJEntityBaseReports.ATTR_PATH_ID, m.get(AJEntityBaseReports.ATTR_PATH_ID) == null ? 0L : Long.parseLong(m.get(AJEntityBaseReports.ATTR_PATH_ID).toString()));
+          loc.put(AJEntityBaseReports.ATTR_PATH_TYPE, m.get(AJEntityBaseReports.ATTR_PATH_TYPE) == null ? null : m.get(AJEntityBaseReports.ATTR_PATH_TYPE).toString());
+          List<Map> collectionStatus = Base.findAll(AJEntityBaseReports.GET_COLLECTION_STATUS, m.get(AJEntityBaseReports.SESSION_ID), collId, EventConstants.COLLECTION_PLAY, EventConstants.STOP);
+          if (!collectionStatus.isEmpty()) {
+              loc.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
+              if (Objects.equals(m.get(AJEntityBaseReports.COLLECTION_TYPE), EventConstants.ASSESSMENT)) {
+                  Map score = collectionStatus.get(0);
+                  loc.put(AJEntityBaseReports.ATTR_SCORE, score.get(AJEntityBaseReports.ATTR_SCORE) == null 
+                  ? null : Math.round(Double.valueOf(score.get(AJEntityBaseReports.ATTR_SCORE).toString())));
+              }
+          } else {
+              loc.put(JsonConstants.STATUS, JsonConstants.IN_PROGRESS);
+          }
+          currentLocArray.add(loc);
         });
 
     	} else {
@@ -96,7 +117,7 @@ public class StudentCurrentLocationHandler implements DBHandler {
         }
 
         //Form the required JSon pass it on
-        resultBody.put(JsonConstants.CONTENT, CurrentLocArray).putNull(JsonConstants.MESSAGE).putNull(JsonConstants.PAGINATE);
+        resultBody.put(JsonConstants.CONTENT, currentLocArray).putNull(JsonConstants.MESSAGE).putNull(JsonConstants.PAGINATE);
 
     	return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody),
                 ExecutionStatus.SUCCESSFUL);
