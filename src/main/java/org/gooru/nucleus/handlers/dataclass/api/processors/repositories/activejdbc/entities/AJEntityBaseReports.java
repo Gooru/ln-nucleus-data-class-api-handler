@@ -926,7 +926,7 @@ public class AJEntityBaseReports extends Model {
     		+ "FIRST_VALUE(updated_at) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS updated_at, "
     		+ "FIRST_VALUE(session_id) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS session_id, "
     		+ "FIRST_VALUE(path_id) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS path_id, "
-    		+ "FIRST_VALUE(path_type) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS path_type, "
+    		+ "FIRST_VALUE(path_type) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS path_type "
     		+ "FROM base_reports where class_id IS NULL AND collection_id = ANY(?::varchar[]) AND "
     		+ "collection_type = 'assessment' AND actor_id = ?) "
     		+ "AS asmt order by lastAccessed DESC LIMIT ? OFFSET ?";
