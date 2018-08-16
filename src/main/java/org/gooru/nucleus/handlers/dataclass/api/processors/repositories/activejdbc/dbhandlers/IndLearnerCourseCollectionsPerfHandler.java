@@ -101,13 +101,13 @@ public class IndLearnerCourseCollectionsPerfHandler implements DBHandler {
 
         String unitId = this.context.request().getString(MessageConstants.UNIT_ID);
       if (!StringUtil.isNullOrEmpty(unitId)) {
-    	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.UNIT_ID);
+    	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.UNIT_ID_IS);
     	  params.add(unitId);
         }
 
         String lessonId = this.context.request().getString(MessageConstants.LESSON_ID);
       if (!StringUtil.isNullOrEmpty(lessonId)) {
-    	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.LESSON_ID);
+    	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.LESSON_ID_IS);
     	  params.add(lessonId);
         }
 

@@ -73,7 +73,7 @@ public class StudPerfCourseCollectionHandler implements DBHandler {
         JsonArray resultArray = new JsonArray();
         String userId = this.context.request().getString(REQUEST_USERID);
 
-      params.add(AJEntityBaseReports.ATTR_COLLECTION);
+        query.append(AJEntityBaseReports.ADD_COLL_TYPE_FILTER_TO_QUERY);
       
         String classId = this.context.request().getString(MessageConstants.CLASS_ID);
       if (StringUtil.isNullOrEmpty(classId)) {
@@ -99,13 +99,13 @@ public class StudPerfCourseCollectionHandler implements DBHandler {
 
         String unitId = this.context.request().getString(MessageConstants.UNIT_ID);
       if (!StringUtil.isNullOrEmpty(unitId)) {
-    	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.UNIT_ID);
+    	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.UNIT_ID_IS);
     	  params.add(unitId);
         }
 
         String lessonId = this.context.request().getString(MessageConstants.LESSON_ID);
       if (!StringUtil.isNullOrEmpty(lessonId)) {
-    	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.LESSON_ID);
+    	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.LESSON_ID_IS);
     	  params.add(lessonId);
         }
       
@@ -115,8 +115,8 @@ public class StudPerfCourseCollectionHandler implements DBHandler {
       if (StringUtil.isNullOrEmpty(userId1)) {
         LOGGER.warn("UserID is not in the request to fetch Student Performance in Course. Asseume user is a teacher");
         LazyList<AJEntityBaseReports> userIdOfClass =
-      		  AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_COURSE_ID_FILTERBY_COLLTYPE, 
-      				  classId, courseId, COLLECTION );
+      		  AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_COURSE_ID + AJEntityBaseReports.ADD_COLL_TYPE_FILTER_TO_QUERY, 
+      				  classId, courseId );
         userIds = userIdOfClass.collect(AJEntityBaseReports.GOORUUID);
       } else {
         userIds = new ArrayList<>(1);
@@ -140,6 +140,7 @@ public class StudPerfCourseCollectionHandler implements DBHandler {
             for (String collId : collIds) {
             	List<Map> collTSA;
             	JsonObject collectionKpi = new JsonObject();
+            	collectionKpi.put(AJEntityBaseReports.ATTR_CONTENT_TYPE, COLLECTION);
 
             	//Find Timespent and Attempts
             	collTSA = Base.findAll(AJEntityBaseReports.GET_PERFORMANCE_FOR_COLLECTION, classId, courseId,

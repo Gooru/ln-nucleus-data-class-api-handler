@@ -70,7 +70,6 @@ public class StudentCollectionPerfHandler implements DBHandler {
 	    JsonObject resultBody = new JsonObject();
 	    JsonArray resultarray = new JsonArray();
 	        
-	    String collectionType = "collection";
 	    String classId = this.context.classId();
 	    LOGGER.info("the class_id is" + classId);
 	    LOGGER.info("the class_id is" + this.context.classId());
@@ -80,7 +79,6 @@ public class StudentCollectionPerfHandler implements DBHandler {
 	    String unitId = this.context.unitId();
 	    String lessonId = this.context.lessonId();
 	    String collectionId = this.context.collectionId();
-	    JsonArray contentArray = new JsonArray();
 
 	    String userId = this.context.request().getString(REQUEST_USERID);
 
@@ -89,8 +87,8 @@ public class StudentCollectionPerfHandler implements DBHandler {
 	    if (this.context.classId() != null && StringUtil.isNullOrEmpty(userId)) {
 	      LOGGER.warn("UserID is not in the request to fetch Student Performance in Lesson. Assume user is a teacher");
 	      LazyList<AJEntityBaseReports> userIdforlesson =
-	              AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_COLLECTION_ID_FILTERBY_COLLTYPE, context.classId(),
-	                      context.courseId(), context.unitId(), context.lessonId(), context.collectionId(), collectionType);
+	              AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_COLLECTION_ID + AJEntityBaseReports.ADD_COLL_TYPE_FILTER_TO_QUERY, context.classId(),
+	                      context.courseId(), context.unitId(), context.lessonId(), context.collectionId());
 	      userIdforlesson.forEach(coll -> userIds.add(coll.getString(AJEntityBaseReports.GOORUUID)));
 
 	    } else {
