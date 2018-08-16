@@ -12,7 +12,6 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.converters.ResponseAttributeIdentifier;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
-import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassMember;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityCourseCollectionCount;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.converters.ValueMapper;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
@@ -125,7 +124,7 @@ import io.vertx.core.json.JsonObject;
                     context.unitId(), this.collectionType, userID, listToPostgresArrayString(lessonIds));
             }else{
               lessonKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_UNIT_PERF_FOR_ASSESSMENT, context.classId(), context.courseId(),
-                      context.unitId(), this.collectionType, userID, listToPostgresArrayString(lessonIds), EventConstants.COLLECTION_PLAY);
+                      context.unitId(), userID, listToPostgresArrayString(lessonIds), EventConstants.COLLECTION_PLAY);
             }
             if (!lessonKpi.isEmpty()) {
               lessonKpi.forEach(m -> {
@@ -139,8 +138,8 @@ import io.vertx.core.json.JsonObject;
                   scoreMap = Base.findAll(AJEntityBaseReports.GET_SCORE_FOREACH_LESSON_ID, context.classId(),
                           context.courseId(), context.unitId(), this.lessonId, this.collectionType, userID);
                 }else{
-                  completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLLID_COUNT_FOREACH_LESSON_ID, context.classId(),
-                          context.courseId(), context.unitId(), this.lessonId, this.collectionType, userID, EventConstants.COLLECTION_PLAY);
+                  completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_ASMT_COUNT_FOREACH_LESSON_ID, context.classId(),
+                          context.courseId(), context.unitId(), this.lessonId, userID, EventConstants.COLLECTION_PLAY);
                 }
                 JsonObject lessonData = ValueMapper.map(ResponseAttributeIdentifier.getUnitPerformanceAttributesMap(), m);
                 completedCountMap.forEach( scoreCompletonMap -> {
@@ -172,14 +171,16 @@ import io.vertx.core.json.JsonObject;
                 }
 
                 lessonData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, totalCount);
+                String addCollTypeFilterToQuery = AJEntityBaseReports.ADD_COLL_TYPE_FILTER_TO_QUERY;
                 if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
                   lessonData.put(EventConstants.VIEWS, lessonData.getInteger(EventConstants.ATTEMPTS));
                   lessonData.remove(EventConstants.ATTEMPTS);
+                } else {
+                    addCollTypeFilterToQuery = AJEntityBaseReports.ADD_ASS_TYPE_FILTER_TO_QUERY;
                 }
                 JsonArray assessmentArray = new JsonArray();
-                LazyList<AJEntityBaseReports> collIDforlesson;
-                  collIDforlesson =  AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_COLLID_FOR_LESSON_ID_FILTERBY_COLLTYPE_WO_PATH_ID, context.classId(),
-                                context.courseId(), context.unitId(), this.lessonId, this.collectionType, userID);
+                LazyList<AJEntityBaseReports> collIDforlesson =  AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_COLLID_FOR_LESSON_ID_WO_PATH_ID + addCollTypeFilterToQuery, context.classId(),
+                                context.courseId(), context.unitId(), this.lessonId, userID);
 
                 List<String> collIds = new ArrayList<>(collIDforlesson.size());
                 if (!collIDforlesson.isEmpty()) {
@@ -197,7 +198,7 @@ import io.vertx.core.json.JsonObject;
                 if (!assessmentKpi.isEmpty()) {
                   assessmentKpi.forEach(ass -> {
                     JsonObject assData = ValueMapper.map(ResponseAttributeIdentifier.getLessonPerformanceAttributesMap(), ass);
-                    
+                    assData.put(AJEntityBaseReports.ATTR_CONTENT_TYPE, ass.get(AJEntityBaseReports.ATTR_COLLECTION_TYPE).toString());
                     assData.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 1);
                     //Since this is the leaf-level data, TOTAL_COUNT doesn't make sense here. It will be stuffed as 1
                     //for compatibility. (should not be used in any report calculations)

@@ -89,15 +89,18 @@ public class StudentLessonPerfHandler implements DBHandler {
 
         String userId = this.context.request().getString(REQUEST_USERID);
     List<String> userIds = new ArrayList<>();
+    String addCollTypeFilterToQuery = AJEntityBaseReports.ADD_COLL_TYPE_FILTER_TO_QUERY;
+    if (!this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) addCollTypeFilterToQuery = AJEntityBaseReports.ADD_ASS_TYPE_FILTER_TO_QUERY;
 
     // FIXME : userId can be added as GROUPBY in performance query. Not
     // necessary to get distinct users.
     if (context.classId() != null && StringUtil.isNullOrEmpty(userId)) {
       LOGGER.warn("UserID is not in the request to fetch Student Performance in Lesson. Assume user is a teacher");
       isTeacher = true;
+      
       LazyList<AJEntityBaseReports> userIdforlesson =
-              AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_LESSON_ID_FILTERBY_COLLTYPE, context.classId(),
-                      context.courseId(), context.unitId(), context.lessonId(), this.collectionType);
+              AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_LESSON_ID + addCollTypeFilterToQuery, context.classId(),
+                      context.courseId(), context.unitId(), context.lessonId());
       userIdforlesson.forEach(coll -> userIds.add(coll.getString(AJEntityBaseReports.GOORUUID)));
 
     } else {
@@ -113,8 +116,8 @@ public class StudentLessonPerfHandler implements DBHandler {
       JsonArray altPathArray = new JsonArray();
 
       LazyList<AJEntityBaseReports> collIDforlesson;
-      collIDforlesson = AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_COLLID_FOR_LESSON_ID_FILTERBY_COLLTYPE, context.classId(),
-              context.courseId(), context.unitId(), context.lessonId(), this.collectionType, userID);
+      collIDforlesson = AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_COLLID_FOR_LESSON_ID + addCollTypeFilterToQuery, context.classId(),
+              context.courseId(), context.unitId(), context.lessonId(), userID);
 
       List<String> collIds = new ArrayList<>(collIDforlesson.size());
       if (!collIDforlesson.isEmpty()) {
@@ -132,7 +135,8 @@ public class StudentLessonPerfHandler implements DBHandler {
       if (!assessmentKpi.isEmpty()) {
         assessmentKpi.forEach(m -> {
           JsonObject lessonKpi = ValueMapper.map(ResponseAttributeIdentifier.getLessonPerformanceAttributesMap(), m);
-          String cId = lessonKpi.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID);          
+          String cId = lessonKpi.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID);  
+          lessonKpi.put(AJEntityBaseReports.ATTR_CONTENT_TYPE, m.get(AJEntityBaseReports.ATTR_COLLECTION_TYPE).toString());
           lessonKpi.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 1);
           //In Gooru 3.0, total_count was hardcoded to 1 at this last mile, assessment/collection level
           //Replicating the same here.
