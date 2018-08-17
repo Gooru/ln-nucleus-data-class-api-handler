@@ -28,7 +28,6 @@ public class StudPerfCourseCollectionHandler implements DBHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(StudPerfCourseCollectionHandler.class);
     private static final String REQUEST_USERID = "userId";
-    private static final String COLLECTION = "collection";
     private final ProcessorContext context;
     private double maxScore;
 
@@ -141,7 +140,6 @@ public class StudPerfCourseCollectionHandler implements DBHandler {
             for (String collId : collIds) {
             	List<Map> collTSA;
             	JsonObject collectionKpi = new JsonObject();
-            	collectionKpi.put(AJEntityBaseReports.ATTR_CONTENT_TYPE, COLLECTION);
 
             	//Find Timespent and Attempts
             	collTSA = Base.findAll(AJEntityBaseReports.GET_PERFORMANCE_FOR_COLLECTION, classId, courseId,

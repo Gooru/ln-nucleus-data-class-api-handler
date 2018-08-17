@@ -21,12 +21,12 @@ public class AJEntityCourseCollectionCount extends Model {
   public static final String ATTR_EXTERNAL_ASSESSMENT = "assessment-external";
   public static final String ATTR_COLLECTION = "collection";
   
-  public static final String GET_COURSE_ASSESSMENT_COUNT = "SELECT SUM(assessment_count) as totalCount FROM course_collection_count WHERE course_id = ?";
+  public static final String GET_COURSE_ASSESSMENT_COUNT = "SELECT (SUM(assessment_count) + SUM(ext_assessment_count)) as totalCount FROM course_collection_count WHERE course_id = ?";
   
-  public static final String GET_UNIT_ASSESSMENT_COUNT = "SELECT SUM(assessment_count) as totalCount FROM course_collection_count WHERE "
-  		+ "course_id = ? AND unit_id = ? GROUP BY course_id, unit_id";
+  public static final String GET_UNIT_ASSESSMENT_COUNT = "SELECT (SUM(assessment_count) + SUM(ext_assessment_count)) as totalCount FROM course_collection_count WHERE "
+  		+ "course_id = ? AND unit_id = ?";
   
-  public static final String GET_LESSON_ASSESSMENT_COUNT = "SELECT SUM(assessment_count) as totalCount FROM course_collection_count WHERE "
-	  		+ "course_id = ? AND unit_id = ? and lesson_id = ? GROUP BY course_id, unit_id, lesson_id";
+  public static final String GET_LESSON_ASSESSMENT_COUNT = "SELECT (SUM(assessment_count) + SUM(ext_assessment_count)) as totalCount FROM course_collection_count WHERE "
+	  		+ "course_id = ? AND unit_id = ? and lesson_id = ?";
 
 }
