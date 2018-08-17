@@ -112,6 +112,7 @@ public class StudPerfCourseCollectionHandler implements DBHandler {
       String userId1 = this.context.request().getString(REQUEST_USERID);
       query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.ACTOR_ID_IS);
       List<String> userIds;
+      
       if (StringUtil.isNullOrEmpty(userId1)) {
         LOGGER.warn("UserID is not in the request to fetch Student Performance in Course. Asseume user is a teacher");
         LazyList<AJEntityBaseReports> userIdOfClass =
