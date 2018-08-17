@@ -197,8 +197,7 @@ import io.vertx.core.json.JsonObject;
                 }
                 if (!assessmentKpi.isEmpty()) {
                   assessmentKpi.forEach(ass -> {
-                    JsonObject assData = ValueMapper.map(ResponseAttributeIdentifier.getLessonPerformanceAttributesMap(), ass);
-                    assData.put(AJEntityBaseReports.ATTR_CONTENT_TYPE, ass.get(AJEntityBaseReports.ATTR_COLLECTION_TYPE).toString());
+                    JsonObject assData = ValueMapper.map(ResponseAttributeIdentifier.getLessonPerformanceAttributesMap(), ass);                    
                     assData.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 1);
                     //Since this is the leaf-level data, TOTAL_COUNT doesn't make sense here. It will be stuffed as 1
                     //for compatibility. (should not be used in any report calculations)

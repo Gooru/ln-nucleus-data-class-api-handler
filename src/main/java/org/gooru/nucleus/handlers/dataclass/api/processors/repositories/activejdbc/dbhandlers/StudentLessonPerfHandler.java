@@ -92,8 +92,6 @@ public class StudentLessonPerfHandler implements DBHandler {
     String addCollTypeFilterToQuery = AJEntityBaseReports.ADD_COLL_TYPE_FILTER_TO_QUERY;
     if (!this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) addCollTypeFilterToQuery = AJEntityBaseReports.ADD_ASS_TYPE_FILTER_TO_QUERY;
 
-    // FIXME : userId can be added as GROUPBY in performance query. Not
-    // necessary to get distinct users.
     if (context.classId() != null && StringUtil.isNullOrEmpty(userId)) {
       LOGGER.warn("UserID is not in the request to fetch Student Performance in Lesson. Assume user is a teacher");
       isTeacher = true;
@@ -135,8 +133,7 @@ public class StudentLessonPerfHandler implements DBHandler {
       if (!assessmentKpi.isEmpty()) {
         assessmentKpi.forEach(m -> {
           JsonObject lessonKpi = ValueMapper.map(ResponseAttributeIdentifier.getLessonPerformanceAttributesMap(), m);
-          String cId = lessonKpi.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID);  
-          lessonKpi.put(AJEntityBaseReports.ATTR_CONTENT_TYPE, m.get(AJEntityBaseReports.ATTR_COLLECTION_TYPE).toString());
+          String cId = lessonKpi.getString(AJEntityBaseReports.ATTR_ASSESSMENT_ID);
           lessonKpi.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, 1);
           //In Gooru 3.0, total_count was hardcoded to 1 at this last mile, assessment/collection level
           //Replicating the same here.

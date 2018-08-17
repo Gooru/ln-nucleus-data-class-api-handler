@@ -65,7 +65,6 @@ public class ClassPerfVsCompletionHandler implements DBHandler {
 	  @SuppressWarnings("rawtypes")
 	  public ExecutionResult<MessageResponse> executeRequest() {
 
-	    //String userId = this.context.request().getString(REQUEST_USERID);
 	    String classId = this.context.request().getString(MessageConstants.CLASS_ID);
 	    String courseId = this.context.request().getString(MessageConstants.COURSE_ID);
 	    Integer totalCount;;
@@ -110,6 +109,9 @@ public class ClassPerfVsCompletionHandler implements DBHandler {
 		    					if (totalCount > 0) {
 			    					classKPI.put(JsonConstants.PERCENT_COMPLETION,
 			    							Math.round((Double.valueOf(scoData.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()) / totalCount) *100));
+		    					} else {
+		    						classKPI.put(JsonConstants.PERCENT_COMPLETION, 0);
+		    						LOGGER.warn("Total Count of Assessments cannot be obtained");
 		    					}
 		    					classKPI.put(JsonConstants.PERCENT_SCORE, scoData.get(AJEntityBaseReports.ATTR_SCORE) == null 
 		    							? null : Math.round(Double.valueOf(scoData.get(AJEntityBaseReports.ATTR_SCORE).toString())));
