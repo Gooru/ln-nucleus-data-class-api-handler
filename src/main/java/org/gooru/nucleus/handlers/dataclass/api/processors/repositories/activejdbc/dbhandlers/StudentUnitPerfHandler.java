@@ -92,14 +92,16 @@ import io.vertx.core.json.JsonObject;
         }
         LOGGER.debug("Collection Type is " + this.collectionType);
         String userId = this.context.request().getString(REQUEST_USERID);
+        String addCollTypeFilterToQuery = AJEntityBaseReports.ADD_COLL_TYPE_FILTER_TO_QUERY;
+        if (!this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) addCollTypeFilterToQuery = AJEntityBaseReports.ADD_ASS_TYPE_FILTER_TO_QUERY;
 
         List<String> userIds = new ArrayList<>();
         List<String> lessonIds = new ArrayList<>();
         if (StringUtil.isNullOrEmpty(userId)) {
         	LOGGER.warn("UserID is not in the request to fetch Student Performance in Units. Assume user is a teacher");
         	LazyList<AJEntityBaseReports> userIdforUnit =
-        			AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_UNIT_ID_FITLERBY_COLLTYPE, context.classId(),
-        					context.courseId(), context.unitId(), this.collectionType);
+        			AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_UNIT_ID + addCollTypeFilterToQuery, context.classId(),
+        					context.courseId(), context.unitId());
         	userIdforUnit.forEach(lesson -> userIds.add(lesson.getString(AJEntityBaseReports.GOORUUID)));
         } else {        
 
@@ -112,8 +114,8 @@ import io.vertx.core.json.JsonObject;
           JsonArray UnitKpiArray = new JsonArray();
 
           LazyList<AJEntityBaseReports> lessonIDforUnit;
-            lessonIDforUnit = AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_LESSON_ID_FOR_UNIT_ID_FITLERBY_COLLTYPE, context.classId(),
-                          context.courseId(), context.unitId(), this.collectionType, userID);
+            lessonIDforUnit = AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_LESSON_ID_FOR_UNIT_ID + addCollTypeFilterToQuery, context.classId(),
+                          context.courseId(), context.unitId(), userID);
           if (!lessonIDforUnit.isEmpty()) {
             LOGGER.debug("Got a list of Distinct lessonIDs for this Unit");
 
@@ -127,7 +129,7 @@ import io.vertx.core.json.JsonObject;
                       context.unitId(), userID, listToPostgresArrayString(lessonIds), EventConstants.COLLECTION_PLAY);
             }
             if (!lessonKpi.isEmpty()) {
-              lessonKpi.forEach(m -> {
+              for (Map m : lessonKpi) {
                 this.lessonId = m.get(AJEntityBaseReports.ATTR_LESSON_ID).toString();
                 LOGGER.debug("The Value of LESSONID " + lessonId);
                 List<Map> completedCountMap;
@@ -171,12 +173,9 @@ import io.vertx.core.json.JsonObject;
                 }
 
                 lessonData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, totalCount);
-                String addCollTypeFilterToQuery = AJEntityBaseReports.ADD_COLL_TYPE_FILTER_TO_QUERY;
                 if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
                   lessonData.put(EventConstants.VIEWS, lessonData.getInteger(EventConstants.ATTEMPTS));
                   lessonData.remove(EventConstants.ATTEMPTS);
-                } else {
-                    addCollTypeFilterToQuery = AJEntityBaseReports.ADD_ASS_TYPE_FILTER_TO_QUERY;
                 }
                 JsonArray assessmentArray = new JsonArray();
                 LazyList<AJEntityBaseReports> collIDforlesson =  AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_COLLID_FOR_LESSON_ID_WO_PATH_ID + addCollTypeFilterToQuery, context.classId(),
@@ -246,7 +245,7 @@ import io.vertx.core.json.JsonObject;
                 }
                 lessonData.put(JsonConstants.SOURCELIST, assessmentArray);
                 UnitKpiArray.add(lessonData);
-              });
+              }
             } else {
               LOGGER.info("No data returned for Student Perf in Units");
             }
