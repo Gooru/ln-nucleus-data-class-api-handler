@@ -85,13 +85,16 @@ public class IndependentLearnerLessonPerfHandler implements DBHandler {
 
     LOGGER.debug("UID is " + this.userId);
 
+    String addCollTypeFilterToQuery = AJEntityBaseReports.ADD_COLL_TYPE_FILTER_TO_QUERY;
+    if (!this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) addCollTypeFilterToQuery = AJEntityBaseReports.ADD_ASS_TYPE_FILTER_TO_QUERY;
+
     for (String userID : userIds) {
       JsonObject contentBody = new JsonObject();
       JsonArray LessonKpiArray = new JsonArray();
       LazyList<AJEntityBaseReports> collIDforlesson;
 
-      collIDforlesson = AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_DISTINCT_COLLID_FOR_LESSON_ID_FILTERBY_COLLTYPE,
-              context.courseId(), context.unitId(), context.lessonId(), this.collectionType, userID);
+      collIDforlesson = AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_DISTINCT_COLLID_FOR_LESSON_ID + addCollTypeFilterToQuery,
+              context.courseId(), context.unitId(), context.lessonId(), userID);
 
       List<String> collIds = new ArrayList<>(collIDforlesson.size());
       if (!collIDforlesson.isEmpty()) {
