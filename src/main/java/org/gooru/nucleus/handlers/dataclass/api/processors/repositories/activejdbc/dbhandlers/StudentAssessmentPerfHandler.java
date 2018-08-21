@@ -13,6 +13,7 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejd
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.converters.ValueMapper;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
+
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
 import org.javalite.activejdbc.Base;
@@ -69,83 +70,95 @@ public class StudentAssessmentPerfHandler implements DBHandler {
 
     @Override
     @SuppressWarnings("rawtypes")
-  public ExecutionResult<MessageResponse> executeRequest() {
-    JsonObject resultBody = new JsonObject();
-    JsonArray resultarray = new JsonArray();
+    public ExecutionResult<MessageResponse> executeRequest() {
+    	JsonObject resultBody = new JsonObject();
+    	JsonArray resultarray = new JsonArray();
+    	//JsonObject assessmentDataKPI = new JsonObject();
 
-        String userId = this.context.request().getString(REQUEST_USERID);
+    	String userId = this.context.request().getString(REQUEST_USERID);
 
-    List<String> userIds = new ArrayList<>();
+    	List<String> userIds = new ArrayList<>();
+    	if (this.context.classId() != null && StringUtil.isNullOrEmpty(userId)) {
+    		LOGGER.warn("UserID is not in the request to fetch Student Performance in Lesson. Assume user is a teacher");
+    		LazyList<AJEntityBaseReports> userIdforlesson =
+    				AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_ASSESSMENT_ID + AJEntityBaseReports.ADD_ASS_TYPE_FILTER_TO_QUERY, context.classId(),
+    						context.courseId(), context.unitId(), context.lessonId(), context.collectionId(), 
+    						AJEntityBaseReports.ATTR_CP_EVENTNAME, AJEntityBaseReports.ATTR_EVENTTYPE_STOP);
+    		userIdforlesson.forEach(coll -> userIds.add(coll.getString(AJEntityBaseReports.GOORUUID)));
 
-    // FIXME : userId can be added as GROUPBY in performance query. Not
-    // necessary to get distinct users.
-    if (this.context.classId() != null && StringUtil.isNullOrEmpty(userId)) {
-      LOGGER.warn("UserID is not in the request to fetch Student Performance in Lesson. Assume user is a teacher");
-      LazyList<AJEntityBaseReports> userIdforlesson =
-              AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_COLLECTION_ID + AJEntityBaseReports.ADD_ASS_TYPE_FILTER_TO_QUERY, context.classId(),
-                      context.courseId(), context.unitId(), context.lessonId(), context.collectionId());
-      userIdforlesson.forEach(coll -> userIds.add(coll.getString(AJEntityBaseReports.GOORUUID)));
+    	} else {
+    		userIds.add(userId);
+    	}
 
-    } else {
-      userIds.add(userId);
+    	for (String userID : userIds) {
+    			JsonObject contentBody = new JsonObject();
+    			AJEntityBaseReports AssessmentPerfModel =  AJEntityBaseReports.findFirst("actor_id = ? AND class_id = ? AND course_id = ? AND unit_id = ? "
+    	    			+ "AND lesson_id = ? AND collection_id = ? AND event_name = 'collection.play' AND event_type = 'stop' ORDER BY updated_at DESC", 
+    	    			userID, context.classId(), context.courseId(), 
+    					context.unitId(), context.lessonId(), context.collectionId());
+    	    	
+    			if (AssessmentPerfModel != null) {
+        			String studentLatestSessionId = AssessmentPerfModel.getString(AJEntityBaseReports.SESSION_ID); 
+        	    			Object assessmentReactionObject =  Base.firstCell(AJEntityBaseReports.SELECT_ASSESSMENT_REACTION, context.collectionId(), studentLatestSessionId);
+        	    			LOGGER.debug("cID : {} , SID : {} ", context.collectionId(), studentLatestSessionId);
+
+    				LOGGER.debug("Assessment Attributes obtained");
+    				JsonObject assessmentData = new JsonObject();
+    				assessmentData.put(JsonConstants.SCORE, AssessmentPerfModel.get(AJEntityBaseReports.SCORE) != null 
+    						? Math.round(Double.valueOf(AssessmentPerfModel.get(AJEntityBaseReports.SCORE).toString())) : null);
+					assessmentData.put(JsonConstants.REACTION, assessmentReactionObject != null ? ((Number)assessmentReactionObject).intValue() : 0);
+					assessmentData.put(JsonConstants.TIMESPENT, AssessmentPerfModel.get(AJEntityBaseReports.TIME_SPENT) != null 
+							? AssessmentPerfModel.getLong(AJEntityBaseReports.TIME_SPENT) : 0);
+					assessmentData.put(JsonConstants.COLLECTION_TYPE, AssessmentPerfModel.get(AJEntityBaseReports.COLLECTION_TYPE) != null
+							? AssessmentPerfModel.getString(AJEntityBaseReports.COLLECTION_TYPE) : null);					
+    				contentBody.put(JsonConstants.ASSESSMENT, assessmentData);    				
+    				List<Map> assessmentQuestionsKPI = Base.findAll(AJEntityBaseReports.SELECT_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSION_ID,context.collectionId(),
+    						studentLatestSessionId, AJEntityBaseReports.ATTR_CRP_EVENTNAME);
+    				LOGGER.debug("latestSessionId : " + studentLatestSessionId);
+    				JsonArray questionsArray = new JsonArray();
+    				if (!assessmentQuestionsKPI.isEmpty()) {
+    					for (Map questions : assessmentQuestionsKPI) {
+    						JsonObject qnData = ValueMapper.map(ResponseAttributeIdentifier.getSessionAssessmentQuestionAttributesMap(), questions);
+    						qnData.put(JsonConstants.RESOURCE_TYPE, JsonConstants.QUESTION);
+    						qnData.put(JsonConstants.ANSWER_OBJECT, questions.get(AJEntityBaseReports.ANSWER_OBECT) != null
+    								? new JsonArray(questions.get(AJEntityBaseReports.ANSWER_OBECT).toString()) : null);
+    						//Rubrics - Score should be NULL only incase of OE questions
+    						qnData.put(JsonConstants.SCORE, questions.get(AJEntityBaseReports.SCORE) != null ?
+    								Math.round(Double.valueOf(questions.get(AJEntityBaseReports.SCORE).toString())) : "NA");
+    						Object reactionObj = Base.firstCell(AJEntityBaseReports.SELECT_ASSESSMENT_RESOURCE_REACTION, context.collectionId(),
+    								studentLatestSessionId, questions.get(AJEntityBaseReports.RESOURCE_ID).toString());
+    						qnData.put(JsonConstants.REACTION, reactionObj != null ? ((Number)reactionObj).intValue() : 0);
+    						qnData.put(JsonConstants.MAX_SCORE, questions.get(AJEntityBaseReports.MAX_SCORE) != null ?
+    								Math.round(Double.valueOf(questions.get(AJEntityBaseReports.MAX_SCORE).toString())) : "NA");
+    						if(qnData.getString(EventConstants.QUESTION_TYPE).equalsIgnoreCase(EventConstants.OPEN_ENDED_QUE)){
+    							Object isGradedObj = Base.firstCell(AJEntityBaseReports.GET_OE_QUE_GRADE_STATUS, context.collectionId(),
+    									studentLatestSessionId, questions.get(AJEntityBaseReports.RESOURCE_ID).toString());
+    							if (isGradedObj != null && (isGradedObj.toString().equalsIgnoreCase("t") || isGradedObj.toString().equalsIgnoreCase("true"))) {
+    								qnData.put(JsonConstants.IS_GRADED, true);
+    							} else {
+    								qnData.put(JsonConstants.IS_GRADED, false);
+    							}
+    						} else {
+    							qnData.put(JsonConstants.IS_GRADED, true);
+    						}
+    						questionsArray.add(qnData);
+    					}
+    				}
+    				contentBody.put(JsonConstants.USAGE_DATA, questionsArray).put(JsonConstants.USERUID, userID);
+    				resultarray.add(contentBody);
+    		} else {
+    			// Return an empty resultBody instead of an Error
+    			LOGGER.debug("No data returned for Student Perf in Assessment");
+    		}
+    	}
+    	resultBody.put(JsonConstants.CONTENT, resultarray).putNull(JsonConstants.MESSAGE).putNull(JsonConstants.PAGINATE);
+
+    	return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
+
     }
-
-    LOGGER.debug("UID is " + userId);
-
-    for (String userID : userIds) {
-      Object studentLatestAttempt = Base.firstCell(AJEntityBaseReports.GET_LATEST_COMPLETED_SESSION_ID, context.classId(), context.courseId(),
-              context.unitId(), context.lessonId(), context.collectionId(), userID);
-      String studentLatestSessionId = null;
-      if (studentLatestAttempt != null) studentLatestSessionId = studentLatestAttempt.toString();
-      if (!StringUtil.isNullOrEmpty(studentLatestSessionId)) {
-        JsonObject contentBody = new JsonObject();
-          List<Map> assessmentQuestionsKPI = Base.findAll(AJEntityBaseReports.SELECT_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSION_ID,context.collectionId(),
-              studentLatestSessionId, AJEntityBaseReports.ATTR_CRP_EVENTNAME);
-          LOGGER.debug("latestSessionId : " + studentLatestSessionId);
-          JsonArray questionsArray = new JsonArray();
-          if (!assessmentQuestionsKPI.isEmpty()) {
-              for (Map questions : assessmentQuestionsKPI) {
-              JsonObject qnData = ValueMapper.map(ResponseAttributeIdentifier.getSessionAssessmentQuestionAttributesMap(), questions);
-              qnData.put(JsonConstants.RESOURCE_TYPE, JsonConstants.QUESTION);
-              qnData.put(JsonConstants.ANSWER_OBJECT, questions.get(AJEntityBaseReports.ANSWER_OBECT) != null
-            		  ? new JsonArray(questions.get(AJEntityBaseReports.ANSWER_OBECT).toString()) : null);
-              //Rubrics - Score should be NULL only incase of OE questions
-              qnData.put(JsonConstants.SCORE, questions.get(AJEntityBaseReports.SCORE) != null ?
-            		  Math.round(Double.valueOf(questions.get(AJEntityBaseReports.SCORE).toString())) : "NA");
-              Object reactionObj = Base.firstCell(AJEntityBaseReports.SELECT_ASSESSMENT_RESOURCE_REACTION, context.collectionId(),
-                  studentLatestSessionId, questions.get(AJEntityBaseReports.RESOURCE_ID).toString());
-              qnData.put(JsonConstants.REACTION, reactionObj != null ? ((Number)reactionObj).intValue() : 0);
-              qnData.put(JsonConstants.MAX_SCORE, questions.get(AJEntityBaseReports.MAX_SCORE) != null ?
-                  Math.round(Double.valueOf(questions.get(AJEntityBaseReports.MAX_SCORE).toString())) : "NA");
-              if(qnData.getString(EventConstants.QUESTION_TYPE).equalsIgnoreCase(EventConstants.OPEN_ENDED_QUE)){
-                  Object isGradedObj = Base.firstCell(AJEntityBaseReports.GET_OE_QUE_GRADE_STATUS, context.collectionId(),
-                      studentLatestSessionId, questions.get(AJEntityBaseReports.RESOURCE_ID).toString());
-                  if (isGradedObj != null && (isGradedObj.toString().equalsIgnoreCase("t") || isGradedObj.toString().equalsIgnoreCase("true"))) {
-                      qnData.put(JsonConstants.IS_GRADED, true);
-                  } else {
-                      qnData.put(JsonConstants.IS_GRADED, false);
-                  }
-                } else {
-                    qnData.put(JsonConstants.IS_GRADED, true);
-                }
-              questionsArray.add(qnData);
-            }
-          }
-          contentBody.put(JsonConstants.USAGE_DATA, questionsArray).put(JsonConstants.USERUID, userID);
-        resultarray.add(contentBody);
-      } else {
-        // Return an empty resultBody instead of an Error
-        LOGGER.debug("No data returned for Student Perf in Assessment");
-      }
-    }
-    resultBody.put(JsonConstants.CONTENT, resultarray).putNull(JsonConstants.MESSAGE).putNull(JsonConstants.PAGINATE);
-
-    return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
-
-  }
 
     @Override
     public boolean handlerReadOnly() {
-        return true;
+    	return true;
     }
 }

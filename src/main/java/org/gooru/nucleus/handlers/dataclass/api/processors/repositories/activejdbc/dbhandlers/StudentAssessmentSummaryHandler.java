@@ -92,7 +92,7 @@ public class StudentAssessmentSummaryHandler implements DBHandler {
       // STUDENT PERFORMANCE REPORTS IN ASSESSMENTS when SessionID NOT NULL
       if (!StringUtil.isNullOrEmpty(sessionId)) {
         List<Map> assessmentKPI = Base.findAll(AJEntityBaseReports.SELECT_ASSESSMENT_FOREACH_COLLID_AND_SESSION_ID, context.collectionId(), sessionId , AJEntityBaseReports.ATTR_CP_EVENTNAME);
-       Object assessmentReactionObject =  Base.firstCell(AJEntityBaseReports.SELECT_ASSESSMENT_REACTION_AND_SESSION_ID, context.collectionId(), sessionId);
+       Object assessmentReactionObject =  Base.firstCell(AJEntityBaseReports.SELECT_ASSESSMENT_REACTION, context.collectionId(), sessionId);
         LOGGER.debug("cID : {} , SID : {} ", context.collectionId(), sessionId);
         if (!assessmentKPI.isEmpty()) {
           LOGGER.debug("Assessment Attributes obtained");
