@@ -29,7 +29,6 @@ public class StudPerfCourseAssessmentHandler implements DBHandler {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(StudPerfCourseAssessmentHandler.class);
     private static final String REQUEST_USERID = "userId";
-    private static final String ASSESSMENT = "assessment";
     private final ProcessorContext context;
 
     public StudPerfCourseAssessmentHandler(ProcessorContext context) {
@@ -73,7 +72,7 @@ public class StudPerfCourseAssessmentHandler implements DBHandler {
         JsonObject resultBody = new JsonObject();
         JsonArray resultArray = new JsonArray();
 
-      params.add(AJEntityBaseReports.ATTR_ASSESSMENT);
+        query.append(AJEntityBaseReports.ADD_ASS_TYPE_FILTER_TO_QUERY);
       
         String classId = this.context.request().getString(MessageConstants.CLASS_ID);
       if (StringUtil.isNullOrEmpty(classId)) {
@@ -99,13 +98,13 @@ public class StudPerfCourseAssessmentHandler implements DBHandler {
 
         String unitId = this.context.request().getString(MessageConstants.UNIT_ID);
       if (!StringUtil.isNullOrEmpty(unitId)) {
-    	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.UNIT_ID);
+    	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.UNIT_ID_IS);
     	  params.add(unitId);
         }
 
         String lessonId = this.context.request().getString(MessageConstants.LESSON_ID);
       if (!StringUtil.isNullOrEmpty(lessonId)) {
-    	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.LESSON_ID);
+    	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.LESSON_ID_IS);
     	  params.add(lessonId);
         }
       
@@ -116,8 +115,8 @@ public class StudPerfCourseAssessmentHandler implements DBHandler {
       if (StringUtil.isNullOrEmpty(userId1)) {
         LOGGER.warn("UserID is not in the request to fetch Student Performance in Course. Assume user is a teacher");
         LazyList<AJEntityBaseReports> userIdOfClass =
-      		  AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_COURSE_ID_FILTERBY_COLLTYPE, 
-      				  classId, courseId, ASSESSMENT );
+      		  AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_COURSE_ID + AJEntityBaseReports.ADD_ASS_TYPE_FILTER_TO_QUERY, 
+      				  classId, courseId );
         userIds = userIdOfClass.collect(AJEntityBaseReports.GOORUUID);
       } else {
         userIds = new ArrayList<>(1);
@@ -145,20 +144,20 @@ public class StudPerfCourseAssessmentHandler implements DBHandler {
 
                 	//Find Timespent and Attempts
                 	assessTSA = Base.findAll(AJEntityBaseReports.GET_TOTAL_TIME_SPENT_ATTEMPTS_FOR_ASSESSMENT, classId,
-                        courseId, collId, AJEntityBaseReports.ATTR_ASSESSMENT, AJEntityBaseReports.ATTR_CP_EVENTNAME, userID, EventConstants.STOP);
+                        courseId, collId, AJEntityBaseReports.ATTR_CP_EVENTNAME, userID, EventConstants.STOP);
 
                 	if (!assessTSA.isEmpty()) {
                 	assessTSA.forEach(m -> {
                 		assessmentKpi.put(AJEntityBaseReports.ATTR_TIME_SPENT, m.get(AJEntityBaseReports.ATTR_TIME_SPENT) != null ? 
                 				Long.parseLong(m.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()) : null);
                 		assessmentKpi.put(AJEntityBaseReports.ATTR_ATTEMPTS, m.get(AJEntityBaseReports.ATTR_ATTEMPTS) != null ? 
-                				Integer.parseInt(m.get(AJEntityBaseReports.ATTR_ATTEMPTS).toString()) : null);
+                				Integer.parseInt(m.get(AJEntityBaseReports.ATTR_ATTEMPTS).toString()) : null);                		
         	    		});
                 	}
 
                 	//Get the latest Score
                 	assessScore = Base.findAll(AJEntityBaseReports.GET_LATEST_SCORE_FOR_ASSESSMENT, classId, courseId,
-                    		collId, AJEntityBaseReports.ATTR_ASSESSMENT, userID, EventConstants.COLLECTION_PLAY, EventConstants.STOP);
+                    		collId, userID, EventConstants.COLLECTION_PLAY, EventConstants.STOP);
                 	String latestSessionId = null;
 
                 	if (!assessScore.isEmpty()){

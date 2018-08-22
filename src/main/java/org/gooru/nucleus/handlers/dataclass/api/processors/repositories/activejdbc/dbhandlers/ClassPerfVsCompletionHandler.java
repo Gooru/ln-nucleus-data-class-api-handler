@@ -5,24 +5,20 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
-import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassMember;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityCourseCollectionCount;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
+import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
-import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.hazelcast.util.StringUtil;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -36,7 +32,6 @@ public class ClassPerfVsCompletionHandler implements DBHandler {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(ClassPerfVsCompletionHandler.class);	
 	private final ProcessorContext context;
-	  private static final String REQUEST_USERID = "userId";
 
 	  ClassPerfVsCompletionHandler(ProcessorContext context) {
 	    this.context = context;
@@ -50,6 +45,7 @@ public class ClassPerfVsCompletionHandler implements DBHandler {
 
 	  
 	  @Override
+	  @SuppressWarnings("rawtypes")
 	  public ExecutionResult<MessageResponse> validateRequest() {
 		  if (context.getUserIdFromRequest() == null) {
 	        	LOGGER.debug("ClassId is " + this.context.request().getString(MessageConstants.CLASS_ID));
@@ -69,7 +65,6 @@ public class ClassPerfVsCompletionHandler implements DBHandler {
 	  @SuppressWarnings("rawtypes")
 	  public ExecutionResult<MessageResponse> executeRequest() {
 
-	    //String userId = this.context.request().getString(REQUEST_USERID);
 	    String classId = this.context.request().getString(MessageConstants.CLASS_ID);
 	    String courseId = this.context.request().getString(MessageConstants.COURSE_ID);
 	    Integer totalCount;;
@@ -114,6 +109,9 @@ public class ClassPerfVsCompletionHandler implements DBHandler {
 		    					if (totalCount > 0) {
 			    					classKPI.put(JsonConstants.PERCENT_COMPLETION,
 			    							Math.round((Double.valueOf(scoData.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()) / totalCount) *100));
+		    					} else {
+		    						classKPI.put(JsonConstants.PERCENT_COMPLETION, 0);
+		    						LOGGER.warn("Total Count of Assessments cannot be obtained");
 		    					}
 		    					classKPI.put(JsonConstants.PERCENT_SCORE, scoData.get(AJEntityBaseReports.ATTR_SCORE) == null 
 		    							? null : Math.round(Double.valueOf(scoData.get(AJEntityBaseReports.ATTR_SCORE).toString())));

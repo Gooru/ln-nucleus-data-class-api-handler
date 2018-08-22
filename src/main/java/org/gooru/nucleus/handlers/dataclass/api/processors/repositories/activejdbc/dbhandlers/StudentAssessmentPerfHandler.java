@@ -73,9 +73,6 @@ public class StudentAssessmentPerfHandler implements DBHandler {
     JsonObject resultBody = new JsonObject();
     JsonArray resultarray = new JsonArray();
 
-    // FIXME: Collection Type Accepted "assessment" only.
-        String collectionType = "assessment";
-
         String userId = this.context.request().getString(REQUEST_USERID);
 
     List<String> userIds = new ArrayList<>();
@@ -85,8 +82,8 @@ public class StudentAssessmentPerfHandler implements DBHandler {
     if (this.context.classId() != null && StringUtil.isNullOrEmpty(userId)) {
       LOGGER.warn("UserID is not in the request to fetch Student Performance in Lesson. Assume user is a teacher");
       LazyList<AJEntityBaseReports> userIdforlesson =
-              AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_COLLECTION_ID_FILTERBY_COLLTYPE, context.classId(),
-                      context.courseId(), context.unitId(), context.lessonId(), context.collectionId(), collectionType);
+              AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_COLLECTION_ID + AJEntityBaseReports.ADD_ASS_TYPE_FILTER_TO_QUERY, context.classId(),
+                      context.courseId(), context.unitId(), context.lessonId(), context.collectionId());
       userIdforlesson.forEach(coll -> userIds.add(coll.getString(AJEntityBaseReports.GOORUUID)));
 
     } else {

@@ -28,7 +28,6 @@ public class StudPerfCourseCollectionHandler implements DBHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(StudPerfCourseCollectionHandler.class);
     private static final String REQUEST_USERID = "userId";
-    private static final String COLLECTION = "collection";
     private final ProcessorContext context;
     private double maxScore;
 
@@ -73,7 +72,7 @@ public class StudPerfCourseCollectionHandler implements DBHandler {
         JsonArray resultArray = new JsonArray();
         String userId = this.context.request().getString(REQUEST_USERID);
 
-      params.add(AJEntityBaseReports.ATTR_COLLECTION);
+        query.append(AJEntityBaseReports.ADD_COLL_TYPE_FILTER_TO_QUERY);
       
         String classId = this.context.request().getString(MessageConstants.CLASS_ID);
       if (StringUtil.isNullOrEmpty(classId)) {
@@ -99,24 +98,25 @@ public class StudPerfCourseCollectionHandler implements DBHandler {
 
         String unitId = this.context.request().getString(MessageConstants.UNIT_ID);
       if (!StringUtil.isNullOrEmpty(unitId)) {
-    	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.UNIT_ID);
+    	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.UNIT_ID_IS);
     	  params.add(unitId);
         }
 
         String lessonId = this.context.request().getString(MessageConstants.LESSON_ID);
       if (!StringUtil.isNullOrEmpty(lessonId)) {
-    	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.LESSON_ID);
+    	  query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.LESSON_ID_IS);
     	  params.add(lessonId);
         }
       
       String userId1 = this.context.request().getString(REQUEST_USERID);
       query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.ACTOR_ID_IS);
       List<String> userIds;
+      
       if (StringUtil.isNullOrEmpty(userId1)) {
         LOGGER.warn("UserID is not in the request to fetch Student Performance in Course. Asseume user is a teacher");
         LazyList<AJEntityBaseReports> userIdOfClass =
-      		  AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_COURSE_ID_FILTERBY_COLLTYPE, 
-      				  classId, courseId, COLLECTION );
+      		  AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_DISTINCT_USERID_FOR_COURSE_ID + AJEntityBaseReports.ADD_COLL_TYPE_FILTER_TO_QUERY, 
+      				  classId, courseId );
         userIds = userIdOfClass.collect(AJEntityBaseReports.GOORUUID);
       } else {
         userIds = new ArrayList<>(1);
