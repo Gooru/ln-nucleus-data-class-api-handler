@@ -203,10 +203,16 @@ public class AJEntityBaseReports extends Model {
             "SELECT DISTINCT(actor_id) FROM base_reports "
             + "WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? ";
 
+    public static final String SELECT_DISTINCT_USERID_FOR_ASSESSMENT_ID =
+            "SELECT DISTINCT(actor_id) FROM base_reports "
+            + "WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? "
+            + "AND event_name = ? AND event_type = ? ";
+
     public static final String SELECT_DISTINCT_USERID_FOR_COLLECTION_ID =
             "SELECT DISTINCT(actor_id) FROM base_reports "
             + "WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? ";
 
+    
     public static final String SELECT_STUDENT_EACH_UNIT_PERF_FOR_ASSESSMENT =
             "SELECT SUM(collectiontime_spent) AS time_spent, SUM(score) AS scoreInPercentage, SUM(reaction) AS reaction, lesson_id FROM base_reports "
             + "WHERE lesson_id = ? AND actor_id = ? GROUP BY lesson_id";
@@ -316,10 +322,24 @@ public class AJEntityBaseReports extends Model {
     
     //*************************************************************************************************************************
     //STUDENT PERFORMANCE in Assessment
-    public static final String GET_LATEST_COMPLETED_SESSION_ID = "SELECT session_id FROM base_reports WHERE"
-            +" class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND actor_id = ? AND"
-            +" event_name = 'collection.play' AND event_type = 'stop'"
-            +" ORDER BY created_at DESC LIMIT 1";
+//    public static final String GET_LATEST_COMPLETED_SESSION_ID = "SELECT session_id FROM base_reports WHERE "
+//            +" class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND actor_id = ? AND "
+//            +" event_name = 'collection.play' AND event_type = 'stop' "
+//            +" ORDER BY updated_at DESC LIMIT 1";
+//    
+//    public static final String GET_ASSESSMENT_PERF_LATEST_COMPLETED_SESSION_ID = "SELECT score, collection_id, time_spent AS collectionTimeSpent, "
+//    		+ "updated_at, session_id, collection_type FROM base_reports WHERE "
+//            +" class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND actor_id = ? AND "
+//            +" event_name = 'collection.play' AND event_type = 'stop' "
+//            +" ORDER BY updated_at DESC LIMIT 1";
+//    
+//    public static final String GET_ASSESSMENT_PERF =
+//            "select score AS score, " 
+//            + "collection_id, "
+//            + "time_spent AS collectionTimeSpent, "
+//            + "updated_at, session_id, collection_type "
+//            + "from base_reports WHERE actor_id = ? AND collection_id = ? AND session_id = ? AND event_name = ? and event_type = ?";
+
     //*************************************************************************************************************************
     //String Constants and Queries for STUDENT PERFORMANCE REPORTS IN ASSESSMENTS    
     public static final String SELECT_ASSESSMENT_FOREACH_COLLID_AND_SESSION_ID =
@@ -329,7 +349,7 @@ public class AJEntityBaseReports extends Model {
             + "updated_at,session_id,collection_type,FIRST_VALUE(views) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS collectionViews "
             + "from base_reports WHERE collection_id = ? AND session_id = ? AND event_name = ? ";
     
-    public static final String SELECT_ASSESSMENT_REACTION_AND_SESSION_ID = "SELECT round(avg(data.reaction)) as reaction FROM "
+    public static final String SELECT_ASSESSMENT_REACTION = "SELECT round(avg(data.reaction)) as reaction FROM "
             + "(SELECT DISTINCT ON (resource_id) collection_id, "
             + "FIRST_VALUE(reaction) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS reaction "
             + "FROM base_reports where collection_id = ? AND session_id = ? AND reaction > 0 "
