@@ -95,7 +95,7 @@ public class IndLearnerCourseCollectionsPerfHandler implements DBHandler {
                   ExecutionStatus.FAILED);
 
         } else {
-          query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.COURSE_ID);
+          query.append(AJEntityBaseReports.AND).append(AJEntityBaseReports.SPACE).append(AJEntityBaseReports.COURSE_ID_IS);
         	params.add(courseId);
         }
 
