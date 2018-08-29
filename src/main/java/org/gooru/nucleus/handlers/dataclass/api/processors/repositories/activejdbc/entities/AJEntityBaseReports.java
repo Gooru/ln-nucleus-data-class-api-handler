@@ -1261,13 +1261,20 @@ public class AJEntityBaseReports extends Model {
 
     //Rubric Grading    
     //This includes Non-Graded questions for both - assessments and collections
-    public static final String GET_QUESTIONS_TO_GRADE = "SELECT q.resource_id, q.updated_at, q.collection_type, "
-    		+ "q.collection_id, q.unit_id, q.lesson_id FROM (SELECT distinct on (resource_id) FIRST_VALUE(score) OVER "
-    		+ "(PARTITION BY resource_id ORDER BY updated_at desc) AS score, resource_id, updated_at, collection_type, "
-    		+ "collection_id, unit_id, lesson_id from base_reports where "
+//    public static final String GET_QUESTIONS_TO_GRADE = "SELECT q.resource_id, q.updated_at, q.collection_type, "
+//    		+ "q.collection_id, q.unit_id, q.lesson_id FROM (SELECT distinct on (resource_id) FIRST_VALUE(score) OVER "
+//    		+ "(PARTITION BY resource_id ORDER BY updated_at desc) AS score, resource_id, updated_at, collection_type, "
+//    		+ "collection_id, unit_id, lesson_id from base_reports where "
+//    		+ "class_id = ? AND course_id = ? AND event_name = 'collection.resource.play' AND event_type = 'stop' AND "
+//    		+ "resource_type = 'question' AND is_graded = 'false' AND resource_attempt_status = 'attempted' AND "
+//    		+ "grading_type = 'teacher' AND question_type = 'OE') as q WHERE q.score IS NULL";
+    
+    public static final String GET_QUESTIONS_TO_GRADE = "SELECT distinct on (resource_id, actor_id) FIRST_VALUE(score) "
+    		+ "OVER (PARTITION BY resource_id, actor_id ORDER BY updated_at desc) AS score, resource_id, updated_at, "
+    		+ "collection_type, collection_id, unit_id, lesson_id, session_id, actor_id from base_reports where "
     		+ "class_id = ? AND course_id = ? AND event_name = 'collection.resource.play' AND event_type = 'stop' AND "
     		+ "resource_type = 'question' AND is_graded = 'false' AND resource_attempt_status = 'attempted' AND "
-    		+ "grading_type = 'teacher' AND question_type = 'OE') as q WHERE q.score IS NULL";
+    		+ "grading_type = 'teacher' AND question_type = 'OE'";
     
     public static final String GET_STUDENT_COUNT_FOR_QUESTIONS = "SELECT count(distinct (actor_id)) from base_reports "
     		+ "where class_id = ? AND course_id = ? AND collection_id = ? AND resource_id = ? AND event_type = 'stop' AND "
@@ -1277,7 +1284,7 @@ public class AJEntityBaseReports extends Model {
     public static final String GET_DISTINCT_STUDENTS_FOR_THIS_RESOURCE = "SELECT distinct (actor_id) from base_reports where "
     		+ "class_id = ? AND course_id = ? AND collection_id = ? AND resource_id = ? AND event_type = 'stop' AND "
     		+ "event_name = 'collection.resource.play' AND resource_type = 'question'"
-    		+ "AND is_graded = 'false' AND resource_attempt_status = 'attempted' AND grading_type = 'teacher'  "
+    		+ " AND is_graded = 'false' AND resource_attempt_status = 'attempted' AND grading_type = 'teacher'  "
     		+ "AND question_type = 'OE' AND score IS NULL";
 
     public static final String GET_LATEST_SCORE_FOR_THIS_RESOURCE_STUDENT = "SELECT distinct on (resource_id) FIRST_VALUE(score) "
