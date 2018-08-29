@@ -6,6 +6,7 @@ import java.util.Map;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityRubricGrading;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
@@ -47,11 +48,11 @@ public class RubricQuestionSummaryHandler implements DBHandler {
 	  @SuppressWarnings("rawtypes")
 	  public ExecutionResult<MessageResponse> validateRequest() {
 
-//	        List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, this.context.classId(), this.context.userIdFromSession());
-//	        if (owner.isEmpty()) {
-//	          LOGGER.debug("validateRequest() FAILED");
-//	          return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not authorized for Rubric Grading"), ExecutionStatus.FAILED);
-//	        }
+	        List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, this.context.classId(), this.context.userIdFromSession());
+	        if (owner.isEmpty()) {
+	          LOGGER.debug("validateRequest() FAILED");
+	          return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not authorized for Rubric Grading"), ExecutionStatus.FAILED);
+	        }
 
 	        LOGGER.debug("validateRequest() OK");
 	        return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
@@ -106,7 +107,6 @@ public class RubricQuestionSummaryHandler implements DBHandler {
 	      LOGGER.info("Rubric Question Summary cannot be obtained");
 	  }
 
-	  //result.put("Rubrics - QueRubrics" , "WORK IN PROGRESS");
 	  result.put(JsonConstants.QUE_RUBRICS, resultArray);
 
 	  return new ExecutionResult<>(MessageResponseFactory.createGetResponse(result), ExecutionStatus.SUCCESSFUL);

@@ -1288,18 +1288,20 @@ public class AJEntityBaseReports extends Model {
     		+ "AND question_type = 'OE' AND score IS NULL";
 
     public static final String GET_LATEST_SCORE_FOR_THIS_RESOURCE_STUDENT = "SELECT distinct on (resource_id) FIRST_VALUE(score) "
-    		+ "OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score, resource_id, updated_at from base_reports "
+    		+ "OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score, FIRST_VALUE(is_graded) OVER "
+    		+ "(PARTITION BY resource_id ORDER BY updated_at desc) AS is_graded, resource_id, updated_at from base_reports "
     		+ "WHERE class_id = ? AND course_id = ? AND collection_id = ? AND resource_id = ? AND actor_id = ? "
     		+ "AND event_name = 'collection.resource.play' AND event_type = 'stop' AND resource_type = 'question' "
-    		+ "AND is_graded = 'false' AND resource_attempt_status = 'attempted' AND grading_type = 'teacher' "
-    		+ "AND question_type = 'OE'";
+    		+ "AND grading_type = 'teacher' AND question_type = 'OE'";
 
     public static final String GET_STUDENTS_ANSWER_FOR_RUBRIC_QUESTION = "select q.answerText, q.resource_id AS questionId, "
     		+ "q.time_spent AS timeSpent, q.updated_at AS submittedAt, q.session_id "
     		+ "FROM (SELECT distinct on (resource_id) FIRST_VALUE(score) OVER "
     		+ "(PARTITION BY resource_id ORDER BY updated_at desc) AS score, FIRST_VALUE(answer_object) OVER "
-    		+ "(PARTITION BY resource_id ORDER BY updated_at desc) AS answerText,  "
-    		+ "resource_id, updated_at, actor_id, time_spent, session_id from base_reports "
+    		+ "(PARTITION BY resource_id ORDER BY updated_at desc) AS answerText, "
+    		+ "FIRST_VALUE(time_spent) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS time_spent, "
+    		+ "FIRST_VALUE(session_id) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS session_id, "
+    		+ "resource_id, updated_at, actor_id from base_reports "
     		+ "where class_id = ? AND course_id = ? AND collection_id = ? AND resource_id = ? AND actor_id = ? AND "
     		+ "event_name = 'collection.resource.play' AND event_type = 'stop' AND "
     		+ "resource_type = 'question' AND is_graded = 'false' AND resource_attempt_status = 'attempted' AND "
