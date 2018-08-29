@@ -106,7 +106,7 @@ public class StudentsForRubricQuestionsHandler implements DBHandler{
 					classId, courseId, collectionId, context.questionId(), userID);
 
 				if (!scoreMap.isEmpty()){
-					  scoreMap.forEach(m -> {
+					  scoreMap.forEach(m -> {						  
 				    if (m.get(AJEntityBaseReports.SCORE) == null) {
 				    	resultarray.add(userID);
 				    }

@@ -6,6 +6,7 @@ import java.util.Map;
 import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
@@ -51,11 +52,12 @@ public class StudentAnsForRubricQuesHandler implements DBHandler {
 	  @SuppressWarnings("rawtypes")
 	  public ExecutionResult<MessageResponse> validateRequest() {
 
-//        List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, this.context.classId(), this.context.userIdFromSession());
-//        if (owner.isEmpty()) {
-//          LOGGER.debug("validateRequest() FAILED");
-//          return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not authorized for Rubric Grading"), ExecutionStatus.FAILED);
-//        }
+        List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, 
+        		this.context.request().getString(MessageConstants.CLASS_ID), this.context.userIdFromSession());
+        if (owner.isEmpty()) {
+          LOGGER.debug("validateRequest() FAILED");
+          return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not authorized for Rubric Grading"), ExecutionStatus.FAILED);
+        }
 
 		  LOGGER.debug("validateRequest() OK");
 		  return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
@@ -93,7 +95,7 @@ public class StudentAnsForRubricQuesHandler implements DBHandler {
 	              ExecutionStatus.FAILED);
 
 	    }
-
+ 
 		List<Map> ansMap = Base.findAll(AJEntityBaseReports.GET_STUDENTS_ANSWER_FOR_RUBRIC_QUESTION, classId, this.courseId, this.collectionId, context.questionId(), context.studentId());
 
 		if (!ansMap.isEmpty()){
@@ -110,11 +112,9 @@ public class StudentAnsForRubricQuesHandler implements DBHandler {
 		  });
 
 			} else {
-		      LOGGER.info("Questions pending grading cannot be obtained");
+		      LOGGER.info("Answers cannot be obtained");
 		  }
 
-
-	  //result.put(JsonConstants.STUDENTS , "Getting Answers");
 	  return new ExecutionResult<>(MessageResponseFactory.createGetResponse(result), ExecutionStatus.SUCCESSFUL);
 
 	}
