@@ -81,6 +81,9 @@ class IndependentLearnerCoursePerfHandler implements DBHandler {
               ExecutionStatus.FAILED);
     }
 
+    String addCollTypeFilterToQuery = AJEntityBaseReports.ADD_COLL_TYPE_FILTER_TO_QUERY;
+    if (!this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) addCollTypeFilterToQuery = AJEntityBaseReports.ADD_ASS_TYPE_FILTER_TO_QUERY;
+
       String userId = this.context.userIdFromSession();
 
     List<String> unitIds = new ArrayList<>();
@@ -93,8 +96,8 @@ class IndependentLearnerCoursePerfHandler implements DBHandler {
 
       LazyList<AJEntityBaseReports> unitIDforCourse;
 
-      unitIDforCourse = AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_DISTINCT_UNIT_ID_FOR_COURSE_ID_FILTERBY_COLLTYPE,
-              context.courseId(), this.collectionType, userID);
+      unitIDforCourse = AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_DISTINCT_UNIT_ID_FOR_COURSE_ID + addCollTypeFilterToQuery,
+              context.courseId(), userID);
 
       if (!unitIDforCourse.isEmpty()) {
         LOGGER.debug("Got a list of Distinct unitIDs for this Course");
@@ -106,7 +109,7 @@ class IndependentLearnerCoursePerfHandler implements DBHandler {
                   listToPostgresArrayString(unitIds));
         } else {
           assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_COURSE_PERF_FOR_ASSESSMENT, context.courseId(),
-                  this.collectionType, userID, listToPostgresArrayString(unitIds), EventConstants.COLLECTION_PLAY);
+                  userID, listToPostgresArrayString(unitIds), EventConstants.COLLECTION_PLAY);
         }
         if (!assessmentKpi.isEmpty()) {
           assessmentKpi.forEach(m -> {
@@ -124,8 +127,8 @@ class IndependentLearnerCoursePerfHandler implements DBHandler {
               scoreMap = Base.findAll(AJEntityBaseReports.GET_SCORE_FOREACH_IL_UNIT_ID,context.courseId(),
                       unitId, this.collectionType, userID);
             } else {
-              completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLLID_COUNT_FOREACH_INDEPENDENT_LEARNER_UNIT_ID, context.courseId(), unitId,
-                      this.collectionType, userID, EventConstants.COLLECTION_PLAY);
+              completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_ASMT_COUNT_FOREACH_INDEPENDENT_LEARNER_UNIT_ID, context.courseId(), unitId,
+                      userID, EventConstants.COLLECTION_PLAY);
             }
             JsonObject unitData = ValueMapper.map(ResponseAttributeIdentifier.getCoursePerformanceAttributesMap(), m);
             completedCountMap.forEach(scoreCompletonMap -> {

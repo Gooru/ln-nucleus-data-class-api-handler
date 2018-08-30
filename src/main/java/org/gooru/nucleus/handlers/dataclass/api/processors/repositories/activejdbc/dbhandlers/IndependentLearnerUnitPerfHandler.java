@@ -42,7 +42,6 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
 
   // For stuffing Json
   private String lessonId;
-  private long questionCount;
 
   public IndependentLearnerUnitPerfHandler(ProcessorContext context) {
     this.context = context;
@@ -87,6 +86,9 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
 
     userIds.add(this.userId);
 
+    String addCollTypeFilterToQuery = AJEntityBaseReports.ADD_COLL_TYPE_FILTER_TO_QUERY;
+    if (!this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) addCollTypeFilterToQuery = AJEntityBaseReports.ADD_ASS_TYPE_FILTER_TO_QUERY;
+
     for (String userID : userIds) {
       JsonObject contentBody = new JsonObject();
       JsonArray UnitKpiArray = new JsonArray();
@@ -94,8 +96,8 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
 
       LazyList<AJEntityBaseReports> lessonIDforUnit;
 
-      lessonIDforUnit = AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_DISTINCT_LESSON_ID_FOR_UNIT_ID_FITLERBY_COLLTYPE,
-              context.courseId(), context.unitId(), this.collectionType, userID);
+      lessonIDforUnit = AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_DISTINCT_LESSON_ID_FOR_UNIT_ID + addCollTypeFilterToQuery,
+              context.courseId(), context.unitId(), userID);
       if (!lessonIDforUnit.isEmpty()) {
         LOGGER.debug("Got a list of Distinct lessonIDs for this Unit");
 
@@ -106,10 +108,10 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
                   this.collectionType, userID, listToPostgresArrayString(lessonIds));
         } else {
           lessonKpi = Base.findAll(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_UNIT_PERF_FOR_ASSESSMENT, context.courseId(), context.unitId(),
-                  this.collectionType, userID, listToPostgresArrayString(lessonIds), EventConstants.COLLECTION_PLAY);
+                  userID, listToPostgresArrayString(lessonIds), EventConstants.COLLECTION_PLAY);
         }
         if (!lessonKpi.isEmpty()) {
-          lessonKpi.forEach(m -> {
+          for (Map m : lessonKpi) {
             this.lessonId = m.get(AJEntityBaseReports.ATTR_LESSON_ID).toString();
             LOGGER.debug("The Value of LESSONID " + lessonId);
             List<Map> completedCountMap;
@@ -121,8 +123,8 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
               scoreMap = Base.findAll(AJEntityBaseReports.GET_SCORE_FOREACH_IL_LESSON_ID,
                       context.courseId(), context.unitId(), this.lessonId, this.collectionType, userID);
             } else {
-              completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLLID_COUNT_FOREACH_INDEPENDENT_LEARNER_LESSON_ID, context.courseId(),
-                      context.unitId(), this.lessonId, this.collectionType, userID, EventConstants.COLLECTION_PLAY);
+              completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_ASMT_COUNT_FOREACH_INDEPENDENT_LEARNER_LESSON_ID, context.courseId(),
+                      context.unitId(), this.lessonId, userID, EventConstants.COLLECTION_PLAY);
             }
             JsonObject lessonData = ValueMapper.map(ResponseAttributeIdentifier.getUnitPerformanceAttributesMap(), m);
             completedCountMap.forEach(scoreCompletonMap -> {
@@ -158,8 +160,8 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
             }
             JsonArray assessmentArray = new JsonArray();
             LazyList<AJEntityBaseReports> collIDforlesson;
-            collIDforlesson = AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_DISTINCT_COLLID_FOR_LESSON_ID_FILTERBY_COLLTYPE_WO_PATH_ID,
-                    context.courseId(), context.unitId(), this.lessonId, this.collectionType, userID);
+            collIDforlesson = AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_DISTINCT_COLLID_FOR_LESSON_ID_WO_PATH_ID + addCollTypeFilterToQuery,
+                    context.courseId(), context.unitId(), this.lessonId, userID);
 
             List<String> collIds = new ArrayList<>();
             if (!collIDforlesson.isEmpty()) {
@@ -224,7 +226,7 @@ public class IndependentLearnerUnitPerfHandler implements DBHandler {
             lessonData.put(JsonConstants.SOURCELIST, assessmentArray);
             UnitKpiArray.add(lessonData);
 
-          });
+          }
         } else {
           LOGGER.info("No data returned for Student Perf in Assessment");
         }

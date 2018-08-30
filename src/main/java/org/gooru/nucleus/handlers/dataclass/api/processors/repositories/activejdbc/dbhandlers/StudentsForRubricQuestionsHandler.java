@@ -8,6 +8,7 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
@@ -47,11 +48,12 @@ public class StudentsForRubricQuestionsHandler implements DBHandler{
 	  @Override
 	  @SuppressWarnings("rawtypes")
 	  public ExecutionResult<MessageResponse> validateRequest() {
-//        List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, this.context.classId(), this.context.userIdFromSession());
-//        if (owner.isEmpty()) {
-//          LOGGER.debug("validateRequest() FAILED");
-//          return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not authorized for Rubric Grading"), ExecutionStatus.FAILED);
-//        }
+        List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, this.context.request().getString(MessageConstants.CLASS_ID), 
+		  this.context.userIdFromSession());
+        if (owner.isEmpty()) {
+          LOGGER.debug("validateRequest() FAILED");
+          return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not authorized for Rubric Grading"), ExecutionStatus.FAILED);
+        }
 
 	    return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
 	  }
@@ -104,7 +106,7 @@ public class StudentsForRubricQuestionsHandler implements DBHandler{
 					classId, courseId, collectionId, context.questionId(), userID);
 
 				if (!scoreMap.isEmpty()){
-					  scoreMap.forEach(m -> {
+					  scoreMap.forEach(m -> {						  
 				    if (m.get(AJEntityBaseReports.SCORE) == null) {
 				    	resultarray.add(userID);
 				    }

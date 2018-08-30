@@ -101,12 +101,11 @@ public class AJEntityBaseReports extends Model {
     public static final String NA = "NA";
     public static final String AND = "AND";
     public static final String SPACE = " ";
-    public static final String COURSE_ID = "course_id = ? ";
+    public static final String COURSE_ID_IS = "course_id = ? ";
     public static final String UNIT_ID_IS = "unit_id = ? ";
-    public static final String LESSON_ID_IS = "lesson_id = ?";
+    public static final String LESSON_ID_IS = "lesson_id = ? ";
     public static final String CLASS_ID = "class_id = ? ";
     public static final String ACTOR_ID_IS = "actor_id = ? ";
-    public static final String ASSESSMENT_ID = "collection_id";
     public static final String DATE = "date";
     public static final String ACTIVITY_DATE = "activityDate";
     public static final String SUBMITTED_AT = "submittedAt";
@@ -204,10 +203,16 @@ public class AJEntityBaseReports extends Model {
             "SELECT DISTINCT(actor_id) FROM base_reports "
             + "WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? ";
 
+    public static final String SELECT_DISTINCT_USERID_FOR_ASSESSMENT_ID =
+            "SELECT DISTINCT(actor_id) FROM base_reports "
+            + "WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? "
+            + "AND event_name = ? AND event_type = ? ";
+
     public static final String SELECT_DISTINCT_USERID_FOR_COLLECTION_ID =
             "SELECT DISTINCT(actor_id) FROM base_reports "
             + "WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? ";
 
+    
     public static final String SELECT_STUDENT_EACH_UNIT_PERF_FOR_ASSESSMENT =
             "SELECT SUM(collectiontime_spent) AS time_spent, SUM(score) AS scoreInPercentage, SUM(reaction) AS reaction, lesson_id FROM base_reports "
             + "WHERE lesson_id = ? AND actor_id = ? GROUP BY lesson_id";
@@ -317,10 +322,24 @@ public class AJEntityBaseReports extends Model {
     
     //*************************************************************************************************************************
     //STUDENT PERFORMANCE in Assessment
-    public static final String GET_LATEST_COMPLETED_SESSION_ID = "SELECT session_id FROM base_reports WHERE"
-            +" class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND actor_id = ? AND"
-            +" event_name = 'collection.play' AND event_type = 'stop'"
-            +" ORDER BY created_at DESC LIMIT 1";
+//    public static final String GET_LATEST_COMPLETED_SESSION_ID = "SELECT session_id FROM base_reports WHERE "
+//            +" class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND actor_id = ? AND "
+//            +" event_name = 'collection.play' AND event_type = 'stop' "
+//            +" ORDER BY updated_at DESC LIMIT 1";
+//    
+//    public static final String GET_ASSESSMENT_PERF_LATEST_COMPLETED_SESSION_ID = "SELECT score, collection_id, time_spent AS collectionTimeSpent, "
+//    		+ "updated_at, session_id, collection_type FROM base_reports WHERE "
+//            +" class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND actor_id = ? AND "
+//            +" event_name = 'collection.play' AND event_type = 'stop' "
+//            +" ORDER BY updated_at DESC LIMIT 1";
+//    
+//    public static final String GET_ASSESSMENT_PERF =
+//            "select score AS score, " 
+//            + "collection_id, "
+//            + "time_spent AS collectionTimeSpent, "
+//            + "updated_at, session_id, collection_type "
+//            + "from base_reports WHERE actor_id = ? AND collection_id = ? AND session_id = ? AND event_name = ? and event_type = ?";
+
     //*************************************************************************************************************************
     //String Constants and Queries for STUDENT PERFORMANCE REPORTS IN ASSESSMENTS    
     public static final String SELECT_ASSESSMENT_FOREACH_COLLID_AND_SESSION_ID =
@@ -330,7 +349,7 @@ public class AJEntityBaseReports extends Model {
             + "updated_at,session_id,collection_type,FIRST_VALUE(views) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS collectionViews "
             + "from base_reports WHERE collection_id = ? AND session_id = ? AND event_name = ? ";
     
-    public static final String SELECT_ASSESSMENT_REACTION_AND_SESSION_ID = "SELECT round(avg(data.reaction)) as reaction FROM "
+    public static final String SELECT_ASSESSMENT_REACTION = "SELECT round(avg(data.reaction)) as reaction FROM "
             + "(SELECT DISTINCT ON (resource_id) collection_id, "
             + "FIRST_VALUE(reaction) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS reaction "
             + "FROM base_reports where collection_id = ? AND session_id = ? AND reaction > 0 "
@@ -744,16 +763,16 @@ public class AJEntityBaseReports extends Model {
 
     //**********************************************************INDEPENDENT LEARNER QUERIES************************************//
    
-    public static final String SELECT_INDEPENDENT_LEARNER_DISTINCT_UNIT_ID_FOR_COURSE_ID_FILTERBY_COLLTYPE =
+    public static final String SELECT_INDEPENDENT_LEARNER_DISTINCT_UNIT_ID_FOR_COURSE_ID =
             "SELECT DISTINCT(unit_id) FROM base_reports "
-            + "WHERE class_id IS NULL AND course_id = ? AND collection_type =? AND actor_id = ? AND (path_id IS NULL OR path_id = 0)";
+            + "WHERE class_id IS NULL AND course_id = ? AND actor_id = ? AND (path_id IS NULL OR path_id = 0) ";
    
     public static final String SELECT_INDEPENDENT_LEARNER_COURSE_PERF_FOR_ASSESSMENT =
             "SELECT SUM(agg.time_spent) as timeSpent, "
           + "SUM(agg.reaction) reaction, SUM(agg.attempts) attempts, agg.unit_id, 'completed' AS attemptStatus "
           + "FROM (SELECT time_spent, "
           + "reaction AS reaction, views AS attempts, unit_id FROM base_reports "
-          + "WHERE class_id IS NULL AND course_id = ? AND collection_type =? AND actor_id = ? AND unit_id = ANY(?::varchar[]) AND "
+          + "WHERE class_id IS NULL AND course_id = ? AND collection_type IN ('assessment', 'assessment-external') AND actor_id = ? AND unit_id = ANY(?::varchar[]) AND "
           + "event_name = ? AND event_type = 'stop' AND (path_id IS NULL OR path_id = 0)) AS agg "
           + "GROUP BY agg.unit_id";
     
@@ -768,12 +787,12 @@ public class AJEntityBaseReports extends Model {
           + "AND (path_id IS NULL OR path_id = 0)) AS agg "
           + "GROUP BY agg.unit_id";
     
-    public static final String GET_COMPLETED_COLLID_COUNT_FOREACH_INDEPENDENT_LEARNER_UNIT_ID = 
+    public static final String GET_COMPLETED_ASMT_COUNT_FOREACH_INDEPENDENT_LEARNER_UNIT_ID = 
             "SELECT SUM(unitData.completion) AS completedCount, (AVG(scoreInPercentage)) scoreInPercentage FROM "
             + "(SELECT DISTINCT ON (collection_id) CASE  WHEN (event_type = 'stop') THEN 1 ELSE 0 END AS completion,"
             + "FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage,"
             + "unit_id FROM base_reports WHERE class_id IS NULL AND course_id = ? AND unit_id = ? AND "
-            + "collection_type =? AND actor_id = ? AND event_name = ? AND event_type = 'stop' AND (path_id IS NULL OR path_id = 0)"
+            + "collection_type IN ('assessment', 'assessment-external') AND actor_id = ? AND event_name = ? AND event_type = 'stop' AND (path_id IS NULL OR path_id = 0)"
             + "ORDER BY collection_id, updated_at DESC) "
             + "AS unitData GROUP BY unit_id;";
     
@@ -785,26 +804,26 @@ public class AJEntityBaseReports extends Model {
             + "collection_type =? AND actor_id = ? AND event_name = ?  AND (path_id IS NULL OR path_id = 0) ORDER BY collection_id, updated_at DESC) "
             + "AS unitData GROUP BY unit_id;";
     
-    public static final String SELECT_INDEPENDENT_LEARNER_DISTINCT_LESSON_ID_FOR_UNIT_ID_FITLERBY_COLLTYPE =
+    public static final String SELECT_INDEPENDENT_LEARNER_DISTINCT_LESSON_ID_FOR_UNIT_ID =
             "SELECT DISTINCT(lesson_id) FROM base_reports "
-            + "WHERE class_id IS NULL AND course_id = ? AND unit_id = ? AND collection_type = ? AND actor_id = ? AND (path_id IS NULL OR path_id = 0)";
+            + "WHERE class_id IS NULL AND course_id = ? AND unit_id = ? AND actor_id = ? AND (path_id IS NULL OR path_id = 0)";
     
-    public static final String SELECT_INDEPENDENT_LEARNER_DISTINCT_COLLID_FOR_LESSON_ID_FILTERBY_COLLTYPE_WO_PATH_ID =
+    public static final String SELECT_INDEPENDENT_LEARNER_DISTINCT_COLLID_FOR_LESSON_ID_WO_PATH_ID =
             "SELECT DISTINCT(collection_id) FROM base_reports "
-            + "WHERE class_id IS NULL AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_type =? "
+            + "WHERE class_id IS NULL AND course_id = ? AND unit_id = ? AND lesson_id = ? "
             + "AND actor_id = ? AND (path_id IS NULL OR path_id = 0)";
     
-    public static final String SELECT_INDEPENDENT_LEARNER_DISTINCT_COLLID_FOR_LESSON_ID_FILTERBY_COLLTYPE =
+    public static final String SELECT_INDEPENDENT_LEARNER_DISTINCT_COLLID_FOR_LESSON_ID =
             "SELECT DISTINCT(collection_id) FROM base_reports "
-            + "WHERE class_id IS NULL AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_type =? "
+            + "WHERE class_id IS NULL AND course_id = ? AND unit_id = ? AND lesson_id = ?  "
             + "AND actor_id = ?";
 
-    public static final String GET_COMPLETED_COLLID_COUNT_FOREACH_INDEPENDENT_LEARNER_LESSON_ID = 
+    public static final String GET_COMPLETED_ASMT_COUNT_FOREACH_INDEPENDENT_LEARNER_LESSON_ID = 
             "SELECT SUM(lessonData.completion) AS completedCount,(AVG(scoreInPercentage)) scoreInPercentage FROM "
             + "(SELECT DISTINCT ON (collection_id) CASE  WHEN (event_type = 'stop') THEN 1 ELSE 0 END AS completion, "
             + "lesson_id, FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage "
             + "FROM base_reports WHERE class_id IS NULL AND course_id = ? AND unit_id = ? AND lesson_id = ? "
-            + " AND collection_type =? AND actor_id = ? AND event_name = ? AND event_type = 'stop' AND (path_id IS NULL OR path_id = 0) "
+            + " AND collection_type IN ('assessment', 'assessment-external') AND actor_id = ? AND event_name = ? AND event_type = 'stop' AND (path_id IS NULL OR path_id = 0) "
             + "ORDER BY collection_id, updated_at DESC) "
             + "AS lessonData GROUP BY lesson_id;";
     
@@ -822,7 +841,7 @@ public class AJEntityBaseReports extends Model {
           + "SUM(agg.reaction) reaction, SUM(agg.attempts) attempts, agg.lesson_id AS lessonId, 'completed' AS attemptStatus "
           + "FROM (SELECT time_spent , "
           + "reaction AS reaction, views AS attempts, lesson_id FROM base_reports "
-          + "WHERE class_id IS NULL AND course_id = ? AND unit_id = ? AND collection_type =? AND actor_id = ? AND lesson_id = ANY(?::varchar[]) AND "
+          + "WHERE class_id IS NULL AND course_id = ? AND unit_id = ? AND collection_type IN ('assessment', 'assessment-external') AND actor_id = ? AND lesson_id = ANY(?::varchar[]) AND "
           + "event_name = ? AND event_type = 'stop' AND (path_id IS NULL OR path_id = 0)) AS agg "
           + "GROUP BY agg.lesson_id";
     
@@ -953,7 +972,8 @@ public class AJEntityBaseReports extends Model {
     //Student Performance for All Assessments/Collections in a Course
     public static final String GET_IL_COURSE_ASSESSMENTS_SCORE = "SELECT DISTINCT ON (collection_id) "
     		+ "FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS score, "
-    		+ "collection_id, FIRST_VALUE(session_id) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS session_id from base_reports WHERE class_id IS NULL AND course_id = ? AND collection_id = ? AND collection_type = ? "
+    		+ "collection_id, FIRST_VALUE(session_id) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS session_id "
+    		+ "from base_reports WHERE class_id IS NULL AND course_id = ? AND collection_id = ? AND collection_type = ? "
     		+ "AND actor_id = ? AND event_name = ? AND event_type = ?";
     
     public static final String GET_IL_COURSE_ASSESSMENTS_TOTAL_TIME_SPENT_ATTEMPTS = "SELECT SUM(time_spent) AS time_spent, "
@@ -989,13 +1009,13 @@ public class AJEntityBaseReports extends Model {
             + "FROM(SELECT DISTINCT ON (collection_id) CASE  WHEN (event_type = 'stop') THEN 1 ELSE 0 END AS completion,"
             + "FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage,"
             + "course_id FROM base_reports WHERE actor_id = ?  AND class_id IS NULL AND course_id = ? "
-            + "AND collection_type = 'assessment' "
+            + "AND collection_type IN ('assessment', 'assessment-external') "
             + "AND event_name = 'collection.play' AND event_type = 'stop' "
             + "ORDER BY collection_id, updated_at DESC)AS courseData GROUP BY course_id";
  
     public static final String GET_IL_ALL_COURSE_TIMESPENT = "SELECT course_id , SUM(time_spent) AS time_spent "
             + "FROM base_reports WHERE class_id IS NULL AND course_id = ANY(?::varchar[]) "
-            + "AND event_name = 'collection.play' AND collection_type ='assessment' "
+            + "AND event_name = 'collection.play' AND collection_type IN ('assessment', 'assessment-external') "
             + "AND actor_id = ? GROUP BY course_id ";
     
     public static final String GET_LATEST_IL_COURSES = "select DISTINCT (course_id) course_id, "
@@ -1015,7 +1035,7 @@ public class AJEntityBaseReports extends Model {
 
     public static final String GET_IL_ALL_ASSESSMENT_ATTEMPTS_TIMESPENT = "SELECT collection_id , SUM(time_spent) AS time_spent , SUM(views) AS attempts "
             + "FROM base_reports WHERE class_id IS NULL AND collection_id = ANY(?::varchar[]) "
-            + "AND event_name = 'collection.play' AND event_type = 'stop' AND collection_type ='assessment' "
+            + "AND event_name = 'collection.play' AND event_type = 'stop' AND collection_type = 'assessment' "
             + "AND actor_id = ? GROUP BY collection_id";
    
 
@@ -1059,14 +1079,14 @@ public class AJEntityBaseReports extends Model {
     public static final String SELECT_IL_ALL_COURSE_DATA = "SELECT SUM(time_spent) AS timeSpent,  "
             + "SUM(views) AS attempts, course_id "
             + "FROM base_reports WHERE class_id IS NULL AND course_id = ANY(?::varchar[]) AND actor_id = ? "
-            + "AND collection_type = 'assessment' AND (path_id IS NULL OR path_id = 0) AND event_name = 'collection.play' GROUP BY course_id";
+            + "AND collection_type IN ('assessment', 'assessment-external') AND (path_id IS NULL OR path_id = 0) AND event_name = 'collection.play' GROUP BY course_id";
     
     //CLASS DATA FOR A USER(score, completion)
     public static final String SELECT_IL_ALL_COURSE_COMPLETION_SCORE = "SELECT course_id, SUM(courseData.completion) AS completedCount, AVG(scoreInPercentage) AS scoreInPercentage "
             + "FROM (SELECT DISTINCT ON (collection_id) CASE  WHEN (event_type = 'stop') THEN 1 ELSE 0 END AS completion, "
             + "FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage, course_id "
             + "FROM base_reports WHERE class_id IS NULL AND course_id = ? AND actor_id = ? "
-            + "AND event_name = 'collection.play' AND event_type = 'stop' AND collection_type = 'assessment' AND (path_id IS NULL OR path_id = 0) "
+            + "AND event_name = 'collection.play' AND event_type = 'stop' AND collection_type IN ('assessment', 'assessment-external') AND (path_id IS NULL OR path_id = 0) "
             + "ORDER BY collection_id, updated_at DESC) AS courseData GROUP BY course_id";
   
     public static final String GET_IL_LOCATION = 
@@ -1241,13 +1261,20 @@ public class AJEntityBaseReports extends Model {
 
     //Rubric Grading    
     //This includes Non-Graded questions for both - assessments and collections
-    public static final String GET_QUESTIONS_TO_GRADE = "SELECT q.resource_id, q.updated_at, q.collection_type, "
-    		+ "q.collection_id, q.unit_id, q.lesson_id FROM (SELECT distinct on (resource_id) FIRST_VALUE(score) OVER "
-    		+ "(PARTITION BY resource_id ORDER BY updated_at desc) AS score, resource_id, updated_at, collection_type, "
-    		+ "collection_id, unit_id, lesson_id from base_reports where "
+//    public static final String GET_QUESTIONS_TO_GRADE = "SELECT q.resource_id, q.updated_at, q.collection_type, "
+//    		+ "q.collection_id, q.unit_id, q.lesson_id FROM (SELECT distinct on (resource_id) FIRST_VALUE(score) OVER "
+//    		+ "(PARTITION BY resource_id ORDER BY updated_at desc) AS score, resource_id, updated_at, collection_type, "
+//    		+ "collection_id, unit_id, lesson_id from base_reports where "
+//    		+ "class_id = ? AND course_id = ? AND event_name = 'collection.resource.play' AND event_type = 'stop' AND "
+//    		+ "resource_type = 'question' AND is_graded = 'false' AND resource_attempt_status = 'attempted' AND "
+//    		+ "grading_type = 'teacher' AND question_type = 'OE') as q WHERE q.score IS NULL";
+    
+    public static final String GET_QUESTIONS_TO_GRADE = "SELECT distinct on (resource_id, actor_id) FIRST_VALUE(score) "
+    		+ "OVER (PARTITION BY resource_id, actor_id ORDER BY updated_at desc) AS score, resource_id, updated_at, "
+    		+ "collection_type, collection_id, unit_id, lesson_id, session_id, actor_id from base_reports where "
     		+ "class_id = ? AND course_id = ? AND event_name = 'collection.resource.play' AND event_type = 'stop' AND "
     		+ "resource_type = 'question' AND is_graded = 'false' AND resource_attempt_status = 'attempted' AND "
-    		+ "grading_type = 'teacher' AND question_type = 'OE') as q WHERE q.score IS NULL";
+    		+ "grading_type = 'teacher' AND question_type = 'OE'";
     
     public static final String GET_STUDENT_COUNT_FOR_QUESTIONS = "SELECT count(distinct (actor_id)) from base_reports "
     		+ "where class_id = ? AND course_id = ? AND collection_id = ? AND resource_id = ? AND event_type = 'stop' AND "
@@ -1257,22 +1284,24 @@ public class AJEntityBaseReports extends Model {
     public static final String GET_DISTINCT_STUDENTS_FOR_THIS_RESOURCE = "SELECT distinct (actor_id) from base_reports where "
     		+ "class_id = ? AND course_id = ? AND collection_id = ? AND resource_id = ? AND event_type = 'stop' AND "
     		+ "event_name = 'collection.resource.play' AND resource_type = 'question'"
-    		+ "AND is_graded = 'false' AND resource_attempt_status = 'attempted' AND grading_type = 'teacher'  "
+    		+ " AND is_graded = 'false' AND resource_attempt_status = 'attempted' AND grading_type = 'teacher'  "
     		+ "AND question_type = 'OE' AND score IS NULL";
 
     public static final String GET_LATEST_SCORE_FOR_THIS_RESOURCE_STUDENT = "SELECT distinct on (resource_id) FIRST_VALUE(score) "
-    		+ "OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score, resource_id, updated_at from base_reports "
+    		+ "OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score, FIRST_VALUE(is_graded) OVER "
+    		+ "(PARTITION BY resource_id ORDER BY updated_at desc) AS is_graded, resource_id, updated_at from base_reports "
     		+ "WHERE class_id = ? AND course_id = ? AND collection_id = ? AND resource_id = ? AND actor_id = ? "
     		+ "AND event_name = 'collection.resource.play' AND event_type = 'stop' AND resource_type = 'question' "
-    		+ "AND is_graded = 'false' AND resource_attempt_status = 'attempted' AND grading_type = 'teacher' "
-    		+ "AND question_type = 'OE'";
+    		+ "AND grading_type = 'teacher' AND question_type = 'OE'";
 
     public static final String GET_STUDENTS_ANSWER_FOR_RUBRIC_QUESTION = "select q.answerText, q.resource_id AS questionId, "
     		+ "q.time_spent AS timeSpent, q.updated_at AS submittedAt, q.session_id "
     		+ "FROM (SELECT distinct on (resource_id) FIRST_VALUE(score) OVER "
     		+ "(PARTITION BY resource_id ORDER BY updated_at desc) AS score, FIRST_VALUE(answer_object) OVER "
-    		+ "(PARTITION BY resource_id ORDER BY updated_at desc) AS answerText,  "
-    		+ "resource_id, updated_at, actor_id, time_spent, session_id from base_reports "
+    		+ "(PARTITION BY resource_id ORDER BY updated_at desc) AS answerText, "
+    		+ "FIRST_VALUE(time_spent) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS time_spent, "
+    		+ "FIRST_VALUE(session_id) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS session_id, "
+    		+ "resource_id, updated_at, actor_id from base_reports "
     		+ "where class_id = ? AND course_id = ? AND collection_id = ? AND resource_id = ? AND actor_id = ? AND "
     		+ "event_name = 'collection.resource.play' AND event_type = 'stop' AND "
     		+ "resource_type = 'question' AND is_graded = 'false' AND resource_attempt_status = 'attempted' AND "
