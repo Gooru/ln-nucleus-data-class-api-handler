@@ -100,6 +100,9 @@ public class AJEntityDailyClassActivity extends Model{
     public static final String DATE = "date";
     public static final String ACTIVITY_DATE = "activityDate";
 
+    public static final String ASMT_TYPE_FILTER = " AND collection_type IN ('assessment','assessment-external') ";
+    public static final String COLL_TYPE_FILTER = " AND collection_type = 'collection' ";
+
     //*****************************************************************************************************************************
     //Daily Class Activity
     
@@ -213,12 +216,13 @@ public class AJEntityDailyClassActivity extends Model{
             + "SUM(time_spent) AS resourceTimeSpent, 0 as reaction, 0 as score, '[]' AS answer_object "
             + "FROM daily_class_activity WHERE class_id = ? AND collection_id = ? "
             + "AND actor_id = ? AND date_in_time_zone = ? AND event_name = 'collection.resource.play' GROUP BY collection_id, resource_id,resource_type,question_type";
-
-  //Getting RESOURCE DATA (score)
+    
     public static final String SELECT_COLLECTION_QUESTION_AGG_SCORE = "SELECT DISTINCT ON (resource_id) "
             + "FIRST_VALUE(score) OVER (PARTITION BY resource_id "
-            + "ORDER BY updated_at desc) AS score,FIRST_VALUE(resource_attempt_status) OVER (PARTITION BY resource_id ORDER BY updated_at desc) "
-            + "AS attemptStatus, FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS answer_object "
+            + "ORDER BY updated_at desc) AS score,FIRST_VALUE(resource_attempt_status) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS attemptStatus, "
+            + "FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS answer_object,"
+            + "FIRST_VALUE(session_id) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS session_id, "
+            + "FIRST_VALUE(max_score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS max_score "
             + "FROM daily_class_activity WHERE class_id = ? AND collection_id = ? AND resource_id = ? "
             + "AND actor_id = ? AND date_in_time_zone = ? AND event_name = 'collection.resource.play' AND resource_type = 'question' "
             + "AND resource_attempt_status <> 'skipped'";
@@ -242,9 +246,21 @@ public class AJEntityDailyClassActivity extends Model{
     
     //***************************************************************************************
     //STUDENT PERFORMANCE in Assessment    
-    public static final String SELECT_DISTINCT_USERID_FOR_ASSESSMENT_ID_FILTERBY_COLLTYPE =
+//    public static final String SELECT_DISTINCT_USERID_FOR_ASSESSMENT_ID_FILTERBY_COLLTYPE =
+//            "SELECT DISTINCT(actor_id) FROM daily_class_activity "
+//            + "WHERE class_id = ? AND collection_id = ? AND collection_type =? AND date_in_time_zone BETWEEN ? AND ?";
+    
+    public static final String SELECT_DISTINCT_USERID_FOR_ASSESSMENT =
             "SELECT DISTINCT(actor_id) FROM daily_class_activity "
-            + "WHERE class_id = ? AND collection_id = ? AND collection_type =? AND date_in_time_zone BETWEEN ? AND ?";
+            + "WHERE class_id = ? AND collection_id = ? AND date_in_time_zone = ? "
+            + "AND event_name = ? AND event_type = ? ";
+    
+    public static final String SELECT_ASSESSMENT_REACTION = "SELECT round(avg(data.reaction)) as reaction FROM "
+            + "(SELECT DISTINCT ON (resource_id) collection_id, "
+            + "FIRST_VALUE(reaction) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS reaction "
+            + "FROM daily_class_activity where collection_id = ? AND session_id = ? AND date_in_time_zone = ? AND reaction > 0 "
+            + "AND event_name = 'reaction.create') AS data group by data.collection_id;";
+
 
     public static final String GET_LATEST_COMPLETED_SESSION_ID = "SELECT session_id FROM daily_class_activity WHERE "
             +" class_id = ? AND collection_id = ? AND actor_id = ? AND event_name = 'collection.play' AND event_type = 'stop' "
@@ -254,9 +270,14 @@ public class AJEntityDailyClassActivity extends Model{
     public static final String SELECT_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSION_ID =
             "select distinct on (resource_id) FIRST_VALUE(score * 100) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score, "
             + "resource_id, FIRST_VALUE(time_spent) OVER (PARTITION BY resource_id ORDER BY updated_at desc) as resourceTimeSpent,"
-            + "updated_at, session_id, collection_type, resource_type, question_type "
-            + "from daily_class_activity WHERE collection_id = ? AND session_id = ? AND event_name = ? AND event_type = 'stop' ";
-  
+            + "updated_at, session_id, max_score, collection_type, resource_type, question_type, "
+            + "FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) as answer_object "
+            + "from daily_class_activity WHERE collection_id = ? AND session_id = ? AND date_in_time_zone = ? AND event_name = ? AND event_type = 'stop' ";
+    
+    public static final String GET_OE_QUE_GRADE_STATUS = "SELECT is_graded FROM daily_class_activity "
+    		+ "WHERE collection_id = ? AND session_id = ?  and resource_id = ? AND date_in_time_zone = ? AND event_name = 'collection.resource.play' "
+    		+ "AND event_type = 'stop'"; 
+      
     //*****************************************************************************************************************************
     //Collection Performance Report Queries
     
