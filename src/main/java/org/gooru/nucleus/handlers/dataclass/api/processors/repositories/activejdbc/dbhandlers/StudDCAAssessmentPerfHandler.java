@@ -5,11 +5,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.converters.ResponseAttributeIdentifier;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityDailyClassActivity;
-
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.converters.ValueMapper;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
@@ -30,8 +30,7 @@ public class StudDCAAssessmentPerfHandler implements DBHandler {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(StudDCAAssessmentPerfHandler.class);
 	private static final String REQUEST_USERID = "userId";
-	private static final String START_DATE = "startDate";
-	private static final String END_DATE = "endDate";
+	private static final String DATE = "date";	
 	
     private final ProcessorContext context;
 
@@ -72,29 +71,27 @@ public class StudDCAAssessmentPerfHandler implements DBHandler {
   public ExecutionResult<MessageResponse> executeRequest() {
     JsonObject resultBody = new JsonObject();
     JsonArray resultarray = new JsonArray();   
-
     
-    String sDate = this.context.request().getString(START_DATE);
-    String eDate = this.context.request().getString(END_DATE);
+    String tDate = this.context.request().getString(DATE);
 
-    if (StringUtil.isNullOrEmpty(eDate) || StringUtil.isNullOrEmpty(sDate)) {
-      LOGGER.warn("Start Date and End Date are mandatory to fetch Student Performance in Daily Class Activity.");
+    if (StringUtil.isNullOrEmpty(tDate)) {
+      LOGGER.warn("Date is mandatory to fetch Student Performance in Daily Class Activity.");
       return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse(
-              "Start Date and End Date are Missing. Cannot fetch Student Performance in Daily Class Activity"), ExecutionStatus.FAILED);
+              "Date is Missing. Cannot fetch Student Performance in Daily Class Activity"), ExecutionStatus.FAILED);
 
     }
-    Date startDate = Date.valueOf(sDate);
-    Date endDate = Date.valueOf(eDate);
+    Date date = Date.valueOf(tDate);
 
-    String collectionType = "assessment";
     String userId = this.context.request().getString(REQUEST_USERID);
 
     List<String> userIds = new ArrayList<>();
     if (this.context.classId() != null && StringUtil.isNullOrEmpty(userId)) {
       LOGGER.warn("UserID is not in the request to fetch Student Performance in DCA Collection. Assume user is a teacher");
       LazyList<AJEntityDailyClassActivity> userIdforlesson =
-              AJEntityDailyClassActivity.findBySQL(AJEntityDailyClassActivity.SELECT_DISTINCT_USERID_FOR_ASSESSMENT_ID_FILTERBY_COLLTYPE, context.classId(),
-                      context.collectionId(), collectionType, startDate, endDate);
+              AJEntityDailyClassActivity.findBySQL(AJEntityDailyClassActivity.SELECT_DISTINCT_USERID_FOR_ASSESSMENT 
+            		  + AJEntityDailyClassActivity.ASMT_TYPE_FILTER, context.classId(),
+                      context.collectionId(), date, 
+                      AJEntityDailyClassActivity.ATTR_CP_EVENTNAME, AJEntityDailyClassActivity.ATTR_EVENTTYPE_STOP);
       userIdforlesson.forEach(coll -> userIds.add(coll.getString(AJEntityDailyClassActivity.GOORUUID)));
     } else {
       userIds.add(userId);
@@ -102,58 +99,67 @@ public class StudDCAAssessmentPerfHandler implements DBHandler {
 
     LOGGER.debug("UID is " + userId);
     for (String userID : userIds) {
-      List<Map> studentLatestAttempt;
-      JsonArray contentArray = new JsonArray();
-      studentLatestAttempt = Base.findAll(AJEntityDailyClassActivity.GET_LATEST_COMPLETED_SESSION_ID, context.classId(), 
-    		  context.collectionId(), userID, startDate, endDate);
+      JsonObject contentBody = new JsonObject();
+      
+      AJEntityDailyClassActivity dcaAssessmentPerfModel =  AJEntityDailyClassActivity.findFirst("actor_id = ? AND class_id = ? AND collection_id = ? "
+      		+ "AND date_in_time_zone = ? AND event_name = 'collection.play' AND event_type = 'stop' ORDER BY updated_at DESC", 
+    		  userID, context.classId(),context.collectionId(), date);
+      
+		if (dcaAssessmentPerfModel != null) {
+			String studentLatestSessionId = dcaAssessmentPerfModel.getString(AJEntityDailyClassActivity.SESSION_ID); 
+			Object assessmentReactionObject =  Base.firstCell(AJEntityDailyClassActivity.SELECT_ASSESSMENT_REACTION, context.collectionId(), 
+					studentLatestSessionId, date);
+			
+			LOGGER.debug("Assessment Attributes obtained");
+			JsonObject assessmentData = new JsonObject();
+			assessmentData.put(JsonConstants.SCORE, dcaAssessmentPerfModel.get(AJEntityDailyClassActivity.SCORE) != null 
+					? Math.round(Double.valueOf(dcaAssessmentPerfModel.get(AJEntityDailyClassActivity.SCORE).toString())) : null);
+			assessmentData.put(JsonConstants.REACTION, assessmentReactionObject != null ? ((Number)assessmentReactionObject).intValue() : 0);
+			assessmentData.put(JsonConstants.TIMESPENT, dcaAssessmentPerfModel.get(AJEntityDailyClassActivity.TIMESPENT) != null 
+					? dcaAssessmentPerfModel.getLong(AJEntityDailyClassActivity.TIMESPENT) : 0);
+			assessmentData.put(JsonConstants.COLLECTION_TYPE, dcaAssessmentPerfModel.get(AJEntityDailyClassActivity.COLLECTION_TYPE) != null
+					? dcaAssessmentPerfModel.getString(AJEntityDailyClassActivity.COLLECTION_TYPE) : null);				
+			contentBody.put(JsonConstants.ASSESSMENT, assessmentData);    				
+					
+			
+			List<Map> assessmentQuestionsKPI = Base.findAll(AJEntityDailyClassActivity.SELECT_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSION_ID,context.collectionId(),
+					studentLatestSessionId, date, AJEntityDailyClassActivity.ATTR_CRP_EVENTNAME);
+			LOGGER.debug("latestSessionId : " + studentLatestSessionId);
+			
+			JsonArray questionsArray = new JsonArray();
+			if (!assessmentQuestionsKPI.isEmpty()) {
+				for (Map questions : assessmentQuestionsKPI) {
+					JsonObject qnData = ValueMapper.map(ResponseAttributeIdentifier.getSessionAssessmentQuestionAttributesMap(), questions);
+					qnData.put(JsonConstants.RESOURCE_TYPE, JsonConstants.QUESTION);
+					qnData.put(JsonConstants.ANSWER_OBJECT, questions.get(AJEntityDailyClassActivity.ANSWER_OBJECT) != null
+							? new JsonArray(questions.get(AJEntityDailyClassActivity.ANSWER_OBJECT).toString()) : null);
+					//Rubrics - Score should be NULL only incase of OE questions
+					qnData.put(JsonConstants.SCORE, questions.get(AJEntityDailyClassActivity.SCORE) != null ?
+							Math.round(Double.valueOf(questions.get(AJEntityDailyClassActivity.SCORE).toString())) : "NA");
+					Object reactionObj = Base.firstCell(AJEntityDailyClassActivity.SELECT_ASSESSMENT_RESOURCE_REACTION, context.collectionId(),
+							studentLatestSessionId, questions.get(AJEntityDailyClassActivity.RESOURCE_ID).toString());
+					qnData.put(JsonConstants.REACTION, reactionObj != null ? ((Number)reactionObj).intValue() : 0);
+					qnData.put(JsonConstants.MAX_SCORE, questions.get(AJEntityDailyClassActivity.MAX_SCORE) != null ?
+							Math.round(Double.valueOf(questions.get(AJEntityDailyClassActivity.MAX_SCORE).toString())) : "NA");
+					
+					if(qnData.getString(EventConstants.QUESTION_TYPE).equalsIgnoreCase(EventConstants.OPEN_ENDED_QUE)){
+						Object isGradedObj = Base.firstCell(AJEntityDailyClassActivity.GET_OE_QUE_GRADE_STATUS, context.collectionId(),
+								studentLatestSessionId, questions.get(AJEntityDailyClassActivity.RESOURCE_ID).toString(), date);
+						if (isGradedObj != null && (isGradedObj.toString().equalsIgnoreCase("t") || isGradedObj.toString().equalsIgnoreCase("true"))) {
+							qnData.put(JsonConstants.IS_GRADED, true);
+						} else {
+							qnData.put(JsonConstants.IS_GRADED, false);
+						}
+					} else {
+						qnData.put(JsonConstants.IS_GRADED, true);
+					}
+					questionsArray.add(qnData);
+				}
+			}
+			contentBody.put(JsonConstants.USAGE_DATA, questionsArray).put(JsonConstants.USERUID, userID);
+			resultarray.add(contentBody);
 
-      if (!studentLatestAttempt.isEmpty()) {
-        JsonObject contentBody = new JsonObject();
-        studentLatestAttempt.forEach(attempts -> {
-        	String sessionId = attempts.get(AJEntityDailyClassActivity.SESSION_ID).toString();
-        	LOGGER.debug("latestSessionId : " + attempts.get(AJEntityDailyClassActivity.SESSION_ID).toString());
-	        List<Map> assessmentKPI = Base.findAll(AJEntityDailyClassActivity.SELECT_ASSESSMENT_FOREACH_COLLID_AND_SESSION_ID, context.collectionId(), 
-	        		sessionId , userID, startDate, AJEntityDailyClassActivity.ATTR_CP_EVENTNAME);
-	        Object assessmentReactionObject =  Base.firstCell(AJEntityDailyClassActivity.SELECT_ASSESSMENT_REACTION_AND_SESSION_ID, 
-	        		context.collectionId(), sessionId, userID);
-	        
-        	if (!assessmentKPI.isEmpty()) {
-		          JsonObject assessmentDataKPI = new JsonObject();
-		          assessmentKPI.forEach(m -> {
-		            JsonObject assessmentData = ValueMapper.map(ResponseAttributeIdentifier.getSessionDCAAssessmentAttributesMap(), m);
-		            assessmentData.put(JsonConstants.SCORE, m.get(AJEntityDailyClassActivity.SCORE) != null ? 
-		            		Math.round(Double.valueOf(m.get(AJEntityDailyClassActivity.SCORE).toString())) : null);
-		            assessmentData.put(JsonConstants.REACTION, assessmentReactionObject != null ? ((Number)assessmentReactionObject).intValue() : 0);	            
-		            assessmentDataKPI.put(JsonConstants.ASSESSMENT, assessmentData);
-		          });
-		          
-        List<Map> assessmentQuestionsKPI = Base.findAll(AJEntityDailyClassActivity.SELECT_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSION_ID,context.collectionId(),
-                attempts.get(AJEntityDailyClassActivity.SESSION_ID).toString(), AJEntityDailyClassActivity.ATTR_CRP_EVENTNAME);
-        
-        JsonArray questionsArray = new JsonArray();
-        if (!assessmentQuestionsKPI.isEmpty()) {
-          assessmentQuestionsKPI.forEach(questions -> {
-            JsonObject qnData = ValueMapper.map(ResponseAttributeIdentifier.getSessionDCAAssessmentQuestionAttributesMap(), questions);
-            //String sessionId = attempts.get(AJEntityDailyClassActivity.SESSION_ID).toString(); 
-            qnData.put(JsonConstants.RESOURCE_TYPE, JsonConstants.QUESTION);
-            //qnData.put(JsonConstants.SESSIONID, attempts.get(AJEntityDailyClassActivity.SESSION_ID).toString());
-            Object reactionObj = Base.firstCell(AJEntityDailyClassActivity.SELECT_ASSESSMENT_RESOURCE_REACTION, context.collectionId(),
-          		  sessionId, questions.get(AJEntityDailyClassActivity.RESOURCE_ID).toString());
-            qnData.put(JsonConstants.REACTION, reactionObj != null ? ((Number)reactionObj).intValue() : 0);
-            //Rubrics - Score should be NULL only incase of OE questions
-            qnData.put(JsonConstants.SCORE, questions.get(AJEntityDailyClassActivity.SCORE) != null ?
-          		  Math.round(Double.valueOf(questions.get(AJEntityDailyClassActivity.SCORE).toString())) : "NA");              
-            questionsArray.add(qnData);
-          });
-        }        
-        assessmentDataKPI.put(JsonConstants.QUESTIONS, questionsArray);
-        contentArray.add(assessmentDataKPI);
-        contentBody.put(JsonConstants.USAGE_DATA, contentArray).put(JsonConstants.USERUID, userID);
-        } // AssessmentKPI End
-        }); //Before this
-        resultarray.add(contentBody);
       } else {
-        // Return an empty resultBody instead of an Error
         LOGGER.debug("No data returned for Student Perf in Assessment");
       }
     }
