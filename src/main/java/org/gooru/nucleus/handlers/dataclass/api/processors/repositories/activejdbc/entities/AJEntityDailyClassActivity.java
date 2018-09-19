@@ -112,7 +112,7 @@ public class AJEntityDailyClassActivity extends Model{
     
     public static final String SELECT_DISTINCT_USERID_FOR_DAILY_CLASS_ACTIVITY =
             "SELECT DISTINCT(actor_id) FROM daily_class_activity "
-            + "WHERE class_id = ? AND collection_type = ?";    
+            + "WHERE class_id = ?";    
 
     public static final String GET_PERFORMANCE_FOR_CLASS_ASSESSMENTS = "SELECT SUM(agg.timeSpent) AS timeSpent, "
             + "(AVG(agg.scoreInPercentage)) scoreInPercentage, agg.lastSessionId, SUM(agg.attempts) AS attempts, "
@@ -120,7 +120,7 @@ public class AJEntityDailyClassActivity extends Model{
             + "FIRST_VALUE(score) OVER (PARTITION BY collection_id, date_in_time_zone ORDER BY updated_at desc) AS scoreInPercentage, "
             + "FIRST_VALUE(session_id) OVER (PARTITION BY collection_id, date_in_time_zone ORDER BY updated_at desc) AS lastSessionId, "
             + "views AS attempts, collection_id as collectionId, actor_id as actorId, date_in_time_zone as activityDate FROM daily_class_activity "
-            + "WHERE class_id = ? AND collection_id = ANY(?::varchar[]) AND actor_id = ? AND collection_type = ? AND event_name = ? AND event_type = 'stop' "
+            + "WHERE class_id = ? AND collection_id = ANY(?::varchar[]) AND actor_id = ? AND collection_type IN ('assessment', 'assessment-external') AND event_name = ? AND event_type = 'stop' "
             + "AND date_in_time_zone BETWEEN ? AND ?) AS agg GROUP BY agg.collectionId, agg.activityDate, agg.lastSessionId "
             + "ORDER BY agg.activityDate DESC";    
     
