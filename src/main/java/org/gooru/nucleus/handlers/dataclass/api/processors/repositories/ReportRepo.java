@@ -130,4 +130,8 @@ public interface ReportRepo {
     //ATC
     
     MessageResponse getStudentPerfVsCompletion();
+
+    MessageResponse getStudentCourseAllItemsReport();
+
+    MessageResponse getIndependentLearnerCourseAllItemsReport();
 }

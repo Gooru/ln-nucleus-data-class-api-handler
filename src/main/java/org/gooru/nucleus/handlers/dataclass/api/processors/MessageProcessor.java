@@ -211,7 +211,12 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_STUDENTS_PERF_VS_COMPLETION:
                 result = getStudentPerfVsCompletionReport();
                 break;
-
+            case MessageConstants.MSG_OP_STUDENTS_COURSE_ALL_ITEMS_PERF:
+                result = getStudentCourseAllItemsReport();
+                break;
+            case MessageConstants.MSG_OP_IND_LEARNER_COURSE_ALL_ITEMS_PERF:
+                result = getIndependentLearnerCourseAllItemsReport();
+                break;
 
             default:
                 LOGGER.error("Invalid operation type passed in, not able to handle");
@@ -1354,6 +1359,29 @@ class MessageProcessor implements Processor {
 
       }
 
+    private MessageResponse getStudentCourseAllItemsReport() {
+        try {
+              ProcessorContext context = createContext();
+              return new RepoBuilder().buildReportRepo(context).getStudentCourseAllItemsReport();
+
+          } catch (Throwable t) {
+              LOGGER.error("Exception while getting Student Performance of all Items in Class", t);
+              return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+          }
+
+    }
+    
+    private MessageResponse getIndependentLearnerCourseAllItemsReport() {
+        try {
+              ProcessorContext context = createContext();
+              return new RepoBuilder().buildReportRepo(context).getIndependentLearnerCourseAllItemsReport();
+
+          } catch (Throwable t) {
+              LOGGER.error("Exception while getting Learner Performance of all Items in Course", t);
+              return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+          }
+
+   }
 
     private ProcessorContext createContext() {
     	String classId = message.headers().get(MessageConstants.CLASS_ID);

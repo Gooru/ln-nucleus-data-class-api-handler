@@ -136,7 +136,9 @@ public final class MessageConstants {
 
     //ATC
     public static final String MSG_OP_STUDENTS_PERF_VS_COMPLETION = "all.students.performance.vs.completion";
-    
+    public static final String MSG_OP_STUDENTS_COURSE_ALL_ITEMS_PERF = "student.course.all.items.performance";
+    public static final String MSG_OP_IND_LEARNER_COURSE_ALL_ITEMS_PERF = "independent.learner.course.all.items.performance";
+
     public static final String PORT = "port";
     public static final String HOST = "host";
     public static final String REDIS = "redis.config";

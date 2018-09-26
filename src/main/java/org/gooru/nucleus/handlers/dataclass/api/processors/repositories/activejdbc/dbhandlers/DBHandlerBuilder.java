@@ -246,6 +246,14 @@ public final class DBHandlerBuilder {
     public static DBHandler buildStudentPerfVsCompletionHandler(ProcessorContext context) {
         return new ClassPerfVsCompletionHandler(context);
       }
+    
+    public static DBHandler buildStudentCourseAllItemsReportHandler(ProcessorContext context) {
+        return new StudentCourseAllItemsPerformanceHandler(context);
+    }
+    
+    public static DBHandler buildIndependentLearnerCourseAllItemsReportHandler(ProcessorContext context) {
+        return new IndependentLearnerCourseAllItemsPerformanceHandler(context);
+    }
 
 }
 
