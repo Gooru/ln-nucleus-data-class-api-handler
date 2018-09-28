@@ -91,7 +91,8 @@ public class IndependentLearnerCourseAllItemsPerformanceHandler implements DBHan
                         } else {
                             collectionKpi.putNull(AJEntityBaseReports.ATTR_SCORE);
                         }
-                        collectionKpi.put(EventConstants.VIEWS, m.get(AJEntityBaseReports.ATTR_ATTEMPTS) != null ? Integer.valueOf(m.get(AJEntityBaseReports.ATTR_ATTEMPTS).toString()) : null);
+                      //TODO Fix collection views issue at base_reports and collection performance
+                        collectionKpi.put(EventConstants.VIEWS, (m.get(AJEntityBaseReports.ATTR_ATTEMPTS) != null && Integer.valueOf(m.get(AJEntityBaseReports.ATTR_ATTEMPTS).toString()) > 0) ? Integer.valueOf(m.get(AJEntityBaseReports.ATTR_ATTEMPTS).toString()) : 1);
                     } else {
                         collectionKpi.put(AJEntityBaseReports.ATTR_SCORE,
                             m.get(AJEntityBaseReports.ATTR_SCORE) != null ? Math.round(Double.valueOf(m.get(AJEntityBaseReports.ATTR_SCORE).toString())) : null);
@@ -107,10 +108,7 @@ public class IndependentLearnerCourseAllItemsPerformanceHandler implements DBHan
                         m.get(AJEntityBaseReports.ATTR_TIME_SPENT) != null ? Long.valueOf(m.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()) : 0);
                     collectionKpi.put(AJEntityBaseReports.ATTR_REACTION, m.get(AJEntityBaseReports.ATTR_REACTION) != null ? Integer.valueOf(m.get(AJEntityBaseReports.ATTR_REACTION).toString()) : 0);
 
-                    // TODO need to add logic to send correct status based on
-                    // event_type for assessment to avoid sending complete
-                    // status for partial play
-                    collectionKpi.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
+                    collectionKpi.put(JsonConstants.STATUS, Boolean.valueOf(m.get(JsonConstants.STATUS).toString()) ? JsonConstants.COMPLETE : JsonConstants.IN_PROGRESS);
 
                     collectionKpi.put(AJEntityBaseReports.ATTR_GRADE_STATUS,
                         (m.get(AJEntityBaseReports.IS_GRADED) != null && !Boolean.valueOf(m.get(AJEntityBaseReports.IS_GRADED).toString())) ? JsonConstants.IN_PROGRESS : JsonConstants.COMPLETE);
