@@ -98,6 +98,7 @@ public class AJEntityBaseReports extends Model {
     public static final String ATTR_GRADE_STATUS = "gradingStatus";
     public static final String ATTR_PATH_TYPE = "pathType";
     public static final String ATTR_MAX_SCORE = "maxScore";
+    public static final String ATTR_SESSION_ID = "sessionId";
     
     public static final String NA = "NA";
     public static final String AND = "AND";

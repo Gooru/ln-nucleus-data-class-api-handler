@@ -38,6 +38,7 @@ public class StudentCourseAllItemsPerformanceHandler implements DBHandler {
     private String userId;
     private String sDate;
     private Integer limit;
+    private Integer offset;
 
     public StudentCourseAllItemsPerformanceHandler(ProcessorContext context) {
         this.context = context;
@@ -51,7 +52,8 @@ public class StudentCourseAllItemsPerformanceHandler implements DBHandler {
             sDate = this.context.request().getString(MessageConstants.START_DATE);
             classId = this.context.request().getString(MessageConstants.CLASS_ID);
             courseId = this.context.request().getString(MessageConstants.COURSE_ID);
-            limit = this.context.request().getInteger("limit", 50);
+            limit = Integer.valueOf(this.context.request().getString(MessageConstants.LIMIT, "50"));
+            offset = Integer.valueOf(this.context.request().getString(MessageConstants.OFFSET, "0"));
             validateContextRequestFields();
 
         } catch (MessageResponseWrapperException mrwe) {
@@ -89,7 +91,7 @@ public class StudentCourseAllItemsPerformanceHandler implements DBHandler {
 
         for (String userID : userIds) {
 
-            List<Map> assessmentKpi = Base.findAll(AJEntityCollectionPerformance.SELECT_ITEM_PERF_IN_CLASS, context.classId(), courseId, userID, startDate, limit);
+            List<Map> assessmentKpi = Base.findAll(AJEntityCollectionPerformance.SELECT_ITEM_PERF_IN_CLASS, context.classId(), courseId, userID, startDate, offset, limit);
             if (!assessmentKpi.isEmpty()) {
                 JsonObject contentBody = new JsonObject();
                 JsonArray collectionKpiArray = new JsonArray();
@@ -104,7 +106,6 @@ public class StudentCourseAllItemsPerformanceHandler implements DBHandler {
                         } else {
                             collectionKpi.putNull(AJEntityBaseReports.ATTR_SCORE);
                         }
-                        //TODO Fix collection views issue at base_reports and collection performance
                         collectionKpi.put(EventConstants.VIEWS, (m.get(AJEntityBaseReports.ATTR_ATTEMPTS) != null && Integer.valueOf(m.get(AJEntityBaseReports.ATTR_ATTEMPTS).toString()) > 0) ? Integer.valueOf(m.get(AJEntityBaseReports.ATTR_ATTEMPTS).toString()) : 1);
                     } else {
                         collectionKpi.put(AJEntityBaseReports.ATTR_SCORE,
@@ -115,6 +116,9 @@ public class StudentCourseAllItemsPerformanceHandler implements DBHandler {
 
                     collectionKpi.put(AJEntityBaseReports.ATTR_COLLECTION_TYPE, collectionType);
                     collectionKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, m.get(AJEntityBaseReports.ATTR_COLLECTION_ID).toString());
+                    collectionKpi.put(AJEntityBaseReports.ATTR_SESSION_ID, m.get(AJEntityBaseReports.ATTR_SESSION_ID).toString());
+                    collectionKpi.put(AJEntityBaseReports.ATTR_PATH_ID, (m.get(AJEntityBaseReports.ATTR_PATH_ID) != null && Integer.valueOf(m.get(AJEntityBaseReports.ATTR_PATH_ID).toString()) > 0) ? Integer.valueOf(m.get(AJEntityBaseReports.ATTR_PATH_ID).toString()) : null);
+                    collectionKpi.put(AJEntityBaseReports.ATTR_PATH_TYPE, m.get(AJEntityBaseReports.ATTR_PATH_TYPE) != null ? m.get(AJEntityBaseReports.ATTR_PATH_TYPE).toString() : null);
                     collectionKpi.put(AJEntityBaseReports.ATTR_LAST_ACCESSED, m.get(AJEntityBaseReports.UPDATE_TIMESTAMP).toString());
 
                     collectionKpi.put(AJEntityBaseReports.ATTR_TIME_SPENT,
