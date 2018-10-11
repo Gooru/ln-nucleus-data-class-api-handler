@@ -55,6 +55,8 @@ public final class MessageConstants {
     public static final String COLLECTION = "collection";
     public static final Pattern COLLECTION_TYPES = Pattern.compile("assessment|collection");
     public static final String COLLECTION_TYPE = "collectionType";
+    public static final String LIMIT = "limit";
+    public static final String OFFSET = "offset";
     //Rubric Grading
     public static final String STUDENT_ID = "student_id";
     public static final String STUDENTID = "studentId";
