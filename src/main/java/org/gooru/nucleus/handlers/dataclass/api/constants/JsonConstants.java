@@ -107,6 +107,8 @@ public final class JsonConstants {
   	public static final String MAX_SCORE = "maxScore";
   	
   	public static final String COLLECTION_TYPE = "collectionType";
+  	
+  	public static final String TITLE = "title";
 
 	private JsonConstants() {
 		throw new AssertionError();
