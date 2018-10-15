@@ -12,6 +12,7 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.exceptions.MessageResponseWrapperException;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityCollectionPerformance;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityContent;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityDailyClassActivity;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
@@ -101,7 +102,12 @@ public class IndependentLearnerCourseAllItemsPerformanceHandler implements DBHan
                     }
 
                     collectionKpi.put(AJEntityBaseReports.ATTR_COLLECTION_TYPE, m.get(AJEntityBaseReports.ATTR_COLLECTION_TYPE).toString());
-                    collectionKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, m.get(AJEntityBaseReports.ATTR_COLLECTION_ID).toString());
+                    
+                    String collId = m.get(AJEntityBaseReports.ATTR_COLLECTION_ID).toString();
+                    collectionKpi.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collId);
+                    Object collTitle = Base.firstCell(AJEntityContent.GET_TITLE, collId);
+                    collectionKpi.put(JsonConstants.TITLE, (collTitle != null ? collTitle.toString() : "NA"));
+
                     collectionKpi.put(AJEntityBaseReports.ATTR_SESSION_ID, m.get(AJEntityBaseReports.ATTR_SESSION_ID).toString());
                     collectionKpi.put(AJEntityBaseReports.ATTR_PATH_ID, (m.get(AJEntityBaseReports.ATTR_PATH_ID) != null && Integer.valueOf(m.get(AJEntityBaseReports.ATTR_PATH_ID).toString()) > 0) ? Integer.valueOf(m.get(AJEntityBaseReports.ATTR_PATH_ID).toString()) : null);
                     collectionKpi.put(AJEntityBaseReports.ATTR_PATH_TYPE, m.get(AJEntityBaseReports.ATTR_PATH_TYPE) != null ? m.get(AJEntityBaseReports.ATTR_PATH_TYPE).toString() : null);
