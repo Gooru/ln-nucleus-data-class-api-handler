@@ -158,6 +158,10 @@ public class IndependentLearnerCourseAllItemsPerformanceHandler implements DBHan
             LOGGER.warn("CourseId is mandatory for fetching items");
             throw new MessageResponseWrapperException(MessageResponseFactory.createNotFoundResponse("Course Id Missing. Cannot fetch items"));
         }
+        if (limit < 0 || offset < 0) {
+            LOGGER.warn("Limit/Offset requested is negative");
+            throw new MessageResponseWrapperException(MessageResponseFactory.createNotFoundResponse("Limit/Offset requested should not be negative"));
+        }
     }
 
     @SuppressWarnings("unchecked")
