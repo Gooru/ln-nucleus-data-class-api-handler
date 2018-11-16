@@ -4,7 +4,6 @@ import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
@@ -52,7 +51,7 @@ public class StudentCourseAllItemsPerformanceHandler implements DBHandler {
             validateContextRequest();
             userId = this.context.request().getString(MessageConstants.USER_ID);
             sDate = this.context.request().getString(MessageConstants.START_DATE);
-            classId = this.context.request().getString(MessageConstants.CLASS_ID);
+            classId = this.context.classId();
             courseId = this.context.request().getString(MessageConstants.COURSE_ID);
             limit = Integer.valueOf(this.context.request().getString(MessageConstants.LIMIT, "50"));
             offset = Integer.valueOf(this.context.request().getString(MessageConstants.OFFSET, "0"));
@@ -173,6 +172,10 @@ public class StudentCourseAllItemsPerformanceHandler implements DBHandler {
         if (StringUtil.isNullOrEmpty(courseId)) {
             LOGGER.warn("CourseId is mandatory for fetching items");
             throw new MessageResponseWrapperException(MessageResponseFactory.createNotFoundResponse("Course Id Missing. Cannot fetch items"));
+        }
+        if (limit < 0 || offset < 0) {
+            LOGGER.warn("Limit/Offset requested is negative");
+            throw new MessageResponseWrapperException(MessageResponseFactory.createNotFoundResponse("Limit/Offset requested should not be negative"));
         }
     }
 
