@@ -135,7 +135,12 @@ public class StudentCourseAllItemsPerformanceHandler implements DBHandler {
                        ( m.get(AJEntityBaseReports.IS_GRADED) != null && !Boolean.valueOf(m.get(AJEntityBaseReports.IS_GRADED).toString())) ? JsonConstants.IN_PROGRESS : JsonConstants.COMPLETE);
                     collectionKpiArray.add(collectionKpi);
                 });
-                contentBody.put(JsonConstants.USAGE_DATA, collectionKpiArray).put(JsonConstants.USERUID, userID);
+                               
+                Object studClassStartDate = Base.firstCell(AJEntityCollectionPerformance.GET_STUDENT_CLASS_ACTIVITY_START_DATE,
+                		context.classId(), courseId, userID);                
+                String studentClassStartDate = studClassStartDate != null ? studClassStartDate.toString() : null; 
+                contentBody.put(JsonConstants.USAGE_DATA, collectionKpiArray).put(JsonConstants.USERUID, userID).put(JsonConstants.START_DATE, studentClassStartDate);
+                
                 resultarray.add(contentBody);
             } else {
                 LOGGER.debug("No data returned for Student All Items Perf in Class");

@@ -124,7 +124,12 @@ public class IndependentLearnerCourseAllItemsPerformanceHandler implements DBHan
                         (m.get(AJEntityBaseReports.IS_GRADED) != null && !Boolean.valueOf(m.get(AJEntityBaseReports.IS_GRADED).toString())) ? JsonConstants.IN_PROGRESS : JsonConstants.COMPLETE);
                     collectionKpiArray.add(collectionKpi);
                 });
-                contentBody.put(JsonConstants.USAGE_DATA, collectionKpiArray).put(JsonConstants.USERUID, userID);
+                
+                Object studClassStartDate = Base.firstCell(AJEntityCollectionPerformance.GET_IL_ACTIVITY_START_DATE,
+                		courseId, userID);                
+                String studentClassStartDate = studClassStartDate != null ? studClassStartDate.toString() : null; 
+                contentBody.put(JsonConstants.USAGE_DATA, collectionKpiArray).put(JsonConstants.USERUID, userID).put(JsonConstants.START_DATE, studentClassStartDate);
+                
                 resultarray.add(contentBody);
             } else {
                 LOGGER.debug("No data returned for Student Performance of all items in Course");
