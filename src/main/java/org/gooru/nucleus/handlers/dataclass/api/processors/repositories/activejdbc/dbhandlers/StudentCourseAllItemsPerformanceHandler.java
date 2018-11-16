@@ -51,7 +51,7 @@ public class StudentCourseAllItemsPerformanceHandler implements DBHandler {
             validateContextRequest();
             userId = this.context.request().getString(MessageConstants.USER_ID);
             sDate = this.context.request().getString(MessageConstants.START_DATE);
-            classId = this.context.request().getString(MessageConstants.CLASS_ID);
+            classId = this.context.classId();
             courseId = this.context.request().getString(MessageConstants.COURSE_ID);
             limit = Integer.valueOf(this.context.request().getString(MessageConstants.LIMIT, "50"));
             offset = Integer.valueOf(this.context.request().getString(MessageConstants.OFFSET, "0"));
