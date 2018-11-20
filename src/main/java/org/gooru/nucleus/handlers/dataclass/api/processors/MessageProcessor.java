@@ -198,6 +198,9 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_DCA_STUDENT_ASSESSMENT_ALL_SESSIONS:
                 result = getStudDCAAssessmentSessions();
                   break;
+            case MessageConstants.MSG_OP_DCA_CLASS_PERF:
+                result = getDCAClassPerf();
+                  break;
             case MessageConstants.MSG_OP_NU_DATA_REPORT:
                 result = getDataReports();
                 break;
@@ -386,6 +389,24 @@ class MessageProcessor implements Processor {
 
         } catch (Throwable t) {
             LOGGER.error("Exception while getting User Sessions for Assessment", t);
+            return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+        }
+
+    }
+    
+    private MessageResponse getDCAClassPerf() {
+    	try {
+            ProcessorContext context = createContext();
+
+            if (!checkClassId(context)) {
+                LOGGER.error("Class id not available to obtain Student Performance. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid classId");
+            }
+
+            return new RepoBuilder().buildReportRepo(context).getDCAClassPerformance();
+
+        } catch (Throwable t) {
+            LOGGER.error("Exception while getting DCA Class Performance", t);
             return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
         }
 
