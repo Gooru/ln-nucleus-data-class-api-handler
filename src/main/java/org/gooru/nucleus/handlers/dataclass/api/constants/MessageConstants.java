@@ -131,6 +131,7 @@ public final class MessageConstants {
     public static final String MSG_OP_DCA_STUDENT_ASSESSMENT_PERF = "dca.student.assessment.performance";
     public static final String MSG_OP_DCA_STUDENT_COLLECTION_PERF = "dca.student.collection.performance";
     public static final String MSG_OP_DCA_STUDENT_ASSESSMENT_ALL_SESSIONS = "dca.student.assessment.all.sessions";
+    public static final String MSG_OP_DCA_CLASS_PERF = "dca.class.performance";
     
     //DATA REPORTS
     public static final String MSG_OP_NU_DATA_REPORT = "nu.data.report";
