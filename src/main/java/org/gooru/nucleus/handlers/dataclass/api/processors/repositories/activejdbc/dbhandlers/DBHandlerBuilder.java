@@ -231,6 +231,10 @@ public final class DBHandlerBuilder {
     	return new StudDCAAssessmentSessionHandler(context);
     }
     
+    public static DBHandler buildDCAClassPerformanceHandler (ProcessorContext context) {
+    	return new StudDCAClassPerfHandler(context);
+    }
+    
     public static DBHandler buildDCAMonthlyTeacherReportHandler(ProcessorContext context) {
         return new DCAMonthlyTeacherReportHandler(context);
       }
@@ -246,6 +250,14 @@ public final class DBHandlerBuilder {
     public static DBHandler buildStudentPerfVsCompletionHandler(ProcessorContext context) {
         return new ClassPerfVsCompletionHandler(context);
       }
+    
+    public static DBHandler buildStudentCourseAllItemsReportHandler(ProcessorContext context) {
+        return new StudentCourseAllItemsPerformanceHandler(context);
+    }
+    
+    public static DBHandler buildIndependentLearnerCourseAllItemsReportHandler(ProcessorContext context) {
+        return new IndependentLearnerCourseAllItemsPerformanceHandler(context);
+    }
 
 }
 

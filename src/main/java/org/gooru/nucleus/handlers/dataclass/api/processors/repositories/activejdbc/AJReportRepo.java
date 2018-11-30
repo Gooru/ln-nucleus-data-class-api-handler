@@ -287,6 +287,10 @@ class AJReportRepo implements ReportRepo {
     public MessageResponse getStudentDCAAssessmentSessions() {
       return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildStudentDCAAssessmentSessionsHandler(context));
     }
+    
+    public MessageResponse getDCAClassPerformance() {
+        return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildDCAClassPerformanceHandler(context));
+      }
 
     @Override
     public MessageResponse getDCAMonthlyTeacherReport() {
@@ -307,6 +311,16 @@ class AJReportRepo implements ReportRepo {
     @Override
     public MessageResponse getStudentPerfVsCompletion() {
       return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildStudentPerfVsCompletionHandler(context));
+    }
+    
+    @Override
+    public MessageResponse getStudentCourseAllItemsReport() {
+      return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildStudentCourseAllItemsReportHandler(context));
+    }
+    
+    @Override
+    public MessageResponse getIndependentLearnerCourseAllItemsReport() {
+      return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildIndependentLearnerCourseAllItemsReportHandler(context));
     }
 
 

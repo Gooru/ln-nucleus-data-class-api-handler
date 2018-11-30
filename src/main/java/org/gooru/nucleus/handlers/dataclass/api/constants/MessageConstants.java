@@ -55,6 +55,8 @@ public final class MessageConstants {
     public static final String COLLECTION = "collection";
     public static final Pattern COLLECTION_TYPES = Pattern.compile("assessment|collection");
     public static final String COLLECTION_TYPE = "collectionType";
+    public static final String LIMIT = "limit";
+    public static final String OFFSET = "offset";
     //Rubric Grading
     public static final String STUDENT_ID = "student_id";
     public static final String STUDENTID = "studentId";
@@ -129,6 +131,7 @@ public final class MessageConstants {
     public static final String MSG_OP_DCA_STUDENT_ASSESSMENT_PERF = "dca.student.assessment.performance";
     public static final String MSG_OP_DCA_STUDENT_COLLECTION_PERF = "dca.student.collection.performance";
     public static final String MSG_OP_DCA_STUDENT_ASSESSMENT_ALL_SESSIONS = "dca.student.assessment.all.sessions";
+    public static final String MSG_OP_DCA_CLASS_PERF = "dca.class.performance";
     
     //DATA REPORTS
     public static final String MSG_OP_NU_DATA_REPORT = "nu.data.report";
@@ -136,7 +139,9 @@ public final class MessageConstants {
 
     //ATC
     public static final String MSG_OP_STUDENTS_PERF_VS_COMPLETION = "all.students.performance.vs.completion";
-    
+    public static final String MSG_OP_STUDENTS_COURSE_ALL_ITEMS_PERF = "student.course.all.items.performance";
+    public static final String MSG_OP_IND_LEARNER_COURSE_ALL_ITEMS_PERF = "independent.learner.course.all.items.performance";
+
     public static final String PORT = "port";
     public static final String HOST = "host";
     public static final String REDIS = "redis.config";

@@ -91,13 +91,15 @@ public class AJEntityBaseReports extends Model {
     public static final String ATTR_PATH_ID = "pathId";
     public static final String ATTR_COLLECTION_TYPE = "collectionType";
     public static final String ATTR_STUDENTS = "students";
-    public static final String ATTR_LAST_ACCESSED = "lastaccessed";
+    public static final String ATTR_LAST_ACCESSED = "lastAccessed";
     public static final String ATTR_ANSWER_TEXT = "answerText";
     public static final String ATTR_QUESTION_TEXT = "questionText";
     public static final String ATTR_QUESTION_ID = "questionId";
     public static final String ATTR_GRADE_STATUS = "gradingStatus";
     public static final String ATTR_PATH_TYPE = "pathType";
-
+    public static final String ATTR_MAX_SCORE = "maxScore";
+    public static final String ATTR_SESSION_ID = "sessionId";
+    
     public static final String NA = "NA";
     public static final String AND = "AND";
     public static final String SPACE = " ";

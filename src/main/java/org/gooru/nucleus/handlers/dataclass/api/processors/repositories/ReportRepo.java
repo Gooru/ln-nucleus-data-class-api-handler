@@ -121,6 +121,8 @@ public interface ReportRepo {
     MessageResponse getDCAMonthlyTeacherReport();
     
     MessageResponse getStudentDCAAssessmentSessions();
+    
+    MessageResponse getDCAClassPerformance();
         
     //NU
     MessageResponse getDataReports();
@@ -130,4 +132,8 @@ public interface ReportRepo {
     //ATC
     
     MessageResponse getStudentPerfVsCompletion();
+
+    MessageResponse getStudentCourseAllItemsReport();
+
+    MessageResponse getIndependentLearnerCourseAllItemsReport();
 }

@@ -198,6 +198,9 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_DCA_STUDENT_ASSESSMENT_ALL_SESSIONS:
                 result = getStudDCAAssessmentSessions();
                   break;
+            case MessageConstants.MSG_OP_DCA_CLASS_PERF:
+                result = getDCAClassPerf();
+                  break;
             case MessageConstants.MSG_OP_NU_DATA_REPORT:
                 result = getDataReports();
                 break;
@@ -211,7 +214,12 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_STUDENTS_PERF_VS_COMPLETION:
                 result = getStudentPerfVsCompletionReport();
                 break;
-
+            case MessageConstants.MSG_OP_STUDENTS_COURSE_ALL_ITEMS_PERF:
+                result = getStudentCourseAllItemsReport();
+                break;
+            case MessageConstants.MSG_OP_IND_LEARNER_COURSE_ALL_ITEMS_PERF:
+                result = getIndependentLearnerCourseAllItemsReport();
+                break;
 
             default:
                 LOGGER.error("Invalid operation type passed in, not able to handle");
@@ -381,6 +389,24 @@ class MessageProcessor implements Processor {
 
         } catch (Throwable t) {
             LOGGER.error("Exception while getting User Sessions for Assessment", t);
+            return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+        }
+
+    }
+    
+    private MessageResponse getDCAClassPerf() {
+    	try {
+            ProcessorContext context = createContext();
+
+            if (!checkClassId(context)) {
+                LOGGER.error("Class id not available to obtain Student Performance. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid classId");
+            }
+
+            return new RepoBuilder().buildReportRepo(context).getDCAClassPerformance();
+
+        } catch (Throwable t) {
+            LOGGER.error("Exception while getting DCA Class Performance", t);
             return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
         }
 
@@ -1354,6 +1380,29 @@ class MessageProcessor implements Processor {
 
       }
 
+    private MessageResponse getStudentCourseAllItemsReport() {
+        try {
+              ProcessorContext context = createContext();
+              return new RepoBuilder().buildReportRepo(context).getStudentCourseAllItemsReport();
+
+          } catch (Throwable t) {
+              LOGGER.error("Exception while getting Student Performance of all Items in Class", t);
+              return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+          }
+
+    }
+    
+    private MessageResponse getIndependentLearnerCourseAllItemsReport() {
+        try {
+              ProcessorContext context = createContext();
+              return new RepoBuilder().buildReportRepo(context).getIndependentLearnerCourseAllItemsReport();
+
+          } catch (Throwable t) {
+              LOGGER.error("Exception while getting Learner Performance of all Items in Course", t);
+              return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+          }
+
+   }
 
     private ProcessorContext createContext() {
     	String classId = message.headers().get(MessageConstants.CLASS_ID);

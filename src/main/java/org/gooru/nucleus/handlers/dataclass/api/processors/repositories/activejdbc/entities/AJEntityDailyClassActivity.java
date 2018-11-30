@@ -369,6 +369,24 @@ public class AJEntityDailyClassActivity extends Model{
             + "AND extract(year from updated_at) = ? AND to_char(updated_at,'Mon') =  ? AND extract(week from updated_at) = ?) "
             + "AS collectionData GROUP BY collectionData.collection_id";
     
+    //*************************************************************************************************************************
+    //Student Class performance    
+    public static final String SELECT_STUDENT_CLASS_COMPLETION_SCORE = "SELECT AVG(score) AS scoreInPercentage, count(*) as completedCount "
+            + "FROM daily_class_activity WHERE class_id = ? AND actor_id = ? "
+            + "AND event_name = 'collection.play' AND event_type = 'stop' AND collection_type IN ('assessment', 'assessment-external') "
+            + "AND (path_id IS NULL OR path_id = 0) AND score IS NOT NULL";
+
+    public static final String GET_DISTINCT_USERS_IN_CLASS = "select distinct(actor_id) from daily_class_activity where collection_type IN "
+    		+ "('assessment', 'assessment-external') AND class_id = ? and event_name =  'collection.play' and event_type = 'stop' "
+    		+ "AND (path_id IS NULL OR path_id = 0)";
+    		
+    public static final String SELECT_ALL_STUDENT_CLASS_COMPLETION_SCORE = "select AVG(score) as scoreInPercentage, count(*) as completedCount "
+    		+ "from daily_class_activity where collection_type IN ('assessment', 'assessment-external') and actor_id = ANY(?::varchar[]) and "
+    		+ "event_name = 'collection.play' and event_type = 'stop' and class_id = ? AND (path_id IS NULL OR path_id = 0)";
+
+    //*************************************************************************************************************************    
+
+    
     public static final String UUID_TYPE = "uuid";
 
 }
