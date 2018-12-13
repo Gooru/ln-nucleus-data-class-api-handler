@@ -1,7 +1,6 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
 import java.sql.Date;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -15,9 +14,9 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejd
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityDailyClassActivity;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.converters.ValueMapper;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
+import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
-import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
@@ -104,8 +103,8 @@ public class StudDCACollectionPerfHandler implements DBHandler {
     if (context.classId() != null && StringUtil.isNullOrEmpty(userId)) {
       LOGGER.warn("UserID is not in the request to fetch Student Performance in DCA Collection. Assume user is a teacher");
       LazyList<AJEntityDailyClassActivity> userIdforCollection =
-              AJEntityDailyClassActivity.findBySQL(AJEntityDailyClassActivity.SELECT_DISTINCT_USERID_FOR_COLLECTION_ID_FILTERBY_COLLTYPE, context.classId(),
-                      context.collectionId(), collectionType, date);      
+              AJEntityDailyClassActivity.findBySQL(AJEntityDailyClassActivity.SELECT_DISTINCT_USERID_FOR_COLLECTION_ID + AJEntityDailyClassActivity.COLL_TYPE_FILTER, context.classId(),
+                      context.collectionId(), date);      
       userIdforCollection.forEach(coll -> userIds.add(coll.getString(AJEntityDailyClassActivity.GOORUUID)));      
     } else {
       userIds.add(userId);

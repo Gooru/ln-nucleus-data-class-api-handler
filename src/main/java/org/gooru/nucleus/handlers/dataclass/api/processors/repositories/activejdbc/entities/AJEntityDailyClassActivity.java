@@ -101,7 +101,7 @@ public class AJEntityDailyClassActivity extends Model{
     public static final String ACTIVITY_DATE = "activityDate";
 
     public static final String ASMT_TYPE_FILTER = " AND collection_type IN ('assessment','assessment-external') ";
-    public static final String COLL_TYPE_FILTER = " AND collection_type = 'collection' ";
+    public static final String COLL_TYPE_FILTER = " AND collection_type IN ('collection', 'collection-external') ";
 
     //*****************************************************************************************************************************
     //Daily Class Activity
@@ -128,7 +128,7 @@ public class AJEntityDailyClassActivity extends Model{
     		+ "THEN agg.timeSpent ELSE 0 END) AS timeSpent, SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.attempts ELSE 0 END) "
     		+ "AS attempts, agg.collectionId, agg.activityDate FROM (SELECT time_spent AS timeSpent, views AS attempts, "
     		+ "collection_id as collectionId, actor_id as actorId, event_name, date_in_time_zone as activityDate "
-    		+ "FROM daily_class_activity WHERE class_id = ? AND collection_id = ANY(?::varchar[]) AND actor_id = ? AND collection_type = ? AND event_type = 'stop' "
+    		+ "FROM daily_class_activity WHERE class_id = ? AND collection_id = ANY(?::varchar[]) AND actor_id = ? AND collection_type IN ('collection', 'collection-external') AND event_type = 'stop' "
     		+ "AND date_in_time_zone BETWEEN ? AND ? ) AS agg GROUP BY agg.collectionId, agg.activityDate ORDER BY agg.activityDate DESC";
     
     public static final String GET_PERFORMANCE_FOR_CLASS_COLLECTIONS_SCORE = "SELECT SUM(agg.score) AS score FROM "
@@ -282,9 +282,9 @@ public class AJEntityDailyClassActivity extends Model{
     //Collection Performance Report Queries
     
     //STUDENT PERFORMANCE in Assessment    
-    public static final String SELECT_DISTINCT_USERID_FOR_COLLECTION_ID_FILTERBY_COLLTYPE =
+    public static final String SELECT_DISTINCT_USERID_FOR_COLLECTION_ID =
             "SELECT DISTINCT(actor_id) FROM daily_class_activity "
-            + "WHERE class_id = ? AND collection_id = ? AND collection_type = ? AND date_in_time_zone = ?";
+            + "WHERE class_id = ? AND collection_id = ? AND date_in_time_zone = ?";
     
     //**************************************************************************************************************************************************     
     
@@ -294,9 +294,9 @@ public class AJEntityDailyClassActivity extends Model{
 	+ " AND collection_id = ? AND event_name = ? ";
     
     //GET USER ALL SESSIONS FROM ASSESSMENT    
-    public static final String GET_USER_SESSIONS_FOR_COLLID =  "SELECT DISTINCT s.session_id, s.updated_at FROM "
+    public static final String GET_ASMT_USER_SESSIONS_FOR_COLLID =  "SELECT DISTINCT s.session_id, s.updated_at FROM "
             + "(SELECT FIRST_VALUE(updated_at) OVER (PARTITION BY session_id ORDER BY updated_at DESC) AS updated_at, session_id "
-            + "FROM daily_class_activity WHERE class_id = ? AND collection_id = ? AND collection_type = ? AND actor_id = ? "
+            + "FROM daily_class_activity WHERE class_id = ? AND collection_id = ? AND collection_type IN ('assessment', 'assessment-external') AND actor_id = ? "
             + "AND date_in_time_zone BETWEEN ? AND ? ) AS s ORDER BY s.updated_at ASC";
     
   //*************************************************************************************************************************

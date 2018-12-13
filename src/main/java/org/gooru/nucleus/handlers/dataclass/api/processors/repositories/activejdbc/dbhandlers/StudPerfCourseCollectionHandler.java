@@ -143,7 +143,7 @@ public class StudPerfCourseCollectionHandler implements DBHandler {
 
             	//Find Timespent and Attempts
             	collTSA = Base.findAll(AJEntityBaseReports.GET_PERFORMANCE_FOR_COLLECTION, classId, courseId,
-            			collId, AJEntityBaseReports.ATTR_COLLECTION, userID);
+            			collId, userID);
 
             	if (!collTSA.isEmpty()) {
             	collTSA.forEach(m -> {
