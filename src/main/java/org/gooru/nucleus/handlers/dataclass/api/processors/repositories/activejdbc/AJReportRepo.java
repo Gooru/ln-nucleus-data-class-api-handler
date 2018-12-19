@@ -322,6 +322,21 @@ class AJReportRepo implements ReportRepo {
     public MessageResponse getIndependentLearnerCourseAllItemsReport() {
       return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildIndependentLearnerCourseAllItemsReportHandler(context));
     }
+    
+    @Override
+    public MessageResponse getDCAMonthlyClassSummaryHandler() {
+      return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildDCAMonthlyClassSummaryHandler(context));
+    }
+    
+    @Override
+    public MessageResponse getDCAClassSummaryForMonthHandler() {
+      return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildDCAClassSummaryForMonthHandler(context));
+    }
+    
+    @Override
+    public MessageResponse getDCAActivityAllStudentSummaryReportHandler() {
+      return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildDCAActivityAllStudentSummaryReportHandler(context));
+    }
 
 
 }

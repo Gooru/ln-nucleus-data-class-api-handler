@@ -2,8 +2,6 @@ package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activej
 
 import org.javalite.activejdbc.Model;
 import org.javalite.activejdbc.annotations.Table;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Created by mukul@gooru
@@ -14,7 +12,6 @@ import org.slf4j.LoggerFactory;
 public class AJEntityDailyClassActivity extends Model{
 
 
-  	private static final Logger LOGGER = LoggerFactory.getLogger(AJEntityDailyClassActivity.class);
   	public static final String ID = "id";
   	public static final String EVENTNAME = "event_name";
   	
@@ -368,7 +365,18 @@ public class AJEntityDailyClassActivity extends Model{
             + "WHERE class_id = ? actor_id = ? AND event_name = 'collection.resource.play' "
             + "AND extract(year from updated_at) = ? AND to_char(updated_at,'Mon') =  ? AND extract(week from updated_at) = ?) "
             + "AS collectionData GROUP BY collectionData.collection_id";
+    //************************************************************************************************************************
+    public static final String DCA_CLASS_SCORE_MONTHLY_SUMMARY = "SELECT month, AVG(score) AS score FROM (SELECT month, collection_id, AVG(score) AS score FROM (SELECT actor_id, to_char(updated_at,'Mon') AS month, collection_id, AVG(score) as score FROM daily_class_activity WHERE class_id = ? AND event_name = 'collection.play' AND collection_type IN ('assessment','assessment-external') AND event_type = 'stop' AND extract(year from updated_at) = ? group by actor_id, collection_id, updated_at) ca group by collection_id, month) c group by month";
     
+    public static final String DCA_CLASS_TS_SUMMARY_FOR_MONTH = "SELECT ROUND(AVG(time_spent)) AS time_spent FROM (SELECT collection_id, round(avg(time_spent)) AS time_spent FROM (SELECT actor_id, collection_id, SUM (time_spent) as time_spent FROM (SELECT DISTINCT ON (actor_id, resource_id) actor_id, collection_id, FIRST_VALUE(time_spent) OVER (PARTITION BY actor_id,resource_id ORDER BY updated_at desc) as time_spent FROM daily_class_activity WHERE class_id = ? AND event_name = 'collection.resource.play' AND collection_type IN ('collection', 'collection-external') AND extract(year from updated_at) = ? AND to_char(updated_at,'Mon') =  ?) AS collectionData GROUP BY actor_id, collection_id) ca group by collection_id) c";
+    
+    public static final String DCA_CLASS_ASMT_SUMMARY_FOR_MONTH = "SELECT collection_id, collection_type, AVG(score) AS score, ROUND(AVG(time_spent)) AS time_spent FROM (SELECT actor_id, collection_id, collection_type , AVG(score) AS score, ROUND(AVG(time_spent)) AS time_spent FROM daily_class_activity WHERE class_id = ? AND event_name = 'collection.play' AND collection_type IN ('assessment','assessment-external') AND event_type = 'stop' AND extract(year from updated_at) = ? AND to_char(updated_at,'Mon') =  ? group by actor_id, collection_id, collection_type) ca group by collection_id,collection_type";
+
+    public static final String DCA_CLASS_COLL_SUMMARY_FOR_MONTH = "SELECT collection_id, collection_type, ROUND(AVG (time_spent)) AS time_spent, AVG(score) AS score, AVG(max_score) AS max_score FROM (SELECT actor_id, collection_id, collection_type, SUM (time_spent) as time_spent, SUM(score) AS score, SUM(collectionData.max_score) AS max_score FROM (SELECT DISTINCT ON (actor_id, resource_id) actor_id, collection_id, collection_type, FIRST_VALUE(time_spent) OVER (PARTITION BY actor_id,resource_id ORDER BY updated_at desc) as time_spent, FIRST_VALUE(score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score, FIRST_VALUE(max_score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS max_score, to_char(updated_at,'Mon') as month FROM daily_class_activity WHERE class_id = ? AND event_name = 'collection.resource.play' AND collection_type IN ('collection', 'collection-external') AND extract(year from updated_at) = ? AND to_char(updated_at,'Mon') =  ?) AS collectionData GROUP BY actor_id, collection_id, collection_type) a GROUP by collection_id, collection_type";
+    
+    public static final String DCA_CLASS_USER_USAGE_ASSESSMENT_DATA = "SELECT actor_id, AVG(score) as score, ROUND(AVG(time_spent)) AS time_spent FROM (SELECT actor_id, collection_id, AVG(score) AS score, ROUND(AVG(time_spent)) as time_spent FROM daily_class_activity WHERE class_id = ? AND collection_id = ? AND event_name = 'collection.play' AND event_type = 'stop' AND extract(year from updated_at) = ? AND to_char(updated_at,'Mon') =  ? group by actor_id,collection_id) a group by actor_id";
+    
+    public static final String DCA_CLASS_USER_USAGE_COLLECTION_DATA = "SELECT actor_id, ROUND(AVG(time_spent)) AS time_spent, AVG(score) AS score, AVG(max_score) AS max_score FROM (SELECT actor_id, collection_id, SUM (time_spent) as time_spent, SUM(score) AS score, SUM(collectionData.max_score) AS max_score FROM (SELECT DISTINCT ON (actor_id, resource_id) collection_id, actor_id,time_spent, FIRST_VALUE(score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score, FIRST_VALUE(max_score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS max_score, to_char(updated_at,'Mon') as month FROM daily_class_activity WHERE class_id = ? AND collection_id = ? AND event_name = 'collection.resource.play' AND extract(year from updated_at) = ? AND to_char(updated_at,'Mon') =  ?) AS collectionData GROUP BY actor_id, collection_id)  a GROUP by actor_id";
     //*************************************************************************************************************************
     //Student Class performance    
     public static final String SELECT_STUDENT_CLASS_COMPLETION_SCORE = "SELECT AVG(score) AS scoreInPercentage, count(*) as completedCount "
