@@ -397,11 +397,11 @@ public class AJEntityBaseReports extends Model {
     //Getting COLLECTION DATA (views, time_spent)
     public static final String SELECT_COLLECTION_AGG_DATA = "SELECT SUM(CASE WHEN (agg.event_name = 'collection.resource.play') THEN agg.time_spent ELSE 0 END) AS collectionTimeSpent, "
             + "SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.views ELSE 0 END) AS collectionViews,"
-            + "agg.collection_id, agg.completionStatus, 0 AS score, 0 AS reaction FROM "
-            + "(SELECT collection_id,time_spent,session_id,views, event_name, "
+            + "agg.collection_id, agg.completionStatus, agg.collection_type, 0 AS score, 0 AS reaction FROM "
+            + "(SELECT collection_id,collection_type,time_spent,session_id,views, event_name, "
             + "CASE  WHEN (FIRST_VALUE(event_type) OVER (PARTITION BY collection_id ORDER BY updated_at desc) = 'stop') THEN 'completed' ELSE 'in-progress' END AS completionStatus "
-            + "FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND actor_id = ? ) AS agg "
-            + "GROUP BY agg.collection_id,agg.completionStatus";
+            + "FROM base_reports WHERE class_id = ? AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND actor_id = ? AND event_name in ('collection.play', 'collection.resource.play') ) AS agg "
+            + "GROUP BY agg.collection_id,agg.completionStatus, agg.collection_type";
     //Getting COLLECTION DATA (score)
     public static final String SELECT_COLLECTION_AGG_SCORE = "SELECT SUM(agg.score) AS score FROM "
             + "(SELECT DISTINCT ON (resource_id) collection_id, "
@@ -487,7 +487,7 @@ public class AJEntityBaseReports extends Model {
             + "agg.collection_id, agg.completionStatus, 0 AS score, 0 AS reaction FROM "
             + "(SELECT collection_id,time_spent,session_id,views,event_name,"
             + "CASE  WHEN (FIRST_VALUE(event_type) OVER (PARTITION BY collection_id ORDER BY updated_at desc) = 'stop') THEN 'completed' ELSE 'in-progress' END AS completionStatus "
-            + "FROM base_reports WHERE class_id IS NULL AND course_id IS NULL AND unit_id IS NULL AND lesson_id IS NULL AND collection_id = ? AND actor_id = ? ) AS agg "
+            + "FROM base_reports WHERE class_id IS NULL AND course_id IS NULL AND unit_id IS NULL AND lesson_id IS NULL AND event_name in ('collection.play', 'collection.resource.play') AND collection_id = ? AND actor_id = ? ) AS agg "
             + "GROUP BY agg.collection_id,agg.completionStatus";
     //Getting COLLECTION DATA (score)
     public static final String SELECT_COLLECTION_AGG_SCORE_ = "SELECT SUM(agg.score) AS score FROM "

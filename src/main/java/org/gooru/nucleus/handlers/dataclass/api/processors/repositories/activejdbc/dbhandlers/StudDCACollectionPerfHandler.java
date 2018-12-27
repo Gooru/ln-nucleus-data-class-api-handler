@@ -131,12 +131,11 @@ public class StudDCACollectionPerfHandler implements DBHandler {
               qnData.put(EventConstants.ANSWERSTATUS, EventConstants.SKIPPED);
             }
             //qnData.put(JsonConstants.SCORE, Math.round(Double.valueOf(questions.get(AJEntityDailyClassActivity.SCORE).toString())));
-              List<Map> questionScore;
-                questionScore = Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_QUESTION_AGG_SCORE, classId, collectionId, 
+              List<Map> questionScore = Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_QUESTION_AGG_SCORE, classId, collectionId, 
                 		questions.get(AJEntityDailyClassActivity.RESOURCE_ID), userID, date);
 
               String latestSessionId = null;
-              if(!questionScore.isEmpty()){
+              if(questionScore != null && !questionScore.isEmpty()){
                   latestSessionId = (questionScore.get(0).get(AJEntityDailyClassActivity.SESSION_ID) != null) ? 
                 		  questionScore.get(0).get(AJEntityDailyClassActivity.SESSION_ID).toString() : null;
               questionScore.forEach(qs -> {
@@ -153,7 +152,7 @@ public class StudDCACollectionPerfHandler implements DBHandler {
             //Get grading status for Questions
           	  if (latestSessionId != null && qnData.getString(EventConstants.QUESTION_TYPE).equalsIgnoreCase(EventConstants.OPEN_ENDED_QUE)){
                     Object isGradedObj = Base.firstCell(AJEntityDailyClassActivity.GET_OE_QUE_GRADE_STATUS, collectionId, latestSessionId, 
-                    		questions.get(AJEntityDailyClassActivity.RESOURCE_ID));
+                    		questions.get(AJEntityDailyClassActivity.RESOURCE_ID), date);
                     if (isGradedObj != null && (isGradedObj.toString().equalsIgnoreCase("t") || isGradedObj.toString().equalsIgnoreCase("true"))) {
                   	  qnData.put(JsonConstants.IS_GRADED, true);
                     } else {

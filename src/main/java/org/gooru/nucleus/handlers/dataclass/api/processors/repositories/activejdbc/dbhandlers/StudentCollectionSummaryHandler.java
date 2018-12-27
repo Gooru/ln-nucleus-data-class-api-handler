@@ -137,7 +137,7 @@ public class StudentCollectionSummaryHandler implements DBHandler {
             JsonObject assessmentData = ValueMapper.map(ResponseAttributeIdentifier.getSessionCollectionAttributesMap(), m);
             assessmentData.put(EventConstants.EVENT_TIME, this.lastAccessedTime);
             assessmentData.put(EventConstants.SESSION_ID, this.sessionId);
-            assessmentData.put(EventConstants.RESOURCE_TYPE, AJEntityBaseReports.ATTR_COLLECTION);
+            assessmentData.put(EventConstants.RESOURCE_TYPE, m.get(AJEntityBaseReports.COLLECTION_TYPE).toString());
             assessmentData.put(JsonConstants.SCORE, m.get(AJEntityBaseReports.SCORE) != null ? 
             		Math.round(Double.valueOf(m.get(AJEntityBaseReports.SCORE).toString())) : null);
 

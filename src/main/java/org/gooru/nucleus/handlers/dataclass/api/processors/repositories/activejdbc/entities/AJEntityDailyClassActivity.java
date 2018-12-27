@@ -189,11 +189,11 @@ public class AJEntityDailyClassActivity extends Model{
     public static final String SELECT_COLLECTION_AGG_DATA = "SELECT SUM(CASE WHEN (agg.event_name = 'collection.resource.play') "
     		+ "THEN agg.time_spent ELSE 0 END) AS collectionTimeSpent, "
             + "SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.views ELSE 0 END) AS collectionViews, "
-            + "agg.collection_id, agg.completionStatus, 0 AS score, 0 AS reaction FROM "
-            + "(SELECT collection_id,time_spent,session_id,views, event_name, "
+            + "agg.collection_id, agg.completionStatus,agg.collection_type, 0 AS score, 0 AS reaction FROM "
+            + "(SELECT collection_id,collection_type,time_spent,session_id,views, event_name, "
             + "CASE  WHEN (FIRST_VALUE(event_type) OVER (PARTITION BY collection_id ORDER BY updated_at desc) = 'stop') THEN 'completed' ELSE 'in-progress' END AS completionStatus "
-            + "FROM daily_class_activity WHERE class_id = ? AND collection_id = ? AND actor_id = ? AND date_in_time_zone = ?) AS agg "
-            + "GROUP BY agg.collection_id,agg.completionStatus";
+            + "FROM daily_class_activity WHERE event_name in ('collection.play', 'collection.resource.play') and class_id = ? AND collection_id = ? AND actor_id = ? AND date_in_time_zone = ?) AS agg "
+            + "GROUP BY agg.collection_id,agg.completionStatus,agg.collection_type";
     
     //Getting COLLECTION DATA (score)
     public static final String SELECT_COLLECTION_AGG_SCORE = "SELECT SUM(agg.score) AS score FROM "
