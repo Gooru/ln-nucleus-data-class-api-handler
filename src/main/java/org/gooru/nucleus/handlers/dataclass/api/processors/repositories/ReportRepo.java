@@ -136,4 +136,10 @@ public interface ReportRepo {
     MessageResponse getStudentCourseAllItemsReport();
 
     MessageResponse getIndependentLearnerCourseAllItemsReport();
+
+    MessageResponse getDCAMonthlyClassSummaryHandler();
+
+    MessageResponse getDCAClassSummaryForMonthHandler();
+
+    MessageResponse getDCAActivityAllStudentSummaryReportHandler();
 }
