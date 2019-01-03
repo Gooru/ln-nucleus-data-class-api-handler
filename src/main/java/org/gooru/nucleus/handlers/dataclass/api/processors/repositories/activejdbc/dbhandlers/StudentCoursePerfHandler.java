@@ -138,8 +138,8 @@ class StudentCoursePerfHandler implements DBHandler {
               if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
                   completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLL_COUNT_FOREACH_UNIT_ID, context.classId(), context.courseId(),
                           unitId, userID, EventConstants.COLLECTION_PLAY);
-                  scoreMap = Base.findAll(AJEntityBaseReports.GET_SCORE_FOREACH_UNIT_ID, context.classId(), context.courseId(),
-                          unitId, this.collectionType, userID);
+                  scoreMap = Base.findAll(AJEntityBaseReports.GET_COLL_SCORE_FOREACH_UNIT_ID, context.classId(), context.courseId(),
+                          unitId, userID);
               } else {
                   completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_ASS_COUNT_FOREACH_UNIT_ID, context.classId(),
                           context.courseId(), unitId, userID, EventConstants.COLLECTION_PLAY);

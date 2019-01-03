@@ -116,8 +116,7 @@ public class StudDCACollectionSummaryHandler implements DBHandler {
         this.maxScore = 0;
       }
 
-      List<Map> lastAccessedTime;
-        lastAccessedTime = Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_LAST_ACCESSED_TIME, classId, collectionId, this.userId, date);
+      List<Map> lastAccessedTime = Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_LAST_ACCESSED_TIME, classId, collectionId, this.userId, date);
 
       if (!lastAccessedTime.isEmpty()) {
       	lastAccessedTime.forEach(l -> {
@@ -128,8 +127,7 @@ public class StudDCACollectionSummaryHandler implements DBHandler {
           });
       }
 
-      List<Map> collectionData;
-        collectionData = Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_AGG_DATA, classId, collectionId, this.userId, date);
+      List<Map> collectionData = Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_AGG_DATA, classId, collectionId, this.userId, date);
 
       if (!collectionData.isEmpty()) {
         LOGGER.debug("Collection Attributes obtained");
@@ -138,7 +136,7 @@ public class StudDCACollectionSummaryHandler implements DBHandler {
           assessmentData.put(EventConstants.EVENT_TIME, this.lastAccessedTime);
           assessmentData.put(EventConstants.SESSION_ID, this.sessionId);
           //Update this to be COLLECTION_TYPE in response
-          assessmentData.put(EventConstants.COLLECTION_TYPE, AJEntityDailyClassActivity.ATTR_COLLECTION);
+          assessmentData.put(EventConstants.COLLECTION_TYPE, m.get(AJEntityDailyClassActivity.COLLECTION_TYPE).toString());
           assessmentData.put(JsonConstants.SCORE, m.get(AJEntityDailyClassActivity.SCORE) != null ? 
           		Math.round(Double.valueOf(m.get(AJEntityDailyClassActivity.SCORE).toString())) : null);
 
@@ -180,11 +178,10 @@ public class StudDCACollectionSummaryHandler implements DBHandler {
               qnData.put(EventConstants.ANSWERSTATUS, EventConstants.SKIPPED);
             }
 
-            List<Map> questionScore;            
-              questionScore = Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_QUESTION_AGG_SCORE, classId,
+            List<Map> questionScore = Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_QUESTION_AGG_SCORE, classId,
             		  collectionId, questions.get(AJEntityDailyClassActivity.RESOURCE_ID), this.userId, date);
 
-              if(!questionScore.isEmpty()){
+              if(questionScore != null && !questionScore.isEmpty()){
             questionScore.forEach(qs -> {
                 qnData.put(JsonConstants.ANSWER_OBJECT, qs.get(AJEntityDailyClassActivity.ANSWER_OBJECT) != null
               		  ? new JsonArray(qs.get(AJEntityDailyClassActivity.ANSWER_OBJECT).toString()) : null);
