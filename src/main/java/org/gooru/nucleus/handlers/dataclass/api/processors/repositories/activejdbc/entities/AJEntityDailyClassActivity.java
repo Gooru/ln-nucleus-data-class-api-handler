@@ -121,12 +121,13 @@ public class AJEntityDailyClassActivity extends Model{
             + "AND date_in_time_zone BETWEEN ? AND ?) AS agg GROUP BY agg.collectionId, agg.activityDate, agg.lastSessionId "
             + "ORDER BY agg.activityDate DESC";    
     
-    public static final String GET_PERFORMANCE_FOR_CLASS_COLLECTIONS = "SELECT SUM(CASE WHEN (agg.event_name = 'collection.resource.play') "
-    		+ "THEN agg.timeSpent ELSE 0 END) AS timeSpent, SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.attempts ELSE 0 END) "
-    		+ "AS attempts, agg.collectionId, agg.activityDate FROM (SELECT time_spent AS timeSpent, views AS attempts, "
+    public static final String GET_PERFORMANCE_FOR_CLASS_COLLECTIONS = "SELECT SUM(CASE WHEN (agg.event_name = 'collection.resource.play' and agg.collection_type = 'collection') "
+    		+ "THEN agg.timeSpent WHEN (agg.event_name = 'collection.play' and agg.collection_type = 'collection-external') THEN agg.timeSpent ELSE 0 END) AS timeSpent, "
+    		+ "SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.attempts ELSE 0 END) "
+    		+ "AS attempts, agg.collectionId, agg.activityDate FROM (SELECT collection_type, time_spent AS timeSpent, views AS attempts, "
     		+ "collection_id as collectionId, actor_id as actorId, event_name, date_in_time_zone as activityDate "
     		+ "FROM daily_class_activity WHERE class_id = ? AND collection_id = ANY(?::varchar[]) AND actor_id = ? AND collection_type IN ('collection', 'collection-external') AND event_type = 'stop' "
-    		+ "AND date_in_time_zone BETWEEN ? AND ? ) AS agg GROUP BY agg.collectionId, agg.activityDate ORDER BY agg.activityDate DESC";
+    		+ "AND date_in_time_zone BETWEEN ? AND ? ) AS agg GROUP BY agg.collectionId, agg.activityDate, agg.collection_type ORDER BY agg.activityDate DESC";
     
     public static final String GET_PERFORMANCE_FOR_CLASS_COLLECTIONS_SCORE = "SELECT SUM(agg.score) AS score FROM "
             + "(SELECT DISTINCT ON (resource_id) collection_id, "
@@ -183,8 +184,8 @@ public class AJEntityDailyClassActivity extends Model{
             + "GROUP BY agg.collection_id";
     
     //Getting COLLECTION DATA (views, time_spent)
-    public static final String SELECT_COLLECTION_AGG_DATA = "SELECT SUM(CASE WHEN (agg.event_name = 'collection.resource.play') "
-    		+ "THEN agg.time_spent ELSE 0 END) AS collectionTimeSpent, "
+    public static final String SELECT_COLLECTION_AGG_DATA = "SELECT SUM(CASE WHEN (agg.event_name = 'collection.resource.play' and agg.collection_type = 'collection') "
+    		+ "THEN agg.time_spent WHEN  (agg.event_name = 'collection.play' and agg.collection_type = 'collection-external') THEN agg.timeSpent ELSE 0 END) AS collectionTimeSpent, "
             + "SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.views ELSE 0 END) AS collectionViews, "
             + "agg.collection_id, agg.completionStatus,agg.collection_type, 0 AS score, 0 AS reaction FROM "
             + "(SELECT collection_id,collection_type,time_spent,session_id,views, event_name, "
