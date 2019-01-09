@@ -1,6 +1,5 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -22,7 +21,7 @@ public class DCAClassSummaryForYearHandler implements DBHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(DCAClassSummaryForYearHandler.class);
 
     private final ProcessorContext context;
-    private static final String FOR_YEAR = "for_year";
+    private static final String FOR_YEAR = "forYear";
     private static final String MONTH = "month";
 
     private static Integer year;
@@ -37,6 +36,11 @@ public class DCAClassSummaryForYearHandler implements DBHandler {
             LOGGER.warn("Invalid request received to fetch DCA monhly report");
             return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Invalid data provided to fetch DCA weekly/monhly report"), ExecutionStatus.FAILED);
         }
+
+        if (context.request().getString(FOR_YEAR) == null) {
+            return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Year should be provided"), ExecutionStatus.FAILED);
+        }
+        
         LOGGER.debug("checkSanity() OK");
         return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
 
@@ -44,15 +48,14 @@ public class DCAClassSummaryForYearHandler implements DBHandler {
 
     @Override
     public ExecutionResult<MessageResponse> validateRequest() {
-
         try {
-            if (context.request().getInteger(FOR_YEAR) == null) {
-                return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Valid Year should be provided"), ExecutionStatus.FAILED);
-            }
-        } catch (ClassCastException e) {
-            return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Year should be provided in Integer"), ExecutionStatus.FAILED);
+            year = Integer.parseInt(context.request().getString(FOR_YEAR));
+        } catch (Exception e) {
+            return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Format of Year/ Month is invalid!"), ExecutionStatus.FAILED);
         }
-
+        if (!AJEntityDailyClassActivity.YEAR_PATTERN.matcher(context.request().getString(FOR_YEAR)).matches()) {
+            return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Year is invalid!"), ExecutionStatus.FAILED);
+        }
         LOGGER.debug("validateRequest() OK");
         return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
     }
@@ -60,14 +63,8 @@ public class DCAClassSummaryForYearHandler implements DBHandler {
     @SuppressWarnings("rawtypes")
     @Override
     public ExecutionResult<MessageResponse> executeRequest() {
-        LOGGER.debug("YEAR : " + context.request().getInteger(FOR_YEAR));
-        LOGGER.debug("classId : " + context.classId());
-        int currentYear = LocalDate.now().getYear();
-        LOGGER.debug("currentYear : " + currentYear);
-        year = context.request().getInteger(FOR_YEAR) != null ? context.request().getInteger(FOR_YEAR) : 0;
-        if (year == null || year == 0) {
-            year = currentYear;
-        }
+        LOGGER.debug("YEAR : {}", year);
+        LOGGER.debug("classId : {}", context.classId());
 
         JsonObject contentBody = new JsonObject();
         contentBody.put(AJEntityBaseReports.ATTR_CLASS_ID, context.classId());

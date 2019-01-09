@@ -1,5 +1,7 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities;
 
+import java.util.regex.Pattern;
+
 import org.javalite.activejdbc.Model;
 import org.javalite.activejdbc.annotations.Table;
 
@@ -396,5 +398,6 @@ public class AJEntityDailyClassActivity extends Model{
 
     
     public static final String UUID_TYPE = "uuid";
+    public static Pattern YEAR_PATTERN = Pattern.compile("^\\d{4}$");
 
 }

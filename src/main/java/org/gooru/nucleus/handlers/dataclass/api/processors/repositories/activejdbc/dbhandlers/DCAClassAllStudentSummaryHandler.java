@@ -1,6 +1,5 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -23,10 +22,11 @@ public class DCAClassAllStudentSummaryHandler implements DBHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(DCAClassAllStudentSummaryHandler.class);
 
     private final ProcessorContext context;
-    private static final String FOR_MONTH = "for_month";
-    private static final String FOR_YEAR = "for_year";
+    private static final String FOR_MONTH = "forMonth";
+    private static final String FOR_YEAR = "forYear";
 
     private static Integer year;
+    private static Integer month;
 
     public DCAClassAllStudentSummaryHandler(ProcessorContext context) {
         this.context = context;
@@ -38,6 +38,14 @@ public class DCAClassAllStudentSummaryHandler implements DBHandler {
             LOGGER.warn("Invalid request received to fetch DCA weekly/monhly report");
             return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Invalid data provided to fetch DCA weekly/monhly report"), ExecutionStatus.FAILED);
         }
+        
+        if (context.request().getString(FOR_YEAR) == null) {
+            return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Year should be provided"), ExecutionStatus.FAILED);
+        }
+        
+        if (context.request().getString(FOR_MONTH) == null) {
+            return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Month should be provided"), ExecutionStatus.FAILED);
+        }
         LOGGER.debug("checkSanity() OK");
         return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
 
@@ -45,42 +53,28 @@ public class DCAClassAllStudentSummaryHandler implements DBHandler {
 
     @Override
     public ExecutionResult<MessageResponse> validateRequest() {
+        try {
+            year = Integer.parseInt(context.request().getString(FOR_YEAR));
+            month = Integer.parseInt(context.request().getString(FOR_MONTH));
+        } catch (Exception e) {
+            return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Format of Year/ Month is invalid!"), ExecutionStatus.FAILED);
+        }
+        if (!AJEntityDailyClassActivity.YEAR_PATTERN.matcher(context.request().getString(FOR_YEAR)).matches() || (month < 1 || month > 12)) {
+            return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Year/ Month is invalid!"), ExecutionStatus.FAILED);
+        }
         LOGGER.debug("validateRequest() OK");
-
-        try {
-            if (context.request().getInteger(FOR_YEAR) == null) {
-                return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Valid Year should be provided"), ExecutionStatus.FAILED);
-            }
-        } catch (ClassCastException e) {
-            return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Year should be provided in Integer"), ExecutionStatus.FAILED);
-        }
-        
-        try {
-            if (context.request().getInteger(FOR_MONTH) == null || context.request().getInteger(FOR_MONTH) == 0) {
-                return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Valid Month should be provided"), ExecutionStatus.FAILED);
-            }
-        } catch (ClassCastException e) {
-            return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Month should be provided in Integer"), ExecutionStatus.FAILED);
-        }
         return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
     }
 
     @SuppressWarnings("rawtypes")
     @Override
     public ExecutionResult<MessageResponse> executeRequest() {
-        LOGGER.debug("MONTH : " + context.request().getInteger(FOR_MONTH));
-        LOGGER.debug("YEAR : " + context.request().getInteger(FOR_YEAR));
-        LOGGER.debug("collectionType : " + context.collectionType());
-        LOGGER.debug("classId : " + context.classId());
-        int currentYear = LocalDate.now().getYear();
-        LOGGER.debug("currentYear : " + currentYear);
-        Integer month = context.request().getInteger(FOR_MONTH);
-        year = context.request().getInteger(FOR_YEAR) != null ? context.request().getInteger(FOR_YEAR) : 0;
+        LOGGER.debug("MONTH : {}", month);
+        LOGGER.debug("YEAR : {}", year);
+        LOGGER.debug("collectionType : {}", context.collectionType());
+        LOGGER.debug("classId : {}", context.classId());
         String collectionType = context.collectionType();
-        if (year == null || year == 0) {
-            year = currentYear;
-        }
-
+        
         JsonObject contentBody = new JsonObject();
         JsonArray studentArray = new JsonArray();
 
