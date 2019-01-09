@@ -1,6 +1,5 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -22,9 +21,10 @@ public class DCAClassActivitiesSummaryForMonthHandler implements DBHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(DCAClassActivitiesSummaryForMonthHandler.class);
 
     private final ProcessorContext context;
-    private static final String FOR_MONTH = "for_month";
-    private static final String FOR_YEAR = "for_year";
+    private static final String FOR_MONTH = "forMonth";
+    private static final String FOR_YEAR = "forYear";
     private static Integer year;
+    private static Integer month;
 
     public DCAClassActivitiesSummaryForMonthHandler(ProcessorContext context) {
         this.context = context;
@@ -36,6 +36,13 @@ public class DCAClassActivitiesSummaryForMonthHandler implements DBHandler {
             LOGGER.warn("Invalid request received to fetch DCA monhly report");
             return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Invalid data provided to fetch DCA weekly/monhly report"), ExecutionStatus.FAILED);
         }
+        if (context.request().getString(FOR_YEAR) == null) {
+            return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Year should be provided"), ExecutionStatus.FAILED);
+        }
+        
+        if (context.request().getString(FOR_MONTH) == null) {
+            return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Month should be provided"), ExecutionStatus.FAILED);
+        }
         LOGGER.debug("checkSanity() OK");
         return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
 
@@ -43,12 +50,15 @@ public class DCAClassActivitiesSummaryForMonthHandler implements DBHandler {
 
     @Override
     public ExecutionResult<MessageResponse> validateRequest() {
-
-        if (context.request().getString(FOR_MONTH) == null) {
-            return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Month should be provided"), ExecutionStatus.FAILED);
+        
+        try {
+            year = Integer.parseInt(context.request().getString(FOR_YEAR));
+            month = Integer.parseInt(context.request().getString(FOR_MONTH));
+        } catch (Exception e) {
+            return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Format of Year/ Month is invalid!"), ExecutionStatus.FAILED);
         }
-        if (context.request().getString(FOR_YEAR) == null) {
-            return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Year should be provided"), ExecutionStatus.FAILED);
+        if (!AJEntityDailyClassActivity.YEAR_PATTERN.matcher(context.request().getString(FOR_YEAR)).matches() || (month < 1 || month > 12)) {
+            return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Year/ Month is invalid!"), ExecutionStatus.FAILED);
         }
         LOGGER.debug("validateRequest() OK");
 
@@ -58,17 +68,10 @@ public class DCAClassActivitiesSummaryForMonthHandler implements DBHandler {
     @SuppressWarnings("rawtypes")
     @Override
     public ExecutionResult<MessageResponse> executeRequest() {
-        LOGGER.debug("MONTH : " + context.request().getString(FOR_MONTH));
-        LOGGER.debug("YEAR : " + context.request().getString(FOR_YEAR));
-        LOGGER.debug("classId : " + context.classId());
-        int currentYear = LocalDate.now().getYear();
-        LOGGER.debug("currentYear : " + currentYear);
-        String month = context.request().getString(FOR_MONTH);
-        year = context.request().getString(FOR_YEAR) != null ? Integer.parseInt(context.request().getString(FOR_YEAR)) : 0;
-        if (year == null || year == 0) {
-            year = currentYear;
-        }
-
+        LOGGER.debug("MONTH : {}", month);
+        LOGGER.debug("YEAR : {}", year);
+        LOGGER.debug("classId : {}", context.classId());
+        
         JsonObject contentBody = new JsonObject();
         contentBody.put(AJEntityDailyClassActivity.ATTR_CLASS_ID, context.classId());
         JsonArray activitiesArray = new JsonArray();
