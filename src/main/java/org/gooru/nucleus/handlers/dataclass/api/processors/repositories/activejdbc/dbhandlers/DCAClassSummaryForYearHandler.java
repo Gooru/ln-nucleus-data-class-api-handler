@@ -45,12 +45,14 @@ public class DCAClassSummaryForYearHandler implements DBHandler {
     @Override
     public ExecutionResult<MessageResponse> validateRequest() {
 
-        if (context.classId() == null) {
-            return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("ClassId should be provided"), ExecutionStatus.FAILED);
+        try {
+            if (context.request().getInteger(FOR_YEAR) == null) {
+                return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Valid Year should be provided"), ExecutionStatus.FAILED);
+            }
+        } catch (ClassCastException e) {
+            return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Year should be provided in Integer"), ExecutionStatus.FAILED);
         }
-        if (context.request().getString(FOR_YEAR) == null) {
-            return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Year should be provided"), ExecutionStatus.FAILED);
-        }
+
         LOGGER.debug("validateRequest() OK");
         return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
     }
@@ -58,11 +60,11 @@ public class DCAClassSummaryForYearHandler implements DBHandler {
     @SuppressWarnings("rawtypes")
     @Override
     public ExecutionResult<MessageResponse> executeRequest() {
-        LOGGER.debug("YEAR : " + context.request().getString(FOR_YEAR));
+        LOGGER.debug("YEAR : " + context.request().getInteger(FOR_YEAR));
         LOGGER.debug("classId : " + context.classId());
         int currentYear = LocalDate.now().getYear();
         LOGGER.debug("currentYear : " + currentYear);
-        year = context.request().getString(FOR_YEAR) != null ? Integer.parseInt(context.request().getString(FOR_YEAR)) : 0;
+        year = context.request().getInteger(FOR_YEAR) != null ? context.request().getInteger(FOR_YEAR) : 0;
         if (year == null || year == 0) {
             year = currentYear;
         }
@@ -77,7 +79,7 @@ public class DCAClassSummaryForYearHandler implements DBHandler {
             monthlyAggData.forEach(monthAggData -> {
                 JsonObject monthUsage = new JsonObject();
                 monthUsage.put(AJEntityDailyClassActivity.ATTR_SCORE, Math.round(Double.parseDouble(monthAggData.get(AJEntityBaseReports.SCORE).toString())));
-                List<Map> monthlyCollectionData = Base.findAll(AJEntityDailyClassActivity.DCA_CLASS_TS_SUMMARY_FOR_MONTH, context.classId(), year, monthAggData.get("month"));
+                List<Map> monthlyCollectionData = Base.findAll(AJEntityDailyClassActivity.DCA_CLASS_TS_SUMMARY_FOR_MONTH, context.classId(), year, monthAggData.get("monthAsInt"));
                 if (monthlyCollectionData != null) {
                     monthlyCollectionData.forEach(monthCollectionData -> {
                         monthUsage.put(AJEntityDailyClassActivity.ATTR_TIME_SPENT,

@@ -44,12 +44,22 @@ public class DCAClassActivitiesSummaryForMonthHandler implements DBHandler {
     @Override
     public ExecutionResult<MessageResponse> validateRequest() {
 
-        if (context.request().getString(FOR_MONTH) == null) {
-            return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Month should be provided"), ExecutionStatus.FAILED);
+        try {
+            if (context.request().getInteger(FOR_YEAR) == null) {
+                return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Valid Year should be provided"), ExecutionStatus.FAILED);
+            }
+        } catch (ClassCastException e) {
+            return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Year should be provided in Integer"), ExecutionStatus.FAILED);
         }
-        if (context.request().getString(FOR_YEAR) == null) {
-            return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Year should be provided"), ExecutionStatus.FAILED);
+        
+        try {
+            if (context.request().getInteger(FOR_MONTH) == null || context.request().getInteger(FOR_MONTH) == 0) {
+                return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Valid Month should be provided"), ExecutionStatus.FAILED);
+            }
+        } catch (ClassCastException e) {
+            return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Month should be provided in Integer"), ExecutionStatus.FAILED);
         }
+
         LOGGER.debug("validateRequest() OK");
 
         return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
@@ -58,13 +68,13 @@ public class DCAClassActivitiesSummaryForMonthHandler implements DBHandler {
     @SuppressWarnings("rawtypes")
     @Override
     public ExecutionResult<MessageResponse> executeRequest() {
-        LOGGER.debug("MONTH : " + context.request().getString(FOR_MONTH));
-        LOGGER.debug("YEAR : " + context.request().getString(FOR_YEAR));
+        LOGGER.debug("MONTH : " + context.request().getInteger(FOR_MONTH));
+        LOGGER.debug("YEAR : " + context.request().getInteger(FOR_YEAR));
         LOGGER.debug("classId : " + context.classId());
         int currentYear = LocalDate.now().getYear();
         LOGGER.debug("currentYear : " + currentYear);
-        String month = context.request().getString(FOR_MONTH);
-        year = context.request().getString(FOR_YEAR) != null ? Integer.parseInt(context.request().getString(FOR_YEAR)) : 0;
+        Integer month = context.request().getInteger(FOR_MONTH);
+        year = context.request().getInteger(FOR_YEAR) != null ? context.request().getInteger(FOR_YEAR) : 0;
         if (year == null || year == 0) {
             year = currentYear;
         }
