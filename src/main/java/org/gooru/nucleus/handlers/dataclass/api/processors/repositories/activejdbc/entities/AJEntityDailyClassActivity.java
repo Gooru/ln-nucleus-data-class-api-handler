@@ -187,7 +187,7 @@ public class AJEntityDailyClassActivity extends Model{
     
     //Getting COLLECTION DATA (views, time_spent)
     public static final String SELECT_COLLECTION_AGG_DATA = "SELECT SUM(CASE WHEN (agg.event_name = 'collection.resource.play' and agg.collection_type = 'collection') "
-    		+ "THEN agg.time_spent WHEN  (agg.event_name = 'collection.play' and agg.collection_type = 'collection-external') THEN agg.timeSpent ELSE 0 END) AS collectionTimeSpent, "
+    		+ "THEN agg.time_spent WHEN  (agg.event_name = 'collection.play' and agg.collection_type = 'collection-external') THEN agg.time_spent ELSE 0 END) AS collectionTimeSpent, "
             + "SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.views ELSE 0 END) AS collectionViews, "
             + "agg.collection_id, agg.completionStatus,agg.collection_type, 0 AS score, 0 AS reaction FROM "
             + "(SELECT collection_id,collection_type,time_spent,session_id,views, event_name, "
