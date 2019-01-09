@@ -107,8 +107,8 @@ public class StudDCAAssessmentSessionHandler implements DBHandler {
         Date endDate = Date.valueOf(eDate);
         
         List<Map> distinctSessionsList;
-          distinctSessionsList = Base.findAll( AJEntityDailyClassActivity.GET_USER_SESSIONS_FOR_COLLID, classId, 
-        		  this.collectionId, EventConstants.ASSESSMENT, userId, startDate, endDate);
+          distinctSessionsList = Base.findAll( AJEntityDailyClassActivity.GET_ASMT_USER_SESSIONS_FOR_COLLID, classId, 
+        		  this.collectionId, userId, startDate, endDate);
                 
     	if (!distinctSessionsList.isEmpty()) {
     		distinctSessionsList.forEach(m -> {

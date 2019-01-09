@@ -123,7 +123,7 @@ import io.vertx.core.json.JsonObject;
             List<Map> lessonKpi;
             if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
               lessonKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_UNIT_PERF_FOR_COLLECTION, context.classId(), context.courseId(),
-                    context.unitId(), this.collectionType, userID, listToPostgresArrayString(lessonIds));
+                    context.unitId(), userID, listToPostgresArrayString(lessonIds));
             }else{
               lessonKpi = Base.findAll(AJEntityBaseReports.SELECT_STUDENT_UNIT_PERF_FOR_ASSESSMENT, context.classId(), context.courseId(),
                       context.unitId(), userID, listToPostgresArrayString(lessonIds), EventConstants.COLLECTION_PLAY);
@@ -136,9 +136,9 @@ import io.vertx.core.json.JsonObject;
                 List<Map> scoreMap = null;
                 if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
                   completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLL_COUNT_FOREACH_LESSON_ID, context.classId(),
-                        context.courseId(), context.unitId(), this.lessonId, this.collectionType, userID, EventConstants.COLLECTION_PLAY);
-                  scoreMap = Base.findAll(AJEntityBaseReports.GET_SCORE_FOREACH_LESSON_ID, context.classId(),
-                          context.courseId(), context.unitId(), this.lessonId, this.collectionType, userID);
+                        context.courseId(), context.unitId(), this.lessonId, userID, EventConstants.COLLECTION_PLAY);
+                  scoreMap = Base.findAll(AJEntityBaseReports.GET_COLL_SCORE_FOREACH_LESSON_ID, context.classId(),
+                          context.courseId(), context.unitId(), this.lessonId, userID);
                 }else{
                   completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_ASMT_COUNT_FOREACH_LESSON_ID, context.classId(),
                           context.courseId(), context.unitId(), this.lessonId, userID, EventConstants.COLLECTION_PLAY);

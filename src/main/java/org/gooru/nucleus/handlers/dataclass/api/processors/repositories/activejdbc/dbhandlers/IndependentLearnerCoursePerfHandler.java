@@ -105,8 +105,8 @@ class IndependentLearnerCoursePerfHandler implements DBHandler {
         unitIDforCourse.forEach(unit -> unitIds.add(unit.getString(AJEntityBaseReports.UNIT_GOORU_OID)));
         List<Map> assessmentKpi;
         if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
-          assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_COURSE_PERF_FOR_COLLECTION, context.courseId(), this.collectionType, userID,
-                  listToPostgresArrayString(unitIds));
+          assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_COURSE_PERF_FOR_COLLECTION, context.courseId(),
+              userID, listToPostgresArrayString(unitIds));
         } else {
           assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_COURSE_PERF_FOR_ASSESSMENT, context.courseId(),
                   userID, listToPostgresArrayString(unitIds), EventConstants.COLLECTION_PLAY);
@@ -122,10 +122,10 @@ class IndependentLearnerCoursePerfHandler implements DBHandler {
               // FIXME: Score will not be useful in CUL if collection so could
               // be incorrect from this below query.
               completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLL_COUNT_FOREACH_INDEPENDENT_LEARNER_UNIT_ID, context.courseId(), unitId,
-                      this.collectionType, userID, EventConstants.COLLECTION_PLAY);
+                      userID, EventConstants.COLLECTION_PLAY);
 
-              scoreMap = Base.findAll(AJEntityBaseReports.GET_SCORE_FOREACH_IL_UNIT_ID,context.courseId(),
-                      unitId, this.collectionType, userID);
+              scoreMap = Base.findAll(AJEntityBaseReports.GET_COLL_SCORE_FOREACH_IL_UNIT_ID,context.courseId(),
+                      unitId, userID);
             } else {
               completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_ASMT_COUNT_FOREACH_INDEPENDENT_LEARNER_UNIT_ID, context.courseId(), unitId,
                       userID, EventConstants.COLLECTION_PLAY);
