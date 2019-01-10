@@ -5,6 +5,8 @@ import java.util.Map;
 
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
+import org.gooru.nucleus.handlers.dataclass.api.processors.exceptions.MessageResponseWrapperException;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityDailyClassActivity;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
@@ -32,36 +34,39 @@ public class DCAClassActivitiesSummaryForMonthHandler implements DBHandler {
 
     @Override
     public ExecutionResult<MessageResponse> checkSanity() {
-        if (context.request() == null || context.request().isEmpty()) {
-            LOGGER.warn("Invalid request received to fetch DCA monhly report");
-            return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Invalid data provided to fetch DCA weekly/monhly report"), ExecutionStatus.FAILED);
-        }
-        if (context.request().getString(FOR_YEAR) == null) {
-            return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Year should be provided"), ExecutionStatus.FAILED);
-        }
-        
-        if (context.request().getString(FOR_MONTH) == null) {
-            return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Month should be provided"), ExecutionStatus.FAILED);
+        try {
+            if (context.request() == null || context.request().isEmpty()) {
+                LOGGER.warn("Invalid request received to fetch Class Activities Summary report");
+                return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Invalid data provided to fetch Class Activities Summary report"), ExecutionStatus.FAILED);
+            }
+
+            if (context.request().getString(FOR_YEAR) == null) {
+                return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Year should be provided"), ExecutionStatus.FAILED);
+            }
+
+            if (context.request().getString(FOR_MONTH) == null) {
+                return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Month should be provided"), ExecutionStatus.FAILED);
+            }
+            validateRequestParamData();
+        } catch (MessageResponseWrapperException mrwe) {
+            return new ExecutionResult<>(mrwe.getMessageResponse(), ExecutionResult.ExecutionStatus.FAILED);
         }
         LOGGER.debug("checkSanity() OK");
         return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
 
     }
 
+    @SuppressWarnings("rawtypes")
     @Override
     public ExecutionResult<MessageResponse> validateRequest() {
-        
-        try {
-            year = Integer.parseInt(context.request().getString(FOR_YEAR));
-            month = Integer.parseInt(context.request().getString(FOR_MONTH));
-        } catch (Exception e) {
-            return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Format of Year/ Month is invalid!"), ExecutionStatus.FAILED);
-        }
-        if (!AJEntityDailyClassActivity.YEAR_PATTERN.matcher(context.request().getString(FOR_YEAR)).matches() || (month < 1 || month > 12)) {
-            return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Year/ Month is invalid!"), ExecutionStatus.FAILED);
+        if (context.getUserIdFromRequest() == null || (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
+            List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, this.context.classId(), this.context.userIdFromSession());
+            if (owner.isEmpty()) {
+                LOGGER.debug("validateRequest() FAILED");
+                return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"), ExecutionStatus.FAILED);
+            }
         }
         LOGGER.debug("validateRequest() OK");
-
         return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
     }
 
@@ -73,7 +78,6 @@ public class DCAClassActivitiesSummaryForMonthHandler implements DBHandler {
         LOGGER.debug("classId : {}", context.classId());
         
         JsonObject contentBody = new JsonObject();
-        contentBody.put(AJEntityDailyClassActivity.ATTR_CLASS_ID, context.classId());
         JsonArray activitiesArray = new JsonArray();
         
         // Generate Aggregated Data Assessment wise...
@@ -82,7 +86,6 @@ public class DCAClassActivitiesSummaryForMonthHandler implements DBHandler {
             monthlyAssessmentData.forEach(monthAssessmentData -> {
                 JsonObject assessmentUsage = new JsonObject();
                 assessmentUsage.put(AJEntityDailyClassActivity.ATTR_SCORE, Math.round(Double.parseDouble(monthAssessmentData.get(AJEntityDailyClassActivity.SCORE).toString())));
-                assessmentUsage.put(AJEntityDailyClassActivity.ATTR_TIME_SPENT, Long.parseLong(monthAssessmentData.get(AJEntityDailyClassActivity.TIMESPENT).toString()));
                 assessmentUsage.put(AJEntityDailyClassActivity.ATTR_COLLECTION_ID, monthAssessmentData.get(AJEntityDailyClassActivity.COLLECTION_OID).toString());
                 assessmentUsage.put(AJEntityDailyClassActivity.ATTR_COLLECTION_TYPE, monthAssessmentData.get(AJEntityDailyClassActivity.COLLECTION_TYPE).toString());
                 activitiesArray.add(assessmentUsage);
@@ -94,14 +97,6 @@ public class DCAClassActivitiesSummaryForMonthHandler implements DBHandler {
         if (monthlyCollectionData != null) {
             monthlyCollectionData.forEach(monthCollectionData -> {
                 JsonObject collectionUsage = new JsonObject();
-                double maxScore = Double.valueOf(monthCollectionData.get(AJEntityDailyClassActivity.MAX_SCORE).toString());
-                if (maxScore > 0 && (monthCollectionData.get(AJEntityDailyClassActivity.SCORE) != null)) {
-                    double sumOfScore = Double.valueOf(monthCollectionData.get(AJEntityDailyClassActivity.SCORE).toString());
-                    LOGGER.debug("maxScore : {} , sumOfScore : {} ", maxScore, sumOfScore);
-                    collectionUsage.put(AJEntityDailyClassActivity.ATTR_SCORE, ((sumOfScore / maxScore) * 100));
-                } else {
-                    collectionUsage.putNull(AJEntityDailyClassActivity.ATTR_SCORE);
-                }
                 collectionUsage.put(AJEntityDailyClassActivity.ATTR_TIME_SPENT, Long.parseLong(monthCollectionData.get(AJEntityDailyClassActivity.TIMESPENT).toString()));
                 collectionUsage.put(AJEntityDailyClassActivity.ATTR_COLLECTION_ID, monthCollectionData.get(AJEntityDailyClassActivity.COLLECTION_OID).toString());
                 collectionUsage.put(AJEntityDailyClassActivity.ATTR_COLLECTION_TYPE, monthCollectionData.get(AJEntityDailyClassActivity.COLLECTION_TYPE).toString());
@@ -111,6 +106,18 @@ public class DCAClassActivitiesSummaryForMonthHandler implements DBHandler {
         contentBody.put(JsonConstants.USAGE_DATA, activitiesArray);
 
         return new ExecutionResult<>(MessageResponseFactory.createGetResponse(contentBody), ExecutionStatus.SUCCESSFUL);
+    }
+    
+    private void validateRequestParamData() {
+        try {
+            year = Integer.parseInt(context.request().getString(FOR_YEAR));
+            month = Integer.parseInt(context.request().getString(FOR_MONTH));
+        } catch (Exception e) {
+            throw new MessageResponseWrapperException(MessageResponseFactory.createInvalidRequestResponse("Format of Year/ Month is invalid!"));
+        }
+        if (!AJEntityDailyClassActivity.YEAR_PATTERN.matcher(context.request().getString(FOR_YEAR)).matches() || (month < 1 || month > 12)) {
+            throw new MessageResponseWrapperException(MessageResponseFactory.createInvalidRequestResponse("Year/ Month is invalid!"));
+        }        
     }
 
     @Override

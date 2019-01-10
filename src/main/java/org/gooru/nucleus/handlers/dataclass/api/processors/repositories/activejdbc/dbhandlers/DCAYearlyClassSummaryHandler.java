@@ -6,6 +6,7 @@ import java.util.Map;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityDailyClassActivity;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
@@ -15,46 +16,40 @@ import org.javalite.activejdbc.Base;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
-public class DCAClassSummaryForYearHandler implements DBHandler {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DCAClassSummaryForYearHandler.class);
+public class DCAYearlyClassSummaryHandler implements DBHandler {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DCAYearlyClassSummaryHandler.class);
 
     private final ProcessorContext context;
-    private static final String FOR_YEAR = "forYear";
+    private static final String YEAR = "year";
     private static final String MONTH = "month";
 
-    private static Integer year;
-
-    public DCAClassSummaryForYearHandler(ProcessorContext context) {
+    public DCAYearlyClassSummaryHandler(ProcessorContext context) {
         this.context = context;
     }
 
     @Override
     public ExecutionResult<MessageResponse> checkSanity() {
         if (context.request() == null || context.request().isEmpty()) {
-            LOGGER.warn("Invalid request received to fetch DCA monhly report");
+            LOGGER.warn("Invalid request received to fetch DCA Class Summary yearly report");
             return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Invalid data provided to fetch DCA weekly/monhly report"), ExecutionStatus.FAILED);
         }
-
-        if (context.request().getString(FOR_YEAR) == null) {
-            return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Year should be provided"), ExecutionStatus.FAILED);
-        }
-        
         LOGGER.debug("checkSanity() OK");
         return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
 
     }
 
+    @SuppressWarnings("rawtypes")
     @Override
     public ExecutionResult<MessageResponse> validateRequest() {
-        try {
-            year = Integer.parseInt(context.request().getString(FOR_YEAR));
-        } catch (Exception e) {
-            return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Format of Year/ Month is invalid!"), ExecutionStatus.FAILED);
-        }
-        if (!AJEntityDailyClassActivity.YEAR_PATTERN.matcher(context.request().getString(FOR_YEAR)).matches()) {
-            return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Year is invalid!"), ExecutionStatus.FAILED);
+        if (context.getUserIdFromRequest() == null || (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
+            List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, this.context.classId(), this.context.userIdFromSession());
+            if (owner.isEmpty()) {
+                LOGGER.debug("validateRequest() FAILED");
+                return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"), ExecutionStatus.FAILED);
+            }
         }
         LOGGER.debug("validateRequest() OK");
         return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
@@ -63,30 +58,30 @@ public class DCAClassSummaryForYearHandler implements DBHandler {
     @SuppressWarnings("rawtypes")
     @Override
     public ExecutionResult<MessageResponse> executeRequest() {
-        LOGGER.debug("YEAR : {}", year);
         LOGGER.debug("classId : {}", context.classId());
 
         JsonObject contentBody = new JsonObject();
-        contentBody.put(AJEntityBaseReports.ATTR_CLASS_ID, context.classId());
+        JsonArray responseArray = new JsonArray();
 
-        JsonObject monthlyObject = new JsonObject();
         // Generate Aggregated Data Month wise...
-        List<Map> monthlyAggData = Base.findAll(AJEntityDailyClassActivity.DCA_CLASS_SCORE_MONTHLY_SUMMARY, context.classId(), year);
+        List<Map> monthlyAggData = Base.findAll(AJEntityDailyClassActivity.DCA_CLASS_SCORE_YEAR_MONTH_BREAKDOWN, context.classId());
         if (monthlyAggData != null) {
             monthlyAggData.forEach(monthAggData -> {
-                JsonObject monthUsage = new JsonObject();
-                monthUsage.put(AJEntityDailyClassActivity.ATTR_SCORE, Math.round(Double.parseDouble(monthAggData.get(AJEntityBaseReports.SCORE).toString())));
-                List<Map> monthlyCollectionData = Base.findAll(AJEntityDailyClassActivity.DCA_CLASS_TS_SUMMARY_FOR_MONTH, context.classId(), year, monthAggData.get("monthAsInt"));
+                JsonObject monthlyUsage = new JsonObject();
+                monthlyUsage.put(AJEntityDailyClassActivity.ATTR_SCORE, Math.round(Double.parseDouble(monthAggData.get(AJEntityBaseReports.SCORE).toString())));
+                List<Map> monthlyCollectionData = Base.findAll(AJEntityDailyClassActivity.DCA_CLASS_TS_SUMMARY_FOR_MONTH, context.classId(), monthAggData.get(YEAR), monthAggData.get(MONTH));
                 if (monthlyCollectionData != null) {
                     monthlyCollectionData.forEach(monthCollectionData -> {
-                        monthUsage.put(AJEntityDailyClassActivity.ATTR_TIME_SPENT,
+                        monthlyUsage.put(AJEntityDailyClassActivity.ATTR_TIME_SPENT,
                             monthCollectionData.get(AJEntityDailyClassActivity.TIMESPENT) != null ? Long.parseLong(monthCollectionData.get(AJEntityDailyClassActivity.TIMESPENT).toString()) : 0l);
                     });
                 }
-                monthlyObject.put(monthAggData.get(MONTH).toString().toLowerCase(), monthUsage);
+                monthlyUsage.put(MONTH, Math.round((Double) monthAggData.get(MONTH)));
+                monthlyUsage.put(YEAR, Math.round((Double) monthAggData.get(YEAR)));
+                responseArray.add(monthlyUsage);
             });
         }
-        contentBody.put(JsonConstants.USAGE_DATA, monthlyObject);
+        contentBody.put(JsonConstants.USAGE_DATA, responseArray);
 
         return new ExecutionResult<>(MessageResponseFactory.createGetResponse(contentBody), ExecutionStatus.SUCCESSFUL);
     }

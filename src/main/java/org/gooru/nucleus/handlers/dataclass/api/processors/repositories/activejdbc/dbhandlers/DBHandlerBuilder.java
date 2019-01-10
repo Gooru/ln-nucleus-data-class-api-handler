@@ -260,7 +260,7 @@ public final class DBHandlerBuilder {
     }
     
     public static DBHandler buildDCAMonthlyClassSummaryHandler(ProcessorContext context) {
-        return new DCAClassSummaryForYearHandler(context);
+        return new DCAYearlyClassSummaryHandler(context);
     }
     
     public static DBHandler buildDCAClassSummaryForMonthHandler(ProcessorContext context) {
