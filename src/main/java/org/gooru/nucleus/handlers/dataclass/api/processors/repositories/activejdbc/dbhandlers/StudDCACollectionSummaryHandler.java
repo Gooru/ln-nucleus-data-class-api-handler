@@ -193,7 +193,8 @@ public class StudDCACollectionSummaryHandler implements DBHandler {
             }
 
               //Get grading status for Questions
-              if(qnData.getString(EventConstants.QUESTION_TYPE).equalsIgnoreCase(EventConstants.OPEN_ENDED_QUE)){
+              if(qnData.getString(EventConstants.RESOURCE_TYPE).equalsIgnoreCase(EventConstants.QUESTION) && 
+            		  qnData.getString(EventConstants.QUESTION_TYPE).equalsIgnoreCase(EventConstants.OPEN_ENDED_QUE)){
                   Object isGradedObj = Base.firstCell(AJEntityDailyClassActivity.GET_COLL_OE_QUE_GRADE_STATUS, classId, 
                 		  collectionId, questions.get(AJEntityDailyClassActivity.RESOURCE_ID),this.userId, date);
                   if (isGradedObj != null && (isGradedObj.toString().equalsIgnoreCase("t") || isGradedObj.toString().equalsIgnoreCase("true"))) {
