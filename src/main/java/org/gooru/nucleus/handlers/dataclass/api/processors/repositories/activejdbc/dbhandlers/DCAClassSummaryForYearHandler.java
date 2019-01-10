@@ -40,7 +40,7 @@ public class DCAClassSummaryForYearHandler implements DBHandler {
             return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Invalid data provided to fetch DCA weekly/monhly report"), ExecutionStatus.FAILED);
         }
 
-        limit = Integer.valueOf(this.context.request().getString(MessageConstants.LIMIT, "20"));
+        limit = Integer.valueOf(this.context.request().getString(MessageConstants.LIMIT, "5"));
         offset = Integer.valueOf(this.context.request().getString(MessageConstants.OFFSET, "0"));
         if (limit < 0 || offset < 0) {
             LOGGER.warn("Limit/Offset requested is negative");
@@ -80,8 +80,8 @@ public class DCAClassSummaryForYearHandler implements DBHandler {
                             monthCollectionData.get(AJEntityDailyClassActivity.TIMESPENT) != null ? Long.parseLong(monthCollectionData.get(AJEntityDailyClassActivity.TIMESPENT).toString()) : 0l);
                     });
                 }
-                Long month = Math.round(Double.parseDouble(monthAggData.get(MONTH).toString()));
-                Long year = Math.round(Double.parseDouble(monthAggData.get(YEAR).toString()));
+                Long month = Math.round((Double) monthAggData.get(MONTH));
+                Long year = Math.round((Double) monthAggData.get(YEAR));
                 monthlyObject.put(month.toString(), monthUsage);
                 if (yearObject.containsKey(year.toString())) {
                     yearObject.getJsonObject(year.toString()).put(month.toString(), monthUsage);
