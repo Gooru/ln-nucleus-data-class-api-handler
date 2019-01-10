@@ -87,7 +87,6 @@ public class DCAClassAllStudentSummaryHandler implements DBHandler {
                 JsonObject assessmentUsage = new JsonObject();
                 JsonObject user = new JsonObject();
                 assessmentUsage.put(AJEntityDailyClassActivity.ATTR_SCORE, Math.round(Double.parseDouble(monthAssessmentData.get(AJEntityDailyClassActivity.SCORE).toString())));
-                assessmentUsage.put(AJEntityDailyClassActivity.ATTR_TIME_SPENT, Long.parseLong(monthAssessmentData.get(AJEntityDailyClassActivity.TIMESPENT).toString()));
                 user.put(AJEntityBaseReports.ATTR_USER_ID, monthAssessmentData.get(AJEntityDailyClassActivity.GOORUUID).toString());
                 user.put(JsonConstants.USAGE_DATA, assessmentUsage);
                 studentArray.add(user);
@@ -101,14 +100,6 @@ public class DCAClassAllStudentSummaryHandler implements DBHandler {
             monthlyCollectionData.stream().forEach(monthCollectionData -> {
                 JsonObject collectionUsage = new JsonObject();
                 JsonObject user = new JsonObject();
-                double maxScore = Double.valueOf(monthCollectionData.get(AJEntityDailyClassActivity.MAX_SCORE).toString());
-                if (maxScore > 0 && (monthCollectionData.get(AJEntityDailyClassActivity.SCORE) != null)) {
-                    double sumOfScore = Double.valueOf(monthCollectionData.get(AJEntityDailyClassActivity.SCORE).toString());
-                    LOGGER.debug("maxScore : {} , sumOfScore : {} ", maxScore, sumOfScore);
-                    collectionUsage.put(AJEntityDailyClassActivity.ATTR_SCORE, ((sumOfScore / maxScore) * 100));
-                } else {
-                    collectionUsage.putNull(AJEntityDailyClassActivity.ATTR_SCORE);
-                }
                 collectionUsage.put(AJEntityDailyClassActivity.ATTR_TIME_SPENT, Long.parseLong(monthCollectionData.get(AJEntityDailyClassActivity.TIMESPENT).toString()));
                 user.put(AJEntityBaseReports.ATTR_USER_ID, monthCollectionData.get(AJEntityDailyClassActivity.GOORUUID).toString());
                 user.put(JsonConstants.USAGE_DATA, collectionUsage);

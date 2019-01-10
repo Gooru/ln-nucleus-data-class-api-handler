@@ -73,7 +73,6 @@ public class DCAClassActivitiesSummaryForMonthHandler implements DBHandler {
         LOGGER.debug("classId : {}", context.classId());
         
         JsonObject contentBody = new JsonObject();
-        contentBody.put(AJEntityDailyClassActivity.ATTR_CLASS_ID, context.classId());
         JsonArray activitiesArray = new JsonArray();
         
         // Generate Aggregated Data Assessment wise...
@@ -82,7 +81,6 @@ public class DCAClassActivitiesSummaryForMonthHandler implements DBHandler {
             monthlyAssessmentData.forEach(monthAssessmentData -> {
                 JsonObject assessmentUsage = new JsonObject();
                 assessmentUsage.put(AJEntityDailyClassActivity.ATTR_SCORE, Math.round(Double.parseDouble(monthAssessmentData.get(AJEntityDailyClassActivity.SCORE).toString())));
-                assessmentUsage.put(AJEntityDailyClassActivity.ATTR_TIME_SPENT, Long.parseLong(monthAssessmentData.get(AJEntityDailyClassActivity.TIMESPENT).toString()));
                 assessmentUsage.put(AJEntityDailyClassActivity.ATTR_COLLECTION_ID, monthAssessmentData.get(AJEntityDailyClassActivity.COLLECTION_OID).toString());
                 assessmentUsage.put(AJEntityDailyClassActivity.ATTR_COLLECTION_TYPE, monthAssessmentData.get(AJEntityDailyClassActivity.COLLECTION_TYPE).toString());
                 activitiesArray.add(assessmentUsage);
@@ -94,14 +92,6 @@ public class DCAClassActivitiesSummaryForMonthHandler implements DBHandler {
         if (monthlyCollectionData != null) {
             monthlyCollectionData.forEach(monthCollectionData -> {
                 JsonObject collectionUsage = new JsonObject();
-                double maxScore = Double.valueOf(monthCollectionData.get(AJEntityDailyClassActivity.MAX_SCORE).toString());
-                if (maxScore > 0 && (monthCollectionData.get(AJEntityDailyClassActivity.SCORE) != null)) {
-                    double sumOfScore = Double.valueOf(monthCollectionData.get(AJEntityDailyClassActivity.SCORE).toString());
-                    LOGGER.debug("maxScore : {} , sumOfScore : {} ", maxScore, sumOfScore);
-                    collectionUsage.put(AJEntityDailyClassActivity.ATTR_SCORE, ((sumOfScore / maxScore) * 100));
-                } else {
-                    collectionUsage.putNull(AJEntityDailyClassActivity.ATTR_SCORE);
-                }
                 collectionUsage.put(AJEntityDailyClassActivity.ATTR_TIME_SPENT, Long.parseLong(monthCollectionData.get(AJEntityDailyClassActivity.TIMESPENT).toString()));
                 collectionUsage.put(AJEntityDailyClassActivity.ATTR_COLLECTION_ID, monthCollectionData.get(AJEntityDailyClassActivity.COLLECTION_OID).toString());
                 collectionUsage.put(AJEntityDailyClassActivity.ATTR_COLLECTION_TYPE, monthCollectionData.get(AJEntityDailyClassActivity.COLLECTION_TYPE).toString());
