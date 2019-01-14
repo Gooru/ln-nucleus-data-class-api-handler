@@ -1,9 +1,9 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities;
 
+import java.util.regex.Pattern;
+
 import org.javalite.activejdbc.Model;
 import org.javalite.activejdbc.annotations.Table;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Created by mukul@gooru
@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 public class AJEntityDailyClassActivity extends Model{
 
 
-  	private static final Logger LOGGER = LoggerFactory.getLogger(AJEntityDailyClassActivity.class);
   	public static final String ID = "id";
   	public static final String EVENTNAME = "event_name";
   	
@@ -101,7 +100,7 @@ public class AJEntityDailyClassActivity extends Model{
     public static final String ACTIVITY_DATE = "activityDate";
 
     public static final String ASMT_TYPE_FILTER = " AND collection_type IN ('assessment','assessment-external') ";
-    public static final String COLL_TYPE_FILTER = " AND collection_type = 'collection' ";
+    public static final String COLL_TYPE_FILTER = " AND collection_type IN ('collection', 'collection-external') ";
 
     //*****************************************************************************************************************************
     //Daily Class Activity
@@ -124,12 +123,13 @@ public class AJEntityDailyClassActivity extends Model{
             + "AND date_in_time_zone BETWEEN ? AND ?) AS agg GROUP BY agg.collectionId, agg.activityDate, agg.lastSessionId "
             + "ORDER BY agg.activityDate DESC";    
     
-    public static final String GET_PERFORMANCE_FOR_CLASS_COLLECTIONS = "SELECT SUM(CASE WHEN (agg.event_name = 'collection.resource.play') "
-    		+ "THEN agg.timeSpent ELSE 0 END) AS timeSpent, SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.attempts ELSE 0 END) "
-    		+ "AS attempts, agg.collectionId, agg.activityDate FROM (SELECT time_spent AS timeSpent, views AS attempts, "
+    public static final String GET_PERFORMANCE_FOR_CLASS_COLLECTIONS = "SELECT SUM(CASE WHEN (agg.event_name = 'collection.resource.play' and agg.collection_type = 'collection') "
+    		+ "THEN agg.timeSpent WHEN (agg.event_name = 'collection.play' and agg.collection_type = 'collection-external') THEN agg.timeSpent ELSE 0 END) AS timeSpent, "
+    		+ "SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.attempts ELSE 0 END) "
+    		+ "AS attempts, agg.collectionId, agg.activityDate FROM (SELECT collection_type, time_spent AS timeSpent, views AS attempts, "
     		+ "collection_id as collectionId, actor_id as actorId, event_name, date_in_time_zone as activityDate "
-    		+ "FROM daily_class_activity WHERE class_id = ? AND collection_id = ANY(?::varchar[]) AND actor_id = ? AND collection_type = ? AND event_type = 'stop' "
-    		+ "AND date_in_time_zone BETWEEN ? AND ? ) AS agg GROUP BY agg.collectionId, agg.activityDate ORDER BY agg.activityDate DESC";
+    		+ "FROM daily_class_activity WHERE class_id = ? AND collection_id = ANY(?::varchar[]) AND actor_id = ? AND collection_type IN ('collection', 'collection-external') AND event_type = 'stop' "
+    		+ "AND date_in_time_zone BETWEEN ? AND ? ) AS agg GROUP BY agg.collectionId, agg.activityDate, agg.collection_type ORDER BY agg.activityDate DESC";
     
     public static final String GET_PERFORMANCE_FOR_CLASS_COLLECTIONS_SCORE = "SELECT SUM(agg.score) AS score FROM "
             + "(SELECT DISTINCT ON (resource_id) collection_id, "
@@ -186,14 +186,14 @@ public class AJEntityDailyClassActivity extends Model{
             + "GROUP BY agg.collection_id";
     
     //Getting COLLECTION DATA (views, time_spent)
-    public static final String SELECT_COLLECTION_AGG_DATA = "SELECT SUM(CASE WHEN (agg.event_name = 'collection.resource.play') "
-    		+ "THEN agg.time_spent ELSE 0 END) AS collectionTimeSpent, "
+    public static final String SELECT_COLLECTION_AGG_DATA = "SELECT SUM(CASE WHEN (agg.event_name = 'collection.resource.play' and agg.collection_type = 'collection') "
+    		+ "THEN agg.time_spent WHEN  (agg.event_name = 'collection.play' and agg.collection_type = 'collection-external') THEN agg.time_spent ELSE 0 END) AS collectionTimeSpent, "
             + "SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.views ELSE 0 END) AS collectionViews, "
-            + "agg.collection_id, agg.completionStatus, 0 AS score, 0 AS reaction FROM "
-            + "(SELECT collection_id,time_spent,session_id,views, event_name, "
+            + "agg.collection_id, agg.completionStatus,agg.collection_type, 0 AS score, 0 AS reaction FROM "
+            + "(SELECT collection_id,collection_type,time_spent,session_id,views, event_name, "
             + "CASE  WHEN (FIRST_VALUE(event_type) OVER (PARTITION BY collection_id ORDER BY updated_at desc) = 'stop') THEN 'completed' ELSE 'in-progress' END AS completionStatus "
-            + "FROM daily_class_activity WHERE class_id = ? AND collection_id = ? AND actor_id = ? AND date_in_time_zone = ?) AS agg "
-            + "GROUP BY agg.collection_id,agg.completionStatus";
+            + "FROM daily_class_activity WHERE event_name in ('collection.play', 'collection.resource.play') and class_id = ? AND collection_id = ? AND actor_id = ? AND date_in_time_zone = ?) AS agg "
+            + "GROUP BY agg.collection_id,agg.completionStatus,agg.collection_type";
     
     //Getting COLLECTION DATA (score)
     public static final String SELECT_COLLECTION_AGG_SCORE = "SELECT SUM(agg.score) AS score FROM "
@@ -282,9 +282,9 @@ public class AJEntityDailyClassActivity extends Model{
     //Collection Performance Report Queries
     
     //STUDENT PERFORMANCE in Assessment    
-    public static final String SELECT_DISTINCT_USERID_FOR_COLLECTION_ID_FILTERBY_COLLTYPE =
+    public static final String SELECT_DISTINCT_USERID_FOR_COLLECTION_ID =
             "SELECT DISTINCT(actor_id) FROM daily_class_activity "
-            + "WHERE class_id = ? AND collection_id = ? AND collection_type = ? AND date_in_time_zone = ?";
+            + "WHERE class_id = ? AND collection_id = ? AND date_in_time_zone = ?";
     
     //**************************************************************************************************************************************************     
     
@@ -294,9 +294,9 @@ public class AJEntityDailyClassActivity extends Model{
 	+ " AND collection_id = ? AND event_name = ? ";
     
     //GET USER ALL SESSIONS FROM ASSESSMENT    
-    public static final String GET_USER_SESSIONS_FOR_COLLID =  "SELECT DISTINCT s.session_id, s.updated_at FROM "
+    public static final String GET_ASMT_USER_SESSIONS_FOR_COLLID =  "SELECT DISTINCT s.session_id, s.updated_at FROM "
             + "(SELECT FIRST_VALUE(updated_at) OVER (PARTITION BY session_id ORDER BY updated_at DESC) AS updated_at, session_id "
-            + "FROM daily_class_activity WHERE class_id = ? AND collection_id = ? AND collection_type = ? AND actor_id = ? "
+            + "FROM daily_class_activity WHERE class_id = ? AND collection_id = ? AND collection_type IN ('assessment', 'assessment-external') AND actor_id = ? "
             + "AND date_in_time_zone BETWEEN ? AND ? ) AS s ORDER BY s.updated_at ASC";
     
   //*************************************************************************************************************************
@@ -368,7 +368,18 @@ public class AJEntityDailyClassActivity extends Model{
             + "WHERE class_id = ? actor_id = ? AND event_name = 'collection.resource.play' "
             + "AND extract(year from updated_at) = ? AND to_char(updated_at,'Mon') =  ? AND extract(week from updated_at) = ?) "
             + "AS collectionData GROUP BY collectionData.collection_id";
+    //************************************************************************************************************************
+    public static final String DCA_CLASS_SCORE_YEAR_MONTH_BREAKDOWN = "SELECT EXTRACT(YEAR FROM date_in_time_zone) AS year, EXTRACT(MONTH FROM date_in_time_zone) AS month, AVG(score) as score FROM daily_class_activity WHERE class_id = ? AND event_name = 'collection.play' AND collection_type IN ('assessment','assessment-external') AND event_type = 'stop' group by year, month order by year desc, month asc;";
     
+    public static final String DCA_CLASS_TS_SUMMARY_FOR_MONTH = "SELECT ROUND(AVG(time_spent)) AS time_spent FROM (SELECT collection_id, ROUND(AVG(time_spent)) AS time_spent FROM (SELECT actor_id, collection_id, SUM(time_spent) as time_spent FROM daily_class_activity WHERE class_id = ? AND event_name = 'collection.resource.play' AND collection_type IN ('collection', 'collection-external') AND extract(year from date_in_time_zone) = ? AND extract(month from date_in_time_zone) = ? GROUP BY actor_id, collection_id) ca group by collection_id) c";
+    
+    public static final String DCA_CLASS_ASMT_SUMMARY_FOR_MONTH = "SELECT collection_id, collection_type, AVG(score) AS score, ROUND(AVG(time_spent)) AS time_spent FROM daily_class_activity WHERE class_id = ? AND event_name = 'collection.play' AND collection_type IN ('assessment','assessment-external') AND event_type = 'stop' AND extract(year from date_in_time_zone) = ? AND extract(month from date_in_time_zone) = ? group by collection_id, collection_type";
+
+    public static final String DCA_CLASS_COLL_SUMMARY_FOR_MONTH = "SELECT collection_id, collection_type, ROUND(AVG (time_spent)) AS time_spent FROM (SELECT actor_id, collection_id, collection_type, SUM(time_spent) as time_spent FROM daily_class_activity WHERE class_id = ? AND event_name = 'collection.resource.play' AND collection_type IN ('collection', 'collection-external') AND extract(year from date_in_time_zone) = ? AND extract(month from date_in_time_zone) =  ? GROUP BY actor_id, collection_id, collection_type) a GROUP by collection_id, collection_type";
+    
+    public static final String DCA_CLASS_USER_USAGE_ASSESSMENT_DATA = "SELECT actor_id, AVG(score) as score, ROUND(AVG(time_spent)) AS time_spent FROM daily_class_activity WHERE class_id = ? AND collection_id = ? AND event_name = 'collection.play' AND event_type = 'stop' AND extract(year from date_in_time_zone) = ? AND extract(month from date_in_time_zone) =  ? group by actor_id";
+    
+    public static final String DCA_CLASS_USER_USAGE_COLLECTION_DATA = "SELECT actor_id, ROUND(AVG(time_spent)) AS time_spent FROM (SELECT actor_id, collection_id, SUM (time_spent) as time_spent FROM daily_class_activity WHERE class_id = ? AND collection_id = ? AND event_name = 'collection.resource.play' AND extract(year from date_in_time_zone) = ? AND extract(month from date_in_time_zone) =  ? GROUP BY actor_id, collection_id) a GROUP by actor_id";
     //*************************************************************************************************************************
     //Student Class performance    
     public static final String SELECT_STUDENT_CLASS_COMPLETION_SCORE = "SELECT AVG(score) AS scoreInPercentage, count(*) as completedCount "
@@ -388,5 +399,6 @@ public class AJEntityDailyClassActivity extends Model{
 
     
     public static final String UUID_TYPE = "uuid";
+    public static Pattern YEAR_PATTERN = Pattern.compile("^\\d{4}$");
 
 }

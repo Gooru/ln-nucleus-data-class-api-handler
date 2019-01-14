@@ -220,6 +220,15 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_IND_LEARNER_COURSE_ALL_ITEMS_PERF:
                 result = getIndependentLearnerCourseAllItemsReport();
                 break;
+            case MessageConstants.MSG_OP_DCA_CLASS_SUMMARY_MONTHLY:
+                result = getDCAMonthlyClassSummaryHandler();
+                break;
+            case MessageConstants.MSG_OP_DCA_CLASS_SUMMARY_FOR_MONTH:
+                result = getDCAClassSummaryForMonthHandler();
+                break;
+            case MessageConstants.MSG_OP_DCA_CLASS_USER_SUMMARY_FOR_MONTH:
+                result = getDCAActivityAllStudentSummaryReportHandler();
+                break;
 
             default:
                 LOGGER.error("Invalid operation type passed in, not able to handle");
@@ -1403,6 +1412,42 @@ class MessageProcessor implements Processor {
           }
 
    }
+    
+    private MessageResponse getDCAMonthlyClassSummaryHandler() {
+        try {
+              ProcessorContext context = createContext();
+              return new RepoBuilder().buildReportRepo(context).getDCAMonthlyClassSummaryHandler();
+
+          } catch (Throwable t) {
+              LOGGER.error("Exception while getting getDCAMonthlyClassSummaryHandler", t);
+              return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+          }
+
+   }
+    
+    private MessageResponse getDCAClassSummaryForMonthHandler() {
+        try {
+              ProcessorContext context = createContext();
+              return new RepoBuilder().buildReportRepo(context).getDCAClassSummaryForMonthHandler();
+
+          } catch (Throwable t) {
+              LOGGER.error("Exception while getting getDCAClassSummaryForMonthHandler", t);
+              return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+          }
+
+   }
+    
+    private MessageResponse getDCAActivityAllStudentSummaryReportHandler() {
+        try {
+              ProcessorContext context = createContext();
+              return new RepoBuilder().buildReportRepo(context).getDCAActivityAllStudentSummaryReportHandler();
+
+          } catch (Throwable t) {
+              LOGGER.error("Exception while getting getDCAActivityAllStudentSummaryReportHandler", t);
+              return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+          }
+
+   }
 
     private ProcessorContext createContext() {
     	String classId = message.headers().get(MessageConstants.CLASS_ID);
@@ -1420,9 +1465,10 @@ class MessageProcessor implements Processor {
         String questionId = message.headers().get(MessageConstants.QUESTION_ID);
         String startDate = message.headers().get(MessageConstants.START_DATE);
         String endDate = message.headers().get(MessageConstants.END_DATE);
+        String collectionType = message.headers().get(MessageConstants.COLLECTION_TYPE);
 
         return new ProcessorContext(request, userId,userUId, classId, courseId, unitId, lessonId, collectionId,
-        		sessionId, studentId, questionId,startDate,endDate);
+        		sessionId, studentId, questionId,startDate,endDate, collectionType);
     }
 
     //This is just the first level validation. Each Individual Handler would need to do more validation based on the

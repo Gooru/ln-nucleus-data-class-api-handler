@@ -258,6 +258,18 @@ public final class DBHandlerBuilder {
     public static DBHandler buildIndependentLearnerCourseAllItemsReportHandler(ProcessorContext context) {
         return new IndependentLearnerCourseAllItemsPerformanceHandler(context);
     }
+    
+    public static DBHandler buildDCAMonthlyClassSummaryHandler(ProcessorContext context) {
+        return new DCAYearlyClassSummaryHandler(context);
+    }
+    
+    public static DBHandler buildDCAClassSummaryForMonthHandler(ProcessorContext context) {
+        return new DCAClassActivitiesSummaryForMonthHandler(context);
+    }
+    
+    public static DBHandler buildDCAActivityAllStudentSummaryReportHandler(ProcessorContext context) {
+        return new DCAClassAllStudentSummaryHandler(context);
+    }
 
 }
 

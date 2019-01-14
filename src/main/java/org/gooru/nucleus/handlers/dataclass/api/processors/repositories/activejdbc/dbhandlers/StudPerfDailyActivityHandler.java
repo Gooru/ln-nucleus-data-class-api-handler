@@ -111,7 +111,7 @@ public class StudPerfDailyActivityHandler implements DBHandler {
             } else {
                 LOGGER.debug("Fetching Performance for Collections in Class");
                 activityList = Base.findAll(AJEntityDailyClassActivity.GET_PERFORMANCE_FOR_CLASS_COLLECTIONS, classId,
-                    PgUtils.listToPostgresArrayString(collIds), userId, collectionType, startDate, endDate);
+                    PgUtils.listToPostgresArrayString(collIds), userId, startDate, endDate);
             }
             if (activityList != null && !activityList.isEmpty()) {
                 generateActivityData(activityArray, activityList);

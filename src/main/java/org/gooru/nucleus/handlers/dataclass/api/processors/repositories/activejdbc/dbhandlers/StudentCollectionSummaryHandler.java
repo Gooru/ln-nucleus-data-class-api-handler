@@ -137,7 +137,7 @@ public class StudentCollectionSummaryHandler implements DBHandler {
             JsonObject assessmentData = ValueMapper.map(ResponseAttributeIdentifier.getSessionCollectionAttributesMap(), m);
             assessmentData.put(EventConstants.EVENT_TIME, this.lastAccessedTime);
             assessmentData.put(EventConstants.SESSION_ID, this.sessionId);
-            assessmentData.put(EventConstants.RESOURCE_TYPE, AJEntityBaseReports.ATTR_COLLECTION);
+            assessmentData.put(EventConstants.RESOURCE_TYPE, m.get(AJEntityBaseReports.COLLECTION_TYPE).toString());
             assessmentData.put(JsonConstants.SCORE, m.get(AJEntityBaseReports.SCORE) != null ? 
             		Math.round(Double.valueOf(m.get(AJEntityBaseReports.SCORE).toString())) : null);
 
@@ -215,7 +215,8 @@ public class StudentCollectionSummaryHandler implements DBHandler {
               //Get grading status for Questions
               if (!StringUtil.isNullOrEmpty(classId) && !StringUtil.isNullOrEmpty(courseId) &&
             		  !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
-            	  if (latestSessionId != null && qnData.getString(EventConstants.QUESTION_TYPE).equalsIgnoreCase(EventConstants.OPEN_ENDED_QUE)){
+            	  if (latestSessionId != null && qnData.getString(EventConstants.RESOURCE_TYPE).equalsIgnoreCase(EventConstants.QUESTION) && 
+            			  qnData.getString(EventConstants.QUESTION_TYPE).equalsIgnoreCase(EventConstants.OPEN_ENDED_QUE)){
                       Object isGradedObj = Base.firstCell(AJEntityBaseReports.GET_OE_QUE_GRADE_STATUS, collectionId, latestSessionId, questions.get(AJEntityBaseReports.RESOURCE_ID));
                       if (isGradedObj != null && (isGradedObj.toString().equalsIgnoreCase("t") || isGradedObj.toString().equalsIgnoreCase("true"))) {
                     	  qnData.put(JsonConstants.IS_GRADED, true);

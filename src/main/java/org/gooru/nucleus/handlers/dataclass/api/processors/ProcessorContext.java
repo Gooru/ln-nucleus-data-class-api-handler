@@ -19,11 +19,12 @@ public class ProcessorContext {
     private final String studentId;
     private final String questionId;    
     private final String startDate;    
-    private final String endDate;    
+    private final String endDate; 
+    private final String collectionType;
     
 
     public ProcessorContext(JsonObject request, String userIdFromSession, String userIdFromRequest, String classId, String courseId, String unitId, String lessonId, String collectionId, 
-    		String sessionId, String studentId, String questionId,String startDate, String endDate) {        
+    		String sessionId, String studentId, String questionId,String startDate, String endDate, String collectionType) {        
         this.request = request != null ? request.copy() : null;
         this.userIdFromSession = userIdFromSession;
         this.userIdFromRequest = userIdFromRequest;
@@ -37,6 +38,7 @@ public class ProcessorContext {
         this.questionId = questionId;
         this.startDate = startDate;
         this.endDate = endDate;
+        this.collectionType = collectionType;
     }
 
     //Mukul - TODO 
@@ -71,6 +73,10 @@ public class ProcessorContext {
 
     public String sessionId() {
         return this.sessionId;
+    }
+    
+    public String collectionType() {
+        return collectionType;
     }
 
     public String getUserIdFromRequest() {

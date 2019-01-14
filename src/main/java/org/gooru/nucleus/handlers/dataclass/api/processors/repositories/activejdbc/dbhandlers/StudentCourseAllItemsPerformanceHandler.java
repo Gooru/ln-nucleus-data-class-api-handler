@@ -121,6 +121,10 @@ public class StudentCourseAllItemsPerformanceHandler implements DBHandler {
                     Object collTitle = Base.firstCell(AJEntityContent.GET_TITLE, collId);
                     collectionKpi.put(JsonConstants.TITLE, (collTitle != null ? collTitle.toString() : "NA"));
                     collectionKpi.put(AJEntityBaseReports.ATTR_SESSION_ID, m.get(AJEntityBaseReports.ATTR_SESSION_ID).toString());
+                    collectionKpi.put(AJEntityBaseReports.ATTR_CLASS_ID, context.classId());
+                    collectionKpi.put(AJEntityBaseReports.ATTR_COURSE_ID, courseId);
+                    collectionKpi.put(AJEntityBaseReports.ATTR_UNIT_ID, m.get(AJEntityBaseReports.ATTR_UNIT_ID) != null ? m.get(AJEntityBaseReports.ATTR_UNIT_ID).toString() : null);
+                    collectionKpi.put(AJEntityBaseReports.ATTR_LESSON_ID, m.get(AJEntityBaseReports.ATTR_LESSON_ID) != null ? m.get(AJEntityBaseReports.ATTR_LESSON_ID).toString() : null);
                     collectionKpi.put(AJEntityBaseReports.ATTR_PATH_ID, (m.get(AJEntityBaseReports.ATTR_PATH_ID) != null && Integer.valueOf(m.get(AJEntityBaseReports.ATTR_PATH_ID).toString()) > 0) ? Integer.valueOf(m.get(AJEntityBaseReports.ATTR_PATH_ID).toString()) : null);
                     collectionKpi.put(AJEntityBaseReports.ATTR_PATH_TYPE, m.get(AJEntityBaseReports.ATTR_PATH_TYPE) != null ? m.get(AJEntityBaseReports.ATTR_PATH_TYPE).toString() : null);
                     collectionKpi.put(AJEntityBaseReports.ATTR_LAST_ACCESSED, m.get(AJEntityBaseReports.UPDATE_TIMESTAMP).toString());

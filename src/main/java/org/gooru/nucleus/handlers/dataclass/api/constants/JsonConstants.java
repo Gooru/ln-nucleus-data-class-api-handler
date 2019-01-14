@@ -111,6 +111,8 @@ public final class JsonConstants {
   	public static final String TITLE = "title";
   	
   	public static final String START_DATE = "startDate";
+  	  	  	
+  	public static final String USERS = "users";
 
 	private JsonConstants() {
 		throw new AssertionError();

@@ -96,11 +96,11 @@ public class StudPerfMultipleCollectionHandler implements DBHandler{
       if (!StringUtil.isNullOrEmpty(classId)) {
         LOGGER.debug("Fetching Performance for Assessments in Class");
         collectionPerf = Base.findAll(AJEntityBaseReports.GET_PERFORMANCE_FOR_CLASS_COLLECTION, classId,
-                listToPostgresArrayString(collIds), AJEntityBaseReports.ATTR_COLLECTION, userId);
+                listToPostgresArrayString(collIds), userId);
       } else {
           LOGGER.debug("Fetching Performance for Assessments outside Class");
           collectionPerf = Base.findAll(AJEntityBaseReports.GET_PERFORMANCE_FOR_COLLECTION,
-                  listToPostgresArrayString(collIds), AJEntityBaseReports.ATTR_COLLECTION, userId);
+                  listToPostgresArrayString(collIds), userId);
 
       }
 
