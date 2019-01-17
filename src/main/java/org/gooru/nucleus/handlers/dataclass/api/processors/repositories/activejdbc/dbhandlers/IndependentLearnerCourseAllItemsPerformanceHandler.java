@@ -89,7 +89,7 @@ public class IndependentLearnerCourseAllItemsPerformanceHandler implements DBHan
                     Double score = m.get(AJEntityBaseReports.SCORE) != null ? Double.valueOf(m.get(AJEntityBaseReports.SCORE).toString()) : null;
                     Double maxScore = m.get(AJEntityBaseReports.ATTR_MAX_SCORE) != null ? Double.valueOf(m.get(AJEntityBaseReports.ATTR_MAX_SCORE).toString()) : null;
                     if (collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {
-                        if (maxScore > 0 && score != null) {
+                        if ((maxScore != null && maxScore > 0) && score != null) {
                             collectionKpi.put(AJEntityBaseReports.ATTR_SCORE, score);
                         } else {
                             collectionKpi.putNull(AJEntityBaseReports.ATTR_SCORE);
