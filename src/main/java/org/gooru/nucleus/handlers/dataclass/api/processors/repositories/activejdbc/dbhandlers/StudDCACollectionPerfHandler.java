@@ -239,11 +239,11 @@ public class StudDCACollectionPerfHandler implements DBHandler {
 						}
 						qnData.put(EventConstants.SESSION_ID, EventConstants.NA);
 						questionsArray.add(qnData);     
-					});
+					});    
+				} 
+				contentBody.put(JsonConstants.USAGE_DATA, questionsArray).put(JsonConstants.USERUID, userID);
+				resultarray.add(contentBody);         
 
-					contentBody.put(JsonConstants.USAGE_DATA, questionsArray).put(JsonConstants.USERUID, userID);
-					resultarray.add(contentBody);          
-				}         
 			}else {
 				LOGGER.debug("No data returned for this Student for this Collection");
 			}

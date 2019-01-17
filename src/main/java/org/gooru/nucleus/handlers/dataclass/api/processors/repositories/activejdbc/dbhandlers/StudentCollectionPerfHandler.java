@@ -188,8 +188,8 @@ public class StudentCollectionPerfHandler implements DBHandler {
 				collectionQuestionsKPI = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_RESOURCE_AGG_DATA_
 						,collectionId, userID);
 			}
-			if(!collectionQuestionsKPI.isEmpty()){
-				JsonArray questionsArray = new JsonArray();
+			JsonArray questionsArray = new JsonArray();
+			if(!collectionQuestionsKPI.isEmpty()){				
 				collectionQuestionsKPI.forEach(questions -> {
 					JsonObject qnData = ValueMapper.map(ResponseAttributeIdentifier.getSessionCollectionResourceAttributesMap(), questions);
 					if(questions.get(AJEntityBaseReports.ANSWER_OBECT) != null){
@@ -254,10 +254,11 @@ public class StudentCollectionPerfHandler implements DBHandler {
 					qnData.put(EventConstants.SESSION_ID, EventConstants.NA);
 					questionsArray.add(qnData);             
 
-				});
-				contentBody.put(JsonConstants.USAGE_DATA, questionsArray).put(JsonConstants.USERUID, userID);
-				resultarray.add(contentBody);          
-			} 
+				});          
+			}			
+			contentBody.put(JsonConstants.USAGE_DATA, questionsArray).put(JsonConstants.USERUID, userID);
+			resultarray.add(contentBody);          
+
 			}else {
 				LOGGER.debug("No data returned for this Student for this Collection");
 			}
