@@ -154,7 +154,7 @@ public class AJEntityDailyClassActivity extends Model{
             + "AND event_name = 'reaction.create') AS data group by data.collection_id;";
     
     public static final String SELECT_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSION_ID_FOR_SUMMARY =
-            "select  distinct on (resource_id) FIRST_VALUE(score * 100) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score,"
+            "select  distinct on (resource_id) FIRST_VALUE(score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score,"
             + "resource_id,FIRST_VALUE(reaction) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS reaction,"
             + "FIRST_VALUE(time_spent) OVER (PARTITION BY resource_id ORDER BY updated_at desc) as resourceTimeSpent,"
             + "updated_at,session_id,collection_type,"
@@ -268,7 +268,7 @@ public class AJEntityDailyClassActivity extends Model{
     
     //Reactions need not be included in these queries, since that should be obtained from separate event
     public static final String SELECT_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSION_ID =
-            "select distinct on (resource_id) FIRST_VALUE(score * 100) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score, "
+            "select distinct on (resource_id) FIRST_VALUE(score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score, "
             + "resource_id, FIRST_VALUE(time_spent) OVER (PARTITION BY resource_id ORDER BY updated_at desc) as resourceTimeSpent,"
             + "updated_at, session_id, max_score, collection_type, resource_type, question_type, "
             + "FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) as answer_object "

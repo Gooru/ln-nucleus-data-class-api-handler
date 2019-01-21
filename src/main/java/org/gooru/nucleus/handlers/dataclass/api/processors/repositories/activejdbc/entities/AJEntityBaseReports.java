@@ -52,6 +52,7 @@ public class AJEntityBaseReports extends Model {
     public static final String PARTNER_ID = "partner_id";
     public static final String MAX_SCORE = "max_score";
     public static final String PATH_ID = "path_id";
+    public static final String PATH_TYPE = "path_type";
 
     public static final String EVENT_ID = "event_id";
     public static final String TIME_ZONE = "time_zone";
@@ -358,7 +359,7 @@ public class AJEntityBaseReports extends Model {
             + "AND event_name = 'reaction.create') AS data group by data.collection_id;";
             
     public static final String SELECT_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSION_ID =
-            "select  distinct on (resource_id) FIRST_VALUE(score * 100) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score,"
+            "select  distinct on (resource_id) FIRST_VALUE(score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score,"
             + "resource_id,FIRST_VALUE(reaction) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS reaction,"
             + "FIRST_VALUE(time_spent) OVER (PARTITION BY resource_id ORDER BY updated_at desc) as resourceTimeSpent,"
             + "updated_at, session_id, max_score, collection_type,"
@@ -1130,7 +1131,7 @@ public class AJEntityBaseReports extends Model {
             + "AND event_name = 'reaction.create') AS data group by data.collection_id;";
             
     public static final String SELECT_IL_ASSESSMENT_QUESTION_FOREACH_COLLID_AND_SESSION_ID =
-            "select  distinct on (resource_id) FIRST_VALUE(score * 100) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score,"
+            "select  distinct on (resource_id) FIRST_VALUE(score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score,"
             + "resource_id,FIRST_VALUE(reaction) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS reaction,"
             + "FIRST_VALUE(time_spent) OVER (PARTITION BY resource_id ORDER BY updated_at desc) as resourceTimeSpent,"
             + "updated_at,session_id,collection_type,"
@@ -1332,7 +1333,7 @@ public class AJEntityBaseReports extends Model {
             + "collection_id FROM base_reports WHERE actor_id = ? AND class_id = ? AND course_id = ? AND unit_id = ? "
             + "AND lesson_id = ? AND collection_id = ? AND event_name = 'collection.play' AND updated_at > ?::timestamp AND updated_at < ?::timestamp";
     
-    public static final String GET_NU_REPORT_ASSESSMENT_QUESTIONS_SCORE_REACTION ="SELECT  DISTINCT on (resource_id) FIRST_VALUE(score * 100) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score, "
+    public static final String GET_NU_REPORT_ASSESSMENT_QUESTIONS_SCORE_REACTION ="SELECT  DISTINCT on (resource_id) FIRST_VALUE(score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score, "
             + "resource_id,FIRST_VALUE(reaction) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS reaction, "
             + "resource_type,question_type, FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) as answer_object "
             + "FROM base_reports WHERE actor_id = ? and class_id = ? "
