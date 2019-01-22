@@ -52,6 +52,7 @@ public class AJEntityBaseReports extends Model {
     public static final String PARTNER_ID = "partner_id";
     public static final String MAX_SCORE = "max_score";
     public static final String PATH_ID = "path_id";
+    public static final String PATH_TYPE = "path_type";
 
     public static final String EVENT_ID = "event_id";
     public static final String TIME_ZONE = "time_zone";
@@ -99,6 +100,8 @@ public class AJEntityBaseReports extends Model {
     public static final String ATTR_PATH_TYPE = "pathType";
     public static final String ATTR_MAX_SCORE = "maxScore";
     public static final String ATTR_SESSION_ID = "sessionId";
+    public static final String ROUTE0 = "route0";
+    public static final String SYSTEM = "system";
     
     public static final String NA = "NA";
     public static final String AND = "AND";
@@ -1274,7 +1277,7 @@ public class AJEntityBaseReports extends Model {
     
     public static final String GET_QUESTIONS_TO_GRADE = "SELECT distinct on (resource_id, actor_id) FIRST_VALUE(score) "
     		+ "OVER (PARTITION BY resource_id, actor_id ORDER BY updated_at desc) AS score, resource_id, updated_at, "
-    		+ "collection_type, collection_id, unit_id, lesson_id, session_id, actor_id from base_reports where "
+    		+ "collection_type, collection_id, unit_id, lesson_id, session_id, actor_id, path_id, path_type from base_reports where "
     		+ "class_id = ? AND course_id = ? AND event_name = 'collection.resource.play' AND event_type = 'stop' AND "
     		+ "resource_type = 'question' AND is_graded = 'false' AND resource_attempt_status = 'attempted' AND "
     		+ "grading_type = 'teacher' AND question_type = 'OE'";

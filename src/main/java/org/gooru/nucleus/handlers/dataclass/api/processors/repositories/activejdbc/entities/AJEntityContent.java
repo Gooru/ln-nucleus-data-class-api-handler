@@ -1,11 +1,13 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities;
 
 import org.javalite.activejdbc.Model;
+import org.javalite.activejdbc.annotations.DbName;
 import org.javalite.activejdbc.annotations.Table;
 
 /**
  * @author daniel
  */
+@DbName("reports_db")
 @Table("content")
 public class AJEntityContent extends Model {
 

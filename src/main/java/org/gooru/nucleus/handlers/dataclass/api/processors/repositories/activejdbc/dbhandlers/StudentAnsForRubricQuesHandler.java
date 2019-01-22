@@ -29,7 +29,7 @@ public class StudentAnsForRubricQuesHandler implements DBHandler {
     private String courseId;
 	  private String collectionId;
 	  private String userId;
-
+	  private String classId;
 
 	  public StudentAnsForRubricQuesHandler(ProcessorContext context) {
 	      this.context = context;
@@ -44,6 +44,23 @@ public class StudentAnsForRubricQuesHandler implements DBHandler {
 	              ExecutionStatus.FAILED);
 	      }
 
+	      this.classId = this.context.request().getString(MessageConstants.CLASS_ID);
+	      if (StringUtil.isNullOrEmpty(classId)) {
+	          LOGGER.warn("ClassID is mandatory to fetch student's answer to grade");
+	          return new ExecutionResult<>(
+	                  MessageResponseFactory.createInvalidRequestResponse("Class Id Missing. Cannot fetch student's answer"),
+	                  ExecutionStatus.FAILED);
+
+	        }
+
+	      this.courseId = this.context.request().getString(MessageConstants.COURSE_ID);
+	      if (StringUtil.isNullOrEmpty(courseId)) {
+	          LOGGER.warn("CourseID is mandatory to fetch student's answer to grade");
+	          return new ExecutionResult<>(
+	                  MessageResponseFactory.createInvalidRequestResponse("Course Id Missing. Cannot fetch student's answer"),
+	                  ExecutionStatus.FAILED);
+
+	        }
 	      LOGGER.debug("checkSanity() OK");
 	      return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
 	  }
@@ -67,25 +84,6 @@ public class StudentAnsForRubricQuesHandler implements DBHandler {
 	  @SuppressWarnings("rawtypes")
 	public ExecutionResult<MessageResponse> executeRequest() {
 	  JsonObject result = new JsonObject();
-          AJEntityBaseReports baseReport = new AJEntityBaseReports();
-
-		  String classId = this.context.request().getString(MessageConstants.CLASS_ID);
-	  if (StringUtil.isNullOrEmpty(classId)) {
-	      LOGGER.warn("ClassID is mandatory to fetch student's answer to grade");
-	      return new ExecutionResult<>(
-	              MessageResponseFactory.createInvalidRequestResponse("Class Id Missing. Cannot fetch student's answer"),
-	              ExecutionStatus.FAILED);
-
-	    }
-
-	  this.courseId = this.context.request().getString(MessageConstants.COURSE_ID);
-	  if (StringUtil.isNullOrEmpty(courseId)) {
-	      LOGGER.warn("CourseID is mandatory to fetch student's answer to grade");
-	      return new ExecutionResult<>(
-	              MessageResponseFactory.createInvalidRequestResponse("Course Id Missing. Cannot fetch student's answer"),
-	              ExecutionStatus.FAILED);
-
-	    }
 
 	  this.collectionId = this.context.request().getString(MessageConstants.COLLECTION_ID);
 	  if (StringUtil.isNullOrEmpty(collectionId)) {
