@@ -9,14 +9,13 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.converters.ResponseAttributeIdentifier;
-import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityDailyClassActivity;
-import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityDailyClassActivity;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.converters.ValueMapper;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
+import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
-import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
@@ -142,14 +141,14 @@ public class StudDCAAssessmentPerfHandler implements DBHandler {
 					qnData.put(JsonConstants.REACTION, reactionObj != null ? ((Number)reactionObj).intValue() : 0);
 					qnData.put(JsonConstants.MAX_SCORE, questions.get(AJEntityDailyClassActivity.MAX_SCORE) != null ?
 							Math.round(Double.valueOf(questions.get(AJEntityDailyClassActivity.MAX_SCORE).toString())) : "NA");
-					Double quesScore = questions.get(AJEntityBaseReports.SCORE) != null ? Double.valueOf(questions.get(AJEntityBaseReports.SCORE).toString()) : null;
-					Double maxScore = questions.get(AJEntityBaseReports.MAX_SCORE) != null ? Double.valueOf(questions.get(AJEntityBaseReports.MAX_SCORE).toString()) : 0.0;
+					Double quesScore = questions.get(AJEntityDailyClassActivity.SCORE) != null ? Double.valueOf(questions.get(AJEntityDailyClassActivity.SCORE).toString()) : null;
+					Double maxScore = questions.get(AJEntityDailyClassActivity.MAX_SCORE) != null ? Double.valueOf(questions.get(AJEntityDailyClassActivity.MAX_SCORE).toString()) : 0.0;
 					double scoreInPercent;
 					if (quesScore != null && (maxScore != null && maxScore > 0)) {
 					    scoreInPercent = ((quesScore / maxScore) * 100);
-					    qnData.put(AJEntityBaseReports.SCORE, Math.round(scoreInPercent));
+					    qnData.put(AJEntityDailyClassActivity.SCORE, Math.round(scoreInPercent));
 					} else {
-					    qnData.put(AJEntityBaseReports.SCORE, "NA");
+					    qnData.put(AJEntityDailyClassActivity.SCORE, "NA");
 					}
 					if(qnData.getString(EventConstants.QUESTION_TYPE).equalsIgnoreCase(EventConstants.OPEN_ENDED_QUE)){
 						Object isGradedObj = Base.firstCell(AJEntityDailyClassActivity.GET_OE_QUE_GRADE_STATUS, context.collectionId(),
