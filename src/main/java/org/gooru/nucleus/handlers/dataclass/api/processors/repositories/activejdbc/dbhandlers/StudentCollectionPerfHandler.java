@@ -11,12 +11,11 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.converters.ResponseAttributeIdentifier;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
-import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityDailyClassActivity;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.converters.ValueMapper;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
+import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
-import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
@@ -214,11 +213,20 @@ public class StudentCollectionPerfHandler implements DBHandler {
 							qnData.put(JsonConstants.ANSWER_OBJECT, qs.get(AJEntityBaseReports.ANSWER_OBECT) != null
 									? new JsonArray(qs.get(AJEntityBaseReports.ANSWER_OBECT).toString()) : null);
 							//Rubrics - Score may be NULL only incase of OE questions
-							qnData.put(JsonConstants.SCORE, qs.get(AJEntityBaseReports.SCORE) != null ?
-									Double.valueOf(qs.get(AJEntityBaseReports.SCORE).toString()) : "NA");
+							qnData.put(JsonConstants.RAW_SCORE, qs.get(AJEntityBaseReports.SCORE) != null ?
+							    Math.round(Double.valueOf(qs.get(AJEntityBaseReports.SCORE).toString())) : "NA");
 							qnData.put(EventConstants.ANSWERSTATUS, qs.get(AJEntityBaseReports.ATTR_ATTEMPT_STATUS).toString());
 							qnData.put(JsonConstants.MAX_SCORE, qs.get(AJEntityBaseReports.MAX_SCORE) != null ?
 									Double.valueOf(qs.get(AJEntityBaseReports.MAX_SCORE).toString()) : "NA");
+							Double quesScore = qs.get(AJEntityBaseReports.SCORE) != null ? Double.valueOf(qs.get(AJEntityBaseReports.SCORE).toString()) : null;
+							Double maxScore = qs.get(AJEntityBaseReports.MAX_SCORE) != null ? Double.valueOf(qs.get(AJEntityBaseReports.MAX_SCORE).toString()) : 0.0;
+							double scoreInPercent;
+							if (quesScore != null && (maxScore != null && maxScore > 0)) {
+							    scoreInPercent = ((quesScore / maxScore) * 100);
+							    qnData.put(AJEntityBaseReports.SCORE, Math.round(scoreInPercent));
+							} else {
+							    qnData.put(AJEntityBaseReports.SCORE, "NA");
+							}
 						});
 					}
 					//Get grading status for Questions

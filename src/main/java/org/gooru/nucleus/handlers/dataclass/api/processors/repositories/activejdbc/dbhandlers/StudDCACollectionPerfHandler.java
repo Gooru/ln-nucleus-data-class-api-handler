@@ -207,11 +207,20 @@ public class StudDCACollectionPerfHandler implements DBHandler {
 										qnData.put(JsonConstants.ANSWER_OBJECT, qs.get(AJEntityDailyClassActivity.ANSWER_OBJECT) != null
 												? new JsonArray(qs.get(AJEntityDailyClassActivity.ANSWER_OBJECT).toString()) : null);
 										//Rubrics - Score may be NULL only incase of OE questions
-										qnData.put(JsonConstants.SCORE, qs.get(AJEntityDailyClassActivity.SCORE) != null ?
-												Double.valueOf(qs.get(AJEntityDailyClassActivity.SCORE).toString()) : "NA");
+										qnData.put(JsonConstants.RAW_SCORE, qs.get(AJEntityDailyClassActivity.SCORE) != null ?
+										    Math.round(Double.valueOf(qs.get(AJEntityDailyClassActivity.SCORE).toString())) : "NA");
 										qnData.put(EventConstants.ANSWERSTATUS, qs.get(AJEntityDailyClassActivity.ATTR_ATTEMPT_STATUS).toString());
 										qnData.put(JsonConstants.MAX_SCORE, qs.get(AJEntityDailyClassActivity.MAX_SCORE) != null ?
 												Double.valueOf(qs.get(AJEntityDailyClassActivity.MAX_SCORE).toString()) : "NA");
+										Double quesScore = qs.get(AJEntityDailyClassActivity.SCORE) != null ? Double.valueOf(qs.get(AJEntityDailyClassActivity.SCORE).toString()) : null;
+										Double maxScore = qs.get(AJEntityDailyClassActivity.MAX_SCORE) != null ? Double.valueOf(qs.get(AJEntityDailyClassActivity.MAX_SCORE).toString()) : 0.0;
+										double scoreInPercent;
+										if (quesScore != null && (maxScore != null && maxScore > 0)) {
+										    scoreInPercent = ((quesScore / maxScore) * 100);
+										    qnData.put(AJEntityDailyClassActivity.SCORE, Math.round(scoreInPercent));
+										} else {
+										    qnData.put(AJEntityDailyClassActivity.SCORE, "NA");
+										}
 									});
 						}
 						//Get grading status for Questions
