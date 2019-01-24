@@ -146,6 +146,7 @@ public ExecutionResult<MessageResponse> executeRequest() {
 		                if (question == null) {
 		                    continue;
 		                }
+		                AJEntityCollection collectionData = null;
 		                // Get Unit/Lesson from Route0 table for Route0 Suggestions
 		                if ((pathId != null && pathId > 0) && (pathType != null && pathType.equalsIgnoreCase(AJEntityBaseReports.ROUTE0))) {
 		                    AJEntityUserRoute0ContentDetail suggestedContent = AJEntityUserRoute0ContentDetail.fetchRoute0SuggestedContent(collectionId);
@@ -156,6 +157,7 @@ public ExecutionResult<MessageResponse> executeRequest() {
 		                    que.put(JsonConstants.LESSON_TITLE, suggestedContent.get(AJEntityUserRoute0ContentDetail.LESSON_TITLE).toString());
 		                    que.put(AJEntityBaseReports.ATTR_UNIT_ID, suggestedContent.get(AJEntityBaseReports.UNIT_GOORU_OID).toString());
 		                    que.put(JsonConstants.UNIT_TITLE, suggestedContent.get(AJEntityUserRoute0ContentDetail.UNIT_TITLE).toString());
+		                    collectionData = AJEntityCollection.fetchCollection(collectionId);
 		                } else {
 		                    if ((pathId != null && pathId > 0) && (pathType != null && pathType.equalsIgnoreCase(AJEntityBaseReports.SYSTEM))) {
 		                        AJEntityUserNavigationPaths suggestedContent = AJEntityUserNavigationPaths.fetchSystemSuggestedContent(collectionId);
@@ -168,8 +170,8 @@ public ExecutionResult<MessageResponse> executeRequest() {
 		                        continue;
 		                    }
 		                    setUnitLessonData(que, ulMeta);
+		                    collectionData = AJEntityCollection.fetchCollectionByLesson(collectionId, val.getString(AJEntityBaseReports.LESSON_GOORU_OID));
 		                }
-		                AJEntityCollection collectionData = AJEntityCollection.fetchCollection(collectionId, val.getString(AJEntityBaseReports.LESSON_GOORU_OID));
 		                if (collectionData == null) {
 		                    continue;
 		                }
