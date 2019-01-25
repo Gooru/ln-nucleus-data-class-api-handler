@@ -9,13 +9,13 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.converters.ResponseAttributeIdentifier;
-import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityDailyClassActivity;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityDailyClassActivity;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.converters.ValueMapper;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
+import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
-import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
@@ -134,14 +134,22 @@ public class StudDCAAssessmentPerfHandler implements DBHandler {
 					qnData.put(JsonConstants.ANSWER_OBJECT, questions.get(AJEntityDailyClassActivity.ANSWER_OBJECT) != null
 							? new JsonArray(questions.get(AJEntityDailyClassActivity.ANSWER_OBJECT).toString()) : null);
 					//Rubrics - Score should be NULL only incase of OE questions
-					qnData.put(JsonConstants.SCORE, questions.get(AJEntityDailyClassActivity.SCORE) != null ?
+					qnData.put(JsonConstants.RAW_SCORE, questions.get(AJEntityDailyClassActivity.SCORE) != null ?
 							Math.round(Double.valueOf(questions.get(AJEntityDailyClassActivity.SCORE).toString())) : "NA");
 					Object reactionObj = Base.firstCell(AJEntityDailyClassActivity.SELECT_ASSESSMENT_RESOURCE_REACTION, context.collectionId(),
 							studentLatestSessionId, questions.get(AJEntityDailyClassActivity.RESOURCE_ID).toString());
 					qnData.put(JsonConstants.REACTION, reactionObj != null ? ((Number)reactionObj).intValue() : 0);
 					qnData.put(JsonConstants.MAX_SCORE, questions.get(AJEntityDailyClassActivity.MAX_SCORE) != null ?
 							Math.round(Double.valueOf(questions.get(AJEntityDailyClassActivity.MAX_SCORE).toString())) : "NA");
-					
+					Double quesScore = questions.get(AJEntityDailyClassActivity.SCORE) != null ? Double.valueOf(questions.get(AJEntityDailyClassActivity.SCORE).toString()) : null;
+					Double maxScore = questions.get(AJEntityDailyClassActivity.MAX_SCORE) != null ? Double.valueOf(questions.get(AJEntityDailyClassActivity.MAX_SCORE).toString()) : 0.0;
+					double scoreInPercent;
+					if (quesScore != null && (maxScore != null && maxScore > 0)) {
+					    scoreInPercent = ((quesScore / maxScore) * 100);
+					    qnData.put(AJEntityDailyClassActivity.SCORE, Math.round(scoreInPercent));
+					} else {
+					    qnData.put(AJEntityDailyClassActivity.SCORE, "NA");
+					}
 					if(qnData.getString(EventConstants.QUESTION_TYPE).equalsIgnoreCase(EventConstants.OPEN_ENDED_QUE)){
 						Object isGradedObj = Base.firstCell(AJEntityDailyClassActivity.GET_OE_QUE_GRADE_STATUS, context.collectionId(),
 								studentLatestSessionId, questions.get(AJEntityDailyClassActivity.RESOURCE_ID).toString(), date);

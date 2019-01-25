@@ -13,7 +13,6 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejd
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.converters.ValueMapper;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
-
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
 import org.javalite.activejdbc.Base;
@@ -123,14 +122,23 @@ public class StudentAssessmentPerfHandler implements DBHandler {
     						qnData.put(JsonConstants.ANSWER_OBJECT, questions.get(AJEntityBaseReports.ANSWER_OBECT) != null
     								? new JsonArray(questions.get(AJEntityBaseReports.ANSWER_OBECT).toString()) : null);
     						//Rubrics - Score should be NULL only incase of OE questions
-    						qnData.put(JsonConstants.SCORE, questions.get(AJEntityBaseReports.SCORE) != null ?
+    						qnData.put(JsonConstants.RAW_SCORE, questions.get(AJEntityBaseReports.SCORE) != null ?
     								Math.round(Double.valueOf(questions.get(AJEntityBaseReports.SCORE).toString())) : "NA");
     						Object reactionObj = Base.firstCell(AJEntityBaseReports.SELECT_ASSESSMENT_RESOURCE_REACTION, context.collectionId(),
     								studentLatestSessionId, questions.get(AJEntityBaseReports.RESOURCE_ID).toString());
     						qnData.put(JsonConstants.REACTION, reactionObj != null ? ((Number)reactionObj).intValue() : 0);
     						qnData.put(JsonConstants.MAX_SCORE, questions.get(AJEntityBaseReports.MAX_SCORE) != null ?
     								Math.round(Double.valueOf(questions.get(AJEntityBaseReports.MAX_SCORE).toString())) : "NA");
-    						if(qnData.getString(EventConstants.QUESTION_TYPE).equalsIgnoreCase(EventConstants.OPEN_ENDED_QUE)){
+    						Double quesScore = questions.get(AJEntityBaseReports.SCORE) != null ? Double.valueOf(questions.get(AJEntityBaseReports.SCORE).toString()) : null;
+    						Double maxScore = questions.get(AJEntityBaseReports.MAX_SCORE) != null ? Double.valueOf(questions.get(AJEntityBaseReports.MAX_SCORE).toString()) : 0.0;
+    						double scoreInPercent;
+    						if (quesScore != null && (maxScore != null && maxScore > 0)) {
+    						    scoreInPercent = ((quesScore / maxScore) * 100);
+    						    qnData.put(AJEntityBaseReports.SCORE, Math.round(scoreInPercent));
+    						} else {
+    						    qnData.put(AJEntityBaseReports.SCORE, "NA");
+    						}
+    						if (qnData.getString(EventConstants.QUESTION_TYPE).equalsIgnoreCase(EventConstants.OPEN_ENDED_QUE)){
     							Object isGradedObj = Base.firstCell(AJEntityBaseReports.GET_OE_QUE_GRADE_STATUS, context.collectionId(),
     									studentLatestSessionId, questions.get(AJEntityBaseReports.RESOURCE_ID).toString());
     							if (isGradedObj != null && (isGradedObj.toString().equalsIgnoreCase("t") || isGradedObj.toString().equalsIgnoreCase("true"))) {
