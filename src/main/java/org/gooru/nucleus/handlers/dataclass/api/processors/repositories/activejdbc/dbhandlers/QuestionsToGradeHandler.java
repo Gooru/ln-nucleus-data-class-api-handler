@@ -219,7 +219,7 @@ public ExecutionResult<MessageResponse> executeRequest() {
   private Boolean isSystemSuggestExists(Integer pathId, String pathType, String collectionId, String lessonId) throws Throwable {
       Boolean isValidContent = true;
       if ((pathId != null && pathId > 0) && (pathType != null && pathType.equalsIgnoreCase(AJEntityBaseReports.SYSTEM))) {
-          AJEntityUserNavigationPaths suggestedContent = AJEntityUserNavigationPaths.fetchSystemSuggestedContent(collectionId, courseId, lessonId);
+          AJEntityUserNavigationPaths suggestedContent = AJEntityUserNavigationPaths.fetchSystemSuggestedContent(collectionId, classId, courseId, lessonId);
           if (suggestedContent == null) isValidContent = false; 
       }
       return isValidContent;
