@@ -146,36 +146,16 @@ public ExecutionResult<MessageResponse> executeRequest() {
 		                if (question == null) {
 		                    continue;
 		                }
-		                AJEntityCollection collectionData = null;
 		                // Get Unit/Lesson from Route0 table for Route0 Suggestions
 		                if ((pathId != null && pathId > 0) && (pathType != null && pathType.equalsIgnoreCase(AJEntityBaseReports.ROUTE0))) {
-		                    AJEntityUserRoute0ContentDetail suggestedContent = AJEntityUserRoute0ContentDetail.fetchRoute0SuggestedContent(collectionId);
-		                    if (suggestedContent == null) {
-		                        continue;
-		                    }
-		                    que.put(AJEntityBaseReports.ATTR_LESSON_ID, suggestedContent.get(AJEntityBaseReports.LESSON_GOORU_OID).toString());
-		                    que.put(JsonConstants.LESSON_TITLE, suggestedContent.get(AJEntityUserRoute0ContentDetail.LESSON_TITLE).toString());
-		                    que.put(AJEntityBaseReports.ATTR_UNIT_ID, suggestedContent.get(AJEntityBaseReports.UNIT_GOORU_OID).toString());
-		                    que.put(JsonConstants.UNIT_TITLE, suggestedContent.get(AJEntityUserRoute0ContentDetail.UNIT_TITLE).toString());
-		                    collectionData = AJEntityCollection.fetchCollection(collectionId);
+		                    que = populateRoute0SuggestULCMetadata(que, collectionId);
 		                } else {
-		                    if ((pathId != null && pathId > 0) && (pathType != null && pathType.equalsIgnoreCase(AJEntityBaseReports.SYSTEM))) {
-		                        AJEntityUserNavigationPaths suggestedContent = AJEntityUserNavigationPaths.fetchSystemSuggestedContent(collectionId);
-		                        if (suggestedContent == null) {
-		                            continue;
-		                        }
-		                    }
-		                    Map<?, ?> ulMeta = AJEntityLesson.fetchLesson(courseId, val.getString(AJEntityBaseReports.LESSON_GOORU_OID));
-		                    if (ulMeta == null || ulMeta.isEmpty()) {
-		                        continue;
-		                    }
-		                    setUnitLessonData(que, ulMeta);
-		                    collectionData = AJEntityCollection.fetchCollectionByLesson(collectionId, val.getString(AJEntityBaseReports.LESSON_GOORU_OID));
+		                    que = checkIfSystemSuggestExistsAndPopulateULCMetadata(que, pathId, pathType, val.getString(AJEntityBaseReports.LESSON_GOORU_OID), collectionId);
 		                }
-		                if (collectionData == null) {
+		                // Either route0/system suggested content is unavailable or ULC are unavailable (content may be moved to another container or deleted), so skip content.
+		                if (que == null) {
 		                    continue;
 		                }
-		                que.put(JsonConstants.COLLECTION_TITLE, collectionData.getString(AJEntityCoreContent.TITLE));
 		                que.put(AJEntityBaseReports.ATTR_COLLECTION_ID, collectionId);
 		                que.put(AJEntityBaseReports.ATTR_COLLECTION_TYPE, val.getString(AJEntityBaseReports.COLLECTION_TYPE));
 		                que.put(AJEntityBaseReports.ATTR_RESOURCE_ID, questionId);
@@ -201,7 +181,50 @@ public ExecutionResult<MessageResponse> executeRequest() {
   return new ExecutionResult<>(MessageResponseFactory.createGetResponse(result), ExecutionStatus.SUCCESSFUL);
 
 }
-
+  
+  private JsonObject populateRoute0SuggestULCMetadata(JsonObject que, String collectionId) throws Throwable {
+      AJEntityUserRoute0ContentDetail suggestedContent = AJEntityUserRoute0ContentDetail.fetchRoute0SuggestedContent(collectionId);
+      if (suggestedContent == null) {
+          return null;
+      }
+      que.put(AJEntityBaseReports.ATTR_LESSON_ID, suggestedContent.get(AJEntityBaseReports.LESSON_GOORU_OID).toString());
+      que.put(JsonConstants.LESSON_TITLE, suggestedContent.get(AJEntityUserRoute0ContentDetail.LESSON_TITLE).toString());
+      que.put(AJEntityBaseReports.ATTR_UNIT_ID, suggestedContent.get(AJEntityBaseReports.UNIT_GOORU_OID).toString());
+      que.put(JsonConstants.UNIT_TITLE, suggestedContent.get(AJEntityUserRoute0ContentDetail.UNIT_TITLE).toString());
+      AJEntityCollection collectionData = AJEntityCollection.fetchCollection(collectionId);
+      if (collectionData == null) {
+          return null;
+      }
+      que.put(JsonConstants.COLLECTION_TITLE, collectionData.getString(AJEntityCoreContent.TITLE));
+      return que;
+  }
+  
+  private JsonObject checkIfSystemSuggestExistsAndPopulateULCMetadata(JsonObject que, Integer pathId, String pathType, String lessonId, String collectionId) throws Throwable {
+      if (!isSystemSuggestExists(pathId, pathType, collectionId)) {
+          return null;
+      }
+      Map<?, ?> ulMeta = AJEntityLesson.fetchLesson(courseId, lessonId);
+      if (ulMeta == null || ulMeta.isEmpty()) {
+          return null;
+      }
+      setUnitLessonData(que, ulMeta);
+      AJEntityCollection collectionData = AJEntityCollection.fetchCollectionByLesson(collectionId, lessonId);
+      if (collectionData == null) {
+          return null;
+      }
+      que.put(JsonConstants.COLLECTION_TITLE, collectionData.getString(AJEntityCoreContent.TITLE));
+      return que;
+  }
+  
+  private Boolean isSystemSuggestExists(Integer pathId, String pathType, String collectionId) throws Throwable {
+      Boolean isValidContent = true;
+      if ((pathId != null && pathId > 0) && (pathType != null && pathType.equalsIgnoreCase(AJEntityBaseReports.SYSTEM))) {
+          AJEntityUserNavigationPaths suggestedContent = AJEntityUserNavigationPaths.fetchSystemSuggestedContent(collectionId);
+          if (suggestedContent == null) isValidContent = false; 
+      }
+      return isValidContent;
+  }
+  
   @SuppressWarnings("unused")
   private void setUnitLessonData(JsonObject que, Map<?, ?> ulMeta) throws Throwable {
       que.put(AJEntityBaseReports.ATTR_LESSON_ID, ulMeta.get(AJEntityBaseReports.LESSON_GOORU_OID).toString());
