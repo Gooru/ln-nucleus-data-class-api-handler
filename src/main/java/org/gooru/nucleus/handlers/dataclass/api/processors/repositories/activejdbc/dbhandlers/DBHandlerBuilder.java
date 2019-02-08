@@ -270,6 +270,14 @@ public final class DBHandlerBuilder {
     public static DBHandler buildDCAActivityAllStudentSummaryReportHandler(ProcessorContext context) {
         return new DCAClassAllStudentSummaryHandler(context);
     }
+    
+    public static DBHandler buildStudentCAAssessmentSessionPerformanceHandler (ProcessorContext context) {
+        return new StudCAAssessmentSessionPerfHandler(context);
+    }
+    
+    public static DBHandler buildStudentCACollectionSessionPerformanceHandler (ProcessorContext context) {
+        return new StudCACollectionSessionPerfHandler(context);
+    }
 
 }
 
