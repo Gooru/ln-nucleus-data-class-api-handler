@@ -144,7 +144,7 @@ public class AJEntityDailyClassActivity extends Model{
         + "collection_id,FIRST_VALUE(reaction) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS reaction,"
         + "FIRST_VALUE(time_spent) OVER (PARTITION BY collection_id ORDER BY updated_at desc) as time_spent,"
         + "updated_at,session_id,collection_type,FIRST_VALUE(views) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS collectionViews "
-        + "from daily_class_activity WHERE session_id = ? AND event_name = ? ";
+        + "from daily_class_activity WHERE session_id = ? AND event_name = ? AND event_type = ?";
 
     public static final String SELECT_ASSESSMENT_REACTION_FOR_SESSION_ID = "SELECT round(avg(data.reaction)) as reaction FROM (SELECT DISTINCT ON (resource_id) collection_id, "
         + "FIRST_VALUE(reaction) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS reaction FROM daily_class_activity where session_id = ? AND reaction > 0 "
