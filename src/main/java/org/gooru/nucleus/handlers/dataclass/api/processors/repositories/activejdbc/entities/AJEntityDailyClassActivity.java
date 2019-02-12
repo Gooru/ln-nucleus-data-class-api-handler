@@ -139,6 +139,71 @@ public class AJEntityDailyClassActivity extends Model{
             + "AND date_in_time_zone = ?) AS agg "
             + "GROUP BY agg.collection_id";
    
+    // GET STUDENT SESSION PERFORMANCE IN ASSESSMENTS
+    public static final String SELECT_ASSESSMENT_PERF_FOR_SESSION_ID = "select distinct on (collection_id) FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS score,"
+        + "collection_id,FIRST_VALUE(reaction) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS reaction,"
+        + "FIRST_VALUE(time_spent) OVER (PARTITION BY collection_id ORDER BY updated_at desc) as time_spent,"
+        + "updated_at,session_id,collection_type,FIRST_VALUE(views) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS collectionViews "
+        + "from daily_class_activity WHERE session_id = ? AND event_name = ? AND event_type = ?";
+
+    public static final String SELECT_ASSESSMENT_REACTION_FOR_SESSION_ID = "SELECT round(avg(data.reaction)) as reaction FROM (SELECT DISTINCT ON (resource_id) collection_id, "
+        + "FIRST_VALUE(reaction) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS reaction FROM daily_class_activity where session_id = ? AND reaction > 0 "
+        + "AND event_name = 'reaction.create') AS data group by data.collection_id;";
+
+    public static final String SELECT_ASSESSMENT_QUESTION_FOR_SESSION_ID = "select distinct on (resource_id) FIRST_VALUE(score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score, "
+        + "resource_id, FIRST_VALUE(time_spent) OVER (PARTITION BY resource_id ORDER BY updated_at desc) as resourceTimeSpent,"
+        + "updated_at, session_id, max_score, collection_type, resource_type, question_type, FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) as answer_object "
+        + "from daily_class_activity WHERE session_id = ? AND event_name = ? AND event_type = 'stop' ";
+
+    public static final String SELECT_ASSESSMENT_RESOURCE_REACTION_FOR_SESSION_ID = " SELECT FIRST_VALUE(reaction) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS reaction "
+        + "FROM daily_class_activity WHERE session_id = ?  and resource_id = ? AND reaction > 0 AND event_name = 'reaction.create'";
+
+    public static final String GET_OE_QUE_GRADE_STATUS_FOR_SESSION_ID =
+        "SELECT is_graded FROM daily_class_activity WHERE session_id = ?  and resource_id = ? AND event_name = 'collection.resource.play' AND event_type = 'stop'";
+
+    public static final String SELECT_DISTINCT_USERID_FOR_SESSION =
+        "SELECT DISTINCT(actor_id) FROM daily_class_activity WHERE class_id = ? AND session_id = ? AND event_name = ? AND event_type = ? ";
+
+    // GET STUDENT SESSION PERF IN COLLECTION
+    public static final String SELECT_COLLECTION_MAX_SCORE_FOR_SESSION = "SELECT SUM(agg.max_score) AS max_score FROM "
+        + "(SELECT DISTINCT ON (resource_id) collection_id, FIRST_VALUE(updated_at) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS updated_at, "
+        + "FIRST_VALUE(max_score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS max_score FROM daily_class_activity WHERE session_id = ? AND "
+        + "event_name = 'collection.resource.play' AND resource_type = 'question') AS agg GROUP BY agg.collection_id";
+
+    public static final String SELECT_LAST_ACCESSED_TIME_OF_SESSION =
+        "SELECT updated_at, session_id FROM daily_class_activity WHERE session_id = ? AND event_name = 'collection.play' ORDER BY updated_at DESC LIMIT 1";
+
+    public static final String SELECT_COLLECTION_AGG_DATA_FOR_SESSION = "SELECT SUM(CASE WHEN (agg.event_name = 'collection.resource.play' and agg.collection_type = 'collection') "
+        + "THEN agg.time_spent WHEN  (agg.event_name = 'collection.play' and agg.collection_type = 'collection-external') THEN agg.time_spent ELSE 0 END) AS collectionTimeSpent, "
+        + "SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.views ELSE 0 END) AS collectionViews, "
+        + "agg.collection_id, agg.completionStatus,agg.collection_type, 0 AS score, 0 AS reaction FROM (SELECT collection_id,collection_type,time_spent,session_id,views, event_name, "
+        + "CASE  WHEN (FIRST_VALUE(event_type) OVER (PARTITION BY collection_id ORDER BY updated_at desc) = 'stop') THEN 'completed' ELSE 'in-progress' END AS completionStatus "
+        + "FROM daily_class_activity WHERE event_name in ('collection.play', 'collection.resource.play') and session_id = ?) AS agg "
+        + "GROUP BY agg.collection_id,agg.completionStatus,agg.collection_type";
+
+    public static final String SELECT_COLLECTION_AGG_SCORE_FOR_SESSION =
+        "SELECT SUM(agg.score) AS score FROM (SELECT DISTINCT ON (resource_id) collection_id, FIRST_VALUE(score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score "
+            + "FROM daily_class_activity WHERE session_id = ? AND event_name = 'collection.resource.play' AND resource_type = 'question' AND resource_attempt_status <> 'skipped' ) AS agg "
+            + "GROUP BY agg.collection_id";
+
+    public static final String SELECT_COLLECTION_AGG_REACTION_FOR_SESSION =
+        "SELECT ROUND(AVG(agg.reaction)) AS reaction FROM (SELECT DISTINCT ON (resource_id) collection_id,  FIRST_VALUE(reaction) OVER (PARTITION BY resource_id ORDER BY updated_at desc) "
+            + "AS reaction FROM daily_class_activity WHERE session_id = ? AND event_name = 'reaction.create' AND reaction <> 0) AS agg GROUP BY agg.collection_id";
+
+    public static final String SELECT_COLLECTION_RESOURCE_AGG_DATA_FOR_SESSION =
+        "SELECT collection_id, resource_id ,resource_type,question_type, SUM(views) AS resourceViews, SUM(time_spent) AS resourceTimeSpent, 0 as reaction, 0 as score, '[]' AS answer_object "
+            + "FROM daily_class_activity WHERE session_id = ? AND event_name = 'collection.resource.play' GROUP BY collection_id, resource_id,resource_type,question_type";
+
+    public static final String SELECT_COLLECTION_QUESTION_AGG_SCORE_FOR_SESSION = "SELECT DISTINCT ON (resource_id) FIRST_VALUE(score) OVER (PARTITION BY resource_id "
+        + "ORDER BY updated_at desc) AS score,FIRST_VALUE(resource_attempt_status) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS attemptStatus, "
+        + "FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS answer_object, "
+        + "FIRST_VALUE(max_score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS max_score "
+        + "FROM daily_class_activity WHERE session_id = ? AND resource_id = ? AND event_name = 'collection.resource.play' AND resource_type = 'question' AND resource_attempt_status <> 'skipped'";
+
+    // Getting RESOURCE DATA (reaction)
+    public static final String SELECT_COLLECTION_RESOURCE_AGG_REACTION_FOR_SESSION = "SELECT DISTINCT ON (resource_id) " + "FIRST_VALUE(reaction) OVER (PARTITION BY resource_id "
+        + "ORDER BY updated_at desc) AS reaction " + "FROM daily_class_activity WHERE session_id = ? AND resource_id = ?  AND event_name = 'reaction.create' AND reaction <> 0";
+
     //GET STUDENT PERFORMANCE SUMMARY IN ASSESSMENTS    
     public static final String SELECT_ASSESSMENT_FOREACH_COLLID_AND_SESSION_ID =
             "select distinct on (collection_id) FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS score,"

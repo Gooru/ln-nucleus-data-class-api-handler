@@ -142,4 +142,8 @@ public interface ReportRepo {
     MessageResponse getDCAClassSummaryForMonthHandler();
 
     MessageResponse getDCAActivityAllStudentSummaryReportHandler();
+
+    MessageResponse getStudentCAAssessmentSessionPerformance();
+
+    MessageResponse getStudentCACollectionSessionPerformance();
 }

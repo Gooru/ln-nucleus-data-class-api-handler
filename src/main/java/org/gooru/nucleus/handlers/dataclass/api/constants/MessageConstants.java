@@ -135,6 +135,8 @@ public final class MessageConstants {
     public static final String MSG_OP_DCA_CLASS_SUMMARY_MONTHLY = "dca.class.summary.monthly";
     public static final String MSG_OP_DCA_CLASS_SUMMARY_FOR_MONTH = "dca.class.summary.for.month";
     public static final String MSG_OP_DCA_CLASS_USER_SUMMARY_FOR_MONTH = "dca.class.user.summary.for.month";
+    public static final String MSG_OP_CA_STUDENT_ASSESSMENT_SESSION_PERF = "ca.student.assessment.session.performance";
+    public static final String MSG_OP_CA_STUDENT_COLLECTION_SESSION_PERF = "ca.student.collection.session.performance";
 
     
     //DATA REPORTS
