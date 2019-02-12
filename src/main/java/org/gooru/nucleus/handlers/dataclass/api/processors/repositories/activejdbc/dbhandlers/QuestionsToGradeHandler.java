@@ -200,7 +200,7 @@ public ExecutionResult<MessageResponse> executeRequest() {
   }
   
   private JsonObject checkIfSystemSuggestExistsAndPopulateULCMetadata(JsonObject que, Integer pathId, String pathType, String lessonId, String collectionId) throws Throwable {
-      if (!isSystemSuggestExists(pathId, pathType, collectionId)) {
+      if (!isSystemSuggestExists(pathId, pathType, collectionId, lessonId)) {
           return null;
       }
       Map<?, ?> ulMeta = AJEntityLesson.fetchLesson(courseId, lessonId);
@@ -216,10 +216,10 @@ public ExecutionResult<MessageResponse> executeRequest() {
       return que;
   }
   
-  private Boolean isSystemSuggestExists(Integer pathId, String pathType, String collectionId) throws Throwable {
+  private Boolean isSystemSuggestExists(Integer pathId, String pathType, String collectionId, String lessonId) throws Throwable {
       Boolean isValidContent = true;
       if ((pathId != null && pathId > 0) && (pathType != null && pathType.equalsIgnoreCase(AJEntityBaseReports.SYSTEM))) {
-          AJEntityUserNavigationPaths suggestedContent = AJEntityUserNavigationPaths.fetchSystemSuggestedContent(collectionId);
+          AJEntityUserNavigationPaths suggestedContent = AJEntityUserNavigationPaths.fetchSystemSuggestedContent(collectionId, classId, courseId, lessonId);
           if (suggestedContent == null) isValidContent = false; 
       }
       return isValidContent;
