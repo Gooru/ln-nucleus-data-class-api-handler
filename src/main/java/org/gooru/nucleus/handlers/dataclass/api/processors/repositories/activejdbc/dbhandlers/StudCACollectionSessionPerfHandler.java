@@ -16,11 +16,8 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionRe
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
 import org.javalite.activejdbc.Base;
-import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.hazelcast.util.StringUtil;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -37,6 +34,7 @@ public class StudCACollectionSessionPerfHandler implements DBHandler {
     private long lastAccessedTime;
 
     private final ProcessorContext context;
+    private String userId;
 
     public StudCACollectionSessionPerfHandler(ProcessorContext context) {
         this.context = context;
@@ -49,6 +47,11 @@ public class StudCACollectionSessionPerfHandler implements DBHandler {
             return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Invalid data provided to fetch Student Performance in Collection"), ExecutionStatus.FAILED);
         }
 
+        userId = this.context.request().getString(REQUEST_USERID);
+        if (userId == null || userId.trim().isEmpty()) {
+            LOGGER.warn("User Id is mandatory to fetch Student Collection Perf in req session");
+            return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("user Id is missing"), ExecutionStatus.FAILED);
+        }
         LOGGER.debug("checkSanity() OK");
         return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
     }
@@ -74,18 +77,6 @@ public class StudCACollectionSessionPerfHandler implements DBHandler {
     public ExecutionResult<MessageResponse> executeRequest() {
         JsonObject resultBody = new JsonObject();
         JsonArray resultarray = new JsonArray();
-
-        String userId = this.context.request().getString(REQUEST_USERID);
-
-        if (context.classId() != null && StringUtil.isNullOrEmpty(userId)) {
-            LOGGER.warn("UserID is not in the request to fetch Student Collection Perf in req session. Assume user is a teacher");
-            LazyList<AJEntityDailyClassActivity> userIdforCollection = AJEntityDailyClassActivity
-                .findBySQL(AJEntityDailyClassActivity.SELECT_DISTINCT_USERID_FOR_SESSION + AJEntityDailyClassActivity.COLL_TYPE_FILTER, context.classId(), context.sessionId());
-            if (userIdforCollection != null && !userIdforCollection.isEmpty()) {
-                AJEntityDailyClassActivity userIdC = userIdforCollection.get(0);
-                userId = userIdC.getString(AJEntityDailyClassActivity.GOORUUID);
-            }
-        }
 
         List<Map> collectionMaximumScore = Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_MAX_SCORE_FOR_SESSION, context.sessionId());
         collectionMaximumScore.forEach(ms -> {
