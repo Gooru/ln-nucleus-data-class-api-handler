@@ -1041,7 +1041,7 @@ public class AJEntityBaseReports extends Model {
 
     public static final String GET_IL_ALL_ASSESSMENT_ATTEMPTS_TIMESPENT = "SELECT collection_id , SUM(time_spent) AS time_spent , SUM(views) AS attempts "
             + "FROM base_reports WHERE class_id IS NULL AND collection_id = ANY(?::varchar[]) "
-            + "AND event_name = 'collection.play' AND event_type = 'stop' AND collection_type IN ('assessment', 'assessment-external)' "
+            + "AND event_name = 'collection.play' AND event_type = 'stop' AND collection_type IN ('assessment', 'assessment-external') "
             + "AND actor_id = ? GROUP BY collection_id";
    
 
