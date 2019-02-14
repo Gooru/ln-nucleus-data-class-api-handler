@@ -16,11 +16,8 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionRe
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
 import org.javalite.activejdbc.Base;
-import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.hazelcast.util.StringUtil;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -37,6 +34,7 @@ public class StudCACollectionSessionPerfHandler implements DBHandler {
     private long lastAccessedTime;
 
     private final ProcessorContext context;
+    private String userId;
 
     public StudCACollectionSessionPerfHandler(ProcessorContext context) {
         this.context = context;
@@ -49,6 +47,11 @@ public class StudCACollectionSessionPerfHandler implements DBHandler {
             return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Invalid data provided to fetch Student Performance in Collection"), ExecutionStatus.FAILED);
         }
 
+        userId = this.context.request().getString(REQUEST_USERID);
+        if (userId == null || userId.trim().isEmpty()) {
+            LOGGER.warn("User Id is mandatory to fetch Student Collection Perf in req session");
+            return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("user Id is missing"), ExecutionStatus.FAILED);
+        }
         LOGGER.debug("checkSanity() OK");
         return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
     }
@@ -75,19 +78,7 @@ public class StudCACollectionSessionPerfHandler implements DBHandler {
         JsonObject resultBody = new JsonObject();
         JsonArray resultarray = new JsonArray();
 
-        String userId = this.context.request().getString(REQUEST_USERID);
-
-        if (context.classId() != null && StringUtil.isNullOrEmpty(userId)) {
-            LOGGER.warn("UserID is not in the request to fetch Student Collection Perf in req session. Assume user is a teacher");
-            LazyList<AJEntityDailyClassActivity> userIdforCollection = AJEntityDailyClassActivity
-                .findBySQL(AJEntityDailyClassActivity.SELECT_DISTINCT_USERID_FOR_SESSION + AJEntityDailyClassActivity.COLL_TYPE_FILTER, context.classId(), context.sessionId());
-            if (userIdforCollection != null && !userIdforCollection.isEmpty()) {
-                AJEntityDailyClassActivity userIdC = userIdforCollection.get(0);
-                userId = userIdC.getString(AJEntityDailyClassActivity.GOORUUID);
-            }
-        }
-
-        List<Map> collectionMaximumScore = Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_MAX_SCORE_FOR_SESSION, context.sessionId());
+        List<Map> collectionMaximumScore = Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_MAX_SCORE_FOR_SESSION, context.sessionId(), userId);
         collectionMaximumScore.forEach(ms -> {
             if (ms.get(AJEntityDailyClassActivity.MAX_SCORE) != null) {
                 this.maxScore = Double.valueOf(ms.get(AJEntityDailyClassActivity.MAX_SCORE).toString());
@@ -96,7 +87,7 @@ public class StudCACollectionSessionPerfHandler implements DBHandler {
             }
         });
 
-        List<Map> lastAccessedTime = Base.findAll(AJEntityDailyClassActivity.SELECT_LAST_ACCESSED_TIME_OF_SESSION, context.sessionId());
+        List<Map> lastAccessedTime = Base.findAll(AJEntityDailyClassActivity.SELECT_LAST_ACCESSED_TIME_OF_SESSION, context.sessionId(), userId);
 
         if (!lastAccessedTime.isEmpty()) {
             lastAccessedTime.forEach(l -> {
@@ -104,7 +95,7 @@ public class StudCACollectionSessionPerfHandler implements DBHandler {
             });
         }
 
-        List<Map> collectionData = Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_AGG_DATA_FOR_SESSION, context.sessionId());
+        List<Map> collectionData = Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_AGG_DATA_FOR_SESSION, context.sessionId(), userId);
         JsonObject contentBody = new JsonObject();
         if (!collectionData.isEmpty()) {
             LOGGER.debug("Collection Attributes obtained");
@@ -117,7 +108,7 @@ public class StudCACollectionSessionPerfHandler implements DBHandler {
                 collectionDataObj.put(JsonConstants.MAX_SCORE, this.maxScore);
                 double scoreInPercent;
                 int reaction = 0;
-                Object collectionScore = Base.firstCell(AJEntityDailyClassActivity.SELECT_COLLECTION_AGG_SCORE_FOR_SESSION, context.sessionId());
+                Object collectionScore = Base.firstCell(AJEntityDailyClassActivity.SELECT_COLLECTION_AGG_SCORE_FOR_SESSION, context.sessionId(), userId);
 
                 if (collectionScore != null && (this.maxScore > 0)) {
                     scoreInPercent = ((Double.valueOf(collectionScore.toString()) / this.maxScore) * 100);
@@ -126,7 +117,7 @@ public class StudCACollectionSessionPerfHandler implements DBHandler {
                     collectionDataObj.putNull(AJEntityDailyClassActivity.SCORE);
                 }
 
-                Object collectionReaction = Base.firstCell(AJEntityDailyClassActivity.SELECT_COLLECTION_AGG_REACTION_FOR_SESSION, context.sessionId());
+                Object collectionReaction = Base.firstCell(AJEntityDailyClassActivity.SELECT_COLLECTION_AGG_REACTION_FOR_SESSION, context.sessionId(), userId);
 
                 if (collectionReaction != null) {
                     reaction = Integer.valueOf(collectionReaction.toString());
@@ -138,7 +129,7 @@ public class StudCACollectionSessionPerfHandler implements DBHandler {
             LOGGER.debug("Collection resource Attributes started");
             List<Map> collectionQuestionsKPI;
 
-            collectionQuestionsKPI = Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_RESOURCE_AGG_DATA_FOR_SESSION, context.sessionId());
+            collectionQuestionsKPI = Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_RESOURCE_AGG_DATA_FOR_SESSION, context.sessionId(), userId);
             JsonArray questionsArray = new JsonArray();
 
             if (!collectionQuestionsKPI.isEmpty()) {
@@ -152,7 +143,7 @@ public class StudCACollectionSessionPerfHandler implements DBHandler {
                         qnData.put(EventConstants.ANSWERSTATUS, EventConstants.SKIPPED);
                     }
                     List<Map> questionScore =
-                        Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_QUESTION_AGG_SCORE_FOR_SESSION, context.sessionId(), questions.get(AJEntityDailyClassActivity.RESOURCE_ID));
+                        Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_QUESTION_AGG_SCORE_FOR_SESSION, context.sessionId(), userId, questions.get(AJEntityDailyClassActivity.RESOURCE_ID));
 
                     if (questionScore != null && !questionScore.isEmpty()) {
                         questionScore.forEach(qs -> {
@@ -176,7 +167,7 @@ public class StudCACollectionSessionPerfHandler implements DBHandler {
                     }
                     // Get grading status for Questions
                     if (qnData.getString(EventConstants.QUESTION_TYPE).equalsIgnoreCase(EventConstants.OPEN_ENDED_QUE)) {
-                        Object isGradedObj = Base.firstCell(AJEntityDailyClassActivity.GET_OE_QUE_GRADE_STATUS_FOR_SESSION_ID, context.sessionId(),
+                        Object isGradedObj = Base.firstCell(AJEntityDailyClassActivity.GET_OE_QUE_GRADE_STATUS_FOR_SESSION_ID, context.sessionId(), userId,
                             questions.get(AJEntityDailyClassActivity.RESOURCE_ID));
                         if (isGradedObj != null && (isGradedObj.toString().equalsIgnoreCase("t") || isGradedObj.toString().equalsIgnoreCase("true"))) {
                             qnData.put(JsonConstants.IS_GRADED, true);
@@ -189,7 +180,7 @@ public class StudCACollectionSessionPerfHandler implements DBHandler {
 
                     List<Map> resourceReaction;
                     resourceReaction =
-                        Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_RESOURCE_AGG_REACTION_FOR_SESSION, context.sessionId(), questions.get(AJEntityDailyClassActivity.RESOURCE_ID));
+                        Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_RESOURCE_AGG_REACTION_FOR_SESSION, context.sessionId(), userId, questions.get(AJEntityDailyClassActivity.RESOURCE_ID));
 
                     if (!resourceReaction.isEmpty()) {
                         resourceReaction.forEach(rs -> {
