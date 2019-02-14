@@ -78,7 +78,7 @@ public class StudCACollectionSessionPerfHandler implements DBHandler {
         JsonObject resultBody = new JsonObject();
         JsonArray resultarray = new JsonArray();
 
-        List<Map> collectionMaximumScore = Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_MAX_SCORE_FOR_SESSION, context.sessionId());
+        List<Map> collectionMaximumScore = Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_MAX_SCORE_FOR_SESSION, context.sessionId(), userId);
         collectionMaximumScore.forEach(ms -> {
             if (ms.get(AJEntityDailyClassActivity.MAX_SCORE) != null) {
                 this.maxScore = Double.valueOf(ms.get(AJEntityDailyClassActivity.MAX_SCORE).toString());
@@ -87,7 +87,7 @@ public class StudCACollectionSessionPerfHandler implements DBHandler {
             }
         });
 
-        List<Map> lastAccessedTime = Base.findAll(AJEntityDailyClassActivity.SELECT_LAST_ACCESSED_TIME_OF_SESSION, context.sessionId());
+        List<Map> lastAccessedTime = Base.findAll(AJEntityDailyClassActivity.SELECT_LAST_ACCESSED_TIME_OF_SESSION, context.sessionId(), userId);
 
         if (!lastAccessedTime.isEmpty()) {
             lastAccessedTime.forEach(l -> {
@@ -95,7 +95,7 @@ public class StudCACollectionSessionPerfHandler implements DBHandler {
             });
         }
 
-        List<Map> collectionData = Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_AGG_DATA_FOR_SESSION, context.sessionId());
+        List<Map> collectionData = Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_AGG_DATA_FOR_SESSION, context.sessionId(), userId);
         JsonObject contentBody = new JsonObject();
         if (!collectionData.isEmpty()) {
             LOGGER.debug("Collection Attributes obtained");
@@ -108,7 +108,7 @@ public class StudCACollectionSessionPerfHandler implements DBHandler {
                 collectionDataObj.put(JsonConstants.MAX_SCORE, this.maxScore);
                 double scoreInPercent;
                 int reaction = 0;
-                Object collectionScore = Base.firstCell(AJEntityDailyClassActivity.SELECT_COLLECTION_AGG_SCORE_FOR_SESSION, context.sessionId());
+                Object collectionScore = Base.firstCell(AJEntityDailyClassActivity.SELECT_COLLECTION_AGG_SCORE_FOR_SESSION, context.sessionId(), userId);
 
                 if (collectionScore != null && (this.maxScore > 0)) {
                     scoreInPercent = ((Double.valueOf(collectionScore.toString()) / this.maxScore) * 100);
@@ -117,7 +117,7 @@ public class StudCACollectionSessionPerfHandler implements DBHandler {
                     collectionDataObj.putNull(AJEntityDailyClassActivity.SCORE);
                 }
 
-                Object collectionReaction = Base.firstCell(AJEntityDailyClassActivity.SELECT_COLLECTION_AGG_REACTION_FOR_SESSION, context.sessionId());
+                Object collectionReaction = Base.firstCell(AJEntityDailyClassActivity.SELECT_COLLECTION_AGG_REACTION_FOR_SESSION, context.sessionId(), userId);
 
                 if (collectionReaction != null) {
                     reaction = Integer.valueOf(collectionReaction.toString());
@@ -129,7 +129,7 @@ public class StudCACollectionSessionPerfHandler implements DBHandler {
             LOGGER.debug("Collection resource Attributes started");
             List<Map> collectionQuestionsKPI;
 
-            collectionQuestionsKPI = Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_RESOURCE_AGG_DATA_FOR_SESSION, context.sessionId());
+            collectionQuestionsKPI = Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_RESOURCE_AGG_DATA_FOR_SESSION, context.sessionId(), userId);
             JsonArray questionsArray = new JsonArray();
 
             if (!collectionQuestionsKPI.isEmpty()) {
@@ -143,7 +143,7 @@ public class StudCACollectionSessionPerfHandler implements DBHandler {
                         qnData.put(EventConstants.ANSWERSTATUS, EventConstants.SKIPPED);
                     }
                     List<Map> questionScore =
-                        Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_QUESTION_AGG_SCORE_FOR_SESSION, context.sessionId(), questions.get(AJEntityDailyClassActivity.RESOURCE_ID));
+                        Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_QUESTION_AGG_SCORE_FOR_SESSION, context.sessionId(), userId, questions.get(AJEntityDailyClassActivity.RESOURCE_ID));
 
                     if (questionScore != null && !questionScore.isEmpty()) {
                         questionScore.forEach(qs -> {
@@ -167,7 +167,7 @@ public class StudCACollectionSessionPerfHandler implements DBHandler {
                     }
                     // Get grading status for Questions
                     if (qnData.getString(EventConstants.QUESTION_TYPE).equalsIgnoreCase(EventConstants.OPEN_ENDED_QUE)) {
-                        Object isGradedObj = Base.firstCell(AJEntityDailyClassActivity.GET_OE_QUE_GRADE_STATUS_FOR_SESSION_ID, context.sessionId(),
+                        Object isGradedObj = Base.firstCell(AJEntityDailyClassActivity.GET_OE_QUE_GRADE_STATUS_FOR_SESSION_ID, context.sessionId(), userId,
                             questions.get(AJEntityDailyClassActivity.RESOURCE_ID));
                         if (isGradedObj != null && (isGradedObj.toString().equalsIgnoreCase("t") || isGradedObj.toString().equalsIgnoreCase("true"))) {
                             qnData.put(JsonConstants.IS_GRADED, true);
@@ -180,7 +180,7 @@ public class StudCACollectionSessionPerfHandler implements DBHandler {
 
                     List<Map> resourceReaction;
                     resourceReaction =
-                        Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_RESOURCE_AGG_REACTION_FOR_SESSION, context.sessionId(), questions.get(AJEntityDailyClassActivity.RESOURCE_ID));
+                        Base.findAll(AJEntityDailyClassActivity.SELECT_COLLECTION_RESOURCE_AGG_REACTION_FOR_SESSION, context.sessionId(), userId, questions.get(AJEntityDailyClassActivity.RESOURCE_ID));
 
                     if (!resourceReaction.isEmpty()) {
                         resourceReaction.forEach(rs -> {

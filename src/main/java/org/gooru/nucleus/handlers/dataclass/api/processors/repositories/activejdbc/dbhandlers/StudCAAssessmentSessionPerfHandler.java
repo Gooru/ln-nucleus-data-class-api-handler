@@ -80,10 +80,10 @@ public class StudCAAssessmentSessionPerfHandler implements DBHandler {
         JsonObject contentBody = new JsonObject();
 
         LazyList<AJEntityDailyClassActivity> dcaAssessmentPerf = AJEntityDailyClassActivity.findBySQL(AJEntityDailyClassActivity.SELECT_ASSESSMENT_PERF_FOR_SESSION_ID, context.sessionId(),
-            AJEntityDailyClassActivity.ATTR_CP_EVENTNAME, AJEntityDailyClassActivity.ATTR_EVENTTYPE_STOP);
+           userId, AJEntityDailyClassActivity.ATTR_CP_EVENTNAME, AJEntityDailyClassActivity.ATTR_EVENTTYPE_STOP);
         if (dcaAssessmentPerf != null && !dcaAssessmentPerf.isEmpty()) {
             AJEntityDailyClassActivity dcaAssessmentPerfModel = dcaAssessmentPerf.get(0);
-            Object assessmentReactionObject = Base.firstCell(AJEntityDailyClassActivity.SELECT_ASSESSMENT_REACTION_FOR_SESSION_ID, context.sessionId());
+            Object assessmentReactionObject = Base.firstCell(AJEntityDailyClassActivity.SELECT_ASSESSMENT_REACTION_FOR_SESSION_ID, context.sessionId(), userId);
 
             LOGGER.debug("Assessment Attributes obtained");
             JsonObject assessmentData = new JsonObject();
@@ -96,7 +96,7 @@ public class StudCAAssessmentSessionPerfHandler implements DBHandler {
                 dcaAssessmentPerfModel.get(AJEntityDailyClassActivity.COLLECTION_TYPE) != null ? dcaAssessmentPerfModel.getString(AJEntityDailyClassActivity.COLLECTION_TYPE) : null);
             contentBody.put(JsonConstants.ASSESSMENT, assessmentData);
 
-            List<Map> assessmentQuestionsKPI = Base.findAll(AJEntityDailyClassActivity.SELECT_ASSESSMENT_QUESTION_FOR_SESSION_ID, context.sessionId(), AJEntityDailyClassActivity.ATTR_CRP_EVENTNAME);
+            List<Map> assessmentQuestionsKPI = Base.findAll(AJEntityDailyClassActivity.SELECT_ASSESSMENT_QUESTION_FOR_SESSION_ID, context.sessionId(), userId, AJEntityDailyClassActivity.ATTR_CRP_EVENTNAME);
 
             JsonArray questionsArray = new JsonArray();
             if (!assessmentQuestionsKPI.isEmpty()) {
@@ -109,7 +109,7 @@ public class StudCAAssessmentSessionPerfHandler implements DBHandler {
                     // questions
                     qnData.put(JsonConstants.RAW_SCORE,
                         questions.get(AJEntityDailyClassActivity.SCORE) != null ? Math.round(Double.valueOf(questions.get(AJEntityDailyClassActivity.SCORE).toString())) : "NA");
-                    Object reactionObj = Base.firstCell(AJEntityDailyClassActivity.SELECT_ASSESSMENT_RESOURCE_REACTION_FOR_SESSION_ID, context.sessionId(),
+                    Object reactionObj = Base.firstCell(AJEntityDailyClassActivity.SELECT_ASSESSMENT_RESOURCE_REACTION_FOR_SESSION_ID, context.sessionId(), userId,
                         questions.get(AJEntityDailyClassActivity.RESOURCE_ID).toString());
                     qnData.put(JsonConstants.REACTION, reactionObj != null ? ((Number) reactionObj).intValue() : 0);
                     qnData.put(JsonConstants.MAX_SCORE,
@@ -125,7 +125,7 @@ public class StudCAAssessmentSessionPerfHandler implements DBHandler {
                     }
                     if (qnData.getString(EventConstants.QUESTION_TYPE).equalsIgnoreCase(EventConstants.OPEN_ENDED_QUE)) {
                         Object isGradedObj =
-                            Base.firstCell(AJEntityDailyClassActivity.GET_OE_QUE_GRADE_STATUS_FOR_SESSION_ID, context.sessionId(), questions.get(AJEntityDailyClassActivity.RESOURCE_ID).toString());
+                            Base.firstCell(AJEntityDailyClassActivity.GET_OE_QUE_GRADE_STATUS_FOR_SESSION_ID, context.sessionId(), userId, questions.get(AJEntityDailyClassActivity.RESOURCE_ID).toString());
                         if (isGradedObj != null && (isGradedObj.toString().equalsIgnoreCase("t") || isGradedObj.toString().equalsIgnoreCase("true"))) {
                             qnData.put(JsonConstants.IS_GRADED, true);
                         } else {
