@@ -80,7 +80,7 @@ public class StudCACollectionSessionPerfHandler implements DBHandler {
         if (context.classId() != null && StringUtil.isNullOrEmpty(userId)) {
             LOGGER.warn("UserID is not in the request to fetch Student Collection Perf in req session. Assume user is a teacher");
             LazyList<AJEntityDailyClassActivity> userIdforCollection = AJEntityDailyClassActivity
-                .findBySQL(AJEntityDailyClassActivity.SELECT_DISTINCT_USERID_FOR_SESSION + AJEntityDailyClassActivity.COLL_TYPE_FILTER, context.classId(), context.sessionId());
+                .findBySQL(AJEntityDailyClassActivity.SELECT_DISTINCT_USERID_FOR_COLLECTION_SESSION + AJEntityDailyClassActivity.COLL_TYPE_FILTER, context.classId(), context.sessionId());
             if (userIdforCollection != null && !userIdforCollection.isEmpty()) {
                 AJEntityDailyClassActivity userIdC = userIdforCollection.get(0);
                 userId = userIdC.getString(AJEntityDailyClassActivity.GOORUUID);

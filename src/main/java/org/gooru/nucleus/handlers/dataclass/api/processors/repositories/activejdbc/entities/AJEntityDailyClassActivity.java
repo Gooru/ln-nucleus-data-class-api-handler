@@ -200,6 +200,9 @@ public class AJEntityDailyClassActivity extends Model{
         + "FIRST_VALUE(max_score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS max_score "
         + "FROM daily_class_activity WHERE session_id = ? AND resource_id = ? AND event_name = 'collection.resource.play' AND resource_type = 'question' AND resource_attempt_status <> 'skipped'";
 
+    public static final String SELECT_DISTINCT_USERID_FOR_COLLECTION_SESSION =
+        "SELECT DISTINCT(actor_id) FROM daily_class_activity WHERE class_id = ? AND session_id = ?";
+    
     // Getting RESOURCE DATA (reaction)
     public static final String SELECT_COLLECTION_RESOURCE_AGG_REACTION_FOR_SESSION = "SELECT DISTINCT ON (resource_id) " + "FIRST_VALUE(reaction) OVER (PARTITION BY resource_id "
         + "ORDER BY updated_at desc) AS reaction " + "FROM daily_class_activity WHERE session_id = ? AND resource_id = ?  AND event_name = 'reaction.create' AND reaction <> 0";
