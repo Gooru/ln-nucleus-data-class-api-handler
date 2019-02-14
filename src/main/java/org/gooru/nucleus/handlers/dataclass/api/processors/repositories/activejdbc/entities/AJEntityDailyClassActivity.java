@@ -160,10 +160,7 @@ public class AJEntityDailyClassActivity extends Model{
 
     public static final String GET_OE_QUE_GRADE_STATUS_FOR_SESSION_ID =
         "SELECT is_graded FROM daily_class_activity WHERE session_id = ?  and resource_id = ? AND event_name = 'collection.resource.play' AND event_type = 'stop'";
-
-    public static final String SELECT_DISTINCT_USERID_FOR_SESSION =
-        "SELECT DISTINCT(actor_id) FROM daily_class_activity WHERE class_id = ? AND session_id = ? AND event_name = ? AND event_type = ? ";
-
+    
     // GET STUDENT SESSION PERF IN COLLECTION
     public static final String SELECT_COLLECTION_MAX_SCORE_FOR_SESSION = "SELECT SUM(agg.max_score) AS max_score FROM "
         + "(SELECT DISTINCT ON (resource_id) collection_id, FIRST_VALUE(updated_at) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS updated_at, "
@@ -200,9 +197,6 @@ public class AJEntityDailyClassActivity extends Model{
         + "FIRST_VALUE(max_score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS max_score "
         + "FROM daily_class_activity WHERE session_id = ? AND resource_id = ? AND event_name = 'collection.resource.play' AND resource_type = 'question' AND resource_attempt_status <> 'skipped'";
 
-    public static final String SELECT_DISTINCT_USERID_FOR_COLLECTION_SESSION =
-        "SELECT DISTINCT(actor_id) FROM daily_class_activity WHERE class_id = ? AND session_id = ?";
-    
     // Getting RESOURCE DATA (reaction)
     public static final String SELECT_COLLECTION_RESOURCE_AGG_REACTION_FOR_SESSION = "SELECT DISTINCT ON (resource_id) " + "FIRST_VALUE(reaction) OVER (PARTITION BY resource_id "
         + "ORDER BY updated_at desc) AS reaction " + "FROM daily_class_activity WHERE session_id = ? AND resource_id = ?  AND event_name = 'reaction.create' AND reaction <> 0";

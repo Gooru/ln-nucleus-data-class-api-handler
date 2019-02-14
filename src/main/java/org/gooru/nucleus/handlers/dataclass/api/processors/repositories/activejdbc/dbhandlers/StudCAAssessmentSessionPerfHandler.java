@@ -19,8 +19,6 @@ import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hazelcast.util.StringUtil;
-
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -34,6 +32,7 @@ public class StudCAAssessmentSessionPerfHandler implements DBHandler {
     private static final String REQUEST_USERID = "userId";
 
     private final ProcessorContext context;
+    private String userId;
 
     public StudCAAssessmentSessionPerfHandler(ProcessorContext context) {
         this.context = context;
@@ -46,6 +45,11 @@ public class StudCAAssessmentSessionPerfHandler implements DBHandler {
             return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Invalid data provided to fetch Student Performance in Assessment"), ExecutionStatus.FAILED);
         }
 
+        userId = this.context.request().getString(REQUEST_USERID);
+        if (userId == null || userId.trim().isEmpty()) {
+            LOGGER.warn("User Id is mandatory to fetch Student Assessment Perf in req session");
+            return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("user Id is missing"), ExecutionStatus.FAILED);
+        }
         LOGGER.debug("checkSanity() OK");
         return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
     }
@@ -71,19 +75,6 @@ public class StudCAAssessmentSessionPerfHandler implements DBHandler {
     public ExecutionResult<MessageResponse> executeRequest() {
         JsonObject resultBody = new JsonObject();
         JsonArray resultarray = new JsonArray();
-
-        String userId = this.context.request().getString(REQUEST_USERID);
-
-        if (this.context.classId() != null && StringUtil.isNullOrEmpty(userId)) {
-            LOGGER.warn("UserID is not in the request to fetch Asmt Perf in session at CA. Assume user is a teacher");
-            LazyList<AJEntityDailyClassActivity> userIdforAssessment =
-                AJEntityDailyClassActivity.findBySQL(AJEntityDailyClassActivity.SELECT_DISTINCT_USERID_FOR_SESSION + AJEntityDailyClassActivity.ASMT_TYPE_FILTER, context.classId(),
-                    context.sessionId(), AJEntityDailyClassActivity.ATTR_CP_EVENTNAME, AJEntityDailyClassActivity.ATTR_EVENTTYPE_STOP);
-            if (userIdforAssessment != null && !userIdforAssessment.isEmpty()) {
-                AJEntityDailyClassActivity userIdC = userIdforAssessment.get(0);
-                userId = userIdC.getString(AJEntityDailyClassActivity.GOORUUID);
-            }
-        }
 
         LOGGER.debug("UID is " + userId);
         JsonObject contentBody = new JsonObject();
