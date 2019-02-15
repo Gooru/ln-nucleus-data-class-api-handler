@@ -99,6 +99,7 @@ public class StudentCourseAllItemsPerformanceHandler implements DBHandler {
                 assessmentKpi.forEach(m -> {
                     JsonObject collectionKpi = new JsonObject();
                     String collectionType = m.get(AJEntityBaseReports.ATTR_COLLECTION_TYPE).toString();
+                    Boolean isSessionComplete = Boolean.valueOf(m.get(JsonConstants.STATUS).toString());
                     Double score = m.get(AJEntityBaseReports.SCORE) != null ? Double.valueOf(m.get(AJEntityBaseReports.SCORE).toString()) : null;
                     Double maxScore = m.get(AJEntityBaseReports.ATTR_MAX_SCORE) != null ? Double.valueOf(m.get(AJEntityBaseReports.ATTR_MAX_SCORE).toString()) : null;
                     if (collectionType.equalsIgnoreCase(JsonConstants.COLLECTION)) {
@@ -113,6 +114,9 @@ public class StudentCourseAllItemsPerformanceHandler implements DBHandler {
                             m.get(AJEntityBaseReports.ATTR_SCORE) != null ? Math.round(Double.valueOf(m.get(AJEntityBaseReports.ATTR_SCORE).toString())) : null);
                         collectionKpi.put(AJEntityBaseReports.ATTR_ATTEMPTS,
                             m.get(AJEntityBaseReports.ATTR_ATTEMPTS) != null ? Integer.valueOf(m.get(AJEntityBaseReports.ATTR_ATTEMPTS).toString()) : null);
+                        if (!isSessionComplete) {
+                            collectionKpi.putNull(AJEntityBaseReports.ATTR_SCORE);
+                        }
                     }
 
                     collectionKpi.put(AJEntityBaseReports.ATTR_COLLECTION_TYPE, collectionType);
@@ -133,10 +137,16 @@ public class StudentCourseAllItemsPerformanceHandler implements DBHandler {
                         m.get(AJEntityBaseReports.ATTR_TIME_SPENT) != null ? Long.valueOf(m.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()) : 0);
                     collectionKpi.put(AJEntityBaseReports.ATTR_REACTION, m.get(AJEntityBaseReports.ATTR_REACTION) != null ? Integer.valueOf(m.get(AJEntityBaseReports.ATTR_REACTION).toString()) : 0);
 
-                    collectionKpi.put(JsonConstants.STATUS, Boolean.valueOf(m.get(JsonConstants.STATUS).toString()) ? JsonConstants.COMPLETE : JsonConstants.IN_PROGRESS);
+                    collectionKpi.put(JsonConstants.STATUS, isSessionComplete ? JsonConstants.COMPLETE : JsonConstants.IN_PROGRESS);
 
-                    collectionKpi.put(AJEntityBaseReports.ATTR_GRADE_STATUS,
-                       ( m.get(AJEntityBaseReports.IS_GRADED) != null && !Boolean.valueOf(m.get(AJEntityBaseReports.IS_GRADED).toString())) ? JsonConstants.IN_PROGRESS : JsonConstants.COMPLETE);
+                    String gradingStatus = null;
+                    if (m.get(AJEntityBaseReports.IS_GRADED) != null) {
+                        gradingStatus = JsonConstants.COMPLETE;
+                        if (!Boolean.valueOf(m.get(AJEntityBaseReports.IS_GRADED).toString())) {
+                            gradingStatus = JsonConstants.IN_PROGRESS;
+                        }
+                    }
+                    collectionKpi.put(AJEntityBaseReports.ATTR_GRADE_STATUS, gradingStatus);
                     collectionKpiArray.add(collectionKpi);
                 });
                                
