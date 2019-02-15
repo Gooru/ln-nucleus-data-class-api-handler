@@ -32,6 +32,7 @@ public class RubricQuestionSummaryHandler implements DBHandler {
 	private String questionId;
 	  private String collectionId;
 	  private String studentId;
+	  private String sessionId;
 
 	  public RubricQuestionSummaryHandler(ProcessorContext context) {
 	      this.context = context;
@@ -39,7 +40,26 @@ public class RubricQuestionSummaryHandler implements DBHandler {
 
 	  @Override
 	  public ExecutionResult<MessageResponse> checkSanity() {
-
+	      if (context.request() == null || context.request().isEmpty()) {
+	          LOGGER.warn("Invalid request recieved to fetch Rubric Question Summary");
+	          return new ExecutionResult<>(
+	              MessageResponseFactory.createInvalidRequestResponse("Invalid data provided to fetch Rubric Question Summary"),
+	              ExecutionStatus.FAILED);
+	      }
+	      this.studentId = this.context.request().getString(MessageConstants.STUDENTID);
+	      if (StringUtil.isNullOrEmpty(studentId)) {
+	          LOGGER.warn("StudentID is mandatory to fetch Rubric Question Summary");
+	          return new ExecutionResult<>(
+	                  MessageResponseFactory.createInvalidRequestResponse("Student Id Missing. Cannot fetch Rubric Question Summary"),
+	                  ExecutionStatus.FAILED);
+	        }
+	      this.sessionId = this.context.request().getString(MessageConstants.SESSION_ID);
+	      if (StringUtil.isNullOrEmpty(sessionId)) {
+	          LOGGER.warn("SessionID is mandatory to fetch Rubric Question Summary");
+	          return new ExecutionResult<>(
+	                  MessageResponseFactory.createInvalidRequestResponse("Question Id Missing. Cannot fetch Rubric Question Summary"),
+	                  ExecutionStatus.FAILED);
+	        }
 	      LOGGER.debug("checkSanity() OK");
 	      return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
 	  }
@@ -65,48 +85,28 @@ public class RubricQuestionSummaryHandler implements DBHandler {
 	  JsonObject result = new JsonObject();
 	  JsonArray resultArray = new JsonArray();
 
-		  AJEntityRubricGrading rubricReport = new AJEntityRubricGrading();
-
-	  this.studentId = this.context.request().getString(MessageConstants.STUDENTID);
-	  if (StringUtil.isNullOrEmpty(studentId)) {
-	      LOGGER.warn("StudentID is mandatory to fetch Rubric Question Summary");
-	      return new ExecutionResult<>(
-	              MessageResponseFactory.createInvalidRequestResponse("Student Id Missing. Cannot fetch Rubric Question Summary"),
-	              ExecutionStatus.FAILED);
-	    }
-
-		  String sessionId = this.context.request().getString(MessageConstants.SESSION_ID);
-	  if (StringUtil.isNullOrEmpty(sessionId)) {
-	      LOGGER.warn("SessionID is mandatory to fetch Rubric Question Summary");
-	      return new ExecutionResult<>(
-	              MessageResponseFactory.createInvalidRequestResponse("Question Id Missing. Cannot fetch Rubric Question Summary"),
-	              ExecutionStatus.FAILED);
-	    }
-
 	    //Currently its assumed that teacher will have only one attempt at grading a student's question, so there should be
 	    //only one record per session, per student for this question. (possibly even for collection)
 		List<Map> summaryMap = Base.findAll(AJEntityRubricGrading.GET_RUBRIC_GRADE_FOR_QUESTION, context.classId(),
 				context.courseId(), context.collectionId(), context.questionId(), this.studentId, sessionId);
 
-		if (!summaryMap.isEmpty()){
-			summaryMap.forEach(m -> {
-	    JsonObject smry = new JsonObject();
-	    smry.put(AJEntityRubricGrading.ATTR_STUDENT_ID, this.studentId);
-	    smry.put(AJEntityRubricGrading.ATTR_STUDENT_SCORE, m.get(AJEntityRubricGrading.STUDENT_SCORE) != null
-	    		? Math.round(Double.valueOf(m.get(AJEntityRubricGrading.STUDENT_SCORE).toString())) : null);
-	    smry.put(AJEntityRubricGrading.ATTR_MAX_SCORE, m.get(AJEntityRubricGrading.MAX_SCORE) != null
-	    		? Math.round(Double.valueOf(m.get(AJEntityRubricGrading.MAX_SCORE).toString())) : null);
-	    smry.put(AJEntityRubricGrading.ATTR_OVERALL_COMMENT, m.get(AJEntityRubricGrading.OVERALL_COMMENT) != null
-	    		? (m.get(AJEntityRubricGrading.OVERALL_COMMENT).toString()) : null);
-	    smry.put(AJEntityRubricGrading.ATTR_CATEGORY_SCORE, m.get(AJEntityRubricGrading.CATEGORY_SCORE) != null
-	    		? new JsonArray((m.get(AJEntityRubricGrading.CATEGORY_SCORE).toString())) : null);
+        if (!summaryMap.isEmpty()) {
+            summaryMap.forEach(m -> {
+                JsonObject smry = new JsonObject();
+                smry.put(AJEntityRubricGrading.ATTR_STUDENT_ID, this.studentId);
+                smry.put(AJEntityRubricGrading.ATTR_STUDENT_SCORE,
+                    m.get(AJEntityRubricGrading.STUDENT_SCORE) != null ? Math.round(Double.valueOf(m.get(AJEntityRubricGrading.STUDENT_SCORE).toString())) : null);
+                smry.put(AJEntityRubricGrading.ATTR_MAX_SCORE, m.get(AJEntityRubricGrading.MAX_SCORE) != null ? Math.round(Double.valueOf(m.get(AJEntityRubricGrading.MAX_SCORE).toString())) : null);
+                smry.put(AJEntityRubricGrading.ATTR_OVERALL_COMMENT, m.get(AJEntityRubricGrading.OVERALL_COMMENT) != null ? (m.get(AJEntityRubricGrading.OVERALL_COMMENT).toString()) : null);
+                smry.put(AJEntityRubricGrading.ATTR_CATEGORY_SCORE,
+                    m.get(AJEntityRubricGrading.CATEGORY_SCORE) != null ? new JsonArray((m.get(AJEntityRubricGrading.CATEGORY_SCORE).toString())) : null);
 
-	    resultArray.add(smry);
-	  });
+                resultArray.add(smry);
+            });
 
-		} else {
-	      LOGGER.info("Rubric Question Summary cannot be obtained");
-	  }
+        } else {
+            LOGGER.info("Rubric Question Summary cannot be obtained");
+        }
 
 	  result.put(JsonConstants.QUE_RUBRICS, resultArray);
 

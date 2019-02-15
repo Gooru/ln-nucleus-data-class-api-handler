@@ -229,6 +229,12 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_DCA_CLASS_USER_SUMMARY_FOR_MONTH:
                 result = getDCAActivityAllStudentSummaryReportHandler();
                 break;
+            case MessageConstants.MSG_OP_CA_STUDENT_ASSESSMENT_SESSION_PERF:
+            result = getCAAssessmentSessionPerfReportHandler();
+            break;
+            case MessageConstants.MSG_OP_CA_STUDENT_COLLECTION_SESSION_PERF:
+                result = getCACollectionSessionPerfReportHandler();
+                break;
 
             default:
                 LOGGER.error("Invalid operation type passed in, not able to handle");
@@ -1448,6 +1454,30 @@ class MessageProcessor implements Processor {
           }
 
    }
+    
+    private MessageResponse getCAAssessmentSessionPerfReportHandler() {
+        try {
+            ProcessorContext context = createContext();
+            return new RepoBuilder().buildReportRepo(context).getStudentCAAssessmentSessionPerformance();
+
+        } catch (Throwable t) {
+            LOGGER.error("Exception while getting getCAAssessmentSessionPerfReportHandler", t);
+            return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+        }
+
+    }
+
+    private MessageResponse getCACollectionSessionPerfReportHandler() {
+        try {
+            ProcessorContext context = createContext();
+            return new RepoBuilder().buildReportRepo(context).getStudentCACollectionSessionPerformance();
+
+        } catch (Throwable t) {
+            LOGGER.error("Exception while getting getCACollectionSessionPerfReportHandler", t);
+            return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+        }
+
+    }
 
     private ProcessorContext createContext() {
     	String classId = message.headers().get(MessageConstants.CLASS_ID);

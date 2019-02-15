@@ -1,6 +1,5 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -10,9 +9,9 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
+import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
-import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
@@ -27,6 +26,9 @@ public class StudentsForRubricQuestionsHandler implements DBHandler{
 
 	  private static final Logger LOGGER = LoggerFactory.getLogger(StudentsForRubricQuestionsHandler.class);
 	  private final ProcessorContext context;
+	  private String courseId;
+	  private String classId;
+	  private String collectionId;
 
 	public StudentsForRubricQuestionsHandler(ProcessorContext context) {
 	      this.context = context;
@@ -40,6 +42,33 @@ public class StudentsForRubricQuestionsHandler implements DBHandler{
 	              MessageResponseFactory.createInvalidRequestResponse("Invalid request received to fetch Student Ids for Question to Grade"),
 	              ExecutionStatus.FAILED);
 	      }
+	      
+	       this.classId = this.context.request().getString(MessageConstants.CLASS_ID);
+	       if (StringUtil.isNullOrEmpty(classId)) {
+	           LOGGER.warn("ClassID is mandatory to fetch student list for this question");
+	           return new ExecutionResult<>(
+	                   MessageResponseFactory.createInvalidRequestResponse("Class Id Missing. Cannot fetch student list"),
+	                   ExecutionStatus.FAILED);
+
+	         }
+
+	       this.courseId = this.context.request().getString(MessageConstants.COURSE_ID);
+	       if (StringUtil.isNullOrEmpty(courseId)) {
+	           LOGGER.warn("CourseID is mandatory to fetch student list for this question");
+	           return new ExecutionResult<>(
+	                   MessageResponseFactory.createInvalidRequestResponse("Course Id Missing. Cannot fetch student list"),
+	                   ExecutionStatus.FAILED);
+
+	         }
+
+	           this.collectionId = this.context.request().getString(MessageConstants.COLLECTION_ID);
+	       if (StringUtil.isNullOrEmpty(collectionId)) {
+	           LOGGER.warn("CollectionID is mandatory to fetch student list");
+	           return new ExecutionResult<>(
+	                   MessageResponseFactory.createInvalidRequestResponse("Collection Id Missing. Cannot fetch student list"),
+	                   ExecutionStatus.FAILED);
+
+	         }
 
 	      LOGGER.debug("checkSanity() OK");
 	      return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
@@ -59,39 +88,10 @@ public class StudentsForRubricQuestionsHandler implements DBHandler{
 	  }
 
 	  @Override
-	  @SuppressWarnings("rawtypes")
+	  @SuppressWarnings({ "rawtypes", "unchecked" })
 	public ExecutionResult<MessageResponse> executeRequest() {
 	  JsonObject result = new JsonObject();
 	  JsonArray resultarray = new JsonArray();
-
-		  AJEntityBaseReports baseReport = new AJEntityBaseReports();
-
-		  String classId = this.context.request().getString(MessageConstants.CLASS_ID);
-	  if (StringUtil.isNullOrEmpty(classId)) {
-	      LOGGER.warn("ClassID is mandatory to fetch student list for this question");
-	      return new ExecutionResult<>(
-	              MessageResponseFactory.createInvalidRequestResponse("Class Id Missing. Cannot fetch student list"),
-	              ExecutionStatus.FAILED);
-
-	    }
-
-		  String courseId = this.context.request().getString(MessageConstants.COURSE_ID);
-	  if (StringUtil.isNullOrEmpty(courseId)) {
-	      LOGGER.warn("CourseID is mandatory to fetch student list for this question");
-	      return new ExecutionResult<>(
-	              MessageResponseFactory.createInvalidRequestResponse("Course Id Missing. Cannot fetch student list"),
-	              ExecutionStatus.FAILED);
-
-	    }
-
-		  String collectionId = this.context.request().getString(MessageConstants.COLLECTION_ID);
-	  if (StringUtil.isNullOrEmpty(collectionId)) {
-	      LOGGER.warn("CollectionID is mandatory to fetch student list");
-	      return new ExecutionResult<>(
-	              MessageResponseFactory.createInvalidRequestResponse("Collection Id Missing. Cannot fetch student list"),
-	              ExecutionStatus.FAILED);
-
-	    }
 
 		LazyList<AJEntityBaseReports> userIdforQue =
 	              AJEntityBaseReports.findBySQL(AJEntityBaseReports.GET_DISTINCT_STUDENTS_FOR_THIS_RESOURCE, classId,
