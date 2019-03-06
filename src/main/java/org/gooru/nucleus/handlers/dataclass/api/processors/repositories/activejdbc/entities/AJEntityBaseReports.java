@@ -100,6 +100,7 @@ public class AJEntityBaseReports extends Model {
     public static final String ATTR_PATH_TYPE = "pathType";
     public static final String ATTR_MAX_SCORE = "maxScore";
     public static final String ATTR_SESSION_ID = "sessionId";
+    public static final String ATTR_CONTENT_SOURCE = "contentSource";
     public static final String ROUTE0 = "route0";
     public static final String SYSTEM = "system";
     
