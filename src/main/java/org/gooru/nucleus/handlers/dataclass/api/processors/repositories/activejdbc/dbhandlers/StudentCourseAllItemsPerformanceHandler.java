@@ -132,6 +132,7 @@ public class StudentCourseAllItemsPerformanceHandler implements DBHandler {
                     collectionKpi.put(AJEntityBaseReports.ATTR_PATH_ID, (m.get(AJEntityBaseReports.ATTR_PATH_ID) != null && Integer.valueOf(m.get(AJEntityBaseReports.ATTR_PATH_ID).toString()) > 0) ? Integer.valueOf(m.get(AJEntityBaseReports.ATTR_PATH_ID).toString()) : null);
                     collectionKpi.put(AJEntityBaseReports.ATTR_PATH_TYPE, m.get(AJEntityBaseReports.ATTR_PATH_TYPE) != null ? m.get(AJEntityBaseReports.ATTR_PATH_TYPE).toString() : null);
                     collectionKpi.put(AJEntityBaseReports.ATTR_LAST_ACCESSED, m.get(AJEntityBaseReports.UPDATE_TIMESTAMP).toString());
+                    collectionKpi.put(AJEntityBaseReports.ATTR_CONTENT_SOURCE, m.get(AJEntityBaseReports.ATTR_CONTENT_SOURCE) != null ? m.get(AJEntityBaseReports.ATTR_CONTENT_SOURCE).toString() : null);
 
                     collectionKpi.put(AJEntityBaseReports.ATTR_TIME_SPENT,
                         m.get(AJEntityBaseReports.ATTR_TIME_SPENT) != null ? Long.valueOf(m.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()) : 0);
