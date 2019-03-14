@@ -131,7 +131,8 @@ public final class MessageConstants {
     public static final String MSG_OP_DCA_STUDENT_ASSESSMENT_PERF = "dca.student.assessment.performance";
     public static final String MSG_OP_DCA_STUDENT_COLLECTION_PERF = "dca.student.collection.performance";
     public static final String MSG_OP_DCA_STUDENT_ASSESSMENT_ALL_SESSIONS = "dca.student.assessment.all.sessions";
-    public static final String MSG_OP_DCA_CLASS_PERF = "dca.class.performance";
+    public static final String MSG_OP_DCA_CLASS_PERF = "dca.class.performance";    
+    public static final String MSG_OP_DCA_ALL_CLASSES_PERF = "dca.all.classes.performance";
     public static final String MSG_OP_DCA_CLASS_SUMMARY_MONTHLY = "dca.class.summary.monthly";
     public static final String MSG_OP_DCA_CLASS_SUMMARY_FOR_MONTH = "dca.class.summary.for.month";
     public static final String MSG_OP_DCA_CLASS_USER_SUMMARY_FOR_MONTH = "dca.class.user.summary.for.month";

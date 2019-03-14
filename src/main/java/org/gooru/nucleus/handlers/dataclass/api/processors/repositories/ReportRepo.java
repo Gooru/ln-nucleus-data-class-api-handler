@@ -123,6 +123,8 @@ public interface ReportRepo {
     MessageResponse getStudentDCAAssessmentSessions();
     
     MessageResponse getDCAClassPerformance();
+    
+    MessageResponse getDCAAllClassesPerformance();
         
     //NU
     MessageResponse getDataReports();
