@@ -32,6 +32,8 @@ public class StudDCAAllClassPerfHandler implements DBHandler {
 	private static final String REQUEST_USERID = "userId";
 
 	private String userId;
+	private List<String> reqClassIds = new ArrayList<>();
+	private List cIds = new ArrayList<>();
 	private List<String> classIds = new ArrayList<>();
 
 	StudDCAAllClassPerfHandler(ProcessorContext context) {
@@ -53,7 +55,8 @@ public class StudDCAAllClassPerfHandler implements DBHandler {
 		}
 
 		for (Object s : classes) {
-			this.classIds.add(s.toString());
+			LOGGER.debug("The Request Class String is " + s.toString());
+			this.reqClassIds.add(s.toString());
 		}
 
 		LOGGER.debug("checkSanity() OK");
@@ -63,18 +66,15 @@ public class StudDCAAllClassPerfHandler implements DBHandler {
 	@Override
 	@SuppressWarnings("rawtypes")
 	public ExecutionResult<MessageResponse> validateRequest() {
-		if (context.getUserIdFromRequest() == null || (context.getUserIdFromRequest() != null &&
-				!context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest())))
-		{
-			List<Map> owner =
-					Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER,
-							this.context.classId(),
-							this.context.userIdFromSession());
-			if (owner.isEmpty()) {
+		if (context.getUserIdFromRequest() == null || (context.getUserIdFromRequest() != null
+				&& !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
+			cIds = Base.firstColumn(AJEntityClassAuthorizedUsers.SELECT_CLASSES,
+					listToPostgresArrayString(this.reqClassIds), this.context.userIdFromSession());
+			if (cIds == null || cIds.isEmpty()) {
 				LOGGER.debug("validateRequest() FAILED");
 				return new ExecutionResult<>(
 						MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"),
-								ExecutionStatus.FAILED);
+						ExecutionStatus.FAILED);
 			}
 		}
 		LOGGER.debug("validateRequest() OK");
@@ -92,6 +92,12 @@ public class StudDCAAllClassPerfHandler implements DBHandler {
 			classKpiArray = fetchClassKPIForStudent();
 		} else {
 			// Teacher access to Class Data
+			if (cIds != null && !cIds.isEmpty()) {
+				for (Object c : cIds) {
+					LOGGER.debug("The Class String is " + c.toString());
+					this.classIds.add(c.toString());
+				}
+			}
 			classKpiArray = fetchClassKPIForTeacher();
 		}
 
@@ -108,8 +114,9 @@ public class StudDCAAllClassPerfHandler implements DBHandler {
 		JsonArray classKpiArray = new JsonArray();
 		// Average performance across All attempts of Assessments /
 		// Ext-Assessments for class
+		LOGGER.debug("Inside Student");
 		List<Map> classPerfList = Base.findAll(AJEntityDailyClassActivity.SELECT_STUDENT_CLASSES_COMPLETION_SCORE,
-				listToPostgresArrayString(this.classIds), this.userId);
+				listToPostgresArrayString(this.reqClassIds), this.userId);
 
 		if (!classPerfList.isEmpty()) {
 			classPerfList.forEach(scoData -> {
