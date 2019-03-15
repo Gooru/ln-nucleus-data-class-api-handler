@@ -455,8 +455,11 @@ public class AJEntityDailyClassActivity extends Model{
     		
     public static final String SELECT_ALL_STUDENT_CLASS_COMPLETION_SCORE = "select AVG(score) as scoreInPercentage, count(*) as completedCount "
     		+ "from daily_class_activity where collection_type IN ('assessment', 'assessment-external') and actor_id = ANY(?::varchar[]) and "
+                    + "event_name = 'collection.play' and event_type = 'stop' and class_id = ? AND (path_id IS NULL OR path_id = 0)";
+                    
+    public static final String SELECT_CLASS_COMPLETION_SCORE_FOR_TEACHER = "select AVG(score) as scoreInPercentage, count(*) as completedCount "
+    		+ "from daily_class_activity where collection_type IN ('assessment', 'assessment-external') and "
     		+ "event_name = 'collection.play' and event_type = 'stop' and class_id = ? AND (path_id IS NULL OR path_id = 0)";
-
     //*************************************************************************************************************************    
 
     
