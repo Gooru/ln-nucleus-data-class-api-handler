@@ -235,6 +235,10 @@ public final class DBHandlerBuilder {
     	return new StudDCAClassPerfHandler(context);
     }
     
+    public static DBHandler buildDCAAllClassesPerformanceHandler (ProcessorContext context) {
+    	return new StudDCAAllClassPerfHandler(context);
+    }
+    
     public static DBHandler buildDCAMonthlyTeacherReportHandler(ProcessorContext context) {
         return new DCAMonthlyTeacherReportHandler(context);
       }

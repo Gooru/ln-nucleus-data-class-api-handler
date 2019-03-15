@@ -201,6 +201,9 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_DCA_CLASS_PERF:
                 result = getDCAClassPerf();
                   break;
+            case MessageConstants.MSG_OP_DCA_ALL_CLASSES_PERF:
+                result = getDCAAllClassesPerf();
+                  break;
             case MessageConstants.MSG_OP_NU_DATA_REPORT:
                 result = getDataReports();
                 break;
@@ -420,6 +423,18 @@ class MessageProcessor implements Processor {
 
             return new RepoBuilder().buildReportRepo(context).getDCAClassPerformance();
 
+        } catch (Throwable t) {
+            LOGGER.error("Exception while getting DCA Class Performance", t);
+            return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+        }
+
+    }
+    
+    private MessageResponse getDCAAllClassesPerf() {
+    	try {
+            ProcessorContext context = createContext();
+            return new RepoBuilder().buildReportRepo(context).getDCAAllClassesPerformance();
+            
         } catch (Throwable t) {
             LOGGER.error("Exception while getting DCA Class Performance", t);
             return MessageResponseFactory.createInternalErrorResponse(t.getMessage());

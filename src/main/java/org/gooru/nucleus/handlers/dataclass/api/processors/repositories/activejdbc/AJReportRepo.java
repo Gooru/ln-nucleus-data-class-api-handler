@@ -288,8 +288,14 @@ class AJReportRepo implements ReportRepo {
       return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildStudentDCAAssessmentSessionsHandler(context));
     }
     
+    @Override
     public MessageResponse getDCAClassPerformance() {
         return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildDCAClassPerformanceHandler(context));
+      }
+    
+    @Override
+    public MessageResponse getDCAAllClassesPerformance() {
+        return TransactionExecutor.executeTransaction(DBHandlerBuilder.buildDCAAllClassesPerformanceHandler(context));
       }
 
     @Override
