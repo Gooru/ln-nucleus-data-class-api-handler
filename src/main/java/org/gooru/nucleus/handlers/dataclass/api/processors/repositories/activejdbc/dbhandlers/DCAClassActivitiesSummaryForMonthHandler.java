@@ -15,7 +15,7 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResp
 import org.javalite.activejdbc.Base;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import com.hazelcast.util.StringUtil;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -23,8 +23,10 @@ public class DCAClassActivitiesSummaryForMonthHandler implements DBHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(DCAClassActivitiesSummaryForMonthHandler.class);
 
     private final ProcessorContext context;
+    private String userId;
     private static final String FOR_MONTH = "forMonth";
     private static final String FOR_YEAR = "forYear";
+    private static final String REQUEST_USERID = "studentId";
     private static Integer year;
     private static Integer month;
 
@@ -59,7 +61,7 @@ public class DCAClassActivitiesSummaryForMonthHandler implements DBHandler {
     @SuppressWarnings("rawtypes")
     @Override
     public ExecutionResult<MessageResponse> validateRequest() {
-        if (context.getUserIdFromRequest() == null || (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
+       if (context.getUserIdFromRequest() == null || (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
             List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, this.context.classId(), this.context.userIdFromSession());
             if (owner.isEmpty()) {
                 LOGGER.debug("validateRequest() FAILED");
@@ -72,41 +74,50 @@ public class DCAClassActivitiesSummaryForMonthHandler implements DBHandler {
 
     @SuppressWarnings("rawtypes")
     @Override
-    public ExecutionResult<MessageResponse> executeRequest() {
-        LOGGER.debug("MONTH : {}", month);
-        LOGGER.debug("YEAR : {}", year);
-        LOGGER.debug("classId : {}", context.classId());
-        
-        JsonObject contentBody = new JsonObject();
-        JsonArray activitiesArray = new JsonArray();
-        
-        // Generate Aggregated Data Assessment wise...
-        List<Map> monthlyAssessmentData = Base.findAll(AJEntityDailyClassActivity.DCA_CLASS_ASMT_SUMMARY_FOR_MONTH, context.classId(), year, month);
-        if (monthlyAssessmentData != null) {
-            monthlyAssessmentData.forEach(monthAssessmentData -> {
-                JsonObject assessmentUsage = new JsonObject();
-                assessmentUsage.put(AJEntityDailyClassActivity.ATTR_SCORE, Math.round(Double.parseDouble(monthAssessmentData.get(AJEntityDailyClassActivity.SCORE).toString())));
-                assessmentUsage.put(AJEntityDailyClassActivity.ATTR_COLLECTION_ID, monthAssessmentData.get(AJEntityDailyClassActivity.COLLECTION_OID).toString());
-                assessmentUsage.put(AJEntityDailyClassActivity.ATTR_COLLECTION_TYPE, monthAssessmentData.get(AJEntityDailyClassActivity.COLLECTION_TYPE).toString());
-                activitiesArray.add(assessmentUsage);
-            });
-        }
+  public ExecutionResult<MessageResponse> executeRequest() {
 
-        // Generate Aggregated Data Collection wise...
-        List<Map> monthlyCollectionData = Base.findAll(AJEntityDailyClassActivity.DCA_CLASS_COLL_SUMMARY_FOR_MONTH, context.classId(), year, month);
-        if (monthlyCollectionData != null) {
-            monthlyCollectionData.forEach(monthCollectionData -> {
-                JsonObject collectionUsage = new JsonObject();
-                collectionUsage.put(AJEntityDailyClassActivity.ATTR_TIME_SPENT, Long.parseLong(monthCollectionData.get(AJEntityDailyClassActivity.TIMESPENT).toString()));
-                collectionUsage.put(AJEntityDailyClassActivity.ATTR_COLLECTION_ID, monthCollectionData.get(AJEntityDailyClassActivity.COLLECTION_OID).toString());
-                collectionUsage.put(AJEntityDailyClassActivity.ATTR_COLLECTION_TYPE, monthCollectionData.get(AJEntityDailyClassActivity.COLLECTION_TYPE).toString());
-                activitiesArray.add(collectionUsage);
-            });
-        }
-        contentBody.put(JsonConstants.USAGE_DATA, activitiesArray);
+    JsonObject contentBody = new JsonObject();
+    JsonArray activitiesArray = new JsonArray();
 
-        return new ExecutionResult<>(MessageResponseFactory.createGetResponse(contentBody), ExecutionStatus.SUCCESSFUL);
+    // Generate Aggregated Data Assessment wise...
+    List<Map> monthlyAssessmentData = null;
+    if (!StringUtil.isNullOrEmptyAfterTrim(this.userId)) {
+      monthlyAssessmentData = Base.findAll(AJEntityDailyClassActivity.DCA_CLASS_ASMT_SUMMARY_FOR_MONTH_FOR_USER, context.classId(), year, month, this.userId);
+    } else {
+      monthlyAssessmentData = Base.findAll(AJEntityDailyClassActivity.DCA_CLASS_ASMT_SUMMARY_FOR_MONTH, context.classId(), year, month);
     }
+    if (monthlyAssessmentData != null) {
+        monthlyAssessmentData.forEach(monthAssessmentData -> {
+            JsonObject assessmentUsage = new JsonObject();
+            assessmentUsage.put(AJEntityDailyClassActivity.ATTR_SCORE, Math.round(Double.parseDouble(monthAssessmentData.get(AJEntityDailyClassActivity.SCORE).toString())));
+            assessmentUsage.put(AJEntityDailyClassActivity.ATTR_COLLECTION_ID, monthAssessmentData.get(AJEntityDailyClassActivity.COLLECTION_OID).toString());
+            assessmentUsage.put(AJEntityDailyClassActivity.ATTR_COLLECTION_TYPE, monthAssessmentData.get(AJEntityDailyClassActivity.COLLECTION_TYPE).toString());
+            activitiesArray.add(assessmentUsage);
+        });
+    }
+
+    // Generate Aggregated Data Collection wise...
+    List<Map> monthlyCollectionData = null;
+    if (!StringUtil.isNullOrEmptyAfterTrim(this.userId)) {
+      monthlyCollectionData = Base.findAll(AJEntityDailyClassActivity.DCA_CLASS_COLL_SUMMARY_FOR_MONTH_FOR_USER, context.classId(), year, month, this.userId);
+    } else {
+      monthlyCollectionData = Base.findAll(AJEntityDailyClassActivity.DCA_CLASS_COLL_SUMMARY_FOR_MONTH, context.classId(), year, month);
+    }
+    if (monthlyCollectionData != null) {
+        monthlyCollectionData.forEach(monthCollectionData -> {
+            JsonObject collectionUsage = new JsonObject();
+            collectionUsage.put(AJEntityDailyClassActivity.ATTR_TIME_SPENT, Long.parseLong(monthCollectionData.get(AJEntityDailyClassActivity.TIMESPENT).toString()));
+            collectionUsage.put(AJEntityDailyClassActivity.ATTR_COLLECTION_ID, monthCollectionData.get(AJEntityDailyClassActivity.COLLECTION_OID).toString());
+            collectionUsage.put(AJEntityDailyClassActivity.ATTR_COLLECTION_TYPE, monthCollectionData.get(AJEntityDailyClassActivity.COLLECTION_TYPE).toString());
+            activitiesArray.add(collectionUsage);
+        });
+    }
+  
+    contentBody.put(JsonConstants.USAGE_DATA, activitiesArray);
+
+    return new ExecutionResult<>(MessageResponseFactory.createGetResponse(contentBody),
+        ExecutionStatus.SUCCESSFUL);
+  }
     
     private void validateRequestParamData() {
         try {
@@ -118,6 +129,10 @@ public class DCAClassActivitiesSummaryForMonthHandler implements DBHandler {
         if (!AJEntityDailyClassActivity.YEAR_PATTERN.matcher(context.request().getString(FOR_YEAR)).matches() || (month < 1 || month > 12)) {
             throw new MessageResponseWrapperException(MessageResponseFactory.createInvalidRequestResponse("Year/ Month is invalid!"));
         }        
+        this.userId = this.context.request().getString(REQUEST_USERID);
+        LOGGER.debug("MONTH : {}", month);
+        LOGGER.debug("YEAR : {}", year);
+        LOGGER.debug("userId : {} - classId:{}", this.userId, context.classId());
     }
 
     @Override
