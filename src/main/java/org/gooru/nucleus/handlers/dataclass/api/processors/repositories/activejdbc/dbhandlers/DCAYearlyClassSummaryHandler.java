@@ -25,7 +25,7 @@ public class DCAYearlyClassSummaryHandler implements DBHandler {
   private String userId;
   private static final String YEAR = "year";
   private static final String MONTH = "month";
-  private static final String REQUEST_USERID = "userUid";
+  private static final String REQUEST_USERID = "userId";
 
   public DCAYearlyClassSummaryHandler(ProcessorContext context) {
     this.context = context;
@@ -48,8 +48,8 @@ public class DCAYearlyClassSummaryHandler implements DBHandler {
   @SuppressWarnings("rawtypes")
   @Override
   public ExecutionResult<MessageResponse> validateRequest() {
-    if (context.getUserIdFromRequest() == null || (context.getUserIdFromRequest() != null
-        && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
+    if (this.userId == null || (this.userId != null
+        && !context.userIdFromSession().equalsIgnoreCase(this.userId))) {
       List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER,
           this.context.classId(), this.context.userIdFromSession());
       if (owner.isEmpty()) {
