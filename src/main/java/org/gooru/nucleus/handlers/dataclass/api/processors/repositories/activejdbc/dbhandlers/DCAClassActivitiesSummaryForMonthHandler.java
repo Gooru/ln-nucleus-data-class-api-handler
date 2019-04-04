@@ -2,7 +2,6 @@ package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activej
 
 import java.util.List;
 import java.util.Map;
-
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.exceptions.MessageResponseWrapperException;
@@ -26,7 +25,7 @@ public class DCAClassActivitiesSummaryForMonthHandler implements DBHandler {
     private String userId;
     private static final String FOR_MONTH = "forMonth";
     private static final String FOR_YEAR = "forYear";
-    private static final String REQUEST_USERID = "studentId";
+    private static final String REQUEST_USERID = "userId";
     private static Integer year;
     private static Integer month;
 
@@ -61,7 +60,7 @@ public class DCAClassActivitiesSummaryForMonthHandler implements DBHandler {
     @SuppressWarnings("rawtypes")
     @Override
     public ExecutionResult<MessageResponse> validateRequest() {
-       if (context.getUserIdFromRequest() == null || (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
+       if (this.userId == null || (this.userId != null && !context.userIdFromSession().equalsIgnoreCase(this.userId))) {
             List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, this.context.classId(), this.context.userIdFromSession());
             if (owner.isEmpty()) {
                 LOGGER.debug("validateRequest() FAILED");
