@@ -25,7 +25,7 @@ public class DCAYearlyClassSummaryHandler implements DBHandler {
   private String userId;
   private static final String YEAR = "year";
   private static final String MONTH = "month";
-  private static final String REQUEST_USERID = "studentId";
+  private static final String REQUEST_USERID = "userId";
 
   public DCAYearlyClassSummaryHandler(ProcessorContext context) {
     this.context = context;
