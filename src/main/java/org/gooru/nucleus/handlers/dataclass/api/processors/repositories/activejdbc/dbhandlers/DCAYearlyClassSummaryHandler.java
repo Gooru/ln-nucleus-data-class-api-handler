@@ -25,7 +25,7 @@ public class DCAYearlyClassSummaryHandler implements DBHandler {
   private String userId;
   private static final String YEAR = "year";
   private static final String MONTH = "month";
-  private static final String REQUEST_USERID = "userId";
+  private static final String REQUEST_USERID = "userUid";
 
   public DCAYearlyClassSummaryHandler(ProcessorContext context) {
     this.context = context;
@@ -59,6 +59,7 @@ public class DCAYearlyClassSummaryHandler implements DBHandler {
             ExecutionStatus.FAILED);
       }
     }
+    
     LOGGER.debug("validateRequest() OK");
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
   }

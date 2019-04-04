@@ -25,7 +25,7 @@ public class DCAClassActivitiesSummaryForMonthHandler implements DBHandler {
     private String userId;
     private static final String FOR_MONTH = "forMonth";
     private static final String FOR_YEAR = "forYear";
-    private static final String REQUEST_USERID = "userId";
+    private static final String REQUEST_USERID = "userUid";
     private static Integer year;
     private static Integer month;
 
