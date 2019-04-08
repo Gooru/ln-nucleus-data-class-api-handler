@@ -58,7 +58,7 @@ public class StudCAAssessmentSessionPerfHandler implements DBHandler {
     @SuppressWarnings("rawtypes")
     public ExecutionResult<MessageResponse> validateRequest() {
 
-        if (context.getUserIdFromRequest() == null || (context.getUserIdFromRequest() != null && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
+        if (userId == null || (userId != null && !context.userIdFromSession().equalsIgnoreCase(userId))) {
             List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, this.context.classId(), this.context.userIdFromSession());
             if (owner.isEmpty()) {
                 LOGGER.debug("validateRequest() FAILED");
