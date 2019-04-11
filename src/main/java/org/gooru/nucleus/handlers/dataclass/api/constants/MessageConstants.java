@@ -52,7 +52,9 @@ public final class MessageConstants {
     public static final String END_DATE = "endDate";
     public static final String COURSE = "course";
     public static final String ASSESSMENT = "assessment";
+    public static final String EXT_ASSESSMENT = "assessment-external";
     public static final String COLLECTION = "collection";
+    public static final String EXT_COLLECTION = "collection-external";
     public static final Pattern COLLECTION_TYPES = Pattern.compile("assessment|collection");
     public static final String COLLECTION_TYPE = "collectionType";
     public static final String LIMIT = "limit";

@@ -946,26 +946,26 @@ public class AJEntityBaseReports extends Model {
     		+ "AS loc order by loc.lastAccessed DESC LIMIT ? OFFSET ?";
     
     public static final String GET_DISTINCT_ASSESSMENT_FOR_INDEPENDENT_LEARNER = "SELECT asmt.collection_id as collection_id, asmt.updated_at as lastAccessed,"
-    		+ "asmt.session_id as session_id, asmt.path_id as pathId, asmt.path_type as pathType FROM "
-    		+ "(SELECT distinct on (collection_id) collection_id,"
+    		+ "asmt.session_id as session_id, asmt.collection_type AS collection_type, asmt.path_id as pathId, asmt.path_type as pathType FROM "
+    		+ "(SELECT distinct on (collection_id) collection_id, collection_type, "
     		+ "FIRST_VALUE(updated_at) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS updated_at, "
     		+ "FIRST_VALUE(session_id) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS session_id, "
     		+ "FIRST_VALUE(path_id) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS path_id, "
     		+ "FIRST_VALUE(path_type) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS path_type "
     		+ "FROM base_reports where class_id IS NULL AND collection_id = ANY(?::varchar[]) AND "
-    		+ "collection_type = 'assessment' AND actor_id = ?) "
+    		+ "collection_type IN ('assessment', 'assessment-external') AND actor_id = ?) "
     		+ "AS asmt order by lastAccessed DESC LIMIT ? OFFSET ?";
     
     public static final String GET_DISTINCT_COLLECTION_FOR_INDEPENDENT_LEARNER = "SELECT coll.collection_id as collection_id, "
-    		+ "coll.updated_at as lastAccessed,"
+    		+ "coll.updated_at as lastAccessed, coll.collection_type AS collection_type, "
     		+ "coll.session_id as session_id, coll.path_id AS pathId, coll.path_type AS pathType FROM "
-    		+ "(SELECT distinct on (collection_id) collection_id,"
+    		+ "(SELECT distinct on (collection_id) collection_id, collection_type, "
     		+ "FIRST_VALUE(updated_at) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS updated_at, "
     		+ "FIRST_VALUE(session_id) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS session_id, "
     		+ "FIRST_VALUE(path_id) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS path_id, "
     		+ "FIRST_VALUE(path_type) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS path_type "
     		+ "FROM base_reports where class_id IS NULL AND collection_id = ANY(?::varchar[]) AND "
-    		+ "collection_type = 'collection' AND actor_id = ?) "
+    		+ "collection_type IN ('collection', 'collection-external') AND actor_id = ?) "
     		+ "AS coll order by lastAccessed DESC LIMIT ? OFFSET ?";
     
     public static final String GET_IL_COURSE_COLLECTION_STATUS =  "SELECT event_name, event_type, score AS scoreInPercentage from base_reports WHERE class_id IS NULL AND course_id = ? AND "
