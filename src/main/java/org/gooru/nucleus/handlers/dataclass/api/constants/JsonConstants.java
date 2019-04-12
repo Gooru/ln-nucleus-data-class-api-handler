@@ -115,6 +115,8 @@ public final class JsonConstants {
   	public static final String USERS = "users";
   	  	
   	public static final String RAW_SCORE = "rawScore";
+  	
+  	public static final String MILESTONE_ID = "milestoneId";
 
 	private JsonConstants() {
 		throw new AssertionError();

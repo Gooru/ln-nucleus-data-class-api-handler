@@ -27,5 +27,13 @@ public class AJEntityILBookmarkContent extends Model {
 	    public static final String SELECT_DISTINCT_IL_CONTENTID =
 	            "SELECT DISTINCT(content_id) FROM learner_bookmarks "
 	            + "WHERE user_id = ? AND content_type = ?";
+	    
+	    public static final String SELECT_DISTINCT_IL_ASSESSMENT_ID =
+	            "SELECT DISTINCT(content_id) FROM learner_bookmarks "
+	            + "WHERE user_id = ? AND content_type IN ('assessment', 'assessment-external')";
+	    
+	    public static final String SELECT_DISTINCT_IL_COLLECTION_ID =
+	            "SELECT DISTINCT(content_id) FROM learner_bookmarks "
+	            + "WHERE user_id = ? AND content_type IN ('collection', 'collection-external')";
 
 }
