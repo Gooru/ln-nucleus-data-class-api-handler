@@ -7,94 +7,97 @@ import io.vertx.core.json.JsonObject;
  */
 public class ProcessorContext {
 
-	  private final String userIdFromSession;   
-	  private final String userIdFromRequest;    
-    private final JsonObject request;
-    private final String classId;
-    private final String courseId;
-    private final String unitId;
-    private final String lessonId;
-    private final String collectionId;
-    private final String sessionId;
-    private final String studentId;
-    private final String questionId;    
-    private final String startDate;    
-    private final String endDate; 
-    private final String collectionType;
-    
+  private final String userIdFromSession;
+  private final String userIdFromRequest;
+  private final JsonObject request;
+  private final String classId;
+  private final String courseId;
+  private final String unitId;
+  private final String lessonId;
+  private final String collectionId;
+  private final String sessionId;
+  private final String studentId;
+  private final String questionId;
+  private final String startDate;
+  private final String endDate;
+  private final String collectionType;
 
-    public ProcessorContext(JsonObject request, String userIdFromSession, String userIdFromRequest, String classId, String courseId, String unitId, String lessonId, String collectionId, 
-    		String sessionId, String studentId, String questionId,String startDate, String endDate, String collectionType) {        
-        this.request = request != null ? request.copy() : null;
-        this.userIdFromSession = userIdFromSession;
-        this.userIdFromRequest = userIdFromRequest;
-        this.classId = classId;
-        this.courseId = courseId;
-        this.unitId = unitId;
-        this.lessonId = lessonId;
-        this.collectionId = collectionId;
-        this.sessionId = sessionId;
-        this.studentId = studentId;
-        this.questionId = questionId;
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.collectionType = collectionType;
-    }
 
-    //Mukul - TODO 
-    //Sort out User Auth
-    public String userIdFromSession() {
-        return this.userIdFromSession;
-    }
+  public ProcessorContext(JsonObject request, String userIdFromSession, String userIdFromRequest,
+      String classId, String courseId, String unitId, String lessonId, String collectionId,
+      String sessionId, String studentId, String questionId, String startDate, String endDate,
+      String collectionType) {
+    this.request = request != null ? request.copy() : null;
+    this.userIdFromSession = userIdFromSession;
+    this.userIdFromRequest = userIdFromRequest;
+    this.classId = classId;
+    this.courseId = courseId;
+    this.unitId = unitId;
+    this.lessonId = lessonId;
+    this.collectionId = collectionId;
+    this.sessionId = sessionId;
+    this.studentId = studentId;
+    this.questionId = questionId;
+    this.startDate = startDate;
+    this.endDate = endDate;
+    this.collectionType = collectionType;
+  }
 
-    public JsonObject request() {
-        return this.request;
-    }
+  // Mukul - TODO
+  // Sort out User Auth
+  public String userIdFromSession() {
+    return this.userIdFromSession;
+  }
 
-    public String classId() {
-        return this.classId;
-    }
-    
-    public String courseId() {
-        return this.courseId;
-    }
+  public JsonObject request() {
+    return this.request;
+  }
 
-    public String unitId() {
-        return this.unitId;
-    }
+  public String classId() {
+    return this.classId;
+  }
 
-    public String lessonId() {
-        return this.lessonId;
-    }
+  public String courseId() {
+    return this.courseId;
+  }
 
-    public String collectionId() {
-        return this.collectionId;
-    }
+  public String unitId() {
+    return this.unitId;
+  }
 
-    public String sessionId() {
-        return this.sessionId;
-    }
-    
-    public String collectionType() {
-        return collectionType;
-    }
+  public String lessonId() {
+    return this.lessonId;
+  }
 
-    public String getUserIdFromRequest() {
-      return userIdFromRequest;
-    }
-    
-    public String studentId() {
-        return studentId;
-      }
-    
-    public String questionId() {
-        return questionId;
-      }
-    public String startDate() {
-      return startDate;
-    }
+  public String collectionId() {
+    return this.collectionId;
+  }
 
-    public String endDate() {
-      return endDate;
-    }
+  public String sessionId() {
+    return this.sessionId;
+  }
+
+  public String collectionType() {
+    return collectionType;
+  }
+
+  public String getUserIdFromRequest() {
+    return userIdFromRequest;
+  }
+
+  public String studentId() {
+    return studentId;
+  }
+
+  public String questionId() {
+    return questionId;
+  }
+
+  public String startDate() {
+    return startDate;
+  }
+
+  public String endDate() {
+    return endDate;
+  }
 }

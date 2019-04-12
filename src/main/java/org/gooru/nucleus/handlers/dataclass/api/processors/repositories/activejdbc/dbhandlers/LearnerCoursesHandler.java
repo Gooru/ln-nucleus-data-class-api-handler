@@ -2,7 +2,6 @@ package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activej
 
 import java.util.List;
 import java.util.Map;
-
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
@@ -15,9 +14,7 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResp
 import org.javalite.activejdbc.Base;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.hazelcast.util.StringUtil;
-
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -29,7 +26,7 @@ public class LearnerCoursesHandler implements DBHandler {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LearnerCoursesHandler.class);
   private final ProcessorContext context;
-    private String nullVal = null;
+  private String nullVal = null;
 
   public LearnerCoursesHandler(ProcessorContext context) {
     this.context = context;
@@ -39,8 +36,10 @@ public class LearnerCoursesHandler implements DBHandler {
   public ExecutionResult<MessageResponse> checkSanity() {
     if (context.request() == null || context.request().isEmpty()) {
       LOGGER.warn("invalid request received to fetch learner courses");
-      return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("Invalid data provided to fetch independent learner courses"),
-              ExecutionStatus.FAILED);
+      return new ExecutionResult<>(
+          MessageResponseFactory.createInvalidRequestResponse(
+              "Invalid data provided to fetch independent learner courses"),
+          ExecutionStatus.FAILED);
     }
 
     LOGGER.debug("checkSanity() OK");
@@ -59,35 +58,43 @@ public class LearnerCoursesHandler implements DBHandler {
   public ExecutionResult<MessageResponse> executeRequest() {
     JsonObject resultBody = new JsonObject();
     JsonArray resultarray = new JsonArray();
-      String userId = this.context.userIdFromSession();
+    String userId = this.context.userIdFromSession();
     LOGGER.debug("UID is " + userId);
     String taxSubjectId = this.context.request().getString("taxSubjectId");
     String userType = this.context.request().getString("userType");
     List<Map> coursesList;
-    if (StringUtil.isNullOrEmpty(taxSubjectId) || ((taxSubjectId.equalsIgnoreCase("all") || taxSubjectId.equals("*")))) {
+    if (StringUtil.isNullOrEmpty(taxSubjectId)
+        || ((taxSubjectId.equalsIgnoreCase("all") || taxSubjectId.equals("*")))) {
       // TODO : IL represents IndependentLearner. This can be changed later.
       if (!StringUtil.isNullOrEmpty(userType) && userType.equalsIgnoreCase("IL")) {
-        coursesList = Base.findAll(AJEntityUserTaxonomySubject.GET_INDEPENDENT_LEARNER_ALL_COURSES, userId);
+        coursesList =
+            Base.findAll(AJEntityUserTaxonomySubject.GET_INDEPENDENT_LEARNER_ALL_COURSES, userId);
       } else {
         coursesList = Base.findAll(AJEntityUserTaxonomySubject.GET_LEARNER_ALL_COURSES, userId);
       }
     } else {
       if (!StringUtil.isNullOrEmpty(userType) && userType.equalsIgnoreCase("IL")) {
-        coursesList = Base.findAll(AJEntityUserTaxonomySubject.GET_INDEPENDENT_LEARNER_COURSES, taxSubjectId, userId);
+        coursesList = Base.findAll(AJEntityUserTaxonomySubject.GET_INDEPENDENT_LEARNER_COURSES,
+            taxSubjectId, userId);
 
       } else {
-        coursesList = Base.findAll(AJEntityUserTaxonomySubject.GET_LEARNER_COURSES, taxSubjectId, userId);
+        coursesList =
+            Base.findAll(AJEntityUserTaxonomySubject.GET_LEARNER_COURSES, taxSubjectId, userId);
       }
     }
     if (!coursesList.isEmpty()) {
       coursesList.forEach(course -> {
         JsonObject contentBody = new JsonObject();
-        contentBody.put(AJEntityBaseReports.ATTR_COURSE_ID, course.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
-        Object title = Base.firstCell(AJEntityContent.GET_TITLE, course.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
+        contentBody.put(AJEntityBaseReports.ATTR_COURSE_ID,
+            course.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
+        Object title = Base.firstCell(AJEntityContent.GET_TITLE,
+            course.get(AJEntityBaseReports.COURSE_GOORU_OID).toString());
         contentBody.put(AJEntityContent.ATTR_COURSE_TITLE, title);
         if (course.get(AJEntityBaseReports.CLASS_GOORU_OID) != null) {
-          contentBody.put(AJEntityBaseReports.ATTR_CLASS_ID, course.get(AJEntityBaseReports.CLASS_GOORU_OID).toString());
-          List<Map> classInfo = Base.findAll(AJEntityContent.GET_CLASS_TITLE_CODE, course.get(AJEntityBaseReports.CLASS_GOORU_OID).toString());
+          contentBody.put(AJEntityBaseReports.ATTR_CLASS_ID,
+              course.get(AJEntityBaseReports.CLASS_GOORU_OID).toString());
+          List<Map> classInfo = Base.findAll(AJEntityContent.GET_CLASS_TITLE_CODE,
+              course.get(AJEntityBaseReports.CLASS_GOORU_OID).toString());
           classInfo.forEach(classData -> {
             contentBody.put(AJEntityContent.ATTR_CLASS_CODE, AJEntityContent.CLASS_CODE);
             contentBody.put(AJEntityContent.ATTR_CLASS_TITLE, AJEntityContent.TITLE);
@@ -106,7 +113,8 @@ public class LearnerCoursesHandler implements DBHandler {
     }
     resultBody.put(JsonConstants.CONTENT, resultarray);
 
-    return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
+    return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody),
+        ExecutionStatus.SUCCESSFUL);
 
   }
 

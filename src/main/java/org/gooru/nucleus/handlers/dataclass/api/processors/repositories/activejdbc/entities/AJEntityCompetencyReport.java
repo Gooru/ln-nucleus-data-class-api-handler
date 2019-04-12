@@ -36,20 +36,24 @@ public class AJEntityCompetencyReport extends Model {
 
   // Get Session wise taxonomy report from competency table..
   public static final String SELECT_BASE_REPORT_IDS =
-          "SELECT tax_subject_id,tax_course_id,tax_domain_id,tax_standard_id,tax_micro_standard_id,display_code,string_agg(base_report_id||'', ',') AS base_report_id "
-                  + "FROM competency_report WHERE session_id = ? " + "AND resource_type = 'question' "
-                  + "GROUP BY tax_subject_id,tax_course_id,tax_domain_id," + "tax_standard_id,tax_micro_standard_id,display_code";
+      "SELECT tax_subject_id,tax_course_id,tax_domain_id,tax_standard_id,tax_micro_standard_id,display_code,string_agg(base_report_id||'', ',') AS base_report_id "
+          + "FROM competency_report WHERE session_id = ? " + "AND resource_type = 'question' "
+          + "GROUP BY tax_subject_id,tax_course_id,tax_domain_id,"
+          + "tax_standard_id,tax_micro_standard_id,display_code";
 
-  public static final String GET_AGG_TAX_DATA = "SELECT sum(time_spent) AS time_spent, SUM(score) AS score, "
-          + "ROUND(AVG(reaction)) AS reaction " + "FROM base_reports WHERE id = ANY (?::integer[]) GROUP BY session_id";
+  public static final String GET_AGG_TAX_DATA =
+      "SELECT sum(time_spent) AS time_spent, SUM(score) AS score, "
+          + "ROUND(AVG(reaction)) AS reaction "
+          + "FROM base_reports WHERE id = ANY (?::integer[]) GROUP BY session_id";
 
   public static final String GET_QUESTIONS_TAX_PERF =
-          "SELECT SUM(time_spent) AS time_spent, (SUM(score)*100) AS score ," + "SUM(reaction) AS reaction, SUM(views) AS views, question_type, "
-                  + "resource_id, MAX(resource_attempt_status) AS resource_attempt_status "
-                  + "FROM base_reports WHERE id = ANY (?::integer[]) GROUP BY resource_id,question_type;";
-  
-  //Get max_score for Taxonomy Questions
+      "SELECT SUM(time_spent) AS time_spent, (SUM(score)*100) AS score ,"
+          + "SUM(reaction) AS reaction, SUM(views) AS views, question_type, "
+          + "resource_id, MAX(resource_attempt_status) AS resource_attempt_status "
+          + "FROM base_reports WHERE id = ANY (?::integer[]) GROUP BY resource_id,question_type;";
+
+  // Get max_score for Taxonomy Questions
   public static final String SELECT_TAXONOMY_MAX_SCORE = "SELECT SUM(max_score) AS max_score FROM "
-          + "base_reports WHERE id = ANY (?::integer[]) GROUP BY session_id";
+      + "base_reports WHERE id = ANY (?::integer[]) GROUP BY session_id";
 
 }

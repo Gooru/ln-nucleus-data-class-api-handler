@@ -8,280 +8,283 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 
 public final class DBHandlerBuilder {
 
-    private DBHandlerBuilder() {
-        throw new AssertionError();
-    }
+  private DBHandlerBuilder() {
+    throw new AssertionError();
+  }
 
-    public static DBHandler buildStudentPeersInCourseHandler(ProcessorContext context) {
-        return new StudentPeersInCourseHandler(context);
-    }
+  public static DBHandler buildStudentPeersInCourseHandler(ProcessorContext context) {
+    return new StudentPeersInCourseHandler(context);
+  }
 
-    public static DBHandler buildStudentPeersInUnitHandler(ProcessorContext context) {
-        return new StudentPeersInUnitHandler(context);
-    }
-    
-    public static DBHandler buildStudentPeersInLessonHandler(ProcessorContext context) {
-        return new StudentPeersInLessonHandler(context);
-    }
+  public static DBHandler buildStudentPeersInUnitHandler(ProcessorContext context) {
+    return new StudentPeersInUnitHandler(context);
+  }
 
-    public static DBHandler buildStudentCurrentLocationHandler(ProcessorContext context) {
-        return new StudentCurrentLocationHandler(context);
-    }
-    
-    public static DBHandler buildStudentCoursePerfHandler(ProcessorContext context) {
-        return new StudentCoursePerfHandler(context);
-    }
-    
-    public static DBHandler buildStudentUnitPerfHandler(ProcessorContext context) {
-        return new StudentUnitPerfHandler(context);
-    }
-    
-    public static DBHandler buildStudentLessonPerfHandler(ProcessorContext context) {
-        return new StudentLessonPerfHandler(context);
-    }
-    
-    public static DBHandler buildStudentAssessmentPerfHandler(ProcessorContext context) {
-      return new StudentAssessmentPerfHandler(context);
-    }
-    
-    public static DBHandler buildStudentCollectionPerfHandler(ProcessorContext context) {
-        return new StudentCollectionPerfHandler(context);
-      }
-    
-    public static DBHandler buildStudentCollectionSummaryHandler(ProcessorContext context) {
-        return new StudentCollectionSummaryHandler(context);
-    }
-    
-    public static DBHandler buildStudentAssessmentSummaryHandler(ProcessorContext context) {
-        return new StudentAssessmentSummaryHandler(context);
-    }
-    
-    public static DBHandler buildSessionStatusHandler(ProcessorContext context) {
-        return new SessionStatusHandler(context);
-    }
-    
-    public static DBHandler buildUserAssessmentSessionsHandler(ProcessorContext context) {
-        return new UserAssessmentSessionsHandler(context);
-    }
-    
-    public static DBHandler buildUserCollectionSessionsHandler(ProcessorContext context) {
-        return new UserCollectionSessionsHandler(context);
-    }
-    
-    public static DBHandler buildAllStudentCoursePerfHandler(ProcessorContext context) {
-        return new AllStudentCoursePerfHandler(context);
-    }
-    
-    public static DBHandler buildAllStudentUnitPerfHandler(ProcessorContext context) {
-        return new AllStudentUnitPerfHandler(context);
-    }
+  public static DBHandler buildStudentPeersInLessonHandler(ProcessorContext context) {
+    return new StudentPeersInLessonHandler(context);
+  }
 
-    public static DBHandler buildSessionTaxonomyReportHandler(ProcessorContext context) {
-      return new SessionTaxonomyReportHandler(context);
-    }
-    
-    public static DBHandler buildStudentPerfInAllClasses(ProcessorContext context) {
-      return new StudentPerfInAllClasses(context);
-    }
-    
-    public static DBHandler buildStudentLocAllClassesHandler(ProcessorContext context) {
-        return new StudentLocationAllClassesHandler(context);
-      }    
+  public static DBHandler buildStudentCurrentLocationHandler(ProcessorContext context) {
+    return new StudentCurrentLocationHandler(context);
+  }
 
-    public static DBHandler buildStudPerfMultipleCollectionHandler(ProcessorContext context) {
-        return new StudPerfMultipleCollectionHandler(context);
-      }
-        
-    public static DBHandler buildStudPerfCourseCollectionHandler(ProcessorContext context) {
-        return new StudPerfCourseCollectionHandler(context);
-      }
-    
-    public static DBHandler buildStudPerfCourseAssessmentHandler(ProcessorContext context) {
-        return new StudPerfCourseAssessmentHandler(context);
-      }
-    
-    public static DBHandler buildLearnerCoursePerfHandler(ProcessorContext context) {
-      return new IndependentLearnerCoursePerfHandler(context);
-    }
-  
-    public static DBHandler buildLearnerUnitPerfHandler(ProcessorContext context) {
-      return new IndependentLearnerUnitPerfHandler(context);
-    }
-  
-    public static DBHandler buildLearnerLessonPerfHandler(ProcessorContext context) {
-      return new IndependentLearnerLessonPerfHandler(context);
-    }
-  
-    public static DBHandler buildLearnerAssessmentPerfHandler(ProcessorContext context) {
-      return new IndependentLearnerAssessmentPerfHandler(context);
-    }
-  
-    public static DBHandler buildLearnerIndependentAssessmentPerfHandler(ProcessorContext context) {
-      return new IndependentLearnerIndependentAssessmentPerfHandler(context);
-    }
-    
-    public static DBHandler buildIndLearnerLocationHandler(ProcessorContext context) {
-        return new IndependentLearnerLocationHandler(context);
-      }
+  public static DBHandler buildStudentCoursePerfHandler(ProcessorContext context) {
+    return new StudentCoursePerfHandler(context);
+  }
 
-    public static DBHandler buildIndLearnerPerformanceHandler(ProcessorContext context) {
-        return new IndependentLearnerPerformanceHandler(context);
-      }
+  public static DBHandler buildStudentUnitPerfHandler(ProcessorContext context) {
+    return new StudentUnitPerfHandler(context);
+  }
 
-    public static DBHandler buildIndLearnerCoursesLocationHandler(ProcessorContext context) {
-        return new IndLearnerCourseCurrentLocationHandler(context);
-      }
-    
-    public static DBHandler buildIndLearnerAssessmentsLocationHandler(ProcessorContext context) {
-        return new IndLearnerAllIndAssessmentLocHandler(context);
-      }
-    
-    public static DBHandler buildIndLearnerCollectionsLocationHandler(ProcessorContext context) {
-        return new IndLearnerAllIndCollectionLocHandler(context);
-      }
-    
-    public static DBHandler buildIndLearnerAllCoursesPerfHandler(ProcessorContext context) {
-        return new IndLearnerAllCoursesPerfHandler(context);
-      }
-    
-    public static DBHandler buildIndLearnerIndAssessmentsPerfHandler(ProcessorContext context) {
-        return new IndLearnerAllIndAssessmentPerfHandler(context);
-      }
-    
-    public static DBHandler buildIndLearnerIndCollectionsPerfHandler(ProcessorContext context) {
-        return new IndLearnerAllIndCollectionPerfHandler(context);
-      }
-    
-    public static DBHandler buildIndLearnerCourseCollectionsPerfHandler(ProcessorContext context) {
-        return new IndLearnerCourseCollectionsPerfHandler(context);
-      }
-    
-    public static DBHandler buildIndLearnerCourseAssessmentsPerfHandler(ProcessorContext context) {
-        return new IndLearnerCourseAssessmentsPerfHandler(context);
-      }
-    
-    public static DBHandler buildIndLearnerTaxSubjectHandler(ProcessorContext context) {
-      return new IndependentLearnerTaxonomySubjectHandler(context);
-    }
-    
-    public static DBHandler buildLearnerCourses(ProcessorContext context) {
-      return new LearnerCoursesHandler(context);
-    }
-    
-    public static DBHandler buildIndLearnerCollectionSummaryHandler(ProcessorContext context) {
-        return new IndLearnerCollectionSummaryHandler(context);
-    }
-    
-    public static DBHandler buildIndLearnerAssessmentSummaryHandler(ProcessorContext context) {
-        return new IndLearnerAssessmentSummaryHandler(context);
-    }
-    
-    public static DBHandler buildIndLearnerAssessmentSessionsHandler(ProcessorContext context) {
-        return new IndLearnerAssessmentSessionsHandler(context);
-    }
-    
-    public static DBHandler buildIndLearnerCollectionSessionsHandler(ProcessorContext context) {
-        return new IndLearnerCollectionSessionsHandler(context);
-    }
-    
-    //Rubric Grading
-    
-    public static DBHandler buildRubricQuesToGradeHandler(ProcessorContext context) {
-    	return new QuestionsToGradeHandler(context);
-    }
-    
-    public static DBHandler buildStudentsForRubricQuestionHandler(ProcessorContext context) {
-    	return new StudentsForRubricQuestionsHandler(context);
-    }
-    
-    public static DBHandler buildStudAnsForRubricQuesHandler(ProcessorContext context) {
-    	return new StudentAnsForRubricQuesHandler(context);
-    }
-    
-    public static DBHandler buildRubricSummaryforQueHandler(ProcessorContext context) {
-    	return new RubricQuestionSummaryHandler(context);
-    }
-    
-    //DCA        
-    public static DBHandler buildStudPerfDailyClassActivityHandler(ProcessorContext context) {
-        return new StudPerfDailyActivityHandler(context);
-      }
-    
-    public static DBHandler buildStudentDCACollectionSummaryHandler(ProcessorContext context) {
-    	return new StudDCACollectionSummaryHandler(context);
-    }
+  public static DBHandler buildStudentLessonPerfHandler(ProcessorContext context) {
+    return new StudentLessonPerfHandler(context);
+  }
 
-    public static DBHandler buildStudentDCAAssessmentSummaryHandler(ProcessorContext context) {
-    	return new StudDCAAssessmentSummaryHandler(context);
-    }
-    
-    public static DBHandler buildDCASessionTaxonomyReportHandler(ProcessorContext context) {
-    	return new DCASessionTaxonomyReportHandler(context);
-    }
-    
-    public static DBHandler buildStudentDCAAssessmentPerformanceHandler (ProcessorContext context) {
-    	return new StudDCAAssessmentPerfHandler(context);
-    }
-    
-    public static DBHandler buildStudentDCACollectionPerformanceHandler (ProcessorContext context) {
-    	return new StudDCACollectionPerfHandler(context);
-    }
-    
-    public static DBHandler buildStudentDCAAssessmentSessionsHandler (ProcessorContext context) {
-    	return new StudDCAAssessmentSessionHandler(context);
-    }
-    
-    public static DBHandler buildDCAClassPerformanceHandler (ProcessorContext context) {
-    	return new StudDCAClassPerfHandler(context);
-    }
-    
-    public static DBHandler buildDCAAllClassesPerformanceHandler (ProcessorContext context) {
-    	return new StudDCAAllClassPerfHandler(context);
-    }
-    
-    public static DBHandler buildDCAMonthlyTeacherReportHandler(ProcessorContext context) {
-        return new DCAMonthlyTeacherReportHandler(context);
-      }
-    
-    public static DBHandler getDataReports(ProcessorContext context) {
-      return new DataReportsHandler(context);
-    }
+  public static DBHandler buildStudentAssessmentPerfHandler(ProcessorContext context) {
+    return new StudentAssessmentPerfHandler(context);
+  }
 
-    public static DBHandler getCoursesComptencyCompletion(ProcessorContext context) {
-      return new CoursesCompetencyCompletionHandler(context);
-    }
+  public static DBHandler buildStudentCollectionPerfHandler(ProcessorContext context) {
+    return new StudentCollectionPerfHandler(context);
+  }
 
-    public static DBHandler buildStudentPerfVsCompletionHandler(ProcessorContext context) {
-        return new ClassPerfVsCompletionHandler(context);
-      }
-    
-    public static DBHandler buildStudentCourseAllItemsReportHandler(ProcessorContext context) {
-        return new StudentCourseAllItemsPerformanceHandler(context);
-    }
-    
-    public static DBHandler buildIndependentLearnerCourseAllItemsReportHandler(ProcessorContext context) {
-        return new IndependentLearnerCourseAllItemsPerformanceHandler(context);
-    }
-    
-    public static DBHandler buildDCAMonthlyClassSummaryHandler(ProcessorContext context) {
-        return new DCAYearlyClassSummaryHandler(context);
-    }
-    
-    public static DBHandler buildDCAClassSummaryForMonthHandler(ProcessorContext context) {
-        return new DCAClassActivitiesSummaryForMonthHandler(context);
-    }
-    
-    public static DBHandler buildDCAActivityAllStudentSummaryReportHandler(ProcessorContext context) {
-        return new DCAClassAllStudentSummaryHandler(context);
-    }
-    
-    public static DBHandler buildStudentCAAssessmentSessionPerformanceHandler (ProcessorContext context) {
-        return new StudCAAssessmentSessionPerfHandler(context);
-    }
-    
-    public static DBHandler buildStudentCACollectionSessionPerformanceHandler (ProcessorContext context) {
-        return new StudCACollectionSessionPerfHandler(context);
-    }
+  public static DBHandler buildStudentCollectionSummaryHandler(ProcessorContext context) {
+    return new StudentCollectionSummaryHandler(context);
+  }
+
+  public static DBHandler buildStudentAssessmentSummaryHandler(ProcessorContext context) {
+    return new StudentAssessmentSummaryHandler(context);
+  }
+
+  public static DBHandler buildSessionStatusHandler(ProcessorContext context) {
+    return new SessionStatusHandler(context);
+  }
+
+  public static DBHandler buildUserAssessmentSessionsHandler(ProcessorContext context) {
+    return new UserAssessmentSessionsHandler(context);
+  }
+
+  public static DBHandler buildUserCollectionSessionsHandler(ProcessorContext context) {
+    return new UserCollectionSessionsHandler(context);
+  }
+
+  public static DBHandler buildAllStudentCoursePerfHandler(ProcessorContext context) {
+    return new AllStudentCoursePerfHandler(context);
+  }
+
+  public static DBHandler buildAllStudentUnitPerfHandler(ProcessorContext context) {
+    return new AllStudentUnitPerfHandler(context);
+  }
+
+  public static DBHandler buildSessionTaxonomyReportHandler(ProcessorContext context) {
+    return new SessionTaxonomyReportHandler(context);
+  }
+
+  public static DBHandler buildStudentPerfInAllClasses(ProcessorContext context) {
+    return new StudentPerfInAllClasses(context);
+  }
+
+  public static DBHandler buildStudentLocAllClassesHandler(ProcessorContext context) {
+    return new StudentLocationAllClassesHandler(context);
+  }
+
+  public static DBHandler buildStudPerfMultipleCollectionHandler(ProcessorContext context) {
+    return new StudPerfMultipleCollectionHandler(context);
+  }
+
+  public static DBHandler buildStudPerfCourseCollectionHandler(ProcessorContext context) {
+    return new StudPerfCourseCollectionHandler(context);
+  }
+
+  public static DBHandler buildStudPerfCourseAssessmentHandler(ProcessorContext context) {
+    return new StudPerfCourseAssessmentHandler(context);
+  }
+
+  public static DBHandler buildLearnerCoursePerfHandler(ProcessorContext context) {
+    return new IndependentLearnerCoursePerfHandler(context);
+  }
+
+  public static DBHandler buildLearnerUnitPerfHandler(ProcessorContext context) {
+    return new IndependentLearnerUnitPerfHandler(context);
+  }
+
+  public static DBHandler buildLearnerLessonPerfHandler(ProcessorContext context) {
+    return new IndependentLearnerLessonPerfHandler(context);
+  }
+
+  public static DBHandler buildLearnerAssessmentPerfHandler(ProcessorContext context) {
+    return new IndependentLearnerAssessmentPerfHandler(context);
+  }
+
+  public static DBHandler buildLearnerIndependentAssessmentPerfHandler(ProcessorContext context) {
+    return new IndependentLearnerIndependentAssessmentPerfHandler(context);
+  }
+
+  public static DBHandler buildIndLearnerLocationHandler(ProcessorContext context) {
+    return new IndependentLearnerLocationHandler(context);
+  }
+
+  public static DBHandler buildIndLearnerPerformanceHandler(ProcessorContext context) {
+    return new IndependentLearnerPerformanceHandler(context);
+  }
+
+  public static DBHandler buildIndLearnerCoursesLocationHandler(ProcessorContext context) {
+    return new IndLearnerCourseCurrentLocationHandler(context);
+  }
+
+  public static DBHandler buildIndLearnerAssessmentsLocationHandler(ProcessorContext context) {
+    return new IndLearnerAllIndAssessmentLocHandler(context);
+  }
+
+  public static DBHandler buildIndLearnerCollectionsLocationHandler(ProcessorContext context) {
+    return new IndLearnerAllIndCollectionLocHandler(context);
+  }
+
+  public static DBHandler buildIndLearnerAllCoursesPerfHandler(ProcessorContext context) {
+    return new IndLearnerAllCoursesPerfHandler(context);
+  }
+
+  public static DBHandler buildIndLearnerIndAssessmentsPerfHandler(ProcessorContext context) {
+    return new IndLearnerAllIndAssessmentPerfHandler(context);
+  }
+
+  public static DBHandler buildIndLearnerIndCollectionsPerfHandler(ProcessorContext context) {
+    return new IndLearnerAllIndCollectionPerfHandler(context);
+  }
+
+  public static DBHandler buildIndLearnerCourseCollectionsPerfHandler(ProcessorContext context) {
+    return new IndLearnerCourseCollectionsPerfHandler(context);
+  }
+
+  public static DBHandler buildIndLearnerCourseAssessmentsPerfHandler(ProcessorContext context) {
+    return new IndLearnerCourseAssessmentsPerfHandler(context);
+  }
+
+  public static DBHandler buildIndLearnerTaxSubjectHandler(ProcessorContext context) {
+    return new IndependentLearnerTaxonomySubjectHandler(context);
+  }
+
+  public static DBHandler buildLearnerCourses(ProcessorContext context) {
+    return new LearnerCoursesHandler(context);
+  }
+
+  public static DBHandler buildIndLearnerCollectionSummaryHandler(ProcessorContext context) {
+    return new IndLearnerCollectionSummaryHandler(context);
+  }
+
+  public static DBHandler buildIndLearnerAssessmentSummaryHandler(ProcessorContext context) {
+    return new IndLearnerAssessmentSummaryHandler(context);
+  }
+
+  public static DBHandler buildIndLearnerAssessmentSessionsHandler(ProcessorContext context) {
+    return new IndLearnerAssessmentSessionsHandler(context);
+  }
+
+  public static DBHandler buildIndLearnerCollectionSessionsHandler(ProcessorContext context) {
+    return new IndLearnerCollectionSessionsHandler(context);
+  }
+
+  // Rubric Grading
+
+  public static DBHandler buildRubricQuesToGradeHandler(ProcessorContext context) {
+    return new QuestionsToGradeHandler(context);
+  }
+
+  public static DBHandler buildStudentsForRubricQuestionHandler(ProcessorContext context) {
+    return new StudentsForRubricQuestionsHandler(context);
+  }
+
+  public static DBHandler buildStudAnsForRubricQuesHandler(ProcessorContext context) {
+    return new StudentAnsForRubricQuesHandler(context);
+  }
+
+  public static DBHandler buildRubricSummaryforQueHandler(ProcessorContext context) {
+    return new RubricQuestionSummaryHandler(context);
+  }
+
+  // DCA
+  public static DBHandler buildStudPerfDailyClassActivityHandler(ProcessorContext context) {
+    return new StudPerfDailyActivityHandler(context);
+  }
+
+  public static DBHandler buildStudentDCACollectionSummaryHandler(ProcessorContext context) {
+    return new StudDCACollectionSummaryHandler(context);
+  }
+
+  public static DBHandler buildStudentDCAAssessmentSummaryHandler(ProcessorContext context) {
+    return new StudDCAAssessmentSummaryHandler(context);
+  }
+
+  public static DBHandler buildDCASessionTaxonomyReportHandler(ProcessorContext context) {
+    return new DCASessionTaxonomyReportHandler(context);
+  }
+
+  public static DBHandler buildStudentDCAAssessmentPerformanceHandler(ProcessorContext context) {
+    return new StudDCAAssessmentPerfHandler(context);
+  }
+
+  public static DBHandler buildStudentDCACollectionPerformanceHandler(ProcessorContext context) {
+    return new StudDCACollectionPerfHandler(context);
+  }
+
+  public static DBHandler buildStudentDCAAssessmentSessionsHandler(ProcessorContext context) {
+    return new StudDCAAssessmentSessionHandler(context);
+  }
+
+  public static DBHandler buildDCAClassPerformanceHandler(ProcessorContext context) {
+    return new StudDCAClassPerfHandler(context);
+  }
+
+  public static DBHandler buildDCAAllClassesPerformanceHandler(ProcessorContext context) {
+    return new StudDCAAllClassPerfHandler(context);
+  }
+
+  public static DBHandler buildDCAMonthlyTeacherReportHandler(ProcessorContext context) {
+    return new DCAMonthlyTeacherReportHandler(context);
+  }
+
+  public static DBHandler getDataReports(ProcessorContext context) {
+    return new DataReportsHandler(context);
+  }
+
+  public static DBHandler getCoursesComptencyCompletion(ProcessorContext context) {
+    return new CoursesCompetencyCompletionHandler(context);
+  }
+
+  public static DBHandler buildStudentPerfVsCompletionHandler(ProcessorContext context) {
+    return new ClassPerfVsCompletionHandler(context);
+  }
+
+  public static DBHandler buildStudentCourseAllItemsReportHandler(ProcessorContext context) {
+    return new StudentCourseAllItemsPerformanceHandler(context);
+  }
+
+  public static DBHandler buildIndependentLearnerCourseAllItemsReportHandler(
+      ProcessorContext context) {
+    return new IndependentLearnerCourseAllItemsPerformanceHandler(context);
+  }
+
+  public static DBHandler buildDCAMonthlyClassSummaryHandler(ProcessorContext context) {
+    return new DCAYearlyClassSummaryHandler(context);
+  }
+
+  public static DBHandler buildDCAClassSummaryForMonthHandler(ProcessorContext context) {
+    return new DCAClassActivitiesSummaryForMonthHandler(context);
+  }
+
+  public static DBHandler buildDCAActivityAllStudentSummaryReportHandler(ProcessorContext context) {
+    return new DCAClassAllStudentSummaryHandler(context);
+  }
+
+  public static DBHandler buildStudentCAAssessmentSessionPerformanceHandler(
+      ProcessorContext context) {
+    return new StudCAAssessmentSessionPerfHandler(context);
+  }
+
+  public static DBHandler buildStudentCACollectionSessionPerformanceHandler(
+      ProcessorContext context) {
+    return new StudCACollectionSessionPerfHandler(context);
+  }
 
 }
 

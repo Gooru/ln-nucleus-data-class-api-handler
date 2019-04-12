@@ -4,18 +4,18 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResp
 
 public class MessageResponseWrapperException extends RuntimeException {
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 442853362633755587L;
-    private final MessageResponse messageResponse;
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 442853362633755587L;
+  private final MessageResponse messageResponse;
 
-    public MessageResponseWrapperException(MessageResponse messageResponse) {
-        this.messageResponse = messageResponse;
-    }
-    
+  public MessageResponseWrapperException(MessageResponse messageResponse) {
+    this.messageResponse = messageResponse;
+  }
 
-    public MessageResponse getMessageResponse() {
-        return messageResponse;
-    }
+
+  public MessageResponse getMessageResponse() {
+    return messageResponse;
+  }
 }
