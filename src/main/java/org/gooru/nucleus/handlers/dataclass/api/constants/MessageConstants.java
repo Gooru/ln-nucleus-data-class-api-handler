@@ -192,6 +192,11 @@ public final class MessageConstants {
   public static final String MSG_OP_IND_LEARNER_COURSE_ALL_ITEMS_PERF =
       "independent.learner.course.all.items.performance";
 
+  // Internal
+  public static final String MSG_OP_INTERNAL_ALL_STUDENT_CLASSES_PERF =
+      "internal.all.class.student.performance";
+  public static final String MSG_OP_INTERNAL_DCA_ALL_CLASSES_PERF = "internal.dca.all.classes.performance";
+  
   public static final String PORT = "port";
   public static final String HOST = "host";
   public static final String REDIS = "redis.config";

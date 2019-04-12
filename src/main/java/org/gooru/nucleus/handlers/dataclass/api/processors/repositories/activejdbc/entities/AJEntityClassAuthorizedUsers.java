@@ -18,5 +18,7 @@ public class AJEntityClassAuthorizedUsers extends Model {
       "SELECT * FROM class_authorized_users " + "WHERE class_id = ? AND user_id = ?";
   public static final String SELECT_CLASSES = "SELECT class_id FROM class_authorized_users "
       + "WHERE class_id = ANY(?::varchar[]) AND user_id = ?";
+  public static final String SELECT_CLASSES_FOR_INTERNAL_API = "SELECT class_id FROM class_authorized_users "
+      + "WHERE class_id = ANY(?::varchar[])";
 
 }

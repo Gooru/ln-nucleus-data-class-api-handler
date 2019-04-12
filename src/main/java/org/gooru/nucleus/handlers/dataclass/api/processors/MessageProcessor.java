@@ -236,7 +236,13 @@ class MessageProcessor implements Processor {
         case MessageConstants.MSG_OP_CA_STUDENT_COLLECTION_SESSION_PERF:
           result = getCACollectionSessionPerfReportHandler();
           break;
-
+        case MessageConstants.MSG_OP_INTERNAL_ALL_STUDENT_CLASSES_PERF:
+          result = getAllClassPerfInternal();
+          break;
+        case MessageConstants.MSG_OP_INTERNAL_DCA_ALL_CLASSES_PERF:
+          result = getDCAAllClassesPerfInternal();
+          break;
+          
         default:
           LOGGER.error("Invalid operation type passed in, not able to handle");
           return MessageResponseFactory
@@ -1505,6 +1511,28 @@ class MessageProcessor implements Processor {
       return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
     }
 
+  }
+  
+  private MessageResponse getAllClassPerfInternal() {
+    try {
+      ProcessorContext context = createContext();
+      return new RepoBuilder().buildInternalRepo(context).getAllClassPerformance();
+
+    } catch (Throwable t) {
+      LOGGER.error("Exception while getting getClassPerformance", t);
+      return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+    }
+  }
+  
+  private MessageResponse getDCAAllClassesPerfInternal() {
+    try {
+      ProcessorContext context = createContext();
+      return new RepoBuilder().buildInternalRepo(context).getClassDCAPerformance();
+
+    } catch (Throwable t) {
+      LOGGER.error("Exception while getting getClassPerformance", t);
+      return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+    }
   }
 
   private ProcessorContext createContext() {
