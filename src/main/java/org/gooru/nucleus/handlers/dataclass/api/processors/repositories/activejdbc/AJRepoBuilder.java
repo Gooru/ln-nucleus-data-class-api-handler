@@ -1,7 +1,6 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc;
 
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
-import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.InternalRepo;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.ReportRepo;
 
 public final class AJRepoBuilder {
@@ -12,9 +11,5 @@ public final class AJRepoBuilder {
 
   public static ReportRepo buildReportRepo(ProcessorContext context) {
     return new AJReportRepo(context);
-  }
-  
-  public static InternalRepo buildInternalRepo(ProcessorContext context) {
-    return new AJInternalRepo(context);
   }
 }

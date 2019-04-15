@@ -1516,7 +1516,8 @@ class MessageProcessor implements Processor {
   private MessageResponse getAllClassPerfInternal() {
     try {
       ProcessorContext context = createContext();
-      return new RepoBuilder().buildInternalRepo(context).getAllClassPerformance();
+      context.setIsIntenal(true);
+      return new RepoBuilder().buildReportRepo(context).getStudentPerfInAllClasses();
 
     } catch (Throwable t) {
       LOGGER.error("Exception while getting getClassPerformance", t);
@@ -1527,7 +1528,8 @@ class MessageProcessor implements Processor {
   private MessageResponse getDCAAllClassesPerfInternal() {
     try {
       ProcessorContext context = createContext();
-      return new RepoBuilder().buildInternalRepo(context).getClassDCAPerformance();
+      context.setIsIntenal(true);
+      return new RepoBuilder().buildReportRepo(context).getDCAAllClassesPerformance();
 
     } catch (Throwable t) {
       LOGGER.error("Exception while getting getClassPerformance", t);

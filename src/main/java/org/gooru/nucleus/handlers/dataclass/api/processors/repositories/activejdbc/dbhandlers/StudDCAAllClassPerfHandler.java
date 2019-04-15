@@ -66,14 +66,25 @@ public class StudDCAAllClassPerfHandler implements DBHandler {
   @Override
   @SuppressWarnings("rawtypes")
   public ExecutionResult<MessageResponse> validateRequest() {
-    if (context.getUserIdFromRequest() == null || (context.getUserIdFromRequest() != null
-        && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
-      cIds = Base.firstColumn(AJEntityClassAuthorizedUsers.SELECT_CLASSES,
+    if (!this.context.isInternal()) {
+      if (context.getUserIdFromRequest() == null || (context.getUserIdFromRequest() != null
+          && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
+        cIds = Base.firstColumn(AJEntityClassAuthorizedUsers.SELECT_CLASSES,
+            listToPostgresArrayString(this.reqClassIds), this.context.userIdFromSession());
+        if (cIds == null || cIds.isEmpty()) {
+          LOGGER.debug("validateRequest() FAILED");
+          return new ExecutionResult<>(
+              MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"),
+              ExecutionStatus.FAILED);
+        }
+      }
+    } else {
+      cIds = Base.firstColumn(AJEntityClassAuthorizedUsers.SELECT_CLASSES_FOR_INTERNAL_API,
           listToPostgresArrayString(this.reqClassIds), this.context.userIdFromSession());
       if (cIds == null || cIds.isEmpty()) {
-        LOGGER.debug("validateRequest() FAILED");
+        LOGGER.debug("No classes found");
         return new ExecutionResult<>(
-            MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"),
+            MessageResponseFactory.createNotFoundResponse("No classes found"),
             ExecutionStatus.FAILED);
       }
     }

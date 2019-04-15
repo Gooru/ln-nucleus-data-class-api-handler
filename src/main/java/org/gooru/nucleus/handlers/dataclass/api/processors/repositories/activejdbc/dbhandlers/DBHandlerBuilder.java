@@ -286,13 +286,5 @@ public final class DBHandlerBuilder {
     return new StudCACollectionSessionPerfHandler(context);
   }
 
-  public static DBHandler buildInternalAllClassPerformanceHandler(ProcessorContext context) {
-    return new InternalAllClassPerformanceHandler(context);
-  }
-
-  public static DBHandler buildInternalAllClassDCAPerformanceHandler(ProcessorContext context) {
-    return new InternalAllClassDCAPerformanceHandler(context);
-  }
-
 }
 

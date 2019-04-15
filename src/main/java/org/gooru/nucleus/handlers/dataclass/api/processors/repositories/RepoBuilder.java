@@ -7,8 +7,4 @@ public class RepoBuilder {
   public ReportRepo buildReportRepo(ProcessorContext context) {
     return AJRepoBuilder.buildReportRepo(context);
   }
-  
-  public InternalRepo buildInternalRepo(ProcessorContext context) {
-    return AJRepoBuilder.buildInternalRepo(context);
-  }
 }

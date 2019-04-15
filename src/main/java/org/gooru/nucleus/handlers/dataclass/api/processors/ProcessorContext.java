@@ -21,7 +21,7 @@ public class ProcessorContext {
   private final String startDate;
   private final String endDate;
   private final String collectionType;
-
+  private Boolean isInternal;
 
   public ProcessorContext(JsonObject request, String userIdFromSession, String userIdFromRequest,
       String classId, String courseId, String unitId, String lessonId, String collectionId,
@@ -41,6 +41,7 @@ public class ProcessorContext {
     this.startDate = startDate;
     this.endDate = endDate;
     this.collectionType = collectionType;
+    this.isInternal = false;
   }
 
   // Mukul - TODO
@@ -99,5 +100,13 @@ public class ProcessorContext {
 
   public String endDate() {
     return endDate;
+  }
+  
+  public Boolean isInternal() {
+    return this.isInternal;
+  }
+  
+  public void setIsIntenal(Boolean isInternal) {
+    this.isInternal = isInternal;
   }
 }
