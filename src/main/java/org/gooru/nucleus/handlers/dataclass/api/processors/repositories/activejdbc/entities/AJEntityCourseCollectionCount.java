@@ -15,18 +15,21 @@ public class AJEntityCourseCollectionCount extends Model {
   public static final String EXT_ASSESSMENT_COUNT = "ext_assessment_count";
   public static final String CREATED_AT = "created_at";
   public static final String UPDATED_AT = "updated_at";
-  
-  //collection format type :{collection,assessment,external-assessment}
+
+  // collection format type :{collection,assessment,external-assessment}
   public static final String ATTR_ASSESSMENT = "assessment";
   public static final String ATTR_EXTERNAL_ASSESSMENT = "assessment-external";
   public static final String ATTR_COLLECTION = "collection";
-  
-  public static final String GET_COURSE_ASSESSMENT_COUNT = "SELECT (SUM(assessment_count) + SUM(ext_assessment_count)) as totalCount FROM course_collection_count WHERE course_id = ?";
-  
-  public static final String GET_UNIT_ASSESSMENT_COUNT = "SELECT (SUM(assessment_count) + SUM(ext_assessment_count)) as totalCount FROM course_collection_count WHERE "
-  		+ "course_id = ? AND unit_id = ?";
-  
-  public static final String GET_LESSON_ASSESSMENT_COUNT = "SELECT (SUM(assessment_count) + SUM(ext_assessment_count)) as totalCount FROM course_collection_count WHERE "
-	  		+ "course_id = ? AND unit_id = ? and lesson_id = ?";
+
+  public static final String GET_COURSE_ASSESSMENT_COUNT =
+      "SELECT (SUM(assessment_count) + SUM(ext_assessment_count)) as totalCount FROM course_collection_count WHERE course_id = ?";
+
+  public static final String GET_UNIT_ASSESSMENT_COUNT =
+      "SELECT (SUM(assessment_count) + SUM(ext_assessment_count)) as totalCount FROM course_collection_count WHERE "
+          + "course_id = ? AND unit_id = ?";
+
+  public static final String GET_LESSON_ASSESSMENT_COUNT =
+      "SELECT (SUM(assessment_count) + SUM(ext_assessment_count)) as totalCount FROM course_collection_count WHERE "
+          + "course_id = ? AND unit_id = ? and lesson_id = ?";
 
 }

@@ -5,11 +5,11 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.ReportRe
 
 public final class AJRepoBuilder {
 
-    private AJRepoBuilder() {
-        throw new AssertionError();
-    }
+  private AJRepoBuilder() {
+    throw new AssertionError();
+  }
 
-    public static ReportRepo buildReportRepo(ProcessorContext context) {
-        return new AJReportRepo(context);
-    }
+  public static ReportRepo buildReportRepo(ProcessorContext context) {
+    return new AJReportRepo(context);
+  }
 }

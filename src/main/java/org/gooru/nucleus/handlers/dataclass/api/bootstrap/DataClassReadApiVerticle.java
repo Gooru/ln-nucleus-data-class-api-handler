@@ -5,7 +5,6 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorBuilder;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.eventbus.EventBus;
@@ -28,7 +27,7 @@ public class DataClassReadApiVerticle extends AbstractVerticle {
         future.complete(result);
       }, res -> {
         MessageResponse result = (MessageResponse) res.result();
-        message.reply(result.reply(), result.deliveryOptions());      
+        message.reply(result.reply(), result.deliveryOptions());
       });
 
     }).completionHandler(result -> {

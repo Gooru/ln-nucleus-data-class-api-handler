@@ -4,11 +4,11 @@ import io.vertx.core.eventbus.Message;
 
 public final class ProcessorBuilder {
 
-    private ProcessorBuilder() {
-        throw new AssertionError();
-    }
+  private ProcessorBuilder() {
+    throw new AssertionError();
+  }
 
-    public static Processor build(Message<Object> message) {
-        return new MessageProcessor(message);
-    }
+  public static Processor build(Message<Object> message) {
+    return new MessageProcessor(message);
+  }
 }
