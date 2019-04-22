@@ -80,7 +80,7 @@ public class StudDCAAllClassPerfHandler implements DBHandler {
       }
     } else {
       cIds = Base.firstColumn(AJEntityClassAuthorizedUsers.SELECT_CLASSES_FOR_INTERNAL_API,
-          listToPostgresArrayString(this.reqClassIds), this.context.userIdFromSession());
+          listToPostgresArrayString(this.reqClassIds));
       if (cIds == null || cIds.isEmpty()) {
         LOGGER.debug("No classes found");
         return new ExecutionResult<>(
