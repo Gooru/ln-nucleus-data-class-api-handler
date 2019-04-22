@@ -79,14 +79,7 @@ public class StudDCAAllClassPerfHandler implements DBHandler {
         }
       }
     } else {
-      cIds = Base.firstColumn(AJEntityClassAuthorizedUsers.SELECT_CLASSES_FOR_INTERNAL_API,
-          listToPostgresArrayString(this.reqClassIds));
-      if (cIds == null || cIds.isEmpty()) {
-        LOGGER.debug("No classes found");
-        return new ExecutionResult<>(
-            MessageResponseFactory.createNotFoundResponse("No classes found"),
-            ExecutionStatus.FAILED);
-      }
+      cIds.addAll(reqClassIds);
     }
     LOGGER.debug("validateRequest() OK");
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
