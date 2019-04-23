@@ -6,7 +6,6 @@ import org.gooru.nucleus.handlers.dataclass.api.bootstrap.startup.Initializer;
 import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import redis.clients.jedis.Jedis;
@@ -23,17 +22,20 @@ public class RedisClient implements Initializer, Finalizer {
   public void initializeComponent(Vertx vertx, JsonObject config) {
 
     JsonObject redisConfig = config.getJsonObject(MessageConstants.REDIS);
-    LOGGER.debug("redis host : {} - port : {} ", redisConfig.getString(MessageConstants.HOST), redisConfig.getInteger(MessageConstants.PORT));
+    LOGGER.debug("redis host : {} - port : {} ", redisConfig.getString(MessageConstants.HOST),
+        redisConfig.getInteger(MessageConstants.PORT));
     JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
     jedisPoolConfig.setMaxTotal(redisConfig.getInteger(MessageConstants.REDIS_MAX_SIZE));
     jedisPoolConfig.setMaxIdle(redisConfig.getInteger(MessageConstants.REDIS_MAX_IDLE));
     jedisPoolConfig.setMinIdle(redisConfig.getInteger(MessageConstants.REDIS_MIN_IDLE));
-    jedisPoolConfig.setMaxWaitMillis(redisConfig.getInteger(MessageConstants.REDIS_MAX_WAIT_MILLIS));
+    jedisPoolConfig
+        .setMaxWaitMillis(redisConfig.getInteger(MessageConstants.REDIS_MAX_WAIT_MILLIS));
     jedisPoolConfig.setTestOnBorrow(true);
     try {
-      pool = new JedisPool(jedisPoolConfig, redisConfig.getString(MessageConstants.HOST), redisConfig.getInteger(MessageConstants.PORT));
+      pool = new JedisPool(jedisPoolConfig, redisConfig.getString(MessageConstants.HOST),
+          redisConfig.getInteger(MessageConstants.PORT));
     } catch (Exception e) {
-      LOGGER.error("Exception while initializing redis: "+ e);
+      LOGGER.error("Exception while initializing redis: " + e);
     }
     LOGGER.debug("redis initialized successfully...");
   }

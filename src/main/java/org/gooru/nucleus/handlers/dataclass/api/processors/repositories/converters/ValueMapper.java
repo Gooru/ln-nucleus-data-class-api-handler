@@ -5,9 +5,7 @@ import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import com.hazelcast.util.CollectionUtil;
-
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -20,19 +18,23 @@ public final class ValueMapper {
   public static JsonObject map(Map<?, ?> attributesMap, Map<?, ?> databaseResult) {
     JsonObject result = new JsonObject();
     for (Entry<?, ?> resultRow : attributesMap.entrySet()) {
-      result.put(resultRow.getValue().toString(), castValue(databaseResult.get(resultRow.getKey())));
+      result.put(resultRow.getValue().toString(),
+          castValue(databaseResult.get(resultRow.getKey())));
     }
     return result;
   }
 
-  public static JsonObject map(JsonObject result, Map<?, ?> attributesMap, Map<?, ?> databaseResult) {
+  public static JsonObject map(JsonObject result, Map<?, ?> attributesMap,
+      Map<?, ?> databaseResult) {
     if (result != null) {
       for (Entry<?, ?> resultRow : attributesMap.entrySet()) {
-        result.put(resultRow.getValue().toString(), castValue(databaseResult.get(resultRow.getKey())));
+        result.put(resultRow.getValue().toString(),
+            castValue(databaseResult.get(resultRow.getKey())));
       }
     }
     return result;
   }
+
   @SuppressWarnings("rawtypes")
   public static JsonArray map(Map<?, ?> attributesMap, List<Map> databaseResult) {
     JsonArray arrayResult = new JsonArray();
@@ -40,7 +42,8 @@ public final class ValueMapper {
       databaseResult.forEach(databaseResultRow -> {
         JsonObject result = new JsonObject();
         for (Entry<?, ?> resultRow : attributesMap.entrySet()) {
-          result.put(resultRow.getValue().toString(), castValue(databaseResultRow.get(resultRow.getKey())));
+          result.put(resultRow.getValue().toString(),
+              castValue(databaseResultRow.get(resultRow.getKey())));
         }
         arrayResult.add(result);
       });
@@ -55,7 +58,7 @@ public final class ValueMapper {
     if (val != null) {
       if (val instanceof BigDecimal) {
         return ((Number) val).longValue();
-      }else if(val instanceof Timestamp){
+      } else if (val instanceof Timestamp) {
         return Timestamp.valueOf(val.toString()).getTime();
       }
     }

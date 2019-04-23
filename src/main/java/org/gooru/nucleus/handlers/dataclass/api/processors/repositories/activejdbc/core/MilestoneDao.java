@@ -11,49 +11,50 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author mukul@gooru
- *  
+ * 
  */
 public class MilestoneDao {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(MilestoneDao.class);
-	private DB coreDb;
+  private static final Logger LOGGER = LoggerFactory.getLogger(MilestoneDao.class);
+  private DB coreDb;
 
-	public LazyList<AJEntityMilestoneLessonMap> fetchMilestoneLessonIds(String milestoneId, Boolean readOnly) {
-		coreDb = new DB("coreDb");
-		try {
-			coreDb.open(DataSourceRegistry.getInstance().getCoreDataSource());
-			if (readOnly) {
-				Base.connection().setReadOnly(true);
-			}
-			coreDb.openTransaction();		    
-	        LazyList<AJEntityMilestoneLessonMap> lessonIdList = AJEntityMilestoneLessonMap.findBySQL
-	        		(AJEntityMilestoneLessonMap.FETCH_MILESTONE_LESSON_IDS, milestoneId);		    
-			coreDb.commitTransaction();
-			return lessonIdList;
-		} catch (Throwable throwable) {
-			coreDb.rollbackTransaction();
-			return null;
-		} finally {
-			coreDb.close();
-		}
-	}
+  public LazyList<AJEntityMilestoneLessonMap> fetchMilestoneLessonIds(String milestoneId,
+      Boolean readOnly) {
+    coreDb = new DB("coreDb");
+    try {
+      coreDb.open(DataSourceRegistry.getInstance().getCoreDataSource());
+      if (readOnly) {
+        Base.connection().setReadOnly(true);
+      }
+      coreDb.openTransaction();
+      LazyList<AJEntityMilestoneLessonMap> lessonIdList = AJEntityMilestoneLessonMap
+          .findBySQL(AJEntityMilestoneLessonMap.FETCH_MILESTONE_LESSON_IDS, milestoneId);
+      coreDb.commitTransaction();
+      return lessonIdList;
+    } catch (Throwable throwable) {
+      coreDb.rollbackTransaction();
+      return null;
+    } finally {
+      coreDb.close();
+    }
+  }
 
-	public void fetchMilestoneUnitIds(String milestoneId, Boolean readOnly) {
+  public void fetchMilestoneUnitIds(String milestoneId, Boolean readOnly) {
 
-		coreDb = new DB("coreDb");
-		try {
-			coreDb.open(DataSourceRegistry.getInstance().getCoreDataSource());
-			if (readOnly) {
-				Base.connection().setReadOnly(true);
-			}
-			coreDb.openTransaction();
+    coreDb = new DB("coreDb");
+    try {
+      coreDb.open(DataSourceRegistry.getInstance().getCoreDataSource());
+      if (readOnly) {
+        Base.connection().setReadOnly(true);
+      }
+      coreDb.openTransaction();
 
-			coreDb.commitTransaction();
-		} catch (Throwable throwable) {
-			coreDb.rollbackTransaction();
-		} finally {
-			coreDb.close();
-		}
-	}
+      coreDb.commitTransaction();
+    } catch (Throwable throwable) {
+      coreDb.rollbackTransaction();
+    } finally {
+      coreDb.close();
+    }
+  }
 
 }

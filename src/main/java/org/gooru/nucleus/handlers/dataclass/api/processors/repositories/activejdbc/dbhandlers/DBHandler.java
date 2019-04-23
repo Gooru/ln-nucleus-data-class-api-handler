@@ -7,11 +7,11 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResp
  * Created by ashish on 11/1/16.
  */
 public interface DBHandler {
-    ExecutionResult<MessageResponse> checkSanity();
+  ExecutionResult<MessageResponse> checkSanity();
 
-    ExecutionResult<MessageResponse> validateRequest();
+  ExecutionResult<MessageResponse> validateRequest();
 
-    ExecutionResult<MessageResponse> executeRequest();
+  ExecutionResult<MessageResponse> executeRequest();
 
-    boolean handlerReadOnly();
+  boolean handlerReadOnly();
 }

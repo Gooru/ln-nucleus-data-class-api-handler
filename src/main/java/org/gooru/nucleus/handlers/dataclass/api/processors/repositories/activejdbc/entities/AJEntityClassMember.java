@@ -2,6 +2,7 @@ package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activej
 
 import org.javalite.activejdbc.Model;
 import org.javalite.activejdbc.annotations.Table;
+
 /**
  * 
  * @author 100041
@@ -14,9 +15,10 @@ public class AJEntityClassMember extends Model {
   public static final String CREATED = "created";
   public static final String MODIFIED = "modified";
   public static final String CLASS_MEMBER_STATUS = "class_member_status";
-  public static final String SELECT_CLASS_MEMBER = "SELECT * FROM class_member WHERE class_id = ? AND user_id = ?";
+  public static final String SELECT_CLASS_MEMBER =
+      "SELECT * FROM class_member WHERE class_id = ? AND user_id = ?";
   public static final String SELECT_ACTIVE_USERS_COUNT = "SELECT COUNT(1) AS active_users_count "
-          + "FROM class_member WHERE class_id = ? AND class_member_status = 'joined'";
+      + "FROM class_member WHERE class_id = ? AND class_member_status = 'joined'";
 
 
 }

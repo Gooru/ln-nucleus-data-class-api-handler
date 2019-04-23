@@ -18,26 +18,27 @@ public class AJEntityCoreContent extends Model {
 
   public static final String TITLE = "title";
 
-  public static final String FETCH_CONTENT = "id = ?::uuid and collection_id = ?::uuid and is_deleted = ?";
+  public static final String FETCH_CONTENT =
+      "id = ?::uuid and collection_id = ?::uuid and is_deleted = ?";
 
-  public static AJEntityCoreContent fetchContent(String questionId, String collectionId){
-      DB coreDb = new DB("coreDb");
-      try {
-        coreDb.open(DataSourceRegistry.getInstance().getCoreDataSource());
-        coreDb.openTransaction();
-        LazyList<AJEntityCoreContent> results = AJEntityCoreContent
-            .where(FETCH_CONTENT, questionId, collectionId, false);
-        coreDb.commitTransaction();
-        if (results != null && !results.isEmpty()) {
-          return results.get(0);
-        }
-        return null;
-      } catch (Throwable throwable) {
-        coreDb.rollbackTransaction();
-        throw throwable;
-      } finally {
-        coreDb.close();
+  public static AJEntityCoreContent fetchContent(String questionId, String collectionId) {
+    DB coreDb = new DB("coreDb");
+    try {
+      coreDb.open(DataSourceRegistry.getInstance().getCoreDataSource());
+      coreDb.openTransaction();
+      LazyList<AJEntityCoreContent> results =
+          AJEntityCoreContent.where(FETCH_CONTENT, questionId, collectionId, false);
+      coreDb.commitTransaction();
+      if (results != null && !results.isEmpty()) {
+        return results.get(0);
       }
+      return null;
+    } catch (Throwable throwable) {
+      coreDb.rollbackTransaction();
+      throw throwable;
+    } finally {
+      coreDb.close();
+    }
   }
 
 }

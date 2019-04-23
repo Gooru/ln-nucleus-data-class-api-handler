@@ -7,7 +7,6 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.MessagebusEndpoints;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.eventbus.DeliveryOptions;
@@ -36,14 +35,17 @@ public class AuthVerticle extends AbstractVerticle {
           JsonObject result = (JsonObject) res.result();
           DeliveryOptions options;
           if (!result.isEmpty()) {
-            options = new DeliveryOptions().addHeader(MessageConstants.MSG_OP_STATUS, MessageConstants.MSG_OP_STATUS_SUCCESS);
+            options = new DeliveryOptions().addHeader(MessageConstants.MSG_OP_STATUS,
+                MessageConstants.MSG_OP_STATUS_SUCCESS);
           } else {
-            options = new DeliveryOptions().addHeader(MessageConstants.MSG_OP_STATUS, MessageConstants.MSG_OP_STATUS_ERROR);
+            options = new DeliveryOptions().addHeader(MessageConstants.MSG_OP_STATUS,
+                MessageConstants.MSG_OP_STATUS_ERROR);
           }
           message.reply(result, options);
         } else {
           LOG.debug("Unhandled exception. It could be redis issue...");
-          message.fail(HttpConstants.HttpStatus.ERROR.getCode(), HttpConstants.HttpStatus.ERROR.getMessage());
+          message.fail(HttpConstants.HttpStatus.ERROR.getCode(),
+              HttpConstants.HttpStatus.ERROR.getMessage());
         }
       });
 
