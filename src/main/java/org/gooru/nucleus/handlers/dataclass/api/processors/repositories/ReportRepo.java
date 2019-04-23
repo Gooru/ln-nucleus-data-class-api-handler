@@ -148,4 +148,15 @@ public interface ReportRepo {
   MessageResponse getStudentCAAssessmentSessionPerformance();
 
   MessageResponse getStudentCACollectionSessionPerformance();
+  
+  // Milestone
+  MessageResponse getStudentMilestoneLessonPerfHandler();
+
+  MessageResponse getStudentMilestonePerfHandler();
+
+  // Milestone - Independent Learner
+  MessageResponse getILMilestoneLessonPerfHandler();
+
+  MessageResponse getILMilestonePerfHandler();
+
 }

@@ -286,5 +286,22 @@ public final class DBHandlerBuilder {
     return new StudCACollectionSessionPerfHandler(context);
   }
 
+  // Milestone
+  public static DBHandler buildStudentMilestoneLessonPerfHandler(ProcessorContext context) {
+    return new MilestoneLessonPerfHandler(context);
+  }
+
+  public static DBHandler buildStudentMilestonePerfHandler(ProcessorContext context) {
+    return new MilestonePerfHandler(context);
+  }
+
+  // Milestone - Independent Learner
+  public static DBHandler buildILMilestoneLessonPerfHandler(ProcessorContext context) {
+    return new ILMilestoneLessonPerfHandler(context);
+  }
+
+  public static DBHandler buildILMilestonePerfHandler(ProcessorContext context) {
+    return new ILMilestonePerfHandler(context);
+  }
 }
 

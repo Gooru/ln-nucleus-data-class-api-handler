@@ -419,4 +419,30 @@ class AJReportRepo implements ReportRepo {
         DBHandlerBuilder.buildStudentCACollectionSessionPerformanceHandler(context));
   }
 
+  // MILESTONE
+  @Override
+  public MessageResponse getStudentMilestoneLessonPerfHandler() {
+    return TransactionExecutor
+        .executeTransaction(DBHandlerBuilder.buildStudentMilestoneLessonPerfHandler(context));
+  }
+
+  @Override
+  public MessageResponse getStudentMilestonePerfHandler() {
+    return TransactionExecutor
+        .executeTransaction(DBHandlerBuilder.buildStudentMilestonePerfHandler(context));
+  }
+
+  // MILESTONE - Independent Learning
+  @Override
+  public MessageResponse getILMilestoneLessonPerfHandler() {
+    return TransactionExecutor
+        .executeTransaction(DBHandlerBuilder.buildILMilestoneLessonPerfHandler(context));
+  }
+
+  @Override
+  public MessageResponse getILMilestonePerfHandler() {
+    return TransactionExecutor
+        .executeTransaction(DBHandlerBuilder.buildILMilestonePerfHandler(context));
+  }
+
 }

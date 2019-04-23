@@ -1537,5 +1537,189 @@ public class AJEntityBaseReports extends Model {
           + "updated_at desc) AS scoreInPercentage, class_id, actor_id FROM base_reports WHERE class_id = ? AND course_id = ? AND "
           + "actor_id = ANY(?::varchar[]) AND event_name = 'collection.play' AND event_type = 'stop' AND collection_type IN ('assessment', 'assessment-external')  "
           + "AND (path_id IS NULL OR path_id = 0) ORDER BY collection_id, actor_id, updated_at DESC) AS classData GROUP BY class_id, actor_id";
+
+  /********************************************************************************************************************************************/
+  // MILESTONE - Get Lesson Performance in Milestones
+  public static final String SELECT_DISTINCT_USERID_FOR_MILESTONE =
+      "SELECT DISTINCT(actor_id) FROM base_reports "
+          + "WHERE class_id = ? AND course_id = ? AND lesson_id = ANY(?::varchar[]) AND (path_id IS NULL OR path_id = 0)";
+
+  public static final String SELECT_STUDENT_MILESTONE_LESSON_PERF_FOR_ASSESSMENT =
+      "SELECT SUM(agg.time_spent) AS timeSpent, "
+          + "SUM(agg.attempts) attempts, agg.lesson_id AS lessonId " + "FROM (SELECT time_spent , "
+          + "views AS attempts, lesson_id FROM base_reports "
+          + "WHERE class_id = ? AND course_id = ? AND collection_type IN ('assessment', 'assessment-external') AND actor_id = ? "
+          + "AND lesson_id = ANY(?::varchar[]) AND "
+          + "event_name = ? AND event_type = 'stop' AND (path_id IS NULL OR path_id = 0)) AS agg "
+          + "GROUP BY agg.lesson_id";
+
+  public static final String SELECT_STUDENT_MILESTONE_LESSON_PERF_FOR_COLLECTION =
+      "SELECT SUM(CASE WHEN (agg.event_name = 'collection.resource.play') THEN agg.time_spent ELSE 0 END) AS timeSpent, "
+          + "SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.attempts ELSE 0 END) AS attempts, agg.lessonId "
+          + "FROM (SELECT time_spent, "
+          + "views AS attempts, lesson_id AS lessonId, event_name FROM base_reports "
+          + "WHERE class_id = ? AND course_id = ? AND collection_type IN ('collection', 'collection-external') AND actor_id = ? "
+          + "AND lesson_id = ANY(?::varchar[]) " + "AND (path_id IS NULL OR path_id = 0)) AS agg "
+          + "GROUP BY agg.lessonId";
+
+  public static final String GET_ASMT_COMPLETED_COUNT_SCORE_FOREACH_LESSON_ID =
+      "SELECT SUM(lessonData.completion) AS completedCount,(AVG(scoreInPercentage)) scoreInPercentage, lessonData.unitId AS unitId FROM "
+          + "(SELECT DISTINCT ON (collection_id) CASE  WHEN (event_type = 'stop') THEN 1 ELSE 0 END AS completion, "
+          + "lesson_id, unit_id AS unitId, FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage "
+          + "FROM base_reports WHERE class_id = ? AND course_id = ? AND lesson_id = ? "
+          + "AND collection_type IN ('assessment', 'assessment-external') AND actor_id = ? AND event_name = ? AND event_type = ? AND (path_id IS NULL OR path_id = 0) "
+          + "ORDER BY collection_id, updated_at DESC) "
+          + "AS lessonData GROUP BY lesson_id, unitId";
+
+  public static final String GET_COLL_COMPLETED_COUNT_SCORE_FOREACH_LESSON_ID =
+      "SELECT SUM(lessonData.completion) AS completedCount,(AVG(scoreInPercentage)) scoreInPercentage, lessonData.unitId AS unitId FROM "
+          + "(SELECT DISTINCT ON (collection_id) CASE  WHEN (event_type = 'stop') THEN 1 ELSE 0 END AS completion, "
+          + "lesson_id, unit_id AS unitId, FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage "
+          + "FROM base_reports WHERE class_id = ? AND course_id = ? AND lesson_id = ? "
+          + " AND collection_type IN ('collection', 'collection-external') AND actor_id = ? AND event_name = ? AND (path_id IS NULL OR path_id = 0) ORDER BY collection_id, updated_at DESC) "
+          + "AS lessonData GROUP BY lesson_id, unitId";
+
+  public static final String GET_MILESTONE_COLL_SCORE_FOREACH_LESSON_ID =
+      "SELECT SUM(score) as score, SUM(max_score) as max_score  FROM "
+          + "(SELECT DISTINCT ON (collection_id,resource_id) lesson_id, FIRST_VALUE(score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) "
+          + "AS score,FIRST_VALUE(max_score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS max_score "
+          + "FROM base_reports WHERE class_id = ? AND course_id = ? AND lesson_id = ?  "
+          + "AND collection_type IN ('collection', 'collection-external') AND actor_id = ? AND event_name = 'collection.resource.play' "
+          + "AND resource_type = 'question' AND (path_id IS NULL OR path_id = 0)) AS lessonData GROUP BY lesson_id;";
+
+  // *********************************************************************************************************************************************
+  // MILESTONE - Get Average Milestone Performance
+  public static final String SELECT_STUDENT_MILESTONE_PERF_FOR_ASSESSMENT =
+      "SELECT SUM(agg.time_spent) AS timeSpent, SUM(agg.attempts) attempts, agg.classId "
+          + "FROM (SELECT time_spent , views AS attempts, class_id AS classId, lesson_id AS lessonId FROM base_reports "
+          + "WHERE class_id = ? AND course_id = ? AND collection_type IN ('assessment', 'assessment-external') AND actor_id = ? "
+          + "AND lesson_id = ANY(?::varchar[]) AND "
+          + "event_name = ? AND event_type = 'stop' AND (path_id IS NULL OR path_id = 0)) AS agg "
+          + "GROUP BY agg.classId";
+
+  public static final String SELECT_STUDENT_MILESTONE_PERF_FOR_COLLECTION =
+      "SELECT SUM(CASE WHEN (agg.event_name = 'collection.resource.play') THEN agg.time_spent ELSE 0 END) AS timeSpent, "
+          + "SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.attempts ELSE 0 END) AS attempts, agg.classId "
+          + "FROM (SELECT time_spent, views AS attempts, class_id AS classId, lesson_id AS lessonId, event_name FROM base_reports "
+          + "WHERE class_id = ? AND course_id = ? AND collection_type IN ('collection', 'collection-external') AND actor_id = ? "
+          + "AND lesson_id = ANY(?::varchar[]) " + "AND (path_id IS NULL OR path_id = 0)) AS agg "
+          + "GROUP BY agg.classId";
+
+  public static final String GET_COMPLETED_ASMT_COMP_COUNT_SCORE_FOREACH_MILESTONE_ID =
+      "SELECT SUM(mileData.completion) AS completedCount, (AVG(scoreInPercentage)) scoreInPercentage FROM "
+          + "(SELECT DISTINCT ON (collection_id) CASE  WHEN (event_type = 'stop') THEN 1 ELSE 0 END AS completion,"
+          + "FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage, class_id, "
+          + "course_id FROM base_reports WHERE class_id = ? AND course_id = ? AND lesson_id = ANY(?::varchar[]) AND "
+          + "collection_type IN ('assessment', 'assessment-external') AND actor_id = ? AND event_name = ? AND event_type = 'stop' "
+          + "AND (path_id IS NULL OR path_id = 0) " + "ORDER BY collection_id, updated_at DESC) "
+          + "AS mileData GROUP BY class_id";
+
+  public static final String GET_COMPLETED_COLL_COMP_COUNT_SCORE_FOREACH_MILESTONE_ID =
+      "SELECT SUM(mileData.completion) AS completedCount, (AVG(scoreInPercentage)) scoreInPercentage FROM "
+          + "(SELECT DISTINCT ON (collection_id) CASE  WHEN (event_type = 'stop') THEN 1 ELSE 0 END AS completion,"
+          + "FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage, class_id, "
+          + "course_id FROM base_reports WHERE class_id = ? AND course_id = ? AND lesson_id = ANY(?::varchar[]) AND "
+          + "collection_type IN ('collection', 'collection-external') AND actor_id = ? AND event_name = ?  AND "
+          + "(path_id IS NULL OR path_id = 0) ORDER BY collection_id, updated_at DESC) "
+          + "AS mileData GROUP BY class_id";
+
+
+  public static final String GET_COLL_SCORE_FOREACH_MILESTONE_ID =
+      "SELECT SUM(score) as score, SUM(max_score) as max_score FROM "
+          + "(SELECT DISTINCT ON (collection_id, resource_id) FIRST_VALUE(score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) "
+          + "AS score, FIRST_VALUE(max_score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS max_score, class_id "
+          + "FROM base_reports WHERE class_id = ? AND course_id = ? AND lesson_id = ANY(?::varchar[])  "
+          + "AND collection_type IN ('collection', 'collection-external') AND actor_id = ? AND event_name = 'collection.resource.play' "
+          + "AND resource_type = 'question' AND (path_id IS NULL OR path_id = 0)) AS mileScoreData GROUP BY class_id";
+
+  // *********************************************************************************************************************************************
+  // MILESTONE - Independent Learner - Get Average Milestone Performance
+  public static final String SELECT_IL_STUDENT_MILESTONE_PERF_FOR_ASSESSMENT =
+      "SELECT SUM(agg.time_spent) AS timeSpent, SUM(agg.attempts) attempts, agg.courseId "
+          + "FROM (SELECT time_spent , views AS attempts, lesson_id AS lessonId, course_id AS courseId FROM base_reports "
+          + "WHERE class_id IS NULL AND course_id = ? AND collection_type IN ('assessment', 'assessment-external') AND actor_id = ? "
+          + "AND lesson_id = ANY(?::varchar[]) AND "
+          + "event_name = ? AND event_type = 'stop' AND (path_id IS NULL OR path_id = 0)) AS agg "
+          + "GROUP BY agg.courseId";
+
+  public static final String SELECT_IL_STUDENT_MILESTONE_PERF_FOR_COLLECTION =
+      "SELECT SUM(CASE WHEN (agg.event_name = 'collection.resource.play') THEN agg.time_spent ELSE 0 END) AS timeSpent, "
+          + "SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.attempts ELSE 0 END) AS attempts, agg.courseId "
+          + "FROM (SELECT time_spent, views AS attempts, course_id AS courseId, lesson_id AS lessonId, event_name FROM base_reports "
+          + "WHERE class_id IS NULL AND course_id = ? AND collection_type IN ('collection', 'collection-external') AND actor_id = ? "
+          + "AND lesson_id = ANY(?::varchar[]) " + "AND (path_id IS NULL OR path_id = 0)) AS agg "
+          + "GROUP BY agg.courseId";
+
+  public static final String GET_IL_COMPLETED_ASMT_COMP_COUNT_SCORE_FOREACH_MILESTONE_ID =
+      "SELECT SUM(mileData.completion) AS completedCount, (AVG(scoreInPercentage)) scoreInPercentage FROM "
+          + "(SELECT DISTINCT ON (collection_id) CASE  WHEN (event_type = 'stop') THEN 1 ELSE 0 END AS completion,"
+          + "FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage, course_id "
+          + "FROM base_reports WHERE class_id IS NULL AND course_id = ? AND lesson_id = ANY(?::varchar[]) AND "
+          + "collection_type IN ('assessment', 'assessment-external') AND actor_id = ? AND event_name = ? AND event_type = 'stop' "
+          + "AND (path_id IS NULL OR path_id = 0) " + "ORDER BY collection_id, updated_at DESC) "
+          + "AS mileData GROUP BY course_id";
+
+  public static final String GET_IL_COMPLETED_COLL_COMP_COUNT_SCORE_FOREACH_MILESTONE_ID =
+      "SELECT SUM(mileData.completion) AS completedCount, (AVG(scoreInPercentage)) scoreInPercentage FROM "
+          + "(SELECT DISTINCT ON (collection_id) CASE  WHEN (event_type = 'stop') THEN 1 ELSE 0 END AS completion,"
+          + "FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage, "
+          + "course_id FROM base_reports WHERE class_id IS NULL AND course_id = ? AND lesson_id = ANY(?::varchar[]) AND "
+          + "collection_type IN ('collection', 'collection-external') AND actor_id = ? AND event_name = ?  AND "
+          + "(path_id IS NULL OR path_id = 0) ORDER BY collection_id, updated_at DESC) "
+          + "AS mileData GROUP BY course_id";
+
+
+  public static final String GET_IL_COLL_SCORE_FOREACH_MILESTONE_ID =
+      "SELECT SUM(score) as score, SUM(max_score) as max_score FROM "
+          + "(SELECT DISTINCT ON (collection_id, resource_id) FIRST_VALUE(score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) "
+          + "AS score, FIRST_VALUE(max_score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS max_score, course_id "
+          + "FROM base_reports WHERE class_id IS NULL AND course_id = ? AND lesson_id = ANY(?::varchar[])  "
+          + "AND collection_type IN ('collection', 'collection-external') AND actor_id = ? AND event_name = 'collection.resource.play' "
+          + "AND resource_type = 'question' AND (path_id IS NULL OR path_id = 0)) AS mileScoreData GROUP BY course_id";
+  // ********************************************************************************************************************************************
+
+  // MILESTONE - Independent Learner - Get Lesson Performance in Milestones
+  public static final String SELECT_IL_MILESTONE_LESSON_PERF_FOR_ASSESSMENT =
+      "SELECT SUM(agg.time_spent) AS timeSpent, "
+          + "SUM(agg.attempts) attempts, agg.lesson_id AS lessonId " + "FROM (SELECT time_spent , "
+          + "views AS attempts, lesson_id FROM base_reports "
+          + "WHERE class_id IS NULL AND course_id = ? AND collection_type IN ('assessment', 'assessment-external') AND actor_id = ? "
+          + "AND lesson_id = ANY(?::varchar[]) AND "
+          + "event_name = ? AND event_type = 'stop' AND (path_id IS NULL OR path_id = 0)) AS agg "
+          + "GROUP BY agg.lesson_id";
+
+  public static final String SELECT_IL_MILESTONE_LESSON_PERF_FOR_COLLECTION =
+      "SELECT SUM(CASE WHEN (agg.event_name = 'collection.resource.play') THEN agg.time_spent ELSE 0 END) AS timeSpent, "
+          + "SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.attempts ELSE 0 END) AS attempts, agg.lessonId "
+          + "FROM (SELECT time_spent, "
+          + "views AS attempts, lesson_id AS lessonId, event_name FROM base_reports "
+          + "WHERE class_id IS NULL AND course_id = ? AND collection_type IN ('collection', 'collection-external') AND actor_id = ? "
+          + "AND lesson_id = ANY(?::varchar[]) " + "AND (path_id IS NULL OR path_id = 0)) AS agg "
+          + "GROUP BY agg.lessonId";
+
+  public static final String GET_IL_ASMT_COMPLETED_COUNT_SCORE_FOREACH_LESSON_ID =
+      "SELECT SUM(lessonData.completion) AS completedCount,(AVG(scoreInPercentage)) scoreInPercentage, lessonData.unitId AS unitId FROM "
+          + "(SELECT DISTINCT ON (collection_id) CASE  WHEN (event_type = 'stop') THEN 1 ELSE 0 END AS completion, "
+          + "lesson_id, unit_id AS unitId, FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage "
+          + "FROM base_reports WHERE class_id IS NULL AND course_id = ? AND lesson_id = ? "
+          + "AND collection_type IN ('assessment', 'assessment-external') AND actor_id = ? AND event_name = ? AND event_type = ? AND (path_id IS NULL OR path_id = 0) "
+          + "ORDER BY collection_id, updated_at DESC) "
+          + "AS lessonData GROUP BY lesson_id, unitId";
+
+  public static final String GET_IL_COLL_COMPLETED_COUNT_SCORE_FOREACH_LESSON_ID =
+      "SELECT SUM(lessonData.completion) AS completedCount,(AVG(scoreInPercentage)) scoreInPercentage, lessonData.unitId AS unitId FROM "
+          + "(SELECT DISTINCT ON (collection_id) CASE  WHEN (event_type = 'stop') THEN 1 ELSE 0 END AS completion, "
+          + "lesson_id, unit_id AS unitId, FIRST_VALUE(score) OVER (PARTITION BY collection_id ORDER BY updated_at desc) AS scoreInPercentage "
+          + "FROM base_reports WHERE class_id IS NULL AND course_id = ? AND lesson_id = ? "
+          + " AND collection_type IN ('collection', 'collection-external') AND actor_id = ? AND event_name = ? AND (path_id IS NULL OR path_id = 0) ORDER BY collection_id, updated_at DESC) "
+          + "AS lessonData GROUP BY lesson_id, unitId";
+
+  public static final String GET_IL_MILESTONE_COLL_SCORE_FOREACH_LESSON_ID =
+      "SELECT SUM(score) as score, SUM(max_score) as max_score  FROM "
+          + "(SELECT DISTINCT ON (collection_id,resource_id) lesson_id, FIRST_VALUE(score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) "
+          + "AS score,FIRST_VALUE(max_score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS max_score "
+          + "FROM base_reports WHERE class_id IS NULL AND course_id = ? AND lesson_id = ?  "
+          + "AND collection_type IN ('collection', 'collection-external') AND actor_id = ? AND event_name = 'collection.resource.play' "
+          + "AND resource_type = 'question' AND (path_id IS NULL OR path_id = 0)) AS lessonData GROUP BY lesson_id;";
 }
 

@@ -5,7 +5,7 @@
     "username": "nucleus",
     "password": "nucleus",
     "autoCommit": false,
-    "jdbcUrl": "jdbc:postgresql://localhost:5432/reports_db",
+    "jdbcUrl": "jdbc:postgresql://localhost:5432/nucleus",
     "maximumPoolSize": 5
  },
  "coreDataSource": {
