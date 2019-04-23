@@ -32,7 +32,7 @@ public class AJEntityCourseCollectionCount extends Model {
   public static final String GET_LESSON_ASSESSMENT_COUNT =
       "SELECT (SUM(assessment_count) + SUM(ext_assessment_count)) as totalCount FROM course_collection_count WHERE "
           + "course_id = ? AND unit_id = ? and lesson_id = ?";
-
+  
   public static final String GET_MILESTONE_LESSON_ASSESSMENT_COUNT =
       "SELECT (SUM(assessment_count) + SUM(ext_assessment_count)) as totalCount FROM course_collection_count WHERE "
           + "course_id = ? AND lesson_id = ?";
@@ -48,5 +48,4 @@ public class AJEntityCourseCollectionCount extends Model {
   public static final String GET_MILESTONE_COLLECTION_COUNT =
       "SELECT (SUM(collection_count) + SUM(ext_collection_count)) as totalCount FROM course_collection_count WHERE "
           + "course_id = ? AND lesson_id = ANY(?::varchar[])";
-
 }

@@ -66,7 +66,6 @@ public final class MessageConstants {
   // Milestone
   public static final String MILESTONE_ID = "milestoneId";
 
-
   // Read API Constants
   public static final String MSG_OP_COURSE_PEERS = "student.peers.in.course";
   public static final String MSG_OP_UNIT_PEERS = "student.peers.in.unit";
@@ -179,7 +178,6 @@ public final class MessageConstants {
       "ca.student.assessment.session.performance";
   public static final String MSG_OP_CA_STUDENT_COLLECTION_SESSION_PERF =
       "ca.student.collection.session.performance";
-
   // DATA REPORTS
   public static final String MSG_OP_NU_DATA_REPORT = "nu.data.report";
   public static final String MSG_OP_NU_COURSES_COMPETENCY_COMPLETION =
@@ -192,7 +190,6 @@ public final class MessageConstants {
       "student.course.all.items.performance";
   public static final String MSG_OP_IND_LEARNER_COURSE_ALL_ITEMS_PERF =
       "independent.learner.course.all.items.performance";
-
   // MILESTONE
   public static final String MSG_OP_STUDENT_MILESTONE_PERF = "student.milestone.performance";
   public static final String MSG_OP_STUDENT_MILESTONE_LESSON_PERF =
@@ -203,6 +200,10 @@ public final class MessageConstants {
   public static final String MSG_OP_IND_LEARNER_MILESTONE_LESSON_PERF =
       "independent.learner.milestone.lesson.performance";
 
+  // Internal
+  public static final String MSG_OP_INTERNAL_ALL_STUDENT_CLASSES_PERF =
+      "internal.all.class.student.performance";
+  public static final String MSG_OP_INTERNAL_DCA_ALL_CLASSES_PERF = "internal.dca.all.classes.performance";
 
   public static final String PORT = "port";
   public static final String HOST = "host";

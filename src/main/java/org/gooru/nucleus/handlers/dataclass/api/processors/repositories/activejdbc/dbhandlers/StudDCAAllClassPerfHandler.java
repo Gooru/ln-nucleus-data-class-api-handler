@@ -66,16 +66,20 @@ public class StudDCAAllClassPerfHandler implements DBHandler {
   @Override
   @SuppressWarnings("rawtypes")
   public ExecutionResult<MessageResponse> validateRequest() {
-    if (context.getUserIdFromRequest() == null || (context.getUserIdFromRequest() != null
-        && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
-      cIds = Base.firstColumn(AJEntityClassAuthorizedUsers.SELECT_CLASSES,
-          listToPostgresArrayString(this.reqClassIds), this.context.userIdFromSession());
-      if (cIds == null || cIds.isEmpty()) {
-        LOGGER.debug("validateRequest() FAILED");
-        return new ExecutionResult<>(
-            MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"),
-            ExecutionStatus.FAILED);
+    if (!this.context.isInternal()) {
+      if (context.getUserIdFromRequest() == null || (context.getUserIdFromRequest() != null
+          && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
+        cIds = Base.firstColumn(AJEntityClassAuthorizedUsers.SELECT_CLASSES,
+            listToPostgresArrayString(this.reqClassIds), this.context.userIdFromSession());
+        if (cIds == null || cIds.isEmpty()) {
+          LOGGER.debug("validateRequest() FAILED");
+          return new ExecutionResult<>(
+              MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"),
+              ExecutionStatus.FAILED);
+        }
       }
+    } else {
+      cIds.addAll(reqClassIds);
     }
     LOGGER.debug("validateRequest() OK");
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);

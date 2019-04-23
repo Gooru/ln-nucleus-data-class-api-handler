@@ -229,7 +229,6 @@ public final class ResponseAttributeIdentifier {
         Collections.unmodifiableMap(milestonePerformanceAttributes);
   }
 
-
   private ResponseAttributeIdentifier() {
     throw new AssertionError();
   }

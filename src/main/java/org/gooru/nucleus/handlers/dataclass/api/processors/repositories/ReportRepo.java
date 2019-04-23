@@ -148,7 +148,7 @@ public interface ReportRepo {
   MessageResponse getStudentCAAssessmentSessionPerformance();
 
   MessageResponse getStudentCACollectionSessionPerformance();
-
+  
   // Milestone
   MessageResponse getStudentMilestoneLessonPerfHandler();
 
@@ -158,4 +158,5 @@ public interface ReportRepo {
   MessageResponse getILMilestoneLessonPerfHandler();
 
   MessageResponse getILMilestonePerfHandler();
+
 }
