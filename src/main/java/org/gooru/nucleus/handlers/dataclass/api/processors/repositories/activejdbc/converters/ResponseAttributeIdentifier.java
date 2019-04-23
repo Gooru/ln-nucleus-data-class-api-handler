@@ -22,7 +22,9 @@ public final class ResponseAttributeIdentifier {
     private static final Map<String, String> coursePerformanceAttributes;
     private static final Map<String, String> unitPerformanceAttributes;
     private static final Map<String, String> lessonPerformanceAttributes;
-
+    private static final Map<String, String> milestonePerformanceAttributes;
+    private static final Map<String, String> milestoneLessonPerformanceAttributes;
+    
     private static final Map<String, String> sessionTaxReportAggAttributesValue;
     private static final Map<String, String> sessionTaxReportQuestionAttributesValue;
     private static final Map<String, String> sessionAssessmentAttributesValue;
@@ -36,6 +38,8 @@ public final class ResponseAttributeIdentifier {
     private static final Map<String, String> coursePerformanceAttributesValue;
     private static final Map<String, String> unitPerformanceAttributesValue;
     private static final Map<String, String> lessonPerformanceAttributesValue;
+    private static final Map<String, String> milestonePerformanceAttributesValue;
+    private static final Map<String, String> milestoneLessonPerformanceAttributesValue;
 
     static {
         sessionAssessmentAttributes = new HashMap<>();
@@ -196,6 +200,27 @@ public final class ResponseAttributeIdentifier {
         unitPerformanceAttributes.put("attemptStatus", "attemptStatus");
         unitPerformanceAttributesValue = Collections.unmodifiableMap(unitPerformanceAttributes);
     }
+    
+    //MILESTONE
+    static {
+        milestoneLessonPerformanceAttributes = new HashMap<>();
+        milestoneLessonPerformanceAttributes.put("timeSpent", "timeSpent");
+        // lessonPerformanceAttributes.put("scoreInPercentage", "scoreInPercentage");
+        milestoneLessonPerformanceAttributes.put("attempts", "attempts");
+        milestoneLessonPerformanceAttributes.put("reaction", "reaction");
+        milestoneLessonPerformanceAttributes.put("unit_id", "unitId");
+        milestoneLessonPerformanceAttributes.put("lessonId", "lessonId");
+        milestoneLessonPerformanceAttributesValue = Collections.unmodifiableMap(milestoneLessonPerformanceAttributes);
+    }
+
+    static {
+        milestonePerformanceAttributes = new HashMap<>();
+        milestonePerformanceAttributes.put("timeSpent", "timeSpent");
+        milestonePerformanceAttributes.put("attempts", "attempts");
+        milestonePerformanceAttributes.put("reaction", "reaction");
+        milestonePerformanceAttributesValue = Collections.unmodifiableMap(milestonePerformanceAttributes);
+    }
+
 
     private ResponseAttributeIdentifier() {
         throw new AssertionError();
@@ -256,4 +281,14 @@ public final class ResponseAttributeIdentifier {
     public static Map<String, String> getLessonPerformanceAttributesMap() {
         return lessonPerformanceAttributesValue;
     }
+    
+    //MILESTONE
+    public static Map<String, String> getMilestonePerformanceAttributesMap() {
+        return milestonePerformanceAttributesValue;
+    }
+
+    public static Map<String, String> getMilestoneLessonPerformanceAttributesMap() {
+        return milestoneLessonPerformanceAttributesValue;
+    }
+
 }

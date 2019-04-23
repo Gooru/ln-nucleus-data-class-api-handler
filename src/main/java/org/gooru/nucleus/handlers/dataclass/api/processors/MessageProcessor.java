@@ -238,7 +238,20 @@ class MessageProcessor implements Processor {
             case MessageConstants.MSG_OP_CA_STUDENT_COLLECTION_SESSION_PERF:
                 result = getCACollectionSessionPerfReportHandler();
                 break;
-
+                //MILESTONE
+            case MessageConstants.MSG_OP_STUDENT_MILESTONE_LESSON_PERF:
+                result = getStudentMilestoneLessonPerformanceHandler();
+                break;
+            case MessageConstants.MSG_OP_STUDENT_MILESTONE_PERF:
+                result = getStudentMilestonePerformanceHandler();
+                break;
+                //MILESTONE - Independent Learner
+            case MessageConstants.MSG_OP_IND_LEARNER_MILESTONE_LESSON_PERF:
+                result = getILMilestoneLessonPerformanceHandler();
+                break;
+            case MessageConstants.MSG_OP_IND_LEARNER_MILESTONE_PERF:
+                result = getILMilestonePerformanceHandler();
+                break;
             default:
                 LOGGER.error("Invalid operation type passed in, not able to handle");
                 return MessageResponseFactory
@@ -1493,13 +1506,99 @@ class MessageProcessor implements Processor {
         }
 
     }
+    
+    //MILESTONE
+    //**************************************************************************************************************************
+    private MessageResponse getStudentMilestoneLessonPerformanceHandler() {
+    	try {
+            ProcessorContext context = createContext();
 
+            if (!checkClassId(context)) {
+                LOGGER.error("ClassId not available to obtain Student Performance. Aborting!");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid ClassId");
+            }
+
+            if (!checkCourseId(context)) {
+                LOGGER.error("CourseId not available to obtain Student Performance. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid CourseId");
+            }
+
+            return new RepoBuilder().buildReportRepo(context).getStudentMilestoneLessonPerfHandler();
+
+        } catch (Throwable t) {
+            LOGGER.error("Exception while getting Student performance in Unit", t);
+            return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+        }
+
+    }
+    
+    private MessageResponse getStudentMilestonePerformanceHandler() {
+    	try {
+            ProcessorContext context = createContext();
+
+            if (!checkClassId(context)) {
+                LOGGER.error("ClassId not available to obtain Student Performance. Aborting!");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid ClassId");
+            }
+
+            if (!checkCourseId(context)) {
+                LOGGER.error("CourseId not available to obtain Student Performance. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid CourseId");
+            }
+
+            return new RepoBuilder().buildReportRepo(context).getStudentMilestonePerfHandler();
+
+        } catch (Throwable t) {
+            LOGGER.error("Exception while getting Student performance in Unit", t);
+            return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+        }
+
+    }
+    //********************************************************************************************************************************
+    //MILESTONE - Independent Learner
+    private MessageResponse getILMilestoneLessonPerformanceHandler() {
+    	try {
+            ProcessorContext context = createContext();
+
+            if (!checkCourseId(context)) {
+                LOGGER.error("CourseId not available to obtain Student Performance. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid CourseId");
+            }
+
+            return new RepoBuilder().buildReportRepo(context).getILMilestoneLessonPerfHandler();
+
+        } catch (Throwable t) {
+            LOGGER.error("Exception while getting Student performance in Unit", t);
+            return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+        }
+
+    }
+    
+    private MessageResponse getILMilestonePerformanceHandler() {
+    	try {
+            ProcessorContext context = createContext();
+
+            if (!checkCourseId(context)) {
+                LOGGER.error("CourseId not available to obtain Student Performance. Aborting");
+                return MessageResponseFactory.createInvalidRequestResponse("Invalid CourseId");
+            }
+
+            return new RepoBuilder().buildReportRepo(context).getILMilestonePerfHandler();
+
+        } catch (Throwable t) {
+            LOGGER.error("Exception while getting Student performance in Unit", t);
+            return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+        }
+
+    }
+    //********************************************************************************************************************************
     private ProcessorContext createContext() {
     	String classId = message.headers().get(MessageConstants.CLASS_ID);
         String courseId = message.headers().get(MessageConstants.COURSE_ID);
         String unitId = message.headers().get(MessageConstants.UNIT_ID);
         String lessonId = message.headers().get(MessageConstants.LESSON_ID);
         String collectionId = message.headers().get(MessageConstants.COLLECTION_ID);
+        String milestoneId = message.headers().get(MessageConstants.MILESTONE_ID);
         /* user id from session */
         String userId =  (request).getString(MessageConstants._USER_ID);
         /* user id from api request */
@@ -1513,7 +1612,7 @@ class MessageProcessor implements Processor {
         String collectionType = message.headers().get(MessageConstants.COLLECTION_TYPE);
 
         return new ProcessorContext(request, userId,userUId, classId, courseId, unitId, lessonId, collectionId,
-        		sessionId, studentId, questionId,startDate,endDate, collectionType);
+        		sessionId, studentId, questionId,startDate,endDate, collectionType, milestoneId);
     }
 
     //This is just the first level validation. Each Individual Handler would need to do more validation based on the
@@ -1579,8 +1678,6 @@ class MessageProcessor implements Processor {
     private boolean checkStudentId(ProcessorContext context) {
         return validateId(context.studentId());
     }
-
-
 
     private boolean validateUser(String userId) {
         return !(userId == null || userId.isEmpty()
