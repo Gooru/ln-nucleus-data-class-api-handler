@@ -104,7 +104,7 @@ public class IndLearnerCourseCurrentLocationHandler implements DBHandler {
               : Long.parseLong(locModel.get(AJEntityBaseReports.PATH_ID).toString()));
       loc.put(AJEntityBaseReports.ATTR_PATH_TYPE,
           locModel.get(AJEntityBaseReports.PATH_TYPE) == null ? null
-              : locModel.get(AJEntityBaseReports.ATTR_PATH_TYPE).toString());
+              : locModel.get(AJEntityBaseReports.PATH_TYPE).toString());
       AJEntityBaseReports collectionStatus = AJEntityBaseReports.findFirst(
           "session_id = ?  AND collection_id = ? AND event_name = ? AND event_type = ?",
           locModel.get(AJEntityBaseReports.SESSION_ID).toString(), collId,
