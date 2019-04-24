@@ -101,7 +101,7 @@ public class IndLearnerCourseCurrentLocationHandler implements DBHandler {
           locModel.get(AJEntityBaseReports.COLLECTION_TYPE).toString());
       loc.put(AJEntityBaseReports.ATTR_PATH_ID,
           locModel.get(AJEntityBaseReports.PATH_ID) == null ? 0L
-              : Long.parseLong(locModel.get(AJEntityBaseReports.ATTR_PATH_ID).toString()));
+              : Long.parseLong(locModel.get(AJEntityBaseReports.PATH_ID).toString()));
       loc.put(AJEntityBaseReports.ATTR_PATH_TYPE,
           locModel.get(AJEntityBaseReports.PATH_TYPE) == null ? null
               : locModel.get(AJEntityBaseReports.ATTR_PATH_TYPE).toString());
