@@ -25,5 +25,20 @@ public class AJEntityMilestone extends Model {
       "SELECT milestone_id FROM milestone "
           + "WHERE course_id = ? AND unit_id = ? AND lesson_id = ? AND fw_code = ?";
 
+  public static final String FETCH_MILESTONE_LESSON_IDS =
+	      "SELECT lesson_id, unit_id from milestone where milestone_id = ?";
+
+  public static final String FETCH_MILESTONE_UNIT_IDS =
+		  "SELECT unit_id from milestone where milestone_id = ?";
+
+  public static final String SELECT_DISTINCT_LESSON_ID_FOR_MILESTONE_ID =
+		  "SELECT DISTINCT(lesson_id) FROM milestone "
+				  + "WHERE course_id = ? AND milestone_id = ? AND fw_code = ?";
+
+  public static final String SELECT_DISTINCT_MILESTONE_ID_FOR_COURSE =
+		  "SELECT DISTINCT(milestone_id) FROM milestone "
+				  + "WHERE course_id = ? AND fw_code = ?";
+
+
 
 }

@@ -12,7 +12,7 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.converters.ResponseAttributeIdentifier;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityCourseCollectionCount;
-import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityMilestoneLessonMap;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityMilestone;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.converters.ValueMapper;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
@@ -111,26 +111,26 @@ public class ILMilestonePerfHandler implements DBHandler {
 
     List<String> milestoneIds = new ArrayList<>();
     // GET DISTINCT(MILESTONES) FOR THIS COURSE
-    LazyList<AJEntityMilestoneLessonMap> milestoneIDforCourse;
-    milestoneIDforCourse = AJEntityMilestoneLessonMap.findBySQL(
-        AJEntityMilestoneLessonMap.SELECT_DISTINCT_MILESTONE_ID_FOR_COURSE,
+    LazyList<AJEntityMilestone> milestoneIDforCourse;
+    milestoneIDforCourse = AJEntityMilestone.findBySQL(
+        AJEntityMilestone.SELECT_DISTINCT_MILESTONE_ID_FOR_COURSE,
         UUID.fromString(context.courseId()), fwCode);
 
     if (!milestoneIDforCourse.isEmpty()) {
       milestoneIDforCourse.forEach(milestone -> milestoneIds
-          .add(milestone.getString(AJEntityMilestoneLessonMap.MILESTONE_ID)));
+          .add(milestone.getString(AJEntityMilestone.MILESTONE_ID)));
     }
 
     for (String mileId : milestoneIds) {
       List<Map> contentPerf;
       List<String> lessonIds = new ArrayList<>();
       // GET LESSONS FOR EACH MILESTONE
-      LazyList<AJEntityMilestoneLessonMap> lessonIDforMilestone;
-      lessonIDforMilestone = AJEntityMilestoneLessonMap.findBySQL(
-          AJEntityMilestoneLessonMap.SELECT_DISTINCT_LESSON_ID_FOR_MILESTONE_ID,
+      LazyList<AJEntityMilestone> lessonIDforMilestone;
+      lessonIDforMilestone = AJEntityMilestone.findBySQL(
+          AJEntityMilestone.SELECT_DISTINCT_LESSON_ID_FOR_MILESTONE_ID,
           UUID.fromString(context.courseId()), mileId, fwCode);
       lessonIDforMilestone
-          .forEach(lesson -> lessonIds.add(lesson.getString(AJEntityMilestoneLessonMap.LESSON_ID)));
+          .forEach(lesson -> lessonIds.add(lesson.getString(AJEntityMilestone.LESSON_ID)));
 
       if (!lessonIDforMilestone.isEmpty()) {
         JsonObject contentBody = new JsonObject();
