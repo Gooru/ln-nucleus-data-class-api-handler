@@ -13,7 +13,7 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejd
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityCourseCollectionCount;
-import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityMilestoneLessonMap;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityMilestone;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.converters.ValueMapper;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
@@ -115,12 +115,12 @@ public class MilestoneLessonPerfHandler implements DBHandler {
     List<String> lessonIds = new ArrayList<>();
 
     // Select Distinct Lesson IDs from this Milestone
-    LazyList<AJEntityMilestoneLessonMap> lessonIDforMilestone;
-    lessonIDforMilestone = AJEntityMilestoneLessonMap.findBySQL(
-        AJEntityMilestoneLessonMap.SELECT_DISTINCT_LESSON_ID_FOR_MILESTONE_ID,
+    LazyList<AJEntityMilestone> lessonIDforMilestone;
+    lessonIDforMilestone = AJEntityMilestone.findBySQL(
+        AJEntityMilestone.SELECT_DISTINCT_LESSON_ID_FOR_MILESTONE_ID,
         UUID.fromString(context.courseId()), context.milestoneId(), fwCode);
     lessonIDforMilestone
-        .forEach(lesson -> lessonIds.add(lesson.getString(AJEntityMilestoneLessonMap.LESSON_ID)));
+        .forEach(lesson -> lessonIds.add(lesson.getString(AJEntityMilestone.LESSON_ID)));
 
     if (StringUtil.isNullOrEmpty(userId)) {
       LOGGER.warn(
