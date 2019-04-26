@@ -2,14 +2,12 @@ package org.gooru.nucleus.handlers.dataclass.api.bootstrap;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.gooru.nucleus.handlers.dataclass.api.bootstrap.shutdown.Finalizer;
 import org.gooru.nucleus.handlers.dataclass.api.bootstrap.shutdown.Finalizers;
 import org.gooru.nucleus.handlers.dataclass.api.bootstrap.startup.Initializer;
 import org.gooru.nucleus.handlers.dataclass.api.bootstrap.startup.Initializers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.DeploymentOptions;
@@ -17,9 +15,8 @@ import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 
 /**
- * This is the main deploy verticle which is responsible to deploy all other
- * verticles. Once the deployment of verticles is done, it will also initialize
- * the application initializers.
+ * This is the main deploy verticle which is responsible to deploy all other verticles. Once the
+ * deployment of verticles is done, it will also initialize the application initializers.
  *
  * @author Insights Team
  */

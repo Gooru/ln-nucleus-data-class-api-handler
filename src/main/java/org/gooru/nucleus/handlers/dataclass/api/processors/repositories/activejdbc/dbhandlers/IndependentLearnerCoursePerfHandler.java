@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
 import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
@@ -21,9 +20,7 @@ import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.hazelcast.util.StringUtil;
-
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -32,12 +29,13 @@ import io.vertx.core.json.JsonObject;
  */
 class IndependentLearnerCoursePerfHandler implements DBHandler {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(IndependentLearnerCoursePerfHandler.class);
+  private static final Logger LOGGER =
+      LoggerFactory.getLogger(IndependentLearnerCoursePerfHandler.class);
   private static final String REQUEST_COLLECTION_TYPE = "collectionType";
   int totalCount = 0;
   private final ProcessorContext context;
   private String collectionType;
-    // For stuffing Json
+  // For stuffing Json
   private String unitId;
 
   public IndependentLearnerCoursePerfHandler(ProcessorContext context) {
@@ -49,8 +47,9 @@ class IndependentLearnerCoursePerfHandler implements DBHandler {
     if (context.request() == null || context.request().isEmpty()) {
       LOGGER.warn("invalid request received to fetch Student Performance in Course");
       return new ExecutionResult<>(
-              MessageResponseFactory.createInvalidRequestResponse("Invalid data provided to fetch Student Performance in course"),
-              ExecutionStatus.FAILED);
+          MessageResponseFactory.createInvalidRequestResponse(
+              "Invalid data provided to fetch Student Performance in course"),
+          ExecutionStatus.FAILED);
     }
 
     LOGGER.debug("checkSanity() OK");
@@ -77,14 +76,16 @@ class IndependentLearnerCoursePerfHandler implements DBHandler {
     if (StringUtil.isNullOrEmpty(collectionType)) {
       LOGGER.warn("CollectionType is mandatory to fetch Student Performance in Course");
       return new ExecutionResult<>(
-              MessageResponseFactory.createInvalidRequestResponse("CollectionType Missing. Cannot fetch Student Performance in course"),
-              ExecutionStatus.FAILED);
+          MessageResponseFactory.createInvalidRequestResponse(
+              "CollectionType Missing. Cannot fetch Student Performance in course"),
+          ExecutionStatus.FAILED);
     }
 
     String addCollTypeFilterToQuery = AJEntityBaseReports.ADD_COLL_TYPE_FILTER_TO_QUERY;
-    if (!this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) addCollTypeFilterToQuery = AJEntityBaseReports.ADD_ASS_TYPE_FILTER_TO_QUERY;
+    if (!this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION))
+      addCollTypeFilterToQuery = AJEntityBaseReports.ADD_ASS_TYPE_FILTER_TO_QUERY;
 
-      String userId = this.context.userIdFromSession();
+    String userId = this.context.userIdFromSession();
 
     List<String> unitIds = new ArrayList<>();
     List<String> userIds = new ArrayList<>();
@@ -96,20 +97,25 @@ class IndependentLearnerCoursePerfHandler implements DBHandler {
 
       LazyList<AJEntityBaseReports> unitIDforCourse;
 
-      unitIDforCourse = AJEntityBaseReports.findBySQL(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_DISTINCT_UNIT_ID_FOR_COURSE_ID + addCollTypeFilterToQuery,
-              context.courseId(), userID);
+      unitIDforCourse = AJEntityBaseReports
+          .findBySQL(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_DISTINCT_UNIT_ID_FOR_COURSE_ID
+              + addCollTypeFilterToQuery, context.courseId(), userID);
 
       if (!unitIDforCourse.isEmpty()) {
         LOGGER.debug("Got a list of Distinct unitIDs for this Course");
 
-        unitIDforCourse.forEach(unit -> unitIds.add(unit.getString(AJEntityBaseReports.UNIT_GOORU_OID)));
+        unitIDforCourse
+            .forEach(unit -> unitIds.add(unit.getString(AJEntityBaseReports.UNIT_GOORU_OID)));
         List<Map> assessmentKpi;
         if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
-          assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_COURSE_PERF_FOR_COLLECTION, context.courseId(),
-              userID, listToPostgresArrayString(unitIds));
+          assessmentKpi = Base.findAll(
+              AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_COURSE_PERF_FOR_COLLECTION,
+              context.courseId(), userID, listToPostgresArrayString(unitIds));
         } else {
-          assessmentKpi = Base.findAll(AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_COURSE_PERF_FOR_ASSESSMENT, context.courseId(),
-                  userID, listToPostgresArrayString(unitIds), EventConstants.COLLECTION_PLAY);
+          assessmentKpi = Base.findAll(
+              AJEntityBaseReports.SELECT_INDEPENDENT_LEARNER_COURSE_PERF_FOR_ASSESSMENT,
+              context.courseId(), userID, listToPostgresArrayString(unitIds),
+              EventConstants.COLLECTION_PLAY);
         }
         if (!assessmentKpi.isEmpty()) {
           assessmentKpi.forEach(m -> {
@@ -121,48 +127,66 @@ class IndependentLearnerCoursePerfHandler implements DBHandler {
             if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
               // FIXME: Score will not be useful in CUL if collection so could
               // be incorrect from this below query.
-              completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_COLL_COUNT_FOREACH_INDEPENDENT_LEARNER_UNIT_ID, context.courseId(), unitId,
-                      userID, EventConstants.COLLECTION_PLAY);
+              completedCountMap = Base.findAll(
+                  AJEntityBaseReports.GET_COMPLETED_COLL_COUNT_FOREACH_INDEPENDENT_LEARNER_UNIT_ID,
+                  context.courseId(), unitId, userID, EventConstants.COLLECTION_PLAY);
 
-              scoreMap = Base.findAll(AJEntityBaseReports.GET_COLL_SCORE_FOREACH_IL_UNIT_ID,context.courseId(),
-                      unitId, userID);
+              scoreMap = Base.findAll(AJEntityBaseReports.GET_COLL_SCORE_FOREACH_IL_UNIT_ID,
+                  context.courseId(), unitId, userID);
             } else {
-              completedCountMap = Base.findAll(AJEntityBaseReports.GET_COMPLETED_ASMT_COUNT_FOREACH_INDEPENDENT_LEARNER_UNIT_ID, context.courseId(), unitId,
-                      userID, EventConstants.COLLECTION_PLAY);
+              completedCountMap = Base.findAll(
+                  AJEntityBaseReports.GET_COMPLETED_ASMT_COUNT_FOREACH_INDEPENDENT_LEARNER_UNIT_ID,
+                  context.courseId(), unitId, userID, EventConstants.COLLECTION_PLAY);
             }
-            JsonObject unitData = ValueMapper.map(ResponseAttributeIdentifier.getCoursePerformanceAttributesMap(), m);
+            JsonObject unitData =
+                ValueMapper.map(ResponseAttributeIdentifier.getCoursePerformanceAttributesMap(), m);
             completedCountMap.forEach(scoreCompletonMap -> {
-              unitData.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT,
-                      Integer.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
-              unitData.put(AJEntityBaseReports.ATTR_SCORE, scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE) != null ? Math.round(Double.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE).toString())) : null);
+              unitData.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, Integer.valueOf(
+                  scoreCompletonMap.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
+              unitData.put(AJEntityBaseReports.ATTR_SCORE,
+                  scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE) != null
+                      ? Math.round(Double.valueOf(
+                          scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE).toString()))
+                      : null);
               LOGGER.debug("UnitID : {} - UserID : {} - Score : {}", unitId, userID,
-                      AJEntityBaseReports.ATTR_SCORE, scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE) != null ? Math.round(Double.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE).toString())) : null);
+                  AJEntityBaseReports.ATTR_SCORE,
+                  scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE) != null
+                      ? Math.round(Double.valueOf(
+                          scoreCompletonMap.get(AJEntityBaseReports.ATTR_SCORE).toString()))
+                      : null);
               LOGGER.debug("UnitID : {} - UserID : {} - completedCount : {}", unitId, userID,
-                      Integer.valueOf(scoreCompletonMap.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
+                  Integer.valueOf(
+                      scoreCompletonMap.get(AJEntityBaseReports.ATTR_COMPLETED_COUNT).toString()));
 
             });
-            
-            if(scoreMap != null && !scoreMap.isEmpty() && this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
-              scoreMap.forEach(score ->{
-                double maxScore = Double.valueOf(score.get(AJEntityBaseReports.MAX_SCORE).toString());
-                if(maxScore > 0 && (score.get(AJEntityBaseReports.SCORE) != null)) {
-                double sumOfScore = Double.valueOf(score.get(AJEntityBaseReports.SCORE).toString());
-                LOGGER.debug("maxScore : {} , sumOfScore : {} ", maxScore, sumOfScore);
-                  unitData.put(AJEntityBaseReports.ATTR_SCORE, (Math.round((sumOfScore / maxScore) * 100)));
-                }else {
+
+            if (scoreMap != null && !scoreMap.isEmpty()
+                && this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
+              scoreMap.forEach(score -> {
+                double maxScore =
+                    Double.valueOf(score.get(AJEntityBaseReports.MAX_SCORE).toString());
+                if (maxScore > 0 && (score.get(AJEntityBaseReports.SCORE) != null)) {
+                  double sumOfScore =
+                      Double.valueOf(score.get(AJEntityBaseReports.SCORE).toString());
+                  LOGGER.debug("maxScore : {} , sumOfScore : {} ", maxScore, sumOfScore);
+                  unitData.put(AJEntityBaseReports.ATTR_SCORE,
+                      (Math.round((sumOfScore / maxScore) * 100)));
+                } else {
                   unitData.putNull(AJEntityBaseReports.ATTR_SCORE);
                 }
               });
             }
-            
+
             if (unitAssessmentCountMap.containsKey(this.unitId)) {
-              	totalCount = unitAssessmentCountMap.get(this.unitId);
-              } else {
-              	Object classTotalCount = Base.firstCell(AJEntityCourseCollectionCount.GET_UNIT_ASSESSMENT_COUNT,
-              			context.courseId(), unitId);
-              	totalCount = classTotalCount != null ? (Integer.valueOf(classTotalCount.toString())) : 0;
-              	unitAssessmentCountMap.put(this.unitId, totalCount);
-              }
+              totalCount = unitAssessmentCountMap.get(this.unitId);
+            } else {
+              Object classTotalCount =
+                  Base.firstCell(AJEntityCourseCollectionCount.GET_UNIT_ASSESSMENT_COUNT,
+                      context.courseId(), unitId);
+              totalCount =
+                  classTotalCount != null ? (Integer.valueOf(classTotalCount.toString())) : 0;
+              unitAssessmentCountMap.put(this.unitId, totalCount);
+            }
             unitData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, totalCount);
             if (this.collectionType.equalsIgnoreCase(EventConstants.COLLECTION)) {
               unitData.put(EventConstants.VIEWS, unitData.getInteger(EventConstants.ATTEMPTS));
@@ -182,9 +206,11 @@ class IndependentLearnerCoursePerfHandler implements DBHandler {
       contentBody.put(JsonConstants.USAGE_DATA, CourseKpiArray).put(JsonConstants.USERUID, userID);
       resultarray.add(contentBody);
     }
-    resultBody.put(JsonConstants.CONTENT, resultarray).putNull(JsonConstants.MESSAGE).putNull(JsonConstants.PAGINATE);
+    resultBody.put(JsonConstants.CONTENT, resultarray).putNull(JsonConstants.MESSAGE)
+        .putNull(JsonConstants.PAGINATE);
 
-    return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody), ExecutionStatus.SUCCESSFUL);
+    return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody),
+        ExecutionStatus.SUCCESSFUL);
   }
 
   @Override

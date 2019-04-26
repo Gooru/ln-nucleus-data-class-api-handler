@@ -48,8 +48,8 @@ public class DCAYearlyClassSummaryHandler implements DBHandler {
   @SuppressWarnings("rawtypes")
   @Override
   public ExecutionResult<MessageResponse> validateRequest() {
-    if (this.userId == null || (this.userId != null
-        && !context.userIdFromSession().equalsIgnoreCase(this.userId))) {
+    if (this.userId == null
+        || (this.userId != null && !context.userIdFromSession().equalsIgnoreCase(this.userId))) {
       List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER,
           this.context.classId(), this.context.userIdFromSession());
       if (owner.isEmpty()) {
@@ -59,7 +59,7 @@ public class DCAYearlyClassSummaryHandler implements DBHandler {
             ExecutionStatus.FAILED);
       }
     }
-    
+
     LOGGER.debug("validateRequest() OK");
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
   }

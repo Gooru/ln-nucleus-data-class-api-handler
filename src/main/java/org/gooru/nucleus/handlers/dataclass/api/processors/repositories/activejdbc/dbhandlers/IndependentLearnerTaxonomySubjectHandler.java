@@ -2,7 +2,6 @@ package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activej
 
 import java.util.List;
 import java.util.Map;
-
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityUserTaxonomySubject;
@@ -13,9 +12,7 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResp
 import org.javalite.activejdbc.Base;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.hazelcast.util.StringUtil;
-
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -26,11 +23,12 @@ import io.vertx.core.json.JsonObject;
  */
 public class IndependentLearnerTaxonomySubjectHandler implements DBHandler {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(IndependentLearnerTaxonomySubjectHandler.class);
+  private static final Logger LOGGER =
+      LoggerFactory.getLogger(IndependentLearnerTaxonomySubjectHandler.class);
 
   private final ProcessorContext context;
 
-    private static final String REQUEST_USERID = "userId";
+  private static final String REQUEST_USERID = "userId";
 
   public IndependentLearnerTaxonomySubjectHandler(ProcessorContext context) {
     this.context = context;
@@ -54,7 +52,7 @@ public class IndependentLearnerTaxonomySubjectHandler implements DBHandler {
   @SuppressWarnings("rawtypes")
   public ExecutionResult<MessageResponse> executeRequest() {
 
-      String userId = this.context.request().getString(REQUEST_USERID);
+    String userId = this.context.request().getString(REQUEST_USERID);
     String userType = this.context.request().getString("userType");
 
     if (StringUtil.isNullOrEmpty(userId)) {
@@ -65,17 +63,18 @@ public class IndependentLearnerTaxonomySubjectHandler implements DBHandler {
     JsonArray subjectArray = new JsonArray();
 
     List<Map> taxSubjects;
-    if(!StringUtil.isNullOrEmpty(userType) && userType.equalsIgnoreCase("IL")){
+    if (!StringUtil.isNullOrEmpty(userType) && userType.equalsIgnoreCase("IL")) {
       taxSubjects = Base.findAll(AJEntityUserTaxonomySubject.GET_IL_TAX_SUBJECTS, userId);
-    }else{
+    } else {
       taxSubjects = Base.findAll(AJEntityUserTaxonomySubject.GET_LEARNER_TAX_SUBJECTS, userId);
     }
     if (!taxSubjects.isEmpty()) {
       taxSubjects.forEach(m -> {
         JsonObject subjectsInfo = new JsonObject();
-        subjectsInfo.put(AJEntityUserTaxonomySubject.ATTR_TAX_SUBJECT_ID, m.get(AJEntityUserTaxonomySubject.TAX_SUBJECT_ID).toString());
-        Object title =
-                Base.firstCell(AJEntityUserTaxonomySubject.GET_SUBJECT_TITLE, m.get(AJEntityUserTaxonomySubject.TAX_SUBJECT_ID).toString());
+        subjectsInfo.put(AJEntityUserTaxonomySubject.ATTR_TAX_SUBJECT_ID,
+            m.get(AJEntityUserTaxonomySubject.TAX_SUBJECT_ID).toString());
+        Object title = Base.firstCell(AJEntityUserTaxonomySubject.GET_SUBJECT_TITLE,
+            m.get(AJEntityUserTaxonomySubject.TAX_SUBJECT_ID).toString());
         subjectsInfo.put(AJEntityUserTaxonomySubject.ATTR_TAX_SUBJECT_TITLE, title);
         subjectArray.add(subjectsInfo);
       });
@@ -83,7 +82,8 @@ public class IndependentLearnerTaxonomySubjectHandler implements DBHandler {
       LOGGER.info("Taxonomy Subject for the Independent Learner cannot be obtained");
     }
     result.put(JsonConstants.USAGE_DATA, subjectArray).put(JsonConstants.USERID, userId);
-    return new ExecutionResult<>(MessageResponseFactory.createGetResponse(result), ExecutionStatus.SUCCESSFUL);
+    return new ExecutionResult<>(MessageResponseFactory.createGetResponse(result),
+        ExecutionStatus.SUCCESSFUL);
 
   }
 

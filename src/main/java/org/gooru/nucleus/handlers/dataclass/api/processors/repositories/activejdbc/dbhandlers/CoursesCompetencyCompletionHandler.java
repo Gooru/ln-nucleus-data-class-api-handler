@@ -1,7 +1,6 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
 import java.util.UUID;
-
 import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
@@ -13,15 +12,14 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResp
 import org.javalite.activejdbc.Base;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.hazelcast.util.StringUtil;
-
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 public class CoursesCompetencyCompletionHandler implements DBHandler {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(CoursesCompetencyCompletionHandler.class);
+  private static final Logger LOGGER =
+      LoggerFactory.getLogger(CoursesCompetencyCompletionHandler.class);
 
   private final ProcessorContext context;
 
@@ -33,14 +31,15 @@ public class CoursesCompetencyCompletionHandler implements DBHandler {
   public ExecutionResult<MessageResponse> checkSanity() {
     if (StringUtil.isNullOrEmpty(context.getUserIdFromRequest())) {
       LOGGER.error("userId is mandatory to fetch competency completion");
-      return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("userId is Missing. Cannot fetch competency completion"),
-              ExecutionStatus.FAILED);
+      return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse(
+          "userId is Missing. Cannot fetch competency completion"), ExecutionStatus.FAILED);
     }
-    if (!this.context.request().containsKey(EventConstants.COURSE_IDS) || this.context.request().getJsonArray(EventConstants.COURSE_IDS) == null
-            || this.context.request().getJsonArray(EventConstants.COURSE_IDS).isEmpty()) {
+    if (!this.context.request().containsKey(EventConstants.COURSE_IDS)
+        || this.context.request().getJsonArray(EventConstants.COURSE_IDS) == null
+        || this.context.request().getJsonArray(EventConstants.COURSE_IDS).isEmpty()) {
       LOGGER.error("course ids are mandatory to fetch competency completion");
-      return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse("courseIds are missing. Cannot fetch competency completion"),
-              ExecutionStatus.FAILED);
+      return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse(
+          "courseIds are missing. Cannot fetch competency completion"), ExecutionStatus.FAILED);
     }
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
   }
@@ -49,7 +48,9 @@ public class CoursesCompetencyCompletionHandler implements DBHandler {
   public ExecutionResult<MessageResponse> validateRequest() {
     if ((!context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
       LOGGER.debug("validateRequest() FAILED");
-      return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse("User is not a valid user"), ExecutionStatus.FAILED);
+      return new ExecutionResult<>(
+          MessageResponseFactory.createForbiddenResponse("User is not a valid user"),
+          ExecutionStatus.FAILED);
     }
     LOGGER.debug("validateRequest() OK");
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
@@ -66,12 +67,17 @@ public class CoursesCompetencyCompletionHandler implements DBHandler {
 
     courseIds.stream().forEach(courseId -> {
       if (validateCourseId(courseId.toString())) {
-        Object completedCount = Base.firstCell(AJEntityBaseReports.COURSE_COMPETENCY_COMPLETION_COUNT, courseId, context.getUserIdFromRequest());
+        Object completedCount =
+            Base.firstCell(AJEntityBaseReports.COURSE_COMPETENCY_COMPLETION_COUNT, courseId,
+                context.getUserIdFromRequest());
         JsonObject completionData = new JsonObject();
         LOGGER.debug("Course ID : {} ", courseId);
-        Object totalCount = Base.firstCell(AJEntityBaseReports.COURSE_COMPETENCY_TOTAL_COUNT, courseId);
-        completionData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT, totalCount == null ? 0 : totalCount);
-        completionData.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT, completedCount == null ? 0 : completedCount);
+        Object totalCount =
+            Base.firstCell(AJEntityBaseReports.COURSE_COMPETENCY_TOTAL_COUNT, courseId);
+        completionData.put(AJEntityBaseReports.ATTR_TOTAL_COUNT,
+            totalCount == null ? 0 : totalCount);
+        completionData.put(AJEntityBaseReports.ATTR_COMPLETED_COUNT,
+            completedCount == null ? 0 : completedCount);
         LOGGER.debug("totalCount {} - CompletedCount : {} ", totalCount, completedCount);
         completionData.put(AJEntityBaseReports.ATTR_COURSE_ID, courseId);
         resultArray.add(completionData);
@@ -80,7 +86,8 @@ public class CoursesCompetencyCompletionHandler implements DBHandler {
       }
     });
     result.put(JsonConstants.USAGE_DATA, resultArray);
-    return new ExecutionResult<>(MessageResponseFactory.createGetResponse(result), ExecutionStatus.SUCCESSFUL);
+    return new ExecutionResult<>(MessageResponseFactory.createGetResponse(result),
+        ExecutionStatus.SUCCESSFUL);
 
   }
 
