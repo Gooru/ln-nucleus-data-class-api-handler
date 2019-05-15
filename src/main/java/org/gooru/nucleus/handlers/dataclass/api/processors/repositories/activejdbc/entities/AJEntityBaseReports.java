@@ -1371,6 +1371,7 @@ public class AJEntityBaseReports extends Model {
   // AND "
   // + "grading_type = 'teacher' AND question_type = 'OE') as q WHERE q.score IS NULL";
 
+  // TODO: Remove score from this query
   public static final String GET_QUESTIONS_TO_GRADE =
       "SELECT distinct on (resource_id, actor_id) FIRST_VALUE(score) "
           + "OVER (PARTITION BY resource_id, actor_id ORDER BY updated_at desc) AS score, resource_id, updated_at, "
@@ -1414,6 +1415,7 @@ public class AJEntityBaseReports extends Model {
           + "resource_type = 'question' AND is_graded = 'false' AND resource_attempt_status = 'attempted' AND "
           + "grading_type = 'teacher' AND question_type = 'OE') AS q WHERE q.score IS NULL";
 
+  // TODO: Include actor_id
   public static final String GET_OE_QUE_GRADE_STATUS = "SELECT is_graded FROM base_reports "
       + "WHERE collection_id = ? AND session_id = ?  and resource_id = ? AND event_name = 'collection.resource.play' "
       + "AND event_type = 'stop'";

@@ -27,7 +27,7 @@ public class ProcessorContext {
   public ProcessorContext(JsonObject request, String userIdFromSession, String userIdFromRequest,
       String classId, String courseId, String unitId, String lessonId, String collectionId,
       String sessionId, String studentId, String questionId, String startDate, String endDate,
-      String collectionType, String milestoneId) {      
+      String collectionType, String milestoneId) {
     this.request = request != null ? request.copy() : null;
     this.userIdFromSession = userIdFromSession;
     this.userIdFromRequest = userIdFromRequest;
@@ -103,14 +103,15 @@ public class ProcessorContext {
   public String endDate() {
     return endDate;
   }
+
   public String milestoneId() {
     return milestoneId;
   }
-  
+
   public Boolean isInternal() {
     return this.isInternal;
   }
-  
+
   public void setIsIntenal(Boolean isInternal) {
     this.isInternal = isInternal;
   }

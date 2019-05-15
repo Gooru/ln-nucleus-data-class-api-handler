@@ -445,4 +445,29 @@ class AJReportRepo implements ReportRepo {
         .executeTransaction(DBHandlerBuilder.buildILMilestonePerfHandler(context));
   }
 
+  // DCA Rubric Grading
+  @Override
+  public MessageResponse getDCARubricQuesToGrade() {
+    return TransactionExecutor
+        .executeTransaction(DBHandlerBuilder.buildDCARubricQuesToGradeHandler(context));
+  }
+
+  @Override
+  public MessageResponse getDCAStudentsForRubricQuestion() {
+    return TransactionExecutor
+        .executeTransaction(DBHandlerBuilder.buildDCAStudentsForRubricQuestionHandler(context));
+  }
+
+  @Override
+  public MessageResponse getDCAStudentAnswersForRubricQuestion() {
+    return TransactionExecutor
+        .executeTransaction(DBHandlerBuilder.buildDCAStudAnsForRubricQuesHandler(context));
+  }
+
+  @Override
+  public MessageResponse getDCARubricSummaryforQuestion() {
+    return TransactionExecutor
+        .executeTransaction(DBHandlerBuilder.buildDCARubricSummaryforQueHandler(context));
+  }
+
 }

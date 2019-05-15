@@ -50,6 +50,7 @@ public class AJEntityDailyClassActivity extends Model {
   public static final String COLLECTION_SUB_TYPE = "collection_sub_type";
   public static final String MAX_SCORE = "max_score";
   public static final String PATH_ID = "path_id";
+  public static final String PATH_TYPE = "path_type";
 
   public static final String EVENT_ID = "event_id";
   public static final String TIME_ZONE = "time_zone";
@@ -88,6 +89,18 @@ public class AJEntityDailyClassActivity extends Model {
   public static final String ATTR_PATH_ID = "pathId";
   public static final String ATTR_COLLECTION_TYPE = "collectionType";
   public static final String ATTR_LAST_SESSION_ID = "lastSessionId";
+  public static final String ATTR_PATH_TYPE = "pathType";
+  // Teacher Grading - Rubrics
+  public static final String ATTR_STUDENTS = "students";
+  public static final String ATTR_LAST_ACCESSED = "lastAccessed";
+  public static final String ATTR_ANSWER_TEXT = "answerText";
+  public static final String ATTR_QUESTION_TEXT = "questionText";
+  public static final String ATTR_QUESTION_ID = "questionId";
+  public static final String ATTR_GRADE_STATUS = "gradingStatus";
+  public static final String ATTR_MAX_SCORE = "maxScore";
+  public static final String ATTR_SESSION_ID = "sessionId";
+  public static final String ATTR_CONTENT_SOURCE = "contentSource";
+
 
   public static final String NA = "NA";
   public static final String AND = "AND";
@@ -97,6 +110,7 @@ public class AJEntityDailyClassActivity extends Model {
   public static final String CLASS_ID = "class_id = ? ";
   public static final String DATE = "date";
   public static final String ACTIVITY_DATE = "activityDate";
+  public static final String SUBMITTED_AT = "submittedAt";
 
   public static final String ASMT_TYPE_FILTER =
       " AND collection_type IN ('assessment','assessment-external') ";
@@ -360,6 +374,7 @@ public class AJEntityDailyClassActivity extends Model {
           + "FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) as answer_object "
           + "from daily_class_activity WHERE collection_id = ? AND session_id = ? AND date_in_time_zone = ? AND event_name = ? AND event_type = 'stop' ";
 
+  // TODO: Include actor_id
   public static final String GET_OE_QUE_GRADE_STATUS = "SELECT is_graded FROM daily_class_activity "
       + "WHERE collection_id = ? AND session_id = ?  and resource_id = ? AND date_in_time_zone = ? AND event_name = 'collection.resource.play' "
       + "AND event_type = 'stop'";
@@ -375,7 +390,6 @@ public class AJEntityDailyClassActivity extends Model {
   // **************************************************************************************************************************************************
 
   // GET SESSION STATUS
-
   public static final String GET_SESSION_STATUS =
       "SELECT event_name, event_type, updated_at from daily_class_activity WHERE session_id = ? "
           + " AND collection_id = ? AND event_name = ? ";
@@ -524,7 +538,34 @@ public class AJEntityDailyClassActivity extends Model {
           + "event_name = 'collection.play' and event_type = 'stop' and class_id = ANY(?::varchar[]) "
           + "AND (path_id IS NULL OR path_id = 0) GROUP BY class_id";
   // *************************************************************************************************************************
+  // RUBRIC GRADING
+  public static final String GET_QUESTIONS_TO_GRADE =
+      "SELECT distinct on (resource_id, collection_id, actor_id, date_in_time_zone) session_id, "
+          + "collection_id, collection_type, resource_id, actor_id, date_in_time_zone from daily_class_activity where class_id = ? AND "
+          + "event_name = 'collection.resource.play' AND event_type = 'stop' AND resource_type = 'question' "
+          + "AND is_graded = 'false' AND resource_attempt_status = 'attempted' AND grading_type = 'teacher' AND question_type = 'OE' "
+          + "order by resource_id, collection_id, actor_id, date_in_time_zone, updated_at desc";
 
+  public static final String GET_DISTINCT_STUDENTS_FOR_THIS_RESOURCE =
+      "SELECT distinct (actor_id) from daily_class_activity where "
+          + "class_id = ? AND collection_id = ? AND resource_id = ? AND event_type = 'stop' AND "
+          + "event_name = 'collection.resource.play' AND resource_type = 'question' "
+          + "AND is_graded = 'false' AND resource_attempt_status = 'attempted' AND grading_type = 'teacher'  "
+          + "AND question_type = 'OE' AND date_in_time_zone = ?";
+
+  public static final String GET_LATEST_SCORE_FOR_THIS_RESOURCE_STUDENT =
+      "SELECT score, is_graded, resource_id from daily_class_activity "
+          + "WHERE class_id = ? AND collection_id = ? AND resource_id = ? AND actor_id = ? "
+          + "AND event_name = 'collection.resource.play' AND event_type = 'stop' AND resource_type = 'question' "
+          + "AND grading_type = 'teacher' AND  date_in_time_zone = ? AND question_type = 'OE' order by updated_at desc LIMIT 1";
+
+  public static final String GET_STUDENTS_ANSWER_FOR_RUBRIC_QUESTION =
+      "SELECT score, answer_object AS answerText, time_spent, session_id, "
+          + "resource_id, updated_at, actor_id from daily_class_activity "
+          + "where class_id = ? AND collection_id = ? AND resource_id = ? AND actor_id = ? AND date_in_time_zone = ? AND "
+          + "event_name = 'collection.resource.play' AND event_type = 'stop' AND "
+          + "resource_type = 'question' AND is_graded = 'false' AND resource_attempt_status = 'attempted' AND "
+          + "grading_type = 'teacher' AND question_type = 'OE' order by updated_at desc LIMIT 1";
 
   public static final String UUID_TYPE = "uuid";
   public static Pattern YEAR_PATTERN = Pattern.compile("^\\d{4}$");

@@ -256,6 +256,19 @@ class MessageProcessor implements Processor {
         case MessageConstants.MSG_OP_INTERNAL_DCA_ALL_CLASSES_PERF:
           result = getDCAAllClassesPerfInternal();
           break;
+        // DCA Rubric Grading
+        case MessageConstants.MSG_OP_DCA_RUBRICS_QUESTIONS_TO_GRADE:
+          result = getDCARubricQuestionsToGrade();
+          break;
+        case MessageConstants.MSG_OP_DCA_RUBRIC_QUESTIONS_STUDENTS_LIST:
+          result = getDCAStudentsForRubricQue();
+          break;
+        case MessageConstants.MSG_OP_DCA_RUBRIC_QUESTIONS_STUDENT_ANSWERS:
+          result = getDCAStudAnswersForRubricQue();
+          break;
+        case MessageConstants.MSG_OP_DCA_RUBRIC_QUESTIONS_GRADE_SUMMARY:
+          result = getDCARubricSummaryforQue();
+          break;
         default:
           LOGGER.error("Invalid operation type passed in, not able to handle");
           return MessageResponseFactory
@@ -1625,7 +1638,7 @@ class MessageProcessor implements Processor {
       return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
     }
   }
-  
+
   private MessageResponse getDCAAllClassesPerfInternal() {
     try {
       ProcessorContext context = createContext();
@@ -1637,6 +1650,95 @@ class MessageProcessor implements Processor {
       return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
     }
   }
+  // ************ DCA RUBRIC GRADING
+  // ******************************************************************************************
+
+  private MessageResponse getDCARubricQuestionsToGrade() {
+    try {
+      ProcessorContext context = createContext();
+
+      return new RepoBuilder().buildReportRepo(context).getDCARubricQuesToGrade();
+
+    } catch (Throwable t) {
+      LOGGER.error("Exception while getting Questions pending Grading", t);
+      return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+    }
+
+  }
+
+  private MessageResponse getDCAStudentsForRubricQue() {
+    try {
+      ProcessorContext context = createContext();
+
+      if (!checkQuestionId(context)) {
+        LOGGER.error("QuestionId not available to obtain Student Ids. Aborting!");
+        return MessageResponseFactory.createInvalidRequestResponse("Invalid QuestionId");
+      }
+
+      return new RepoBuilder().buildReportRepo(context).getDCAStudentsForRubricQuestion();
+
+    } catch (Throwable t) {
+      LOGGER.error("Exception while getting Student List for Rubric Grading", t);
+      return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+    }
+
+  }
+
+  private MessageResponse getDCAStudAnswersForRubricQue() {
+    try {
+      ProcessorContext context = createContext();
+
+      if (!checkQuestionId(context)) {
+        LOGGER.error("QuestionId not available to obtain answers. Aborting!");
+        return MessageResponseFactory.createInvalidRequestResponse("Invalid QuestionId");
+      }
+
+      if (!checkStudentId(context)) {
+        LOGGER.error("StudentId not available to obtain answers. Aborting!");
+        return MessageResponseFactory.createInvalidRequestResponse("Invalid StudentId");
+      }
+
+
+      return new RepoBuilder().buildReportRepo(context).getDCAStudentAnswersForRubricQuestion();
+
+    } catch (Throwable t) {
+      LOGGER.error("Exception while getting Student answers for Rubric Grading", t);
+      return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+    }
+
+  }
+
+  private MessageResponse getDCARubricSummaryforQue() {
+    try {
+      ProcessorContext context = createContext();
+
+      if (!checkClassId(context)) {
+        LOGGER.error("ClassId not available to obtain Student Rubric Question Summary. Aborting!");
+        return MessageResponseFactory.createInvalidRequestResponse("Invalid ClassId");
+      }
+
+      if (!checkCollectionId(context)) {
+        LOGGER.error(
+            "Collection id not available to obtain Student Rubric Question Summary. Aborting");
+        return MessageResponseFactory.createInvalidRequestResponse("Invalid collectionId");
+      }
+
+
+      if (!checkQuestionId(context)) {
+        LOGGER.error("QuestionId not available to obtain Rubric Question Summary. Aborting!");
+        return MessageResponseFactory.createInvalidRequestResponse("Invalid QuestionId");
+      }
+
+      return new RepoBuilder().buildReportRepo(context).getDCARubricSummaryforQuestion();
+
+    } catch (Throwable t) {
+      LOGGER.error("Exception while getting Student answers for Rubric Grading", t);
+      return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+    }
+
+  }
+
+  // **************************************************************************************************************
 
   private ProcessorContext createContext() {
     String classId = message.headers().get(MessageConstants.CLASS_ID);

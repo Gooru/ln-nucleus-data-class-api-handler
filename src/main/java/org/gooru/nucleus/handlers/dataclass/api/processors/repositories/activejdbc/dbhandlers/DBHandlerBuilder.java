@@ -303,5 +303,23 @@ public final class DBHandlerBuilder {
   public static DBHandler buildILMilestonePerfHandler(ProcessorContext context) {
     return new ILMilestonePerfHandler(context);
   }
+
+  // DCA Rubric Grading
+  public static DBHandler buildDCARubricQuesToGradeHandler(ProcessorContext context) {
+    return new DCAQuestionsToGradeHandler(context);
+  }
+
+  public static DBHandler buildDCAStudentsForRubricQuestionHandler(ProcessorContext context) {
+    return new DCAStudentsForRubricQuestionsHandler(context);
+  }
+
+  public static DBHandler buildDCAStudAnsForRubricQuesHandler(ProcessorContext context) {
+    return new DCAStudentAnsForRubricQuesHandler(context);
+  }
+
+  public static DBHandler buildDCARubricSummaryforQueHandler(ProcessorContext context) {
+    return new DCARubricQuestionSummaryHandler(context);
+  }
+
 }
 

@@ -116,9 +116,9 @@ public class MilestoneLessonPerfHandler implements DBHandler {
 
     // Select Distinct Lesson IDs from this Milestone
     LazyList<AJEntityMilestone> lessonIDforMilestone;
-    lessonIDforMilestone = AJEntityMilestone.findBySQL(
-        AJEntityMilestone.SELECT_DISTINCT_LESSON_ID_FOR_MILESTONE_ID,
-        UUID.fromString(context.courseId()), context.milestoneId(), fwCode);
+    lessonIDforMilestone =
+        AJEntityMilestone.findBySQL(AJEntityMilestone.SELECT_DISTINCT_LESSON_ID_FOR_MILESTONE_ID,
+            UUID.fromString(context.courseId()), context.milestoneId(), fwCode);
     lessonIDforMilestone
         .forEach(lesson -> lessonIds.add(lesson.getString(AJEntityMilestone.LESSON_ID)));
 
