@@ -146,8 +146,8 @@ public class StudPerfDailyActivityHandler implements DBHandler {
               : 1);
       contentKpi.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
       if (collectionType.equalsIgnoreCase(JsonConstants.ASSESSMENT)) {
-        contentKpi.put(AJEntityDailyClassActivity.ATTR_SCORE,
-            Math.round(Double.valueOf(m.get(AJEntityDailyClassActivity.ATTR_SCORE).toString())));
+        contentKpi.put(AJEntityDailyClassActivity.ATTR_SCORE, m.get(AJEntityDailyClassActivity.ATTR_SCORE) != null ?
+            Math.round(Double.valueOf(m.get(AJEntityDailyClassActivity.ATTR_SCORE).toString())) : null);        
         contentKpi.put(AJEntityDailyClassActivity.ATTR_LAST_SESSION_ID,
             m.get(AJEntityDailyClassActivity.ATTR_LAST_SESSION_ID).toString());
       } else {
