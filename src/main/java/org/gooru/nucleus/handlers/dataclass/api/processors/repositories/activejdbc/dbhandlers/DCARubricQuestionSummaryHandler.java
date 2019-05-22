@@ -55,14 +55,14 @@ public class DCARubricQuestionSummaryHandler implements DBHandler {
       return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse(
           "Question Id Missing. Cannot fetch Rubric Question Summary"), ExecutionStatus.FAILED);
     }    
-    String date = this.context.request().getString(MessageConstants.ACTIVITY_DATE);
-    if (StringUtil.isNullOrEmpty(date)) {
-      LOGGER.warn("Activity Date is mandatory to fetch student list");
-      return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse(
-          "Activity Date is Missing. Cannot fetch student list"), ExecutionStatus.FAILED);
-    } else {
-      this.activityDate = Date.valueOf(date);
-    }
+//    String date = this.context.request().getString(MessageConstants.ACTIVITY_DATE);
+//    if (StringUtil.isNullOrEmpty(date)) {
+//      LOGGER.warn("Activity Date is mandatory to fetch student list");
+//      return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse(
+//          "Activity Date is Missing. Cannot fetch student list"), ExecutionStatus.FAILED);
+//    } else {
+//      this.activityDate = Date.valueOf(date);
+//    }
     LOGGER.debug("checkSanity() OK");
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
   }
@@ -96,7 +96,7 @@ public class DCARubricQuestionSummaryHandler implements DBHandler {
     // only one record per session, per student for this question on a given date.
     List<Map> summaryMap = Base.findAll(AJEntityRubricGrading.GET_RUBRIC_GRADE_FOR_DCA_QUESTION,
         context.classId(), context.collectionId(), context.questionId(),
-        this.studentId, sessionId, activityDate);
+        this.studentId, sessionId);
 
     if (!summaryMap.isEmpty()) {
       summaryMap.forEach(m -> {

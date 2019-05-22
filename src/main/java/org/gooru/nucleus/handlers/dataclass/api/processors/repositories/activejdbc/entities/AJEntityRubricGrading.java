@@ -86,7 +86,6 @@ public class AJEntityRubricGrading extends Model {
   public static final String GET_RUBRIC_GRADE_FOR_DCA_QUESTION =
       "SELECT student_id, student_score, max_score, "
           + "overall_comment, category_score from student_rubric_grading where class_id = ? AND "
-          + "collection_id = ? AND resource_id = ? AND student_id = ? AND session_id = ? "
-          + "AND date_in_time_zone = ?";
+          + "collection_id = ? AND resource_id = ? AND student_id = ? AND session_id = ?";
 
 }

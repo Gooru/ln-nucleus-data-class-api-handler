@@ -4,6 +4,7 @@ import java.sql.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
@@ -124,12 +125,17 @@ public class DCAQuestionsToGradeHandler implements DBHandler {
         resourceCCULMap.forEach((ky, val) -> {
           if (resourceStudentMap.containsKey(ky)) {
             JsonObject que = new JsonObject();
+            String resId = val.getString(AJEntityDailyClassActivity.RESOURCE_ID);
+            String collId = val.getString(AJEntityDailyClassActivity.COLLECTION_OID); 
             que.put(AJEntityDailyClassActivity.ATTR_RESOURCE_ID, 
-                val.getString(AJEntityDailyClassActivity.RESOURCE_ID));
-            que.put(AJEntityDailyClassActivity.ATTR_COLLECTION_ID,
-                val.getString(AJEntityDailyClassActivity.COLLECTION_OID));
+                resId);
+            String resTitle = fetchQuestionMeta(resId, collId);
+            que.put(JsonConstants.TITLE, resTitle);
+            String collTitle = fetchCollectionMeta(collId);
+            que.put(AJEntityDailyClassActivity.ATTR_COLLECTION_ID, collId);
             que.put(AJEntityDailyClassActivity.ATTR_COLLECTION_TYPE,
                 val.getString(AJEntityDailyClassActivity.COLLECTION_TYPE));
+            que.put(JsonConstants.COLLECTION_TITLE, collTitle);
             que.put(AJEntityDailyClassActivity.ACTIVITY_DATE,
                 val.getString(AJEntityDailyClassActivity.DATE_IN_TIME_ZONE));
             int studentCount = resourceStudentMap.get(ky) != null
@@ -153,6 +159,36 @@ public class DCAQuestionsToGradeHandler implements DBHandler {
 
   }
 
+  private String fetchQuestionMeta(String questionId, String collectionId) {
+    String title = EventConstants.NA;
+    try {
+    AJEntityCoreContent question = AJEntityCoreContent.fetchContent(questionId, collectionId);
+      if (question != null) {
+        title = question.getString(AJEntityCoreContent.TITLE);        
+      } 
+      } catch (Throwable e1) {
+        LOGGER.error("Exception while fetching question metadata:: {}",
+            e1.fillInStackTrace());
+      }
+      return title;
+  }
+  
+  private String fetchCollectionMeta(String collectionId) {
+    String title = EventConstants.NA;
+    try {
+      AJEntityCollection collectionData =
+          AJEntityCollection.fetchCollectionMeta(collectionId);
+      if (collectionData != null) {
+        title = collectionData.getString(AJEntityCoreContent.TITLE);
+      }      
+    } catch (Throwable e1) {
+      LOGGER.error("Exception while fetching Collection metadata:: {}",
+          e1.fillInStackTrace());
+    } 
+    return title;
+
+  }
+  
   @Override
   public boolean handlerReadOnly() {
     return true;
