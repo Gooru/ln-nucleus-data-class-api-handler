@@ -31,7 +31,6 @@ public class DCAStudentsForOAHandler implements DBHandler {
   private final ProcessorContext context;
   private String classId;
   private String collectionId;
-  private Date activityDate;
 
   public DCAStudentsForOAHandler(ProcessorContext context) {
     this.context = context;
@@ -61,16 +60,7 @@ public class DCAStudentsForOAHandler implements DBHandler {
       return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse(
           "Collection Id Missing. Cannot fetch student list"), ExecutionStatus.FAILED);
 
-    }
-    
-    String date = this.context.request().getString(MessageConstants.ACTIVITY_DATE);
-    if (StringUtil.isNullOrEmpty(date)) {
-      LOGGER.warn("Activity Date is mandatory to fetch student list");
-      return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse(
-          "Activity Date is Missing. Cannot fetch student list"), ExecutionStatus.FAILED);
-    } else {
-      this.activityDate = Date.valueOf(date);
-    }
+    }   
 
     LOGGER.debug("checkSanity() OK");
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
@@ -99,7 +89,7 @@ public class DCAStudentsForOAHandler implements DBHandler {
     JsonArray resultarray = new JsonArray();
     
     LazyList<AJEntityDailyClassActivity> userIdforOA = AJEntityDailyClassActivity.findBySQL(
-        AJEntityDailyClassActivity.GET_DISTINCT_STUDENTS_FOR_THIS_OA, classId, collectionId, activityDate);
+        AJEntityDailyClassActivity.GET_DISTINCT_STUDENTS_FOR_THIS_OA, classId, collectionId);
     
     if (!userIdforOA.isEmpty()) {
       List<String> userIds = userIdforOA.collect(AJEntityDailyClassActivity.GOORUUID);
@@ -107,7 +97,7 @@ public class DCAStudentsForOAHandler implements DBHandler {
         LOGGER.debug("UID is " + userID);
         AJEntityDailyClassActivity scoreModel =
             AJEntityDailyClassActivity.findFirst(AJEntityDailyClassActivity.GET_OA_STUDNETS_PENDING_GRADING,
-                classId, collectionId, userID, activityDate);
+                classId, collectionId, userID);
         if (scoreModel != null && scoreModel.get(AJEntityDailyClassActivity.SCORE) == null) {
             resultarray.add(userID);
         }

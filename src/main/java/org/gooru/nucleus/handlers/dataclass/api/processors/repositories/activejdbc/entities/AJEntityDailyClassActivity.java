@@ -581,11 +581,11 @@ public class AJEntityDailyClassActivity extends Model {
   public static final String GET_DISTINCT_STUDENTS_FOR_THIS_OA =
       "SELECT distinct (actor_id) from daily_class_activity where class_id = ? AND collection_id = ? "
       + "AND event_type = 'stop' AND event_name = 'collection.play' AND collection_type = 'offline-activity' "
-      + "AND is_graded = 'false' AND grading_type = 'teacher' AND date_in_time_zone = ?";
+      + "AND is_graded = 'false' AND grading_type = 'teacher'";
   
   public static final String GET_OA_STUDNETS_PENDING_GRADING = "class_id = ? AND collection_id = ? AND actor_id = ? "
       + "AND event_name = 'collection.play' AND event_type = 'stop' AND collection_type = 'offline-activity' "
-      + "AND grading_type = 'teacher' AND  date_in_time_zone = ? AND is_graded = false order by updated_at desc";
+      + "AND grading_type = 'teacher' AND is_graded = false order by updated_at desc";
   
   public static final String UUID_TYPE = "uuid";
   public static Pattern YEAR_PATTERN = Pattern.compile("^\\d{4}$");
