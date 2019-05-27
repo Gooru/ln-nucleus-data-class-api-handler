@@ -569,7 +569,7 @@ public class AJEntityDailyClassActivity extends Model {
 
   
   public static final String GET_OA_TO_GRADE =
-      "SELECT distinct on (collection_id, actor_id, date_in_time_zone) session_id, collection_id, collection_type, actor_id, date_in_time_zone "
+      "SELECT collection_id, collection_type, actor_id, date_in_time_zone "
       + "from daily_class_activity where class_id = ? AND event_name = 'collection.play' AND event_type = 'stop' "
       + "AND collection_type = 'offline-activity' AND is_graded = 'false' AND grading_type = 'teacher' "
       + "order by collection_id, actor_id, date_in_time_zone, updated_at desc";
