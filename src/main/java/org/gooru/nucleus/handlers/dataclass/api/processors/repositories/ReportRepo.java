@@ -165,4 +165,9 @@ public interface ReportRepo {
 
   MessageResponse getDCARubricSummaryforQuestion();
 
+  // DCA OA Grading
+  MessageResponse getDCAOAToGrade();
+
+  MessageResponse getDCAStudentsForOA();
+
 }

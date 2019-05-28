@@ -469,5 +469,19 @@ class AJReportRepo implements ReportRepo {
     return TransactionExecutor
         .executeTransaction(DBHandlerBuilder.buildDCARubricSummaryforQueHandler(context));
   }
+  
+  //OA Grading
+  @Override
+  public MessageResponse getDCAOAToGrade() {
+    return TransactionExecutor
+        .executeTransaction(DBHandlerBuilder.buildDCAOAToGradeHandler(context));
+  }
+
+  @Override
+  public MessageResponse getDCAStudentsForOA() {
+    return TransactionExecutor
+        .executeTransaction(DBHandlerBuilder.buildDCAStudentsForOAHandler(context));
+  }
+
 
 }

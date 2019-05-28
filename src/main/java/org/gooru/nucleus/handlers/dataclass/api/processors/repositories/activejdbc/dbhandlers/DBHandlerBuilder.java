@@ -321,5 +321,14 @@ public final class DBHandlerBuilder {
     return new DCARubricQuestionSummaryHandler(context);
   }
 
+  // DCA OA Grading
+  public static DBHandler buildDCAOAToGradeHandler(ProcessorContext context) {
+    return new DCAOAToGradeHandler(context);
+  }
+  
+  public static DBHandler buildDCAStudentsForOAHandler(ProcessorContext context) {
+    return new DCAStudentsForOAHandler(context);
+  }
+   
 }
 
