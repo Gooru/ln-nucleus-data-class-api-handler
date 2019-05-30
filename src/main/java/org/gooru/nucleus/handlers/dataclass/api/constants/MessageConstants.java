@@ -220,6 +220,7 @@ public final class MessageConstants {
   // DCA OA Grading
   public static final String MSG_OP_DCA_OAS_TO_GRADE = "dca.oa.to.grade";
   public static final String MSG_OP_DCA_OAS_STUDENTS_LIST = "dca.oa.students.list";
+  public static final String MSG_OP_DCA_OA_STUDENT_SUBMISSIONS = "dca.oa.student.submissions";
 
   public static final String PORT = "port";
   public static final String HOST = "host";

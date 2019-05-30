@@ -482,6 +482,12 @@ class AJReportRepo implements ReportRepo {
     return TransactionExecutor
         .executeTransaction(DBHandlerBuilder.buildDCAStudentsForOAHandler(context));
   }
+  
+  @Override
+  public MessageResponse getDCAStudentSubmissionsForOA() {
+    return TransactionExecutor
+        .executeTransaction(DBHandlerBuilder.buildDCAStudentSubmissionsForOAHandler(context));
+  }
 
 
 }

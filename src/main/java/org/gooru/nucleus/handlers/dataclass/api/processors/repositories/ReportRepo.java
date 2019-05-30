@@ -169,5 +169,7 @@ public interface ReportRepo {
   MessageResponse getDCAOAToGrade();
 
   MessageResponse getDCAStudentsForOA();
+  
+  MessageResponse getDCAStudentSubmissionsForOA();
 
 }

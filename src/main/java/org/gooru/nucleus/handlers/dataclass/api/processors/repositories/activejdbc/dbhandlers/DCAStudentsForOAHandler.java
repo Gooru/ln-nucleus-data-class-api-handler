@@ -1,6 +1,5 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
-import java.sql.Date;
 import java.util.List;
 import java.util.Map;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
@@ -45,22 +44,8 @@ public class DCAStudentsForOAHandler implements DBHandler {
               "Invalid request received to fetch Student Ids for Question to Grade"),
           ExecutionStatus.FAILED);
     }
-
     this.classId = this.context.request().getString(MessageConstants.CLASS_ID);
-    if (StringUtil.isNullOrEmpty(classId)) {
-      LOGGER.warn("ClassID is mandatory to fetch student list for this question");
-      return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse(
-          "Class Id Missing. Cannot fetch student list"), ExecutionStatus.FAILED);
-
-    }
-
-    this.collectionId = this.context.request().getString(MessageConstants.COLLECTION_ID);
-    if (StringUtil.isNullOrEmpty(collectionId)) {
-      LOGGER.warn("CollectionID is mandatory to fetch student list");
-      return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse(
-          "Collection Id Missing. Cannot fetch student list"), ExecutionStatus.FAILED);
-
-    }   
+    this.collectionId = this.context.request().getString(MessageConstants.COLLECTION_ID);  
 
     LOGGER.debug("checkSanity() OK");
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);

@@ -276,6 +276,9 @@ class MessageProcessor implements Processor {
         case MessageConstants.MSG_OP_DCA_OAS_STUDENTS_LIST:
           result = getDCAStudentsForOA();
           break;
+        case MessageConstants.MSG_OP_DCA_OA_STUDENT_SUBMISSIONS:
+          result = getDCAStudentSubmissionsForOA();
+          break;
         default:
           LOGGER.error("Invalid operation type passed in, not able to handle");
           return MessageResponseFactory
@@ -1771,6 +1774,24 @@ class MessageProcessor implements Processor {
 
     } catch (Throwable t) {
       LOGGER.error("Exception while getting Student List for OA Grading", t);
+      return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+    }
+
+  }
+  
+  private MessageResponse getDCAStudentSubmissionsForOA() {
+    try {
+      ProcessorContext context = createContext();
+
+      if (!checkCollectionId(context)) {
+        LOGGER.error("OAId not available to obtain Student Ids. Aborting!");
+        return MessageResponseFactory.createInvalidRequestResponse("Invalid CollectionId");
+      }
+
+      return new RepoBuilder().buildReportRepo(context).getDCAStudentSubmissionsForOA();
+
+    } catch (Throwable t) {
+      LOGGER.error("Exception while getting Student Submissions for OA Grading", t);
       return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
     }
 

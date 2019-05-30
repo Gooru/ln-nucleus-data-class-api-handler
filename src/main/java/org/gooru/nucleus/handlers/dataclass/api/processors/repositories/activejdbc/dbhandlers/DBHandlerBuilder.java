@@ -329,6 +329,10 @@ public final class DBHandlerBuilder {
   public static DBHandler buildDCAStudentsForOAHandler(ProcessorContext context) {
     return new DCAStudentsForOAHandler(context);
   }
+  
+  public static DBHandler buildDCAStudentSubmissionsForOAHandler(ProcessorContext context) {
+    return new DCAStudentSubmissionForOAHandler(context);
+  }
    
 }
 

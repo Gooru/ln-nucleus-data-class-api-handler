@@ -45,13 +45,7 @@ public class DCAOAToGradeHandler implements DBHandler {
       return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse(
           "Invalid data provided to fetch Offline Activity to grade"), ExecutionStatus.FAILED);
     }
-    this.classId = this.context.request().getString(MessageConstants.CLASS_ID);
-    if (StringUtil.isNullOrEmpty(classId)) {
-      LOGGER.warn("ClassID is mandatory to fetch Offline Activity pending grading");
-      return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse(
-          "Class Id Missing. Cannot fetch Offline Activity pending grading"), ExecutionStatus.FAILED);
-
-    }    
+    this.classId = this.context.request().getString(MessageConstants.CLASS_ID);   
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
   }
 
