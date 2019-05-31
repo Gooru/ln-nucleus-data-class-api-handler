@@ -113,7 +113,7 @@ public class AJEntityDailyClassActivity extends Model {
   public static final String SUBMITTED_AT = "submittedAt";
 
   public static final String ASMT_TYPE_FILTER =
-      " AND collection_type IN ('assessment','assessment-external','offline-activity') ";
+      " AND collection_type IN ('assessment','assessment-external') ";
   public static final String COLL_TYPE_FILTER =
       " AND collection_type IN ('collection', 'collection-external') ";
 
@@ -135,7 +135,7 @@ public class AJEntityDailyClassActivity extends Model {
           + "FIRST_VALUE(score) OVER (PARTITION BY collection_id, date_in_time_zone ORDER BY updated_at desc) AS scoreInPercentage, "
           + "FIRST_VALUE(session_id) OVER (PARTITION BY collection_id, date_in_time_zone ORDER BY updated_at desc) AS lastSessionId, "
           + "views AS attempts, collection_id as collectionId, actor_id as actorId, date_in_time_zone as activityDate FROM daily_class_activity "
-          + "WHERE class_id = ? AND collection_id = ANY(?::varchar[]) AND actor_id = ? AND collection_type IN ('assessment', 'assessment-external','offline-activity') AND event_name = ? AND event_type = 'stop' "
+          + "WHERE class_id = ? AND collection_id = ANY(?::varchar[]) AND actor_id = ? AND collection_type IN ('assessment', 'assessment-external') AND event_name = ? AND event_type = 'stop' "
           + "AND date_in_time_zone BETWEEN ? AND ?) AS agg GROUP BY agg.collectionId, agg.activityDate, agg.lastSessionId "
           + "ORDER BY agg.activityDate DESC";
 
@@ -398,7 +398,7 @@ public class AJEntityDailyClassActivity extends Model {
   public static final String GET_ASMT_USER_SESSIONS_FOR_COLLID =
       "SELECT DISTINCT s.session_id, s.updated_at FROM "
           + "(SELECT FIRST_VALUE(updated_at) OVER (PARTITION BY session_id ORDER BY updated_at DESC) AS updated_at, session_id "
-          + "FROM daily_class_activity WHERE class_id = ? AND collection_id = ? AND collection_type IN ('assessment', 'assessment-external','offline-activity') AND actor_id = ? "
+          + "FROM daily_class_activity WHERE class_id = ? AND collection_id = ? AND collection_type IN ('assessment', 'assessment-external') AND actor_id = ? "
           + "AND date_in_time_zone BETWEEN ? AND ? ) AS s ORDER BY s.updated_at ASC";
 
   // *************************************************************************************************************************
@@ -480,10 +480,10 @@ public class AJEntityDailyClassActivity extends Model {
           + "AS collectionData GROUP BY collectionData.collection_id";
   // ************************************************************************************************************************
   public static final String DCA_CLASS_SCORE_YEAR_MONTH_BREAKDOWN =
-      "SELECT EXTRACT(YEAR FROM date_in_time_zone) AS year, EXTRACT(MONTH FROM date_in_time_zone) AS month, AVG(score) as score FROM daily_class_activity WHERE class_id = ? AND event_name = 'collection.play' AND collection_type IN ('assessment','assessment-external','offline-activity') AND event_type = 'stop' group by year, month order by year desc, month asc;";
+      "SELECT EXTRACT(YEAR FROM date_in_time_zone) AS year, EXTRACT(MONTH FROM date_in_time_zone) AS month, AVG(score) as score FROM daily_class_activity WHERE class_id = ? AND event_name = 'collection.play' AND collection_type IN ('assessment','assessment-external') AND event_type = 'stop' group by year, month order by year desc, month asc;";
 
   public static final String DCA_CLASS_SCORE_YEAR_MONTH_BREAKDOWN_FOR_USER =
-      "SELECT EXTRACT(YEAR FROM date_in_time_zone) AS year, EXTRACT(MONTH FROM date_in_time_zone) AS month, AVG(score) as score FROM daily_class_activity WHERE class_id = ? AND event_name = 'collection.play' AND collection_type IN ('assessment','assessment-external','offline-activity') AND event_type = 'stop' AND actor_id = ? group by year, month order by year desc, month asc;";
+      "SELECT EXTRACT(YEAR FROM date_in_time_zone) AS year, EXTRACT(MONTH FROM date_in_time_zone) AS month, AVG(score) as score FROM daily_class_activity WHERE class_id = ? AND event_name = 'collection.play' AND collection_type IN ('assessment','assessment-external') AND event_type = 'stop' AND actor_id = ? group by year, month order by year desc, month asc;";
 
   public static final String DCA_CLASS_TS_SUMMARY_FOR_MONTH =
       "SELECT ROUND(AVG(time_spent)) AS time_spent FROM (SELECT collection_id, ROUND(AVG(time_spent)) AS time_spent FROM (SELECT actor_id, collection_id, SUM(time_spent) as time_spent FROM daily_class_activity WHERE class_id = ? AND event_name = 'collection.resource.play' AND collection_type IN ('collection', 'collection-external') AND extract(year from date_in_time_zone) = ? AND extract(month from date_in_time_zone) = ? GROUP BY actor_id, collection_id) ca group by collection_id) c";
@@ -492,10 +492,10 @@ public class AJEntityDailyClassActivity extends Model {
       "SELECT ROUND(AVG(time_spent)) AS time_spent FROM (SELECT collection_id, ROUND(AVG(time_spent)) AS time_spent FROM (SELECT actor_id, collection_id, SUM(time_spent) as time_spent FROM daily_class_activity WHERE class_id = ? AND event_name = 'collection.resource.play' AND collection_type IN ('collection', 'collection-external') AND extract(year from date_in_time_zone) = ? AND extract(month from date_in_time_zone) = ? AND actor_id = ? GROUP BY actor_id, collection_id) ca group by collection_id) c";
 
   public static final String DCA_CLASS_ASMT_SUMMARY_FOR_MONTH =
-      "SELECT collection_id, collection_type, AVG(score) AS score, ROUND(AVG(time_spent)) AS time_spent FROM daily_class_activity WHERE class_id = ? AND event_name = 'collection.play' AND collection_type IN ('assessment','assessment-external','offline-activity') AND event_type = 'stop' AND extract(year from date_in_time_zone) = ? AND extract(month from date_in_time_zone) = ? group by collection_id, collection_type";
+      "SELECT collection_id, collection_type, AVG(score) AS score, ROUND(AVG(time_spent)) AS time_spent FROM daily_class_activity WHERE class_id = ? AND event_name = 'collection.play' AND collection_type IN ('assessment','assessment-external') AND event_type = 'stop' AND extract(year from date_in_time_zone) = ? AND extract(month from date_in_time_zone) = ? group by collection_id, collection_type";
 
   public static final String DCA_CLASS_ASMT_SUMMARY_FOR_MONTH_FOR_USER =
-      "SELECT collection_id, collection_type, AVG(score) AS score, ROUND(AVG(time_spent)) AS time_spent FROM daily_class_activity WHERE class_id = ? AND event_name = 'collection.play' AND collection_type IN ('assessment','assessment-external','offline-activity') AND event_type = 'stop' AND extract(year from date_in_time_zone) = ? AND extract(month from date_in_time_zone) = ? AND actor_id = ? group by collection_id, collection_type";
+      "SELECT collection_id, collection_type, AVG(score) AS score, ROUND(AVG(time_spent)) AS time_spent FROM daily_class_activity WHERE class_id = ? AND event_name = 'collection.play' AND collection_type IN ('assessment','assessment-external') AND event_type = 'stop' AND extract(year from date_in_time_zone) = ? AND extract(month from date_in_time_zone) = ? AND actor_id = ? group by collection_id, collection_type";
 
   public static final String DCA_CLASS_COLL_SUMMARY_FOR_MONTH =
       "SELECT collection_id, collection_type, ROUND(AVG (time_spent)) AS time_spent FROM (SELECT actor_id, collection_id, collection_type, SUM(time_spent) as time_spent FROM daily_class_activity WHERE class_id = ? AND event_name = 'collection.resource.play' AND collection_type IN ('collection', 'collection-external') AND extract(year from date_in_time_zone) = ? AND extract(month from date_in_time_zone) =  ? GROUP BY actor_id, collection_id, collection_type) a GROUP by collection_id, collection_type";
@@ -513,28 +513,28 @@ public class AJEntityDailyClassActivity extends Model {
   public static final String SELECT_STUDENT_CLASS_COMPLETION_SCORE =
       "SELECT AVG(score) AS scoreInPercentage, count(*) as completedCount "
           + "FROM daily_class_activity WHERE class_id = ? AND actor_id = ? "
-          + "AND event_name = 'collection.play' AND event_type = 'stop' AND collection_type IN ('assessment', 'assessment-external','offline-activity') "
+          + "AND event_name = 'collection.play' AND event_type = 'stop' AND collection_type IN ('assessment', 'assessment-external') "
           + "AND (path_id IS NULL OR path_id = 0) AND score IS NOT NULL";
 
   public static final String SELECT_STUDENT_CLASSES_COMPLETION_SCORE =
       "SELECT class_id, AVG(score) AS scoreInPercentage, count(*) as completedCount "
           + "FROM daily_class_activity WHERE class_id = ANY(?::varchar[]) AND actor_id = ? "
-          + "AND event_name = 'collection.play' AND event_type = 'stop' AND collection_type IN ('assessment', 'assessment-external','offline-activity') "
+          + "AND event_name = 'collection.play' AND event_type = 'stop' AND collection_type IN ('assessment', 'assessment-external') "
           + "AND (path_id IS NULL OR path_id = 0) AND score IS NOT NULL GROUP BY class_id, actor_id";
 
   public static final String GET_DISTINCT_USERS_IN_CLASS =
       "select distinct(actor_id) from daily_class_activity where collection_type IN "
-          + "('assessment', 'assessment-external','offline-activity') AND class_id = ? and event_name =  'collection.play' and event_type = 'stop' "
+          + "('assessment', 'assessment-external') AND class_id = ? and event_name =  'collection.play' and event_type = 'stop' "
           + "AND (path_id IS NULL OR path_id = 0)";
 
   public static final String SELECT_ALL_STUDENT_CLASS_COMPLETION_SCORE =
       "select AVG(score) as scoreInPercentage, count(*) as completedCount "
-          + "from daily_class_activity where collection_type IN ('assessment', 'assessment-external','offline-activity') and actor_id = ANY(?::varchar[]) and "
+          + "from daily_class_activity where collection_type IN ('assessment', 'assessment-external') and actor_id = ANY(?::varchar[]) and "
           + "event_name = 'collection.play' and event_type = 'stop' and class_id = ? AND (path_id IS NULL OR path_id = 0)";
 
   public static final String SELECT_CLASS_COMPLETION_SCORE_FOR_TEACHER =
       "select class_id, AVG(score) as scoreInPercentage, count(*) as completedCount "
-          + "from daily_class_activity where collection_type IN ('assessment', 'assessment-external','offline-activity') and "
+          + "from daily_class_activity where collection_type IN ('assessment', 'assessment-external') and "
           + "event_name = 'collection.play' and event_type = 'stop' and class_id = ANY(?::varchar[]) "
           + "AND (path_id IS NULL OR path_id = 0) GROUP BY class_id";
   // *************************************************************************************************************************
