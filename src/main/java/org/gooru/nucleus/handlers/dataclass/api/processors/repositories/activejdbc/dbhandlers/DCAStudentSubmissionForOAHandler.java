@@ -78,7 +78,7 @@ public class DCAStudentSubmissionForOAHandler implements DBHandler {
         AJEntityOfflineActivitySelfGrade.FETCH_OA_SELF_GRADES, this.classId, this.collectionId,
         this.studentId);
     if (ansModel != null && ansModel.size() > 0) {
-      buildOaRubricData(result, ansModel);
+      buildOaRubricData(result, ansModel.get(0));
       if (!result.isEmpty()) {
         fetchTasks(result);
       }
@@ -89,34 +89,35 @@ public class DCAStudentSubmissionForOAHandler implements DBHandler {
         ExecutionStatus.SUCCESSFUL);
   }
 
-  private void buildOaRubricData(JsonObject result, List<Model> ansModel) {
-    ansModel.forEach(m -> {
-      JsonObject oaRubrics = new JsonObject();
-      oaRubrics.put(AJEntityOfflineActivitySelfGrade.ATTR_RUBRIC_ID,
+  private void buildOaRubricData(JsonObject result, Model m) {
+      JsonObject gradeObject = new JsonObject();
+      gradeObject.put(AJEntityOfflineActivitySelfGrade.ATTR_RUBRIC_ID,
           m.get(AJEntityOfflineActivitySelfGrade.RUBRIC_ID) != null
               ? m.get(AJEntityOfflineActivitySelfGrade.RUBRIC_ID).toString()
               : null);
 
-      oaRubrics.put(AJEntityOfflineActivitySelfGrade.ATTR_TIME_SPENT,
+      gradeObject.put(AJEntityOfflineActivitySelfGrade.ATTR_TIME_SPENT,
           m.get(AJEntityOfflineActivitySelfGrade.TIME_SPENT) != null
               ? Long.valueOf(m.get(AJEntityOfflineActivitySelfGrade.TIME_SPENT).toString())
               : 0);
-      oaRubrics.put(AJEntityOfflineActivitySelfGrade.ATTR_STUDENT_SCORE,
+      gradeObject.put(AJEntityOfflineActivitySelfGrade.ATTR_STUDENT_SCORE,
           (m.get(AJEntityOfflineActivitySelfGrade.STUDENT_SCORE).toString()));
-      oaRubrics.put(AJEntityOfflineActivitySelfGrade.ATTR_MAX_SCORE,
+      gradeObject.put(AJEntityOfflineActivitySelfGrade.ATTR_MAX_SCORE,
           (m.get(AJEntityOfflineActivitySelfGrade.MAX_SCORE).toString()));
-      oaRubrics.put(AJEntityOfflineActivitySelfGrade.ATTR_OVERALL_COMMENT,
+      gradeObject.put(AJEntityOfflineActivitySelfGrade.ATTR_OVERALL_COMMENT,
           m.get(AJEntityOfflineActivitySelfGrade.OVERALL_COMMENT).toString());
-      oaRubrics.put(AJEntityOfflineActivitySelfGrade.ATTR_GRADER,
+      gradeObject.put(AJEntityOfflineActivitySelfGrade.ATTR_GRADER,
           (m.get(AJEntityOfflineActivitySelfGrade.GRADER).toString()));
-      oaRubrics.put(AJEntityOfflineActivitySelfGrade.ATTR_CREATED_AT,
+      gradeObject.put(AJEntityOfflineActivitySelfGrade.ATTR_CREATED_AT,
           (m.get(AJEntityOfflineActivitySelfGrade.CREATED_AT).toString()));
-      oaRubrics.put(AJEntityOfflineActivitySelfGrade.ATTR_CATEGORY_GRADE,
+      gradeObject.put(AJEntityOfflineActivitySelfGrade.ATTR_CATEGORY_GRADE,
           m.get(AJEntityOfflineActivitySelfGrade.CATEGORY_GRADE) != null
               ? new JsonArray(m.get(AJEntityOfflineActivitySelfGrade.CATEGORY_GRADE).toString())
               : null);
+      JsonObject oaRubrics = new JsonObject();
+      oaRubrics.put(AJEntityOfflineActivitySelfGrade.ATTR_STUDENT_GRADES, gradeObject);
+      oaRubrics.put(AJEntityOfflineActivitySelfGrade.ATTR_TEACHER_GRADES, gradeObject);
       result.put(AJEntityOfflineActivitySelfGrade.ATTR_OA_RUBRICS, oaRubrics);
-    });
   }
 
   private void fetchTasks(JsonObject result) {

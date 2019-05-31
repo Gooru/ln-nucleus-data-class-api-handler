@@ -20,6 +20,8 @@ public class AJEntityOfflineActivitySelfGrade extends Model {
   public static final String ATTR_RUBRIC_ID = "rubricId";
   public static final String ATTR_CREATED_AT = "createdAt";
   public static final String ATTR_OA_RUBRICS = "oaRubrics";
+  public static final String ATTR_STUDENT_GRADES = "studentGrades";
+  public static final String ATTR_TEACHER_GRADES = "teacherGrades";
   
   public static final String STUDENT_SCORE = "student_score";
   public static final String MAX_SCORE = "max_score";
