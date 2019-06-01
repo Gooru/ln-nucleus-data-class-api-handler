@@ -16,6 +16,7 @@ import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.hazelcast.util.StringUtil;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -29,7 +30,7 @@ public class DCAStudentSubmissionForOAHandler implements DBHandler {
       LoggerFactory.getLogger(DCAStudentSubmissionForOAHandler.class);
   private final ProcessorContext context;
 
-  private String collectionId;
+  private Long oaDcaId;
   private String classId;
   private String studentId;
 
@@ -39,15 +40,18 @@ public class DCAStudentSubmissionForOAHandler implements DBHandler {
 
   @Override
   public ExecutionResult<MessageResponse> checkSanity() {
-    if (context.request() == null || context.request().isEmpty()) {
-      LOGGER.warn("Invalid request received to fetch Student Submissions for OA");
-      return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse(
-          "Invalid data provided to fetch Student Submissions for OA"), ExecutionStatus.FAILED);
-    }
 
-    this.classId = this.context.request().getString(MessageConstants.CLASS_ID);
-    this.collectionId = this.context.request().getString(MessageConstants.COLLECTION_ID);
-    this.studentId = this.context.request().getString(MessageConstants.STUDENT_ID);
+    this.studentId = this.context.studId();
+    this.oaDcaId = Long.valueOf(this.context.oaId().toString());
+    this.classId = this.context.classId();
+    
+    if (StringUtil.isNullOrEmpty(classId) || StringUtil.isNullOrEmpty(studentId) || 
+        oaDcaId == null) {
+      LOGGER.warn("Invalid Json Payload");
+      return new ExecutionResult<>(
+          MessageResponseFactory.createInvalidRequestResponse("Invalid Json Payload"),
+          ExecutionStatus.FAILED);
+    }
 
     LOGGER.debug("checkSanity() OK");
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
@@ -56,16 +60,15 @@ public class DCAStudentSubmissionForOAHandler implements DBHandler {
   @Override
   @SuppressWarnings("rawtypes")
   public ExecutionResult<MessageResponse> validateRequest() {
-
-    List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER,
-        this.context.request().getString(MessageConstants.CLASS_ID),
-        this.context.userIdFromSession());
-    if (owner.isEmpty()) {
-      LOGGER.debug("validateRequest() FAILED");
-      return new ExecutionResult<>(
-          MessageResponseFactory.createForbiddenResponse("User is not authorized for OA Grading"),
-          ExecutionStatus.FAILED);
-    }
+//    List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER,
+//        this.classId,
+//        this.context.userIdFromSession());
+//    if (owner.isEmpty()) {
+//      LOGGER.debug("validateRequest() FAILED");
+//      return new ExecutionResult<>(
+//          MessageResponseFactory.createForbiddenResponse("User is not authorized for OA Grading"),
+//          ExecutionStatus.FAILED);
+//    }
 
     LOGGER.debug("validateRequest() OK");
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
@@ -73,9 +76,10 @@ public class DCAStudentSubmissionForOAHandler implements DBHandler {
 
   @Override
   public ExecutionResult<MessageResponse> executeRequest() {
+    //TODO: Include actual teacher Rubrics in Submissions
     JsonObject result = new JsonObject();
     List<Model> ansModel = AJEntityOfflineActivitySelfGrade.where(
-        AJEntityOfflineActivitySelfGrade.FETCH_OA_SELF_GRADES, this.classId, this.collectionId,
+        AJEntityOfflineActivitySelfGrade.FETCH_OA_SELF_GRADES, this.classId, this.oaDcaId,
         this.studentId);
     if (ansModel != null && ansModel.size() > 0) {
       buildOaRubricData(result, ansModel.get(0));
@@ -101,21 +105,26 @@ public class DCAStudentSubmissionForOAHandler implements DBHandler {
               ? Long.valueOf(m.get(AJEntityOfflineActivitySelfGrade.TIME_SPENT).toString())
               : 0);
       gradeObject.put(AJEntityOfflineActivitySelfGrade.ATTR_STUDENT_SCORE,
-          (m.get(AJEntityOfflineActivitySelfGrade.STUDENT_SCORE).toString()));
+          (m.get(AJEntityOfflineActivitySelfGrade.STUDENT_SCORE) != null ?
+            m.get(AJEntityOfflineActivitySelfGrade.STUDENT_SCORE).toString() : null));
       gradeObject.put(AJEntityOfflineActivitySelfGrade.ATTR_MAX_SCORE,
-          (m.get(AJEntityOfflineActivitySelfGrade.MAX_SCORE).toString()));
+          (m.get(AJEntityOfflineActivitySelfGrade.MAX_SCORE) != null ?
+              m.get(AJEntityOfflineActivitySelfGrade.MAX_SCORE).toString() : null));
       gradeObject.put(AJEntityOfflineActivitySelfGrade.ATTR_OVERALL_COMMENT,
-          m.get(AJEntityOfflineActivitySelfGrade.OVERALL_COMMENT).toString());
+          m.get(AJEntityOfflineActivitySelfGrade.OVERALL_COMMENT) != null ? 
+              m.get(AJEntityOfflineActivitySelfGrade.OVERALL_COMMENT).toString() : null);
       gradeObject.put(AJEntityOfflineActivitySelfGrade.ATTR_GRADER,
-          (m.get(AJEntityOfflineActivitySelfGrade.GRADER).toString()));
-      gradeObject.put(AJEntityOfflineActivitySelfGrade.ATTR_CREATED_AT,
-          (m.get(AJEntityOfflineActivitySelfGrade.CREATED_AT).toString()));
+          (m.get(AJEntityOfflineActivitySelfGrade.GRADER) != null ? 
+              m.get(AJEntityOfflineActivitySelfGrade.GRADER).toString() : null));
+      gradeObject.put(AJEntityOfflineActivitySelfGrade.ATTR_SUBMITTED_ON,
+          (m.get(AJEntityOfflineActivitySelfGrade.UPDATED_AT).toString()));
       gradeObject.put(AJEntityOfflineActivitySelfGrade.ATTR_CATEGORY_GRADE,
           m.get(AJEntityOfflineActivitySelfGrade.CATEGORY_GRADE) != null
               ? new JsonArray(m.get(AJEntityOfflineActivitySelfGrade.CATEGORY_GRADE).toString())
               : null);
       JsonObject oaRubrics = new JsonObject();
       oaRubrics.put(AJEntityOfflineActivitySelfGrade.ATTR_STUDENT_GRADES, gradeObject);
+      //TODO: Include actual teacher Rubrics in Submissions
       oaRubrics.put(AJEntityOfflineActivitySelfGrade.ATTR_TEACHER_GRADES, gradeObject);
       result.put(AJEntityOfflineActivitySelfGrade.ATTR_OA_RUBRICS, oaRubrics);
   }
@@ -123,20 +132,23 @@ public class DCAStudentSubmissionForOAHandler implements DBHandler {
   private void fetchTasks(JsonObject result) {
     JsonObject taskMap = null;
     List<Model> submissionsModel = AJEntityOfflineActivitySubmissions.where(
-        AJEntityOfflineActivitySubmissions.FETCH_OA_SUBMISSIONS, this.classId, this.collectionId,
+        AJEntityOfflineActivitySubmissions.FETCH_OA_SUBMISSIONS, this.classId, this.oaDcaId,
         this.studentId);
     if (submissionsModel != null && submissionsModel.size() > 0) {
       taskMap = new JsonObject();
       for (Model m : submissionsModel) {
         JsonObject submissionsObject = new JsonObject();
-        submissionsObject.put(AJEntityOfflineActivitySubmissions.ATTR_SUBMISSION_ID,
-            m.get(AJEntityOfflineActivitySubmissions.SUBMISSION_ID).toString());
+        submissionsObject.put(AJEntityOfflineActivitySubmissions.ATTR_SUBMISSION_INFO,
+            m.get(AJEntityOfflineActivitySubmissions.SUBMISSION_INFO) != null ? 
+                m.get(AJEntityOfflineActivitySubmissions.SUBMISSION_INFO).toString() : null);
         submissionsObject.put(AJEntityOfflineActivitySubmissions.ATTR_SUBMISSION_SUBTYPE,
-            m.get(AJEntityOfflineActivitySubmissions.SUBMISSION_SUBTYPE).toString());
+            m.get(AJEntityOfflineActivitySubmissions.SUBMISSION_SUBTYPE) != null ?
+              m.get(AJEntityOfflineActivitySubmissions.SUBMISSION_SUBTYPE).toString() : null);
         submissionsObject.put(AJEntityOfflineActivitySubmissions.ATTR_SUBMISSION_TYPE,
-            m.get(AJEntityOfflineActivitySubmissions.SUBMISSION_TYPE).toString());
-        submissionsObject.put(AJEntityOfflineActivitySubmissions.ATTR_CREATED_AT,
-            (m.get(AJEntityOfflineActivitySubmissions.CREATED_AT).toString()));
+            m.get(AJEntityOfflineActivitySubmissions.SUBMISSION_TYPE) != null ? 
+                m.get(AJEntityOfflineActivitySubmissions.SUBMISSION_TYPE).toString() : null);
+        submissionsObject.put(AJEntityOfflineActivitySubmissions.ATTR_SUBMITTED_ON,
+            (m.get(AJEntityOfflineActivitySubmissions.UPDATED_AT).toString()));
 
         String taskIdString = m.get(AJEntityOfflineActivitySubmissions.TASK_ID).toString();
         JsonArray submissionsArray = new JsonArray();

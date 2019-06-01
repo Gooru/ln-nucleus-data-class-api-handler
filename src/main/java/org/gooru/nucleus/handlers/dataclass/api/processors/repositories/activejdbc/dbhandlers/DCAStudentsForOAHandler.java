@@ -29,7 +29,7 @@ public class DCAStudentsForOAHandler implements DBHandler {
       LoggerFactory.getLogger(DCAStudentsForOAHandler.class);
   private final ProcessorContext context;
   private String classId;
-  private String collectionId;
+  private Long itemId;
 
   public DCAStudentsForOAHandler(ProcessorContext context) {
     this.context = context;
@@ -38,14 +38,14 @@ public class DCAStudentsForOAHandler implements DBHandler {
   @Override
   public ExecutionResult<MessageResponse> checkSanity() {
     if (context.request() == null || context.request().isEmpty()) {
-      LOGGER.warn("Invalid request received to fetch Student Ids for Question to Grade");
+      LOGGER.warn("Invalid request received to fetch Student Ids for OA Grading");
       return new ExecutionResult<>(
           MessageResponseFactory.createInvalidRequestResponse(
-              "Invalid request received to fetch Student Ids for Question to Grade"),
+              "Invalid request received to fetch Student Ids for OA Grading"),
           ExecutionStatus.FAILED);
     }
-    this.classId = this.context.request().getString(MessageConstants.CLASS_ID);
-    this.collectionId = this.context.request().getString(MessageConstants.COLLECTION_ID);  
+    this.classId = this.context.request().getString(MessageConstants.CLASS_ID); 
+    this.itemId = Long.valueOf(this.context.itemId().toString());
 
     LOGGER.debug("checkSanity() OK");
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
@@ -54,14 +54,13 @@ public class DCAStudentsForOAHandler implements DBHandler {
   @Override
   @SuppressWarnings("rawtypes")
   public ExecutionResult<MessageResponse> validateRequest() {
-    List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER,
-        this.context.request().getString(MessageConstants.CLASS_ID),
-        this.context.userIdFromSession());
-    if (owner.isEmpty()) {
-      LOGGER.debug("validateRequest() FAILED");
-      return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse(
-          "User is not authorized for Offline Activity Grading"), ExecutionStatus.FAILED);
-    }
+//    List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER,
+//        this.classId, this.context.userIdFromSession());
+//    if (owner.isEmpty()) {
+//      LOGGER.debug("validateRequest() FAILED");
+//      return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse(
+//          "User is not authorized for Offline Activity Grading"), ExecutionStatus.FAILED);
+//    }
 
     LOGGER.debug("validateRequest() OK");
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
@@ -74,16 +73,16 @@ public class DCAStudentsForOAHandler implements DBHandler {
     JsonArray resultarray = new JsonArray();
     
     LazyList<AJEntityDailyClassActivity> userIdforOA = AJEntityDailyClassActivity.findBySQL(
-        AJEntityDailyClassActivity.GET_DISTINCT_STUDENTS_FOR_THIS_OA, classId, collectionId);
+        AJEntityDailyClassActivity.GET_DISTINCT_STUDENTS_FOR_THIS_OA, classId, itemId);
     
     if (!userIdforOA.isEmpty()) {
       List<String> userIds = userIdforOA.collect(AJEntityDailyClassActivity.GOORUUID);
       for (String userID : userIds) {
         LOGGER.debug("UID is " + userID);
         AJEntityDailyClassActivity scoreModel =
-            AJEntityDailyClassActivity.findFirst(AJEntityDailyClassActivity.GET_OA_STUDNETS_PENDING_GRADING,
-                classId, collectionId, userID);
-        if (scoreModel != null && scoreModel.get(AJEntityDailyClassActivity.SCORE) == null) {
+            AJEntityDailyClassActivity.findFirst(AJEntityDailyClassActivity.GET_OA_STUDENTS_PENDING_GRADING,
+                classId, itemId, userID);
+        if (scoreModel != null) {
             resultarray.add(userID);
         }
       }

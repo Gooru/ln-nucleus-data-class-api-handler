@@ -32,6 +32,10 @@ public class DCAOAToGradeHandler implements DBHandler {
   private static final Logger LOGGER = LoggerFactory.getLogger(DCAOAToGradeHandler.class);
   private final ProcessorContext context;
   private String classId;
+  JsonArray resultArray = new JsonArray();
+  Map<Long, Integer> oaStudentMap = new HashMap<>();
+  Map<Long, JsonObject> oaMap = new HashMap<>();
+
 
 
   public DCAOAToGradeHandler(ProcessorContext context) {
@@ -52,14 +56,14 @@ public class DCAOAToGradeHandler implements DBHandler {
   @Override
   @SuppressWarnings("rawtypes")
   public ExecutionResult<MessageResponse> validateRequest() {
-    List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER,
-        this.context.request().getString(MessageConstants.CLASS_ID),
-        this.context.userIdFromSession());
-    if (owner.isEmpty()) {
-      LOGGER.debug("validateRequest() FAILED");
-      return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse(
-          "User is not authorized for Offline Activity Grading"), ExecutionStatus.FAILED);
-    }
+//    List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER,
+//        this.context.request().getString(MessageConstants.CLASS_ID),
+//        this.context.userIdFromSession());
+//    if (owner.isEmpty()) {
+//      LOGGER.debug("validateRequest() FAILED");
+//      return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse(
+//          "User is not authorized for Offline Activity Grading"), ExecutionStatus.FAILED);
+//    }
 
     LOGGER.debug("validateRequest() OK");
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
@@ -69,10 +73,6 @@ public class DCAOAToGradeHandler implements DBHandler {
   @SuppressWarnings("rawtypes")
   public ExecutionResult<MessageResponse> executeRequest() {
     JsonObject result = new JsonObject();
-    JsonArray resultArray = new JsonArray();
-    Map<String, Integer> oaStudentMap = new HashMap<>();
-    Map<String, JsonObject> sourceToRelay = new HashMap<>();
-
     List<Map> queMap =
         Base.findAll(AJEntityDailyClassActivity.GET_OA_TO_GRADE, this.classId);
     if (!queMap.isEmpty()) {
@@ -80,12 +80,12 @@ public class DCAOAToGradeHandler implements DBHandler {
         String collectionType = m.get(AJEntityDailyClassActivity.COLLECTION_TYPE).toString();
         String collectionId = m.get(AJEntityDailyClassActivity.COLLECTION_OID).toString();
         String studentId = m.get(AJEntityDailyClassActivity.GOORUUID).toString();
-        Date activityDate = Date.valueOf(m.get(AJEntityDailyClassActivity.DATE_IN_TIME_ZONE).toString());
+        Long dcaContentId = Long.valueOf(m.get(AJEntityDailyClassActivity.DCA_CONTENT_ID).toString());        
+      calculateStudentCount(collectionType, collectionId, dcaContentId);
 
-        calculateStudentCountAndGenerateSourceToRelay(oaStudentMap, sourceToRelay, collectionType,
-            collectionId, activityDate);
       });
-      buildResponse(resultArray, oaStudentMap, sourceToRelay);
+      buildResponse();
+      
     } else {
       LOGGER.info("Offline Activity pending grading cannot be obtained");
     }
@@ -98,27 +98,24 @@ public class DCAOAToGradeHandler implements DBHandler {
 
   }
 
-  private void calculateStudentCountAndGenerateSourceToRelay(Map<String, Integer> oaStudentMap,
-      Map<String, JsonObject> sourceToRelay, String collectionType, String collectionId,
-      Date activityDate) {
+  private void calculateStudentCount(String collectionType, String collectionId, Long dcaContentId) {
     JsonObject oaObject = new JsonObject();
     oaObject.put(AJEntityDailyClassActivity.COLLECTION_OID, collectionId);
     oaObject.put(AJEntityDailyClassActivity.COLLECTION_TYPE, collectionType);
-    oaObject.put(AJEntityDailyClassActivity.DATE_IN_TIME_ZONE, activityDate.toString());
+    oaObject.put(AJEntityDailyClassActivity.DCA_CONTENT_ID, dcaContentId);
 
-    if (!sourceToRelay.containsKey(collectionId.toString())) {
-      sourceToRelay.put(collectionId, oaObject);
+    if (!oaMap.containsKey(dcaContentId)) {
+      oaMap.put(dcaContentId, oaObject);
     }
-    if (oaStudentMap.containsKey(collectionId)) {
-      int studCount = oaStudentMap.get(collectionId) + 1;
-      oaStudentMap.put(collectionId, studCount);
+    if (oaStudentMap.containsKey(dcaContentId)) {
+      int studCount = oaStudentMap.get(dcaContentId) + 1;
+      oaStudentMap.put(dcaContentId, studCount);
     } else {
-      oaStudentMap.put(collectionId, 1);
+      oaStudentMap.put(dcaContentId, 1);
     }
   }
 
-  private void buildResponse(JsonArray resultArray, Map<String, Integer> oaStudentMap,
-      Map<String, JsonObject> oaMap) {
+  private void buildResponse() {
     if (!oaMap.isEmpty()) {
       oaMap.forEach((key, val) -> {
         if (oaStudentMap.containsKey(key)) {
@@ -129,8 +126,8 @@ public class DCAOAToGradeHandler implements DBHandler {
           coll.put(AJEntityDailyClassActivity.ATTR_COLLECTION_ID, collId);
           coll.put(AJEntityDailyClassActivity.ATTR_COLLECTION_TYPE,
               val.getString(AJEntityDailyClassActivity.COLLECTION_TYPE));
-          coll.put(AJEntityDailyClassActivity.ACTIVITY_DATE,
-              val.getString(AJEntityDailyClassActivity.DATE_IN_TIME_ZONE));
+          coll.put(AJEntityDailyClassActivity.ATTR_DCA_CONTENT_ID,
+              val.getLong(AJEntityDailyClassActivity.DCA_CONTENT_ID));
           int studentCount = oaStudentMap.get(key) != null
               ? Integer.valueOf(oaStudentMap.get(key).toString())
               : 0;

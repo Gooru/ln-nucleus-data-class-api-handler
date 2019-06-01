@@ -57,6 +57,8 @@ public class AJEntityDailyClassActivity extends Model {
   public static final String DATE_IN_TIME_ZONE = "date_in_time_zone";
   public static final String IS_GRADED = "is_graded";
   public static final String CONTENT_SOURCE = "content_source";
+  public static final String ADDITIONAL_CONTEXT = "additional_context";
+  public static final String DCA_CONTENT_ID = "dca_content_id";
 
   public static final String ATTR_TIME_SPENT = "timeSpent";
   public static final String ATTR_SCORE = "scoreInPercentage";
@@ -100,6 +102,7 @@ public class AJEntityDailyClassActivity extends Model {
   public static final String ATTR_MAX_SCORE = "maxScore";
   public static final String ATTR_SESSION_ID = "sessionId";
   public static final String ATTR_CONTENT_SOURCE = "contentSource";
+  public static final String ATTR_DCA_CONTENT_ID = "dcaContentId";
 
 
   public static final String NA = "NA";
@@ -569,7 +572,7 @@ public class AJEntityDailyClassActivity extends Model {
 
   
   public static final String GET_OA_TO_GRADE =
-      "SELECT collection_id, collection_type, actor_id, date_in_time_zone "
+      "SELECT dca_content_id, collection_id, collection_type, actor_id, date_in_time_zone "
       + "from daily_class_activity where class_id = ? AND event_name = 'collection.play' AND event_type = 'stop' "
       + "AND collection_type = 'offline-activity' AND is_graded = 'false' AND grading_type = 'teacher' "
       + "order by collection_id, actor_id, date_in_time_zone, updated_at desc";
@@ -579,11 +582,11 @@ public class AJEntityDailyClassActivity extends Model {
           + "AND event_type = 'stop' AND date_in_time_zone = ? ORDER BY updated_at DESC";
 
   public static final String GET_DISTINCT_STUDENTS_FOR_THIS_OA =
-      "SELECT distinct (actor_id) from daily_class_activity where class_id = ? AND collection_id = ? "
+      "SELECT distinct (actor_id) from daily_class_activity where class_id = ? AND dca_content_id = ? "
       + "AND event_type = 'stop' AND event_name = 'collection.play' AND collection_type = 'offline-activity' "
       + "AND is_graded = 'false' AND grading_type = 'teacher'";
   
-  public static final String GET_OA_STUDNETS_PENDING_GRADING = "class_id = ? AND collection_id = ? AND actor_id = ? "
+  public static final String GET_OA_STUDENTS_PENDING_GRADING = "class_id = ? AND dca_content_id = ? AND actor_id = ? "
       + "AND event_name = 'collection.play' AND event_type = 'stop' AND collection_type = 'offline-activity' "
       + "AND grading_type = 'teacher' AND is_graded = false order by updated_at desc";
   

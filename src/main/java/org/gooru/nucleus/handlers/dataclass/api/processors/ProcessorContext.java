@@ -23,11 +23,14 @@ public class ProcessorContext {
   private final String collectionType;
   private final String milestoneId;
   private Boolean isInternal;
+  private final String studId;
+  private final String oaId;
+  private final String itemId;
 
   public ProcessorContext(JsonObject request, String userIdFromSession, String userIdFromRequest,
       String classId, String courseId, String unitId, String lessonId, String collectionId,
       String sessionId, String studentId, String questionId, String startDate, String endDate,
-      String collectionType, String milestoneId) {
+      String collectionType, String milestoneId, String studId, String oaId, String itemId) {
     this.request = request != null ? request.copy() : null;
     this.userIdFromSession = userIdFromSession;
     this.userIdFromRequest = userIdFromRequest;
@@ -44,10 +47,11 @@ public class ProcessorContext {
     this.collectionType = collectionType;
     this.milestoneId = milestoneId;
     this.isInternal = false;
+    this.studId = studId;
+    this.oaId = oaId;
+    this.itemId = itemId;
   }
 
-  // Mukul - TODO
-  // Sort out User Auth
   public String userIdFromSession() {
     return this.userIdFromSession;
   }
@@ -114,5 +118,17 @@ public class ProcessorContext {
 
   public void setIsIntenal(Boolean isInternal) {
     this.isInternal = isInternal;
+  }
+  
+  public String studId() {
+    return studId;
+  }
+  
+  public String oaId() {
+    return oaId;
+  }
+  
+  public String itemId() {
+    return itemId;
   }
 }

@@ -66,6 +66,10 @@ public final class MessageConstants {
   public static final String ACTIVITY_DATE = "activityDate";
   // Milestone
   public static final String MILESTONE_ID = "milestoneId";
+  //Grading 
+  public static final String ITEM_ID = "itemId";
+  //Offline Activities
+  public static final String OA_ID = "oaId";
 
   // Read API Constants
   public static final String MSG_OP_COURSE_PEERS = "student.peers.in.course";
@@ -217,9 +221,11 @@ public final class MessageConstants {
   public static final String MSG_OP_DCA_RUBRIC_QUESTIONS_GRADE_SUMMARY =
       "dca.rubric.questions.grade.summary";
   
-  // DCA OA Grading
-  public static final String MSG_OP_DCA_OAS_TO_GRADE = "dca.oa.to.grade";
-  public static final String MSG_OP_DCA_OAS_STUDENTS_LIST = "dca.oa.students.list";
+  //Grading - Self/Teacher
+  public static final String MSG_OP_ITEMS_TO_GRADE = "items.to.grade";
+  public static final String MSG_OP_ITEMS_TO_GRADE_STUDENTS_LIST = "items.to.grade.students.list";
+
+  //Offline-Actvities
   public static final String MSG_OP_DCA_OA_STUDENT_SUBMISSIONS = "dca.oa.student.submissions";
 
   public static final String PORT = "port";

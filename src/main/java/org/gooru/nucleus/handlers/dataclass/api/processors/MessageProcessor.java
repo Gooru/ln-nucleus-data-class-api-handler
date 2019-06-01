@@ -270,10 +270,10 @@ class MessageProcessor implements Processor {
           result = getDCARubricSummaryforQue();
           break;
        // DCA OA Grading
-        case MessageConstants.MSG_OP_DCA_OAS_TO_GRADE:
+        case MessageConstants.MSG_OP_ITEMS_TO_GRADE:
           result = getDCAOAsToGrade();
           break;
-        case MessageConstants.MSG_OP_DCA_OAS_STUDENTS_LIST:
+        case MessageConstants.MSG_OP_ITEMS_TO_GRADE_STUDENTS_LIST:
           result = getDCAStudentsForOA();
           break;
         case MessageConstants.MSG_OP_DCA_OA_STUDENT_SUBMISSIONS:
@@ -1765,9 +1765,9 @@ class MessageProcessor implements Processor {
     try {
       ProcessorContext context = createContext();
 
-      if (!checkCollectionId(context)) {
-        LOGGER.error("OAId not available to obtain Student Ids. Aborting!");
-        return MessageResponseFactory.createInvalidRequestResponse("Invalid CollectionId");
+      if (!checkItemId(context)) {
+        LOGGER.error("oaId not available to obtain grading items. Aborting!");
+        return MessageResponseFactory.createInvalidRequestResponse("Invalid ItemId");
       }
 
       return new RepoBuilder().buildReportRepo(context).getDCAStudentsForOA();
@@ -1783,9 +1783,9 @@ class MessageProcessor implements Processor {
     try {
       ProcessorContext context = createContext();
 
-      if (!checkCollectionId(context)) {
-        LOGGER.error("OAId not available to obtain Student Ids. Aborting!");
-        return MessageResponseFactory.createInvalidRequestResponse("Invalid CollectionId");
+      if (!checkOaId(context)) {
+        LOGGER.error("oaId not available to obtain Student Submissions. Aborting!");
+        return MessageResponseFactory.createInvalidRequestResponse("Invalid oaId");
       }
 
       return new RepoBuilder().buildReportRepo(context).getDCAStudentSubmissionsForOA();
@@ -1817,10 +1817,13 @@ class MessageProcessor implements Processor {
     String startDate = message.headers().get(MessageConstants.START_DATE);
     String endDate = message.headers().get(MessageConstants.END_DATE);
     String collectionType = message.headers().get(MessageConstants.COLLECTION_TYPE);
+    String studId = message.headers().get(MessageConstants.STUDENTID);
+    String oaId = message.headers().get(MessageConstants.OA_ID);
+    String itemId = message.headers().get(MessageConstants.ITEM_ID);
 
     return new ProcessorContext(request, userId, userUId, classId, courseId, unitId, lessonId,
         collectionId, sessionId, studentId, questionId, startDate, endDate, collectionType,
-        milestoneId);
+        milestoneId, studId, oaId, itemId);
   }
 
   // This is just the first level validation. Each Individual Handler would need to do more
@@ -1889,7 +1892,16 @@ class MessageProcessor implements Processor {
   private boolean checkStudentId(ProcessorContext context) {
     return validateId(context.studentId());
   }
+  
+  private boolean checkOaId(ProcessorContext context) {
+    return checkId(context.oaId());
+  }
 
+  private boolean checkItemId(ProcessorContext context) {
+    return checkId(context.itemId());
+  }
+  
+  
   private boolean validateUser(String userId) {
     return !(userId == null || userId.isEmpty()
         || (userId.equalsIgnoreCase(MessageConstants.MSG_USER_ANONYMOUS)) && validateUuid(userId));
@@ -1897,6 +1909,10 @@ class MessageProcessor implements Processor {
 
   private boolean validateId(String id) {
     return !(id == null || id.isEmpty()) && validateUuid(id);
+  }
+  
+  private boolean checkId(String id) {
+    return !(id == null || id.isEmpty());
   }
 
   private boolean validateUuid(String uuidString) {
