@@ -10,8 +10,6 @@ import org.javalite.activejdbc.annotations.Table;
 @Table("offline_activity_submissions")
 public class AJEntityOfflineActivitySubmissions extends Model {
 
-
-  //public static final String ATTR_SUBMISSION_ID = "submissionId";
   public static final String ATTR_SUBMISSION_INFO = "submissionInfo";
   public static final String ATTR_SUBMISSION_TYPE = "submissionType";
   public static final String ATTR_SUBMISSION_SUBTYPE = "submissionSubtype";
@@ -25,7 +23,6 @@ public class AJEntityOfflineActivitySubmissions extends Model {
   public static final String OA_ID = "oa_id";
   public static final String OA_DCA_ID = "oa_dca_id";
 
-  //public static final String SUBMISSION_ID = "submission_id";
   public static final String SUBMISSION_TYPE = "submission_type";
   public static final String SUBMISSION_SUBTYPE = "submission_subtype";
   public static final String CREATED_AT = "created_at";
