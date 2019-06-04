@@ -55,6 +55,7 @@ public class AJEntityRubricGrading extends Model {
   public static final String OVERALL_COMMENT = "overall_comment";
   public static final String GRADER = "grader";
   public static final String GRADER_ID = "grader_id";
+  public static final String CATEGORY_GRADE = "category_grade";
 
   public static final String CREATE_TIMESTAMP = "created_at";
   public static final String UPDATE_TIMESTAMP = "updated_at";
@@ -76,7 +77,11 @@ public class AJEntityRubricGrading extends Model {
   public static final String ATTR_MAX_SCORE = "maxScore";
   public static final String ATTR_CATEGORY_SCORE = "categoryScore";
   public static final String ATTR_OVERALL_COMMENT = "overallComment";
-
+  public static final String ATTR_SESSION_ID = "sessionId";
+  public static final String ATTR_SUBMITTED_ON = "submittedOn";
+  public static final String ATTR_CATEGORY_GRADE = "categoryGrade";
+  public static final String ATTR_GRADER = "grader";
+  public static final String ATTR_RUBRIC_ID = "rubricId";
 
   public static final String GET_RUBRIC_GRADE_FOR_QUESTION =
       "SELECT student_id, student_score, max_score, "
@@ -87,5 +92,8 @@ public class AJEntityRubricGrading extends Model {
       "SELECT student_id, student_score, max_score, "
           + "overall_comment, category_score from student_rubric_grading where class_id = ? AND "
           + "collection_id = ? AND resource_id = ? AND student_id = ? AND session_id = ?";
+  
+  public static final String GET_TEACHER_RUBRIC_GRADE_FOR_DCA_OA =
+      "class_id = ? and dca_content_id = ? and student_id = ? AND resource_id is null";
 
 }
