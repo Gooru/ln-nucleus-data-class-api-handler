@@ -14,7 +14,7 @@ public class AJEntityOfflineActivitySelfGrade extends Model {
   public static final String ATTR_MAX_SCORE = "maxScore";
   public static final String ATTR_TIME_SPENT = "timeSpent";
   public static final String ATTR_OVERALL_COMMENT = "overallComment";
-  public static final String ATTR_CATEGORY_GRADE = "categoryGrade";
+  public static final String ATTR_CATEGORY_SCORE = "categoryScore";
   public static final String ATTR_CONTENT_SOURCE = "contentSource";
   public static final String ATTR_GRADER = "grader";
   public static final String ATTR_RUBRIC_ID = "rubricId";
@@ -29,7 +29,7 @@ public class AJEntityOfflineActivitySelfGrade extends Model {
   public static final String MAX_SCORE = "max_score";
   public static final String TIME_SPENT = "time_spent";
   public static final String OVERALL_COMMENT = "overall_comment";
-  public static final String CATEGORY_GRADE = "category_grade";
+  public static final String CATEGORY_SCORE = "category_score";
   public static final String CONTENT_SOURCE = "content_source";
   public static final String OA_DCA_ID = "oa_dca_id";
   public static final String GRADER = "grader";

@@ -59,10 +59,11 @@ public class DCAStudentSubmissionForOAHandler implements DBHandler {
 
   @Override
   @SuppressWarnings("rawtypes")
-  public ExecutionResult<MessageResponse> validateRequest() {
-    if (this.classId != null) {
-      if (context.getUserIdFromRequest() == null || (context.getUserIdFromRequest() != null
-          && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
+  public ExecutionResult<MessageResponse> validateRequest() {    
+      if (context.userIdFromSession().equalsIgnoreCase(this.studentId)) {
+        LOGGER.debug("Student - validateRequest() OK");
+        return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
+      } else {
         List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER,
             this.classId, this.context.userIdFromSession());
         if (owner.isEmpty()) {
@@ -71,10 +72,9 @@ public class DCAStudentSubmissionForOAHandler implements DBHandler {
               MessageResponseFactory.createForbiddenResponse("User is not authorized for OA Grading"),
               ExecutionStatus.FAILED);
         }
+        LOGGER.debug("Teacher - validateRequest() OK");
+        return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);          
       }
-    }
-    LOGGER.debug("validateRequest() OK");
-    return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
   }
 
   @Override
@@ -127,9 +127,9 @@ public class DCAStudentSubmissionForOAHandler implements DBHandler {
               : null));
       gradeObject.put(AJEntityOfflineActivitySelfGrade.ATTR_SUBMITTED_ON,
           (m.get(AJEntityOfflineActivitySelfGrade.UPDATED_AT).toString()));
-      gradeObject.put(AJEntityOfflineActivitySelfGrade.ATTR_CATEGORY_GRADE,
-          m.get(AJEntityOfflineActivitySelfGrade.CATEGORY_GRADE) != null
-              ? new JsonArray(m.get(AJEntityOfflineActivitySelfGrade.CATEGORY_GRADE).toString())
+      gradeObject.put(AJEntityOfflineActivitySelfGrade.ATTR_CATEGORY_SCORE,
+          m.get(AJEntityOfflineActivitySelfGrade.CATEGORY_SCORE) != null
+              ? new JsonArray(m.get(AJEntityOfflineActivitySelfGrade.CATEGORY_SCORE).toString())
               : null);
     } else {
       LOGGER.info("Student Grading cannot be obtained");
@@ -167,9 +167,9 @@ public class DCAStudentSubmissionForOAHandler implements DBHandler {
               : null));
       gradeObject.put(AJEntityRubricGrading.ATTR_SUBMITTED_ON,
           (m.get(AJEntityRubricGrading.UPDATE_TIMESTAMP).toString()));
-      gradeObject.put(AJEntityRubricGrading.ATTR_CATEGORY_GRADE,
-          m.get(AJEntityRubricGrading.CATEGORY_GRADE) != null
-              ? new JsonArray(m.get(AJEntityRubricGrading.CATEGORY_GRADE).toString())
+      gradeObject.put(AJEntityRubricGrading.ATTR_CATEGORY_SCORE,
+          m.get(AJEntityRubricGrading.CATEGORY_SCORE) != null
+              ? new JsonArray(m.get(AJEntityRubricGrading.CATEGORY_SCORE).toString())
               : null);
       gradeObject.put(AJEntityRubricGrading.ATTR_SESSION_ID,
           m.get(AJEntityRubricGrading.SESSION_ID) != null
