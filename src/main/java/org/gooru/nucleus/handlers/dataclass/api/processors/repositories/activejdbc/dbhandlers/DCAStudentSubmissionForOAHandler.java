@@ -60,15 +60,19 @@ public class DCAStudentSubmissionForOAHandler implements DBHandler {
   @Override
   @SuppressWarnings("rawtypes")
   public ExecutionResult<MessageResponse> validateRequest() {
-    List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, this.classId,
-        this.context.userIdFromSession());
-    if (owner.isEmpty()) {
-      LOGGER.debug("validateRequest() FAILED");
-      return new ExecutionResult<>(
-          MessageResponseFactory.createForbiddenResponse("User is not authorized for OA Grading"),
-          ExecutionStatus.FAILED);
+    if (this.classId != null) {
+      if (context.getUserIdFromRequest() == null || (context.getUserIdFromRequest() != null
+          && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
+        List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER,
+            this.classId, this.context.userIdFromSession());
+        if (owner.isEmpty()) {
+          LOGGER.debug("validateRequest() FAILED");
+          return new ExecutionResult<>(
+              MessageResponseFactory.createForbiddenResponse("User is not authorized for OA Grading"),
+              ExecutionStatus.FAILED);
+        }
+      }
     }
-
     LOGGER.debug("validateRequest() OK");
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
   }
