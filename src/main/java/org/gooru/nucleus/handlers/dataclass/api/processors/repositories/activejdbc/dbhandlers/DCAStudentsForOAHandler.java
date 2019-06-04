@@ -54,13 +54,13 @@ public class DCAStudentsForOAHandler implements DBHandler {
   @Override
   @SuppressWarnings("rawtypes")
   public ExecutionResult<MessageResponse> validateRequest() {
-//    List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER,
-//        this.classId, this.context.userIdFromSession());
-//    if (owner.isEmpty()) {
-//      LOGGER.debug("validateRequest() FAILED");
-//      return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse(
-//          "User is not authorized for Offline Activity Grading"), ExecutionStatus.FAILED);
-//    }
+    List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, this.classId,
+        this.context.userIdFromSession());
+    if (owner.isEmpty()) {
+      LOGGER.debug("validateRequest() FAILED");
+      return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse(
+          "User is not authorized for OA Grading"), ExecutionStatus.FAILED);
+    }
 
     LOGGER.debug("validateRequest() OK");
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);

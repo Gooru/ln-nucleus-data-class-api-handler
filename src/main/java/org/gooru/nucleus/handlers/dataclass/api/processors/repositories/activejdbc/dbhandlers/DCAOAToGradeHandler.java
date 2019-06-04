@@ -1,6 +1,5 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
-import java.sql.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,7 +18,6 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResp
 import org.javalite.activejdbc.Base;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.hazelcast.util.StringUtil;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -56,14 +54,13 @@ public class DCAOAToGradeHandler implements DBHandler {
   @Override
   @SuppressWarnings("rawtypes")
   public ExecutionResult<MessageResponse> validateRequest() {
-//    List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER,
-//        this.context.request().getString(MessageConstants.CLASS_ID),
-//        this.context.userIdFromSession());
-//    if (owner.isEmpty()) {
-//      LOGGER.debug("validateRequest() FAILED");
-//      return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse(
-//          "User is not authorized for Offline Activity Grading"), ExecutionStatus.FAILED);
-//    }
+    List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, this.classId,
+        this.context.userIdFromSession());
+    if (owner.isEmpty()) {
+      LOGGER.debug("validateRequest() FAILED");
+      return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse(
+          "User is not authorized for OA Grading"), ExecutionStatus.FAILED);
+    }
 
     LOGGER.debug("validateRequest() OK");
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
