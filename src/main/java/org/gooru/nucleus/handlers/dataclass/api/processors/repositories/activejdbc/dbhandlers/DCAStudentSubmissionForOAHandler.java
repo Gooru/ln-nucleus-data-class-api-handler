@@ -111,11 +111,11 @@ public class DCAStudentSubmissionForOAHandler implements DBHandler {
               : 0);
       gradeObject.put(AJEntityOfflineActivitySelfGrade.ATTR_STUDENT_SCORE,
           (m.get(AJEntityOfflineActivitySelfGrade.STUDENT_SCORE) != null
-              ? m.get(AJEntityOfflineActivitySelfGrade.STUDENT_SCORE).toString()
+              ? Double.valueOf(m.get(AJEntityOfflineActivitySelfGrade.STUDENT_SCORE).toString())
               : null));
       gradeObject.put(AJEntityOfflineActivitySelfGrade.ATTR_MAX_SCORE,
           (m.get(AJEntityOfflineActivitySelfGrade.MAX_SCORE) != null
-              ? m.get(AJEntityOfflineActivitySelfGrade.MAX_SCORE).toString()
+              ? Double.valueOf(m.get(AJEntityOfflineActivitySelfGrade.MAX_SCORE).toString())
               : null));
       gradeObject.put(AJEntityOfflineActivitySelfGrade.ATTR_OVERALL_COMMENT,
           m.get(AJEntityOfflineActivitySelfGrade.OVERALL_COMMENT) != null
@@ -151,11 +151,11 @@ public class DCAStudentSubmissionForOAHandler implements DBHandler {
               : null);
       gradeObject.put(AJEntityRubricGrading.ATTR_STUDENT_SCORE,
           (m.get(AJEntityRubricGrading.STUDENT_SCORE) != null
-              ? m.get(AJEntityRubricGrading.STUDENT_SCORE).toString()
+              ? Double.valueOf(m.get(AJEntityRubricGrading.STUDENT_SCORE).toString())
               : null));
       gradeObject.put(AJEntityRubricGrading.ATTR_MAX_SCORE,
           (m.get(AJEntityRubricGrading.MAX_SCORE) != null
-              ? m.get(AJEntityRubricGrading.MAX_SCORE).toString()
+              ? Double.valueOf(m.get(AJEntityRubricGrading.MAX_SCORE).toString())
               : null));
       gradeObject.put(AJEntityRubricGrading.ATTR_OVERALL_COMMENT,
           m.get(AJEntityRubricGrading.OVERALL_COMMENT) != null
@@ -194,6 +194,9 @@ public class DCAStudentSubmissionForOAHandler implements DBHandler {
         submissionsObject.put(AJEntityOfflineActivitySubmissions.ATTR_SUBMISSION_INFO,
             m.get(AJEntityOfflineActivitySubmissions.SUBMISSION_INFO) != null ? 
                 m.get(AJEntityOfflineActivitySubmissions.SUBMISSION_INFO).toString() : null);
+        submissionsObject.put(AJEntityOfflineActivitySubmissions.ATTR_SUBMISSION_TEXT,
+            m.get(AJEntityOfflineActivitySubmissions.SUBMISSION_TEXT) != null ? 
+                m.get(AJEntityOfflineActivitySubmissions.SUBMISSION_TEXT).toString() : null);
         submissionsObject.put(AJEntityOfflineActivitySubmissions.ATTR_SUBMISSION_SUBTYPE,
             m.get(AJEntityOfflineActivitySubmissions.SUBMISSION_SUBTYPE) != null ?
               m.get(AJEntityOfflineActivitySubmissions.SUBMISSION_SUBTYPE).toString() : null);

@@ -13,6 +13,7 @@ public class AJEntityOfflineActivitySubmissions extends Model {
   public static final String ATTR_SUBMISSION_INFO = "submissionInfo";
   public static final String ATTR_SUBMISSION_TYPE = "submissionType";
   public static final String ATTR_SUBMISSION_SUBTYPE = "submissionSubtype";
+  public static final String ATTR_SUBMISSION_TEXT = "submissionText";
   public static final String ATTR_CREATED_AT = "createdAt";
   public static final String ATTR_TASK_ID = "taskId";
   public static final String ATTR_SUBMISSIONS = "submissions";
@@ -29,6 +30,7 @@ public class AJEntityOfflineActivitySubmissions extends Model {
   public static final String TASK_ID = "task_id";  
  
   public static final String SUBMISSION_INFO = "submission_info";
+  public static final String SUBMISSION_TEXT = "submission_text";
   public static final String STUDENT_ID = "student_id";
   public static final String CLASS_ID = "class_id";
   public static final String UPDATED_AT = "updated_at";
