@@ -2,6 +2,7 @@ package org.gooru.nucleus.handlers.dataclass.api.processors;
 
 import java.util.ResourceBundle;
 import java.util.UUID;
+import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.RepoBuilder;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.validators.FieldValidator;
@@ -298,13 +299,23 @@ class MessageProcessor implements Processor {
   private MessageResponse getStudentPerfDailyClassActivity() {
     try {
       ProcessorContext context = createContext();
-      return new RepoBuilder().buildReportRepo(context).getStudPerfDailyClassActivity();
-
+      if (!checkRequest(context)) {
+        LOGGER.error("Invalid request received to fetch Student Performance in class");
+        return MessageResponseFactory.createInvalidRequestResponse("Invalid request");
+      }
+      if (!checkCollectionType(context)) {
+        LOGGER.error("collectionType not available or invalid to obtain Student Perf. Aborting!");
+        return MessageResponseFactory.createInvalidRequestResponse("Invalid collectionType");
+      }
+      if (checkIfCollectionTypeIsOa(context)) {
+        return new RepoBuilder().buildReportRepo(context).getDCAStudOAPerformance();
+      } else {
+        return new RepoBuilder().buildReportRepo(context).getStudPerfDailyClassActivity();
+      }
     } catch (Throwable t) {
       LOGGER.error("Exception while getting Student Performance in Daily Class Activity.", t);
       return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
     }
-
   }
 
 
@@ -1894,14 +1905,27 @@ class MessageProcessor implements Processor {
   }
   
   private boolean checkOaId(ProcessorContext context) {
-    return checkId(context.oaId());
+    return checkIsNotNull(context.oaId());
   }
 
   private boolean checkItemId(ProcessorContext context) {
-    return checkId(context.itemId());
+    return checkIsNotNull(context.itemId());
   }
   
+  private boolean checkRequest(ProcessorContext context) {
+    return checkJsonObjIsNotNull(context.request());
+  }
   
+  private boolean checkCollectionType(ProcessorContext context) {
+    String collectionType = context.request().getString(MessageConstants.COLLECTION_TYPE);
+    return checkIsNotNull(collectionType) && isValidCollectionType(collectionType);
+  }
+  
+  private boolean checkIfCollectionTypeIsOa(ProcessorContext context) {
+    String collectionType = context.request().getString(MessageConstants.COLLECTION_TYPE);
+    return (collectionType != null && !collectionType.isEmpty() && collectionType.equalsIgnoreCase(JsonConstants.OFFLINE_ACTIVITY));
+  }
+
   private boolean validateUser(String userId) {
     return !(userId == null || userId.isEmpty()
         || (userId.equalsIgnoreCase(MessageConstants.MSG_USER_ANONYMOUS)) && validateUuid(userId));
@@ -1911,8 +1935,16 @@ class MessageProcessor implements Processor {
     return !(id == null || id.isEmpty()) && validateUuid(id);
   }
   
-  private boolean checkId(String id) {
+  private boolean checkIsNotNull(String id) {
     return !(id == null || id.isEmpty());
+  }
+  
+  private boolean checkJsonObjIsNotNull(JsonObject jsonObj) {
+    return !(jsonObj == null || jsonObj.isEmpty());
+  }
+  
+  private boolean isValidCollectionType(String type) {
+    return JsonConstants.COLLECTION_TYPES.matcher(type).matches();
   }
 
   private boolean validateUuid(String uuidString) {

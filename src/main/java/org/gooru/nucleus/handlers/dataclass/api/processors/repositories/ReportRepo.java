@@ -172,4 +172,6 @@ public interface ReportRepo {
   
   MessageResponse getDCAStudentSubmissionsForOA();
 
+  MessageResponse getDCAStudOAPerformance();
+
 }

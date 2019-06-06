@@ -1,10 +1,11 @@
-package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
+package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers.oa;
 
 import java.util.List;
 import java.util.Map;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers.DBHandler;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityDailyClassActivity;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
@@ -15,7 +16,6 @@ import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.hazelcast.util.StringUtil;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 

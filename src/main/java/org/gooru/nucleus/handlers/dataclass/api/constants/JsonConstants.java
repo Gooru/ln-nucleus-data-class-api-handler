@@ -1,5 +1,7 @@
 package org.gooru.nucleus.handlers.dataclass.api.constants;
 
+import java.util.regex.Pattern;
+
 /**
  * Created by mukul@gooru
  */
@@ -21,6 +23,8 @@ public final class JsonConstants {
   public static final String ASSESSMENT = "assessment";
 
   public static final String COLLECTION = "collection";
+  
+  public static final String OFFLINE_ACTIVITY = "offline-activity";
 
   public static final String ACTIVE = "active";
 
@@ -117,6 +121,8 @@ public final class JsonConstants {
   public static final String RAW_SCORE = "rawScore";
 
   public static final String MILESTONE_ID = "milestoneId";
+  
+  public static final Pattern COLLECTION_TYPES = Pattern.compile("collection|assessment|offline-activity");
 
   private JsonConstants() {
     throw new AssertionError();

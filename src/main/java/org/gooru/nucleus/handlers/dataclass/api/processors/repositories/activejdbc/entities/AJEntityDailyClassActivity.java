@@ -151,6 +151,13 @@ public class AJEntityDailyClassActivity extends Model {
           + "FROM daily_class_activity WHERE class_id = ? AND collection_id = ANY(?::varchar[]) AND actor_id = ? AND collection_type IN ('collection', 'collection-external') AND event_type = 'stop' "
           + "AND date_in_time_zone BETWEEN ? AND ? ) AS agg GROUP BY agg.collectionId, agg.activityDate, agg.collection_type ORDER BY agg.activityDate DESC";
 
+  public static final String GET_PERFORMANCE_FOR_CLASS_OAS =
+      "SELECT time_spent AS timeSpent, score AS scoreInPercentage, "
+      + "session_id AS lastSessionId, collection_id as collectionId, actor_id as actorId FROM daily_class_activity "
+      + "WHERE class_id = ? AND collection_id = ANY(?::varchar[]) AND actor_id = ? "
+      + "AND collection_type = 'offline-activity' AND grading_type = 'teacher' AND is_graded = true "
+      + "AND event_name = ? AND event_type = 'stop'";
+  
   public static final String GET_PERFORMANCE_FOR_CLASS_COLLECTIONS_SCORE =
       "SELECT SUM(agg.score) AS score FROM " + "(SELECT DISTINCT ON (resource_id) collection_id, "
           + "FIRST_VALUE(score) OVER (PARTITION BY resource_id, date_in_time_zone ORDER BY updated_at desc) AS score "
