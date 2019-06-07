@@ -26,6 +26,24 @@ public final class PgUtils {
       sb.append(',');
     }
   }
+  
+  public static String listToPostgresArrayInteger(List<Integer> input) {
+    Iterator<Integer> it = input.iterator();
+    if (!it.hasNext()) {
+      return "{}";
+    }
+    
+    StringBuilder sb = new StringBuilder();
+    sb.append('{');
+    for (;;) {
+      Integer s = it.next();
+      sb.append(s);
+      if (!it.hasNext()) {
+        return sb.append('}').toString();
+      }
+      sb.append(',');
+    }
+  }
 
   private PgUtils() {
     throw new AssertionError();

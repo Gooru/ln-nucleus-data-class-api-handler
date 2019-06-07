@@ -30,7 +30,7 @@ public class DCAStudOAPerfHandler implements DBHandler {
   private final ProcessorContext context;
   private String classId;
   private String userId;
-  private JsonArray collectionIds;
+  private JsonArray dcaContentIds;
   private String collectionType;
 
   public DCAStudOAPerfHandler(ProcessorContext context) {
@@ -43,7 +43,7 @@ public class DCAStudOAPerfHandler implements DBHandler {
       validateContextRequest();
       userId = this.context.request().getString(MessageConstants.USER_ID);
       collectionType = this.context.request().getString(MessageConstants.COLLECTION_TYPE);
-      collectionIds = this.context.request().getJsonArray(MessageConstants.COLLECTION_IDS);
+      dcaContentIds = this.context.request().getJsonArray(MessageConstants.DCA_CONTENT_IDS);
       classId = this.context.request().getString(MessageConstants.CLASS_ID);
       validateContextRequestFields();
 
@@ -78,10 +78,10 @@ public class DCAStudOAPerfHandler implements DBHandler {
   public ExecutionResult<MessageResponse> executeRequest() {
     JsonObject resultBody = new JsonObject();
     JsonArray userUsageArray = new JsonArray();
-    LOGGER.debug("userId : {} - collectionIds:{}", userId, collectionIds);
-    List<String> collIds = new ArrayList<>(collectionIds.size());
-    for (Object collId : collectionIds) {
-      collIds.add(collId.toString());
+    LOGGER.debug("userId : {} - dcaContentIds:{}", userId, dcaContentIds);
+    List<Integer> collIds = new ArrayList<>(dcaContentIds.size());
+    for (Object collId : dcaContentIds) {
+      collIds.add(Integer.valueOf(collId.toString()));
     }
     List<String> userIds = fetchUserId();
 
@@ -93,12 +93,12 @@ public class DCAStudOAPerfHandler implements DBHandler {
         LOGGER.debug("Fetching Performance for OA in Class");
         activityList =
             Base.findAll(AJEntityDailyClassActivity.GET_PERFORMANCE_FOR_CLASS_OAS, classId,
-                PgUtils.listToPostgresArrayString(collIds), userId,
+                PgUtils.listToPostgresArrayInteger(collIds), userId,
                 AJEntityDailyClassActivity.ATTR_CP_EVENTNAME);
       if (activityList != null && !activityList.isEmpty()) {
         generateActivityData(activityArray, activityList);
       } else {
-        LOGGER.debug("No data available for ANY of the collectionIds passed on to this endpoint");
+        LOGGER.debug("No data available for ANY of the dcaContentIds passed on to this endpoint");
       }
       dateActivity.put(JsonConstants.ACTIVITY, activityArray);
       dateActivity.put(JsonConstants.USERID, userId);
@@ -116,6 +116,8 @@ public class DCAStudOAPerfHandler implements DBHandler {
   private void generateActivityData(JsonArray activityArray, List<Map> activityList) {
     activityList.forEach(m -> {
       JsonObject contentKpi = new JsonObject();
+      contentKpi.put(AJEntityDailyClassActivity.ATTR_DCA_CONTENT_ID,
+          Integer.valueOf(m.get(AJEntityDailyClassActivity.ATTR_DCA_CONTENT_ID).toString()));
       contentKpi.put(AJEntityDailyClassActivity.ATTR_COLLECTION_ID,
           m.get(AJEntityDailyClassActivity.ATTR_COLLECTION_ID).toString());
       contentKpi.put(AJEntityDailyClassActivity.ATTR_TIME_SPENT,
@@ -163,14 +165,14 @@ public class DCAStudOAPerfHandler implements DBHandler {
   private void validateContextRequestFields() {
     if (StringUtil.isNullOrEmpty(collectionType)) {
       LOGGER.warn(
-          "Collection Type is mandatory to fetch Student Performance in Daily Class Activity.");
+          "Collection Type is mandatory to fetch Student Performance in OAs.");
       throw new MessageResponseWrapperException(MessageResponseFactory.createNotFoundResponse(
-          "Collection Type is Missing. Cannot fetch Student Performance in Daily Class Activity"));
+          "Collection Type is Missing. Cannot fetch Student Performance in OAs"));
     }
-    if (collectionIds.isEmpty()) {
-      LOGGER.warn("CollectionIds are mandatory to fetch Student Performance in OAs");
+    if (dcaContentIds == null || dcaContentIds.isEmpty()) {
+      LOGGER.warn("DcaContentIds are mandatory to fetch Student Performance in OAs");
       throw new MessageResponseWrapperException(MessageResponseFactory.createNotFoundResponse(
-          "CollectionIds are Missing. Cannot fetch Student Performance for OA"));
+          "DcaContentIds are Missing. Cannot fetch Student Performance for OA"));
     }
     if (StringUtil.isNullOrEmpty(classId)) {
       LOGGER.warn("ClassId is mandatory for fetching Student Performance in Class Activity");
