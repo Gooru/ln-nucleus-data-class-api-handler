@@ -46,6 +46,7 @@ public final class MessageConstants {
   public static final String LESSON_ID = "lessonId";
   public static final String COLLECTION_ID = "collectionId";
   public static final String COLLECTION_IDS = "collectionIds";
+  public static final String DCA_CONTENT_IDS = "dcaContentIds";
   public static final String SESSION_ID = "sessionId";
   public static final String RESP_JSON_KEY_RESOURCES = "resources";
   public static final String START_DATE = "startDate";

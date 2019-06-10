@@ -1,6 +1,7 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers.oa.*;
 
 /**
  * Created by mukul@gooru
@@ -332,6 +333,10 @@ public final class DBHandlerBuilder {
   
   public static DBHandler buildDCAStudentSubmissionsForOAHandler(ProcessorContext context) {
     return new DCAStudentSubmissionForOAHandler(context);
+  }
+  
+  public static DBHandler buildDCAStudOAPerfHandler(ProcessorContext context) {
+      return new DCAStudOAPerfHandler(context);
   }
    
 }
