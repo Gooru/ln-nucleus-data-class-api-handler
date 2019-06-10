@@ -46,14 +46,14 @@ public class DCAQuestionsToGradeHandler implements DBHandler {
       LOGGER.warn("Invalid request recieved to fetch Questions to grade");
       return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse(
           "Invalid data provided to fetch Questions to grade"), ExecutionStatus.FAILED);
+    } else {
+      this.classId = this.context.request().getString(MessageConstants.CLASS_ID);
+      if (StringUtil.isNullOrEmpty(classId)) {
+        LOGGER.warn("ClassID is mandatory to fetch Questions pending grading");
+        return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse(
+            "Class Id Missing. Cannot fetch Questions pending grading"), ExecutionStatus.FAILED);
+      }    
     }
-    this.classId = this.context.request().getString(MessageConstants.CLASS_ID);
-    if (StringUtil.isNullOrEmpty(classId)) {
-      LOGGER.warn("ClassID is mandatory to fetch Questions pending grading");
-      return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse(
-          "Class Id Missing. Cannot fetch Questions pending grading"), ExecutionStatus.FAILED);
-
-    }    
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
   }
 

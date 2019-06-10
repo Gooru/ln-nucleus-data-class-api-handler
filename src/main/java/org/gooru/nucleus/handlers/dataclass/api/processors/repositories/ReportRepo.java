@@ -167,6 +167,8 @@ public interface ReportRepo {
 
   // DCA OA Grading
   MessageResponse getDCAOAToGrade();
+  
+  MessageResponse getDCAOAToGradeStudent();
 
   MessageResponse getDCAStudentsForOA();
   

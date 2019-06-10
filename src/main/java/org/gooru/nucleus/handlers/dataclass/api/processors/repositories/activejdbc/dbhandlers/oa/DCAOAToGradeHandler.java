@@ -19,6 +19,7 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResp
 import org.javalite.activejdbc.Base;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.hazelcast.util.StringUtil;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -47,21 +48,29 @@ public class DCAOAToGradeHandler implements DBHandler {
       LOGGER.warn("Invalid request recieved to fetch Offline Activity to grade");
       return new ExecutionResult<>(MessageResponseFactory.createInvalidRequestResponse(
           "Invalid data provided to fetch Offline Activity to grade"), ExecutionStatus.FAILED);
-    }
-    this.classId = this.context.request().getString(MessageConstants.CLASS_ID);   
+    } else if (context.request() != null || !context.request().isEmpty()) {
+      this.classId = this.context.request().getString(MessageConstants.CLASS_ID);
+      if (StringUtil.isNullOrEmpty(classId))
+          {
+        LOGGER.warn("Invalid Json Payload");
+        return new ExecutionResult<>(
+            MessageResponseFactory.createInvalidRequestResponse("Invalid Json Payload"),
+            ExecutionStatus.FAILED);
+      }     
+    }   
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
   }
 
   @Override
   @SuppressWarnings("rawtypes")
   public ExecutionResult<MessageResponse> validateRequest() {
-    List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, this.classId,
-        this.context.userIdFromSession());
-    if (owner.isEmpty()) {
-      LOGGER.debug("validateRequest() FAILED");
-      return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse(
-          "User is not authorized for OA Grading"), ExecutionStatus.FAILED);
-    }
+//    List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, this.classId,
+//        this.context.userIdFromSession());
+//    if (owner.isEmpty()) {
+//      LOGGER.debug("validateRequest() FAILED");
+//      return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse(
+//          "User is not authorized for OA Grading"), ExecutionStatus.FAILED);
+//    }
 
     LOGGER.debug("validateRequest() OK");
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);

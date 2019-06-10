@@ -11,6 +11,7 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResp
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.hazelcast.util.StringUtil;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 
@@ -1762,9 +1763,13 @@ class MessageProcessor implements Processor {
   private MessageResponse getDCAOAsToGrade() {
     try {
       ProcessorContext context = createContext();
-
-      return new RepoBuilder().buildReportRepo(context).getDCAOAToGrade();
-
+      
+      String studentId = context.request().getString(MessageConstants.USER_ID);      
+      if (!StringUtil.isNullOrEmpty(studentId)) {
+        return new RepoBuilder().buildReportRepo(context).getDCAOAToGradeStudent();        
+      } else {
+        return new RepoBuilder().buildReportRepo(context).getDCAOAToGrade();
+      }
     } catch (Throwable t) {
       LOGGER.error("Exception while getting OA pending Grading", t);
       return MessageResponseFactory.createInternalErrorResponse(t.getMessage());

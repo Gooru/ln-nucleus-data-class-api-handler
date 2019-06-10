@@ -16,6 +16,7 @@ import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.hazelcast.util.StringUtil;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -43,10 +44,19 @@ public class DCAStudentsForOAHandler implements DBHandler {
           MessageResponseFactory.createInvalidRequestResponse(
               "Invalid request received to fetch Student Ids for OA Grading"),
           ExecutionStatus.FAILED);
-    }
-    this.classId = this.context.request().getString(MessageConstants.CLASS_ID); 
-    this.itemId = Long.valueOf(this.context.itemId().toString());
+    } else if (context.request() != null || !context.request().isEmpty()) {
+      this.classId = this.context.request().getString(MessageConstants.CLASS_ID);
+      if (StringUtil.isNullOrEmpty(classId))
+      {
+        LOGGER.warn("Invalid Json Payload");
+        return new ExecutionResult<>(
+            MessageResponseFactory.createInvalidRequestResponse("Invalid Json Payload"),
+            ExecutionStatus.FAILED);
+      }     
 
+    }
+
+    this.itemId = Long.valueOf(this.context.itemId().toString());
     LOGGER.debug("checkSanity() OK");
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
   }
@@ -54,13 +64,13 @@ public class DCAStudentsForOAHandler implements DBHandler {
   @Override
   @SuppressWarnings("rawtypes")
   public ExecutionResult<MessageResponse> validateRequest() {
-    List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, this.classId,
-        this.context.userIdFromSession());
-    if (owner.isEmpty()) {
-      LOGGER.debug("validateRequest() FAILED");
-      return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse(
-          "User is not authorized for OA Grading"), ExecutionStatus.FAILED);
-    }
+//    List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, this.classId,
+//        this.context.userIdFromSession());
+//    if (owner.isEmpty()) {
+//      LOGGER.debug("validateRequest() FAILED");
+//      return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse(
+//          "User is not authorized for OA Grading"), ExecutionStatus.FAILED);
+//    }
 
     LOGGER.debug("validateRequest() OK");
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);

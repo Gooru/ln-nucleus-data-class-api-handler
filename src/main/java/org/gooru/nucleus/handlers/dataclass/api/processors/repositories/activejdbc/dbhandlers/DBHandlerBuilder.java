@@ -327,6 +327,10 @@ public final class DBHandlerBuilder {
     return new DCAOAToGradeHandler(context);
   }
   
+  public static DBHandler buildDCAOAToGradeStudentHandler(ProcessorContext context) {
+    return new DCAOAToSelfGradeHandler(context);
+  }
+  
   public static DBHandler buildDCAStudentsForOAHandler(ProcessorContext context) {
     return new DCAStudentsForOAHandler(context);
   }
