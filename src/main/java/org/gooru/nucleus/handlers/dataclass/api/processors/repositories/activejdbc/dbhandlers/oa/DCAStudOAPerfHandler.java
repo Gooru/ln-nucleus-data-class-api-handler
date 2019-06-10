@@ -79,9 +79,16 @@ public class DCAStudOAPerfHandler implements DBHandler {
     JsonObject resultBody = new JsonObject();
     JsonArray userUsageArray = new JsonArray();
     LOGGER.debug("userId : {} - dcaContentIds:{}", userId, dcaContentIds);
-    List<Integer> collIds = new ArrayList<>(dcaContentIds.size());
+    List<Long> collIds = new ArrayList<>(dcaContentIds.size());
     for (Object collId : dcaContentIds) {
-      collIds.add(Integer.valueOf(collId.toString()));
+      try {
+        collIds.add(Long.valueOf(collId.toString()));
+      } catch (NumberFormatException nfe) {
+        return new ExecutionResult<>(
+            MessageResponseFactory.createInvalidRequestResponse(
+                "NumberFormatException:Invalid dcaContentIds provided to fetch Student Performance in OAs"),
+            ExecutionStatus.FAILED);
+      }
     }
     List<String> userIds = fetchUserId();
 
@@ -93,7 +100,7 @@ public class DCAStudOAPerfHandler implements DBHandler {
         LOGGER.debug("Fetching Performance for OA in Class");
         activityList =
             Base.findAll(AJEntityDailyClassActivity.GET_PERFORMANCE_FOR_CLASS_OAS, classId,
-                PgUtils.listToPostgresArrayInteger(collIds), userId,
+                PgUtils.listToPostgresArrayLong(collIds), userId,
                 AJEntityDailyClassActivity.ATTR_CP_EVENTNAME);
       if (activityList != null && !activityList.isEmpty()) {
         generateActivityData(activityArray, activityList);

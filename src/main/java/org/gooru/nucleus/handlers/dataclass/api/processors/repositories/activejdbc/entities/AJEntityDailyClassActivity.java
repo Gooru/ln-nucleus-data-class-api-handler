@@ -154,7 +154,7 @@ public class AJEntityDailyClassActivity extends Model {
   public static final String GET_PERFORMANCE_FOR_CLASS_OAS =
       "SELECT time_spent AS timeSpent, score AS scoreInPercentage, "
       + "session_id AS lastSessionId, collection_id as collectionId, actor_id as actorId, dca_content_id as dcaContentId FROM daily_class_activity "
-      + "WHERE class_id = ? AND dca_content_id = ANY(?::int[]) AND actor_id = ? "
+      + "WHERE class_id = ? AND dca_content_id = ANY(?::bigint[]) AND actor_id = ? "
       + "AND collection_type = 'offline-activity' AND grading_type = 'teacher' AND is_graded = true "
       + "AND event_name = ? AND event_type = 'stop'";
   
