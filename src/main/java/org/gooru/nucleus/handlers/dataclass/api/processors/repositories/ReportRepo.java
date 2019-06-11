@@ -94,9 +94,7 @@ public interface ReportRepo {
 
   MessageResponse getIndLearnerCollectionSessions();
 
-
   // Rubric Grading
-
   MessageResponse getRubricQuesToGrade();
 
   MessageResponse getStudentsForRubricQuestion();
@@ -132,7 +130,6 @@ public interface ReportRepo {
   MessageResponse getCoursesComptencyCompletion();
 
   // ATC
-
   MessageResponse getStudentPerfVsCompletion();
 
   MessageResponse getStudentCourseAllItemsReport();
@@ -148,7 +145,7 @@ public interface ReportRepo {
   MessageResponse getStudentCAAssessmentSessionPerformance();
 
   MessageResponse getStudentCACollectionSessionPerformance();
-  
+
   // Milestone
   MessageResponse getStudentMilestoneLessonPerfHandler();
 
@@ -158,5 +155,25 @@ public interface ReportRepo {
   MessageResponse getILMilestoneLessonPerfHandler();
 
   MessageResponse getILMilestonePerfHandler();
+
+  // DCA Rubric Grading
+  MessageResponse getDCARubricQuesToGrade();
+
+  MessageResponse getDCAStudentsForRubricQuestion();
+
+  MessageResponse getDCAStudentAnswersForRubricQuestion();
+
+  MessageResponse getDCARubricSummaryforQuestion();
+
+  // DCA OA Grading
+  MessageResponse getDCAOAToGrade();
+  
+  MessageResponse getDCAOAToGradeStudent();
+
+  MessageResponse getDCAStudentsForOA();
+  
+  MessageResponse getDCAStudentSubmissionsForOA();
+
+  MessageResponse getDCAStudOAPerformance();
 
 }

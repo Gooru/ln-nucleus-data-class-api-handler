@@ -1,6 +1,7 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers.oa.*;
 
 /**
  * Created by mukul@gooru
@@ -303,5 +304,44 @@ public final class DBHandlerBuilder {
   public static DBHandler buildILMilestonePerfHandler(ProcessorContext context) {
     return new ILMilestonePerfHandler(context);
   }
+
+  // DCA Rubric Grading
+  public static DBHandler buildDCARubricQuesToGradeHandler(ProcessorContext context) {
+    return new DCAQuestionsToGradeHandler(context);
+  }
+
+  public static DBHandler buildDCAStudentsForRubricQuestionHandler(ProcessorContext context) {
+    return new DCAStudentsForRubricQuestionsHandler(context);
+  }
+
+  public static DBHandler buildDCAStudAnsForRubricQuesHandler(ProcessorContext context) {
+    return new DCAStudentAnsForRubricQuesHandler(context);
+  }
+
+  public static DBHandler buildDCARubricSummaryforQueHandler(ProcessorContext context) {
+    return new DCARubricQuestionSummaryHandler(context);
+  }
+
+  // DCA OA Grading
+  public static DBHandler buildDCAOAToGradeHandler(ProcessorContext context) {
+    return new DCAOAToGradeHandler(context);
+  }
+  
+  public static DBHandler buildDCAOAToGradeStudentHandler(ProcessorContext context) {
+    return new DCAOAToSelfGradeHandler(context);
+  }
+  
+  public static DBHandler buildDCAStudentsForOAHandler(ProcessorContext context) {
+    return new DCAStudentsForOAHandler(context);
+  }
+  
+  public static DBHandler buildDCAStudentSubmissionsForOAHandler(ProcessorContext context) {
+    return new DCAStudentSubmissionForOAHandler(context);
+  }
+  
+  public static DBHandler buildDCAStudOAPerfHandler(ProcessorContext context) {
+      return new DCAStudOAPerfHandler(context);
+  }
+   
 }
 
