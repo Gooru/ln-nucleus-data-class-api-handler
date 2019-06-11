@@ -195,9 +195,6 @@ public class DCAStudentSubmissionForOAHandler implements DBHandler {
         submissionsObject.put(AJEntityOfflineActivitySubmissions.ATTR_SUBMISSION_INFO,
             m.get(AJEntityOfflineActivitySubmissions.SUBMISSION_INFO) != null ? 
                 m.get(AJEntityOfflineActivitySubmissions.SUBMISSION_INFO).toString() : null);
-        submissionsObject.put(AJEntityOfflineActivitySubmissions.ATTR_SUBMISSION_TEXT,
-            m.get(AJEntityOfflineActivitySubmissions.SUBMISSION_TEXT) != null ? 
-                m.get(AJEntityOfflineActivitySubmissions.SUBMISSION_TEXT).toString() : null);
         submissionsObject.put(AJEntityOfflineActivitySubmissions.ATTR_SUBMISSION_SUBTYPE,
             m.get(AJEntityOfflineActivitySubmissions.SUBMISSION_SUBTYPE) != null ?
               m.get(AJEntityOfflineActivitySubmissions.SUBMISSION_SUBTYPE).toString() : null);
@@ -224,6 +221,14 @@ public class DCAStudentSubmissionForOAHandler implements DBHandler {
           JsonObject taskobj = new JsonObject();
           taskobj.put(AJEntityOfflineActivitySubmissions.ATTR_TASK_ID,
               Integer.valueOf(task.getKey()));
+          
+          AJEntityOfflineActivitySubmissions latestSubmission = AJEntityOfflineActivitySubmissions.findFirst(
+              AJEntityOfflineActivitySubmissions.FETCH_OA_LATEST_SUBMISSIONS, this.classId, this.oaDcaId,
+              this.studentId, Integer.valueOf(task.getKey()));
+          taskobj.put(AJEntityOfflineActivitySubmissions.ATTR_SUBMISSION_TEXT,
+              (latestSubmission != null && latestSubmission.get(AJEntityOfflineActivitySubmissions.SUBMISSION_TEXT) != null) ? 
+                  latestSubmission.get(AJEntityOfflineActivitySubmissions.SUBMISSION_TEXT).toString() : null);
+          
           taskobj.put(AJEntityOfflineActivitySubmissions.ATTR_SUBMISSIONS, task.getValue());
           taskArray.add(taskobj);
         }
