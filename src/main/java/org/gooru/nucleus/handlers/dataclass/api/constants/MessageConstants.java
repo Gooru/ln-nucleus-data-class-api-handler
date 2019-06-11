@@ -46,6 +46,7 @@ public final class MessageConstants {
   public static final String LESSON_ID = "lessonId";
   public static final String COLLECTION_ID = "collectionId";
   public static final String COLLECTION_IDS = "collectionIds";
+  public static final String DCA_CONTENT_IDS = "dcaContentIds";
   public static final String SESSION_ID = "sessionId";
   public static final String RESP_JSON_KEY_RESOURCES = "resources";
   public static final String START_DATE = "startDate";
@@ -63,8 +64,13 @@ public final class MessageConstants {
   public static final String STUDENT_ID = "student_id";
   public static final String STUDENTID = "studentId";
   public static final String QUESTION_ID = "question_id";
+  public static final String ACTIVITY_DATE = "activityDate";
   // Milestone
   public static final String MILESTONE_ID = "milestoneId";
+  //Grading 
+  public static final String ITEM_ID = "itemId";
+  //Offline Activities
+  public static final String OA_ID = "oaId";
 
   // Read API Constants
   public static final String MSG_OP_COURSE_PEERS = "student.peers.in.course";
@@ -203,7 +209,25 @@ public final class MessageConstants {
   // Internal
   public static final String MSG_OP_INTERNAL_ALL_STUDENT_CLASSES_PERF =
       "internal.all.class.student.performance";
-  public static final String MSG_OP_INTERNAL_DCA_ALL_CLASSES_PERF = "internal.dca.all.classes.performance";
+  public static final String MSG_OP_INTERNAL_DCA_ALL_CLASSES_PERF =
+      "internal.dca.all.classes.performance";
+
+  // DCA Rubric Grading
+  public static final String MSG_OP_DCA_RUBRICS_QUESTIONS_TO_GRADE =
+      "dca.rubric.questions.to.grade";
+  public static final String MSG_OP_DCA_RUBRIC_QUESTIONS_STUDENTS_LIST =
+      "dca.rubric.questions.students.list";
+  public static final String MSG_OP_DCA_RUBRIC_QUESTIONS_STUDENT_ANSWERS =
+      "dca.rubric.questions.student.answers";
+  public static final String MSG_OP_DCA_RUBRIC_QUESTIONS_GRADE_SUMMARY =
+      "dca.rubric.questions.grade.summary";
+  
+  //Grading - Self/Teacher
+  public static final String MSG_OP_ITEMS_TO_GRADE = "items.to.grade";
+  public static final String MSG_OP_ITEMS_TO_GRADE_STUDENTS_LIST = "items.to.grade.students.list";
+
+  //Offline-Actvities
+  public static final String MSG_OP_DCA_OA_STUDENT_SUBMISSIONS = "dca.oa.student.submissions";
 
   public static final String PORT = "port";
   public static final String HOST = "host";

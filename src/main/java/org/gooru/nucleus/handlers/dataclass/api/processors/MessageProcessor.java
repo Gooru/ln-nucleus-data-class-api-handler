@@ -2,6 +2,7 @@ package org.gooru.nucleus.handlers.dataclass.api.processors;
 
 import java.util.ResourceBundle;
 import java.util.UUID;
+import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.RepoBuilder;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.validators.FieldValidator;
@@ -10,6 +11,7 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResp
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.hazelcast.util.StringUtil;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 
@@ -256,6 +258,29 @@ class MessageProcessor implements Processor {
         case MessageConstants.MSG_OP_INTERNAL_DCA_ALL_CLASSES_PERF:
           result = getDCAAllClassesPerfInternal();
           break;
+        // DCA Rubric Grading
+        case MessageConstants.MSG_OP_DCA_RUBRICS_QUESTIONS_TO_GRADE:
+          result = getDCARubricQuestionsToGrade();
+          break;
+        case MessageConstants.MSG_OP_DCA_RUBRIC_QUESTIONS_STUDENTS_LIST:
+          result = getDCAStudentsForRubricQue();
+          break;
+        case MessageConstants.MSG_OP_DCA_RUBRIC_QUESTIONS_STUDENT_ANSWERS:
+          result = getDCAStudAnswersForRubricQue();
+          break;
+        case MessageConstants.MSG_OP_DCA_RUBRIC_QUESTIONS_GRADE_SUMMARY:
+          result = getDCARubricSummaryforQue();
+          break;
+       // DCA OA Grading
+        case MessageConstants.MSG_OP_ITEMS_TO_GRADE:
+          result = getDCAOAsToGrade();
+          break;
+        case MessageConstants.MSG_OP_ITEMS_TO_GRADE_STUDENTS_LIST:
+          result = getDCAStudentsForOA();
+          break;
+        case MessageConstants.MSG_OP_DCA_OA_STUDENT_SUBMISSIONS:
+          result = getDCAStudentSubmissionsForOA();
+          break;
         default:
           LOGGER.error("Invalid operation type passed in, not able to handle");
           return MessageResponseFactory
@@ -275,13 +300,23 @@ class MessageProcessor implements Processor {
   private MessageResponse getStudentPerfDailyClassActivity() {
     try {
       ProcessorContext context = createContext();
-      return new RepoBuilder().buildReportRepo(context).getStudPerfDailyClassActivity();
-
+      if (!checkRequest(context)) {
+        LOGGER.error("Invalid request received to fetch Student Performance in class");
+        return MessageResponseFactory.createInvalidRequestResponse("Invalid request");
+      }
+      if (!checkCollectionType(context)) {
+        LOGGER.error("collectionType not available or invalid to obtain Student Perf. Aborting!");
+        return MessageResponseFactory.createInvalidRequestResponse("Invalid collectionType");
+      }
+      if (checkIfCollectionTypeIsOa(context)) {
+        return new RepoBuilder().buildReportRepo(context).getDCAStudOAPerformance();
+      } else {
+        return new RepoBuilder().buildReportRepo(context).getStudPerfDailyClassActivity();
+      }
     } catch (Throwable t) {
       LOGGER.error("Exception while getting Student Performance in Daily Class Activity.", t);
       return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
     }
-
   }
 
 
@@ -1625,7 +1660,7 @@ class MessageProcessor implements Processor {
       return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
     }
   }
-  
+
   private MessageResponse getDCAAllClassesPerfInternal() {
     try {
       ProcessorContext context = createContext();
@@ -1637,6 +1672,148 @@ class MessageProcessor implements Processor {
       return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
     }
   }
+  // ************ DCA RUBRIC GRADING
+  // ******************************************************************************************
+
+  private MessageResponse getDCARubricQuestionsToGrade() {
+    try {
+      ProcessorContext context = createContext();
+
+      return new RepoBuilder().buildReportRepo(context).getDCARubricQuesToGrade();
+
+    } catch (Throwable t) {
+      LOGGER.error("Exception while getting Questions pending Grading", t);
+      return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+    }
+
+  }
+
+  private MessageResponse getDCAStudentsForRubricQue() {
+    try {
+      ProcessorContext context = createContext();
+
+      if (!checkQuestionId(context)) {
+        LOGGER.error("QuestionId not available to obtain Student Ids. Aborting!");
+        return MessageResponseFactory.createInvalidRequestResponse("Invalid QuestionId");
+      }
+
+      return new RepoBuilder().buildReportRepo(context).getDCAStudentsForRubricQuestion();
+
+    } catch (Throwable t) {
+      LOGGER.error("Exception while getting Student List for Rubric Grading", t);
+      return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+    }
+
+  }
+
+  private MessageResponse getDCAStudAnswersForRubricQue() {
+    try {
+      ProcessorContext context = createContext();
+
+      if (!checkQuestionId(context)) {
+        LOGGER.error("QuestionId not available to obtain answers. Aborting!");
+        return MessageResponseFactory.createInvalidRequestResponse("Invalid QuestionId");
+      }
+
+      if (!checkStudentId(context)) {
+        LOGGER.error("StudentId not available to obtain answers. Aborting!");
+        return MessageResponseFactory.createInvalidRequestResponse("Invalid StudentId");
+      }
+
+
+      return new RepoBuilder().buildReportRepo(context).getDCAStudentAnswersForRubricQuestion();
+
+    } catch (Throwable t) {
+      LOGGER.error("Exception while getting Student answers for Rubric Grading", t);
+      return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+    }
+
+  }
+
+  private MessageResponse getDCARubricSummaryforQue() {
+    try {
+      ProcessorContext context = createContext();
+
+      if (!checkClassId(context)) {
+        LOGGER.error("ClassId not available to obtain Student Rubric Question Summary. Aborting!");
+        return MessageResponseFactory.createInvalidRequestResponse("Invalid ClassId");
+      }
+
+      if (!checkCollectionId(context)) {
+        LOGGER.error(
+            "Collection id not available to obtain Student Rubric Question Summary. Aborting");
+        return MessageResponseFactory.createInvalidRequestResponse("Invalid collectionId");
+      }
+
+
+      if (!checkQuestionId(context)) {
+        LOGGER.error("QuestionId not available to obtain Rubric Question Summary. Aborting!");
+        return MessageResponseFactory.createInvalidRequestResponse("Invalid QuestionId");
+      }
+
+      return new RepoBuilder().buildReportRepo(context).getDCARubricSummaryforQuestion();
+
+    } catch (Throwable t) {
+      LOGGER.error("Exception while getting Student answers for Rubric Grading", t);
+      return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+    }
+
+  }
+  
+  private MessageResponse getDCAOAsToGrade() {
+    try {
+      ProcessorContext context = createContext();
+      
+      String studentId = context.request().getString(MessageConstants.USER_ID);      
+      if (!StringUtil.isNullOrEmpty(studentId)) {
+        return new RepoBuilder().buildReportRepo(context).getDCAOAToGradeStudent();        
+      } else {
+        return new RepoBuilder().buildReportRepo(context).getDCAOAToGrade();
+      }
+    } catch (Throwable t) {
+      LOGGER.error("Exception while getting OA pending Grading", t);
+      return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+    }
+
+  }
+
+  private MessageResponse getDCAStudentsForOA() {
+    try {
+      ProcessorContext context = createContext();
+
+      if (!checkItemId(context)) {
+        LOGGER.error("oaId not available to obtain grading items. Aborting!");
+        return MessageResponseFactory.createInvalidRequestResponse("Invalid ItemId");
+      }
+
+      return new RepoBuilder().buildReportRepo(context).getDCAStudentsForOA();
+
+    } catch (Throwable t) {
+      LOGGER.error("Exception while getting Student List for OA Grading", t);
+      return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+    }
+
+  }
+  
+  private MessageResponse getDCAStudentSubmissionsForOA() {
+    try {
+      ProcessorContext context = createContext();
+
+      if (!checkOaId(context)) {
+        LOGGER.error("oaId not available to obtain Student Submissions. Aborting!");
+        return MessageResponseFactory.createInvalidRequestResponse("Invalid oaId");
+      }
+
+      return new RepoBuilder().buildReportRepo(context).getDCAStudentSubmissionsForOA();
+
+    } catch (Throwable t) {
+      LOGGER.error("Exception while getting Student Submissions for OA Grading", t);
+      return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+    }
+
+  }
+
+  // **************************************************************************************************************
 
   private ProcessorContext createContext() {
     String classId = message.headers().get(MessageConstants.CLASS_ID);
@@ -1656,10 +1833,13 @@ class MessageProcessor implements Processor {
     String startDate = message.headers().get(MessageConstants.START_DATE);
     String endDate = message.headers().get(MessageConstants.END_DATE);
     String collectionType = message.headers().get(MessageConstants.COLLECTION_TYPE);
+    String studId = message.headers().get(MessageConstants.STUDENTID);
+    String oaId = message.headers().get(MessageConstants.OA_ID);
+    String itemId = message.headers().get(MessageConstants.ITEM_ID);
 
     return new ProcessorContext(request, userId, userUId, classId, courseId, unitId, lessonId,
         collectionId, sessionId, studentId, questionId, startDate, endDate, collectionType,
-        milestoneId);
+        milestoneId, studId, oaId, itemId);
   }
 
   // This is just the first level validation. Each Individual Handler would need to do more
@@ -1728,6 +1908,28 @@ class MessageProcessor implements Processor {
   private boolean checkStudentId(ProcessorContext context) {
     return validateId(context.studentId());
   }
+  
+  private boolean checkOaId(ProcessorContext context) {
+    return checkIsNotNull(context.oaId());
+  }
+
+  private boolean checkItemId(ProcessorContext context) {
+    return checkIsNotNull(context.itemId());
+  }
+  
+  private boolean checkRequest(ProcessorContext context) {
+    return checkJsonObjIsNotNull(context.request());
+  }
+  
+  private boolean checkCollectionType(ProcessorContext context) {
+    String collectionType = context.request().getString(MessageConstants.COLLECTION_TYPE);
+    return checkIsNotNull(collectionType) && isValidCollectionType(collectionType);
+  }
+  
+  private boolean checkIfCollectionTypeIsOa(ProcessorContext context) {
+    String collectionType = context.request().getString(MessageConstants.COLLECTION_TYPE);
+    return (collectionType != null && !collectionType.isEmpty() && collectionType.equalsIgnoreCase(JsonConstants.OFFLINE_ACTIVITY));
+  }
 
   private boolean validateUser(String userId) {
     return !(userId == null || userId.isEmpty()
@@ -1736,6 +1938,18 @@ class MessageProcessor implements Processor {
 
   private boolean validateId(String id) {
     return !(id == null || id.isEmpty()) && validateUuid(id);
+  }
+  
+  private boolean checkIsNotNull(String id) {
+    return !(id == null || id.isEmpty());
+  }
+  
+  private boolean checkJsonObjIsNotNull(JsonObject jsonObj) {
+    return !(jsonObj == null || jsonObj.isEmpty());
+  }
+  
+  private boolean isValidCollectionType(String type) {
+    return JsonConstants.COLLECTION_TYPES.matcher(type).matches();
   }
 
   private boolean validateUuid(String uuidString) {

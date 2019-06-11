@@ -112,13 +112,13 @@ public class ILMilestonePerfHandler implements DBHandler {
     List<String> milestoneIds = new ArrayList<>();
     // GET DISTINCT(MILESTONES) FOR THIS COURSE
     LazyList<AJEntityMilestone> milestoneIDforCourse;
-    milestoneIDforCourse = AJEntityMilestone.findBySQL(
-        AJEntityMilestone.SELECT_DISTINCT_MILESTONE_ID_FOR_COURSE,
-        UUID.fromString(context.courseId()), fwCode);
+    milestoneIDforCourse =
+        AJEntityMilestone.findBySQL(AJEntityMilestone.SELECT_DISTINCT_MILESTONE_ID_FOR_COURSE,
+            UUID.fromString(context.courseId()), fwCode);
 
     if (!milestoneIDforCourse.isEmpty()) {
-      milestoneIDforCourse.forEach(milestone -> milestoneIds
-          .add(milestone.getString(AJEntityMilestone.MILESTONE_ID)));
+      milestoneIDforCourse.forEach(
+          milestone -> milestoneIds.add(milestone.getString(AJEntityMilestone.MILESTONE_ID)));
     }
 
     for (String mileId : milestoneIds) {
@@ -126,9 +126,9 @@ public class ILMilestonePerfHandler implements DBHandler {
       List<String> lessonIds = new ArrayList<>();
       // GET LESSONS FOR EACH MILESTONE
       LazyList<AJEntityMilestone> lessonIDforMilestone;
-      lessonIDforMilestone = AJEntityMilestone.findBySQL(
-          AJEntityMilestone.SELECT_DISTINCT_LESSON_ID_FOR_MILESTONE_ID,
-          UUID.fromString(context.courseId()), mileId, fwCode);
+      lessonIDforMilestone =
+          AJEntityMilestone.findBySQL(AJEntityMilestone.SELECT_DISTINCT_LESSON_ID_FOR_MILESTONE_ID,
+              UUID.fromString(context.courseId()), mileId, fwCode);
       lessonIDforMilestone
           .forEach(lesson -> lessonIds.add(lesson.getString(AJEntityMilestone.LESSON_ID)));
 

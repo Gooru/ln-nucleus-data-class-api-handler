@@ -445,4 +445,60 @@ class AJReportRepo implements ReportRepo {
         .executeTransaction(DBHandlerBuilder.buildILMilestonePerfHandler(context));
   }
 
+  // DCA Rubric Grading
+  @Override
+  public MessageResponse getDCARubricQuesToGrade() {
+    return TransactionExecutor
+        .executeTransaction(DBHandlerBuilder.buildDCARubricQuesToGradeHandler(context));
+  }
+
+  @Override
+  public MessageResponse getDCAStudentsForRubricQuestion() {
+    return TransactionExecutor
+        .executeTransaction(DBHandlerBuilder.buildDCAStudentsForRubricQuestionHandler(context));
+  }
+
+  @Override
+  public MessageResponse getDCAStudentAnswersForRubricQuestion() {
+    return TransactionExecutor
+        .executeTransaction(DBHandlerBuilder.buildDCAStudAnsForRubricQuesHandler(context));
+  }
+
+  @Override
+  public MessageResponse getDCARubricSummaryforQuestion() {
+    return TransactionExecutor
+        .executeTransaction(DBHandlerBuilder.buildDCARubricSummaryforQueHandler(context));
+  }
+  
+  //OA Grading
+  @Override
+  public MessageResponse getDCAOAToGrade() {
+    return TransactionExecutor
+        .executeTransaction(DBHandlerBuilder.buildDCAOAToGradeHandler(context));
+  }
+  
+  public MessageResponse getDCAOAToGradeStudent() {
+    return TransactionExecutor
+        .executeTransaction(DBHandlerBuilder.buildDCAOAToGradeStudentHandler(context));
+  }
+
+  @Override
+  public MessageResponse getDCAStudentsForOA() {
+    return TransactionExecutor
+        .executeTransaction(DBHandlerBuilder.buildDCAStudentsForOAHandler(context));
+  }
+  
+  @Override
+  public MessageResponse getDCAStudentSubmissionsForOA() {
+    return TransactionExecutor
+        .executeTransaction(DBHandlerBuilder.buildDCAStudentSubmissionsForOAHandler(context));
+  }
+  
+  @Override
+  public MessageResponse getDCAStudOAPerformance() {
+    return TransactionExecutor
+        .executeTransaction(DBHandlerBuilder.buildDCAStudOAPerfHandler(context));
+  }
+
+
 }
