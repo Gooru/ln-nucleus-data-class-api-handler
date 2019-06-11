@@ -38,4 +38,9 @@ public class AJEntityOfflineActivitySubmissions extends Model {
 
   public static final String FETCH_OA_SUBMISSIONS =
       "class_id = ?::uuid and oa_dca_id  = ? and student_id = ?::uuid";
+  
+  public static final String FETCH_OA_LATEST_SUBMISSIONS =
+      "class_id = ?::uuid and oa_dca_id  = ? and student_id = ?::uuid "
+      + "and task_id = ? and submission_text IS NOT NULL order by updated_at desc";
+  
 }
