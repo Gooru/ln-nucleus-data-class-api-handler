@@ -603,6 +603,11 @@ public class AJEntityDailyClassActivity extends Model {
       + "AND event_name = 'collection.play' AND event_type = 'stop' AND collection_type = 'offline-activity' "
       + "AND grading_type = 'teacher' AND is_graded = false order by updated_at desc";
   
+  
+  public static final String GET_SESSION_OF_COMPLETED_OA = "class_id = ? AND dca_content_id = ? AND actor_id = ? "
+      + "AND event_name = 'collection.play' AND event_type = 'stop' AND collection_type = 'offline-activity' "
+      + "AND grading_type = 'teacher' order by updated_at desc";
+  
   public static final String UUID_TYPE = "uuid";
   public static Pattern YEAR_PATTERN = Pattern.compile("^\\d{4}$");
 
