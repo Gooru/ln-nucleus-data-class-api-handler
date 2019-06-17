@@ -99,12 +99,12 @@ public class DCAStudentSubmissionForOAHandler implements DBHandler {
 
   private String getSessionId() {
     AJEntityDailyClassActivity dcaModel =
-        AJEntityDailyClassActivity.findFirst(AJEntityDailyClassActivity.GET_SESSION_OF_COMPLETED_OA,
+        AJEntityDailyClassActivity.findFirst(AJEntityDailyClassActivity.GET_COMPLETED_OA,
             this.classId, this.oaDcaId, this.studentId);
     String sessionId = null;
     if (dcaModel != null
-        && dcaModel.getString(AJEntityDailyClassActivity.ATTR_SESSION_ID) != null) {
-      sessionId = dcaModel.getString(AJEntityDailyClassActivity.ATTR_SESSION_ID);
+        && dcaModel.getString(AJEntityDailyClassActivity.SESSION_ID) != null) {
+      sessionId = dcaModel.getString(AJEntityDailyClassActivity.SESSION_ID);
     }
     return sessionId;
   }

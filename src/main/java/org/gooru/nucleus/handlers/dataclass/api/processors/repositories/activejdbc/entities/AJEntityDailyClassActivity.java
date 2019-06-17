@@ -604,7 +604,7 @@ public class AJEntityDailyClassActivity extends Model {
       + "AND grading_type = 'teacher' AND is_graded = false order by updated_at desc";
   
   
-  public static final String GET_SESSION_OF_COMPLETED_OA = "class_id = ? AND dca_content_id = ? AND actor_id = ? "
+  public static final String GET_COMPLETED_OA = "class_id = ? AND dca_content_id = ? AND actor_id = ? "
       + "AND event_name = 'collection.play' AND event_type = 'stop' AND collection_type = 'offline-activity' "
       + "AND grading_type = 'teacher' order by updated_at desc";
   
