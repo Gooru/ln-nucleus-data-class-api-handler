@@ -6,6 +6,7 @@ import java.util.Map.Entry;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers.DBHandler;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityDailyClassActivity;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityOfflineActivitySelfGrade;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityOfflineActivitySubmissions;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityRubricGrading;
@@ -89,9 +90,23 @@ public class DCAStudentSubmissionForOAHandler implements DBHandler {
     fetchStudentRubricData(oaRubrics);
     fetchTeacherRubricData(oaRubrics);
     result.put(AJEntityOfflineActivitySelfGrade.ATTR_OA_RUBRICS, oaRubrics);
+    
+    result.put(AJEntityRubricGrading.ATTR_SESSION_ID, getSessionId());
 
     return new ExecutionResult<>(MessageResponseFactory.createGetResponse(result),
         ExecutionStatus.SUCCESSFUL);
+  }
+
+  private String getSessionId() {
+    AJEntityDailyClassActivity dcaModel =
+        AJEntityDailyClassActivity.findFirst(AJEntityDailyClassActivity.GET_COMPLETED_OA,
+            this.classId, this.oaDcaId, this.studentId);
+    String sessionId = null;
+    if (dcaModel != null
+        && dcaModel.getString(AJEntityDailyClassActivity.SESSION_ID) != null) {
+      sessionId = dcaModel.getString(AJEntityDailyClassActivity.SESSION_ID);
+    }
+    return sessionId;
   }
 
   private void fetchStudentRubricData(JsonObject oaRubrics) {
@@ -172,10 +187,6 @@ public class DCAStudentSubmissionForOAHandler implements DBHandler {
           m.get(AJEntityRubricGrading.CATEGORY_SCORE) != null
               ? new JsonArray(m.get(AJEntityRubricGrading.CATEGORY_SCORE).toString())
               : null);
-      gradeObject.put(AJEntityRubricGrading.ATTR_SESSION_ID,
-          m.get(AJEntityRubricGrading.SESSION_ID) != null
-              ? m.get(AJEntityRubricGrading.SESSION_ID).toString()
-              : null);
     } else {
       LOGGER.info("Teacher Grading cannot be obtained");
     }
@@ -195,9 +206,6 @@ public class DCAStudentSubmissionForOAHandler implements DBHandler {
         submissionsObject.put(AJEntityOfflineActivitySubmissions.ATTR_SUBMISSION_INFO,
             m.get(AJEntityOfflineActivitySubmissions.SUBMISSION_INFO) != null ? 
                 m.get(AJEntityOfflineActivitySubmissions.SUBMISSION_INFO).toString() : null);
-        submissionsObject.put(AJEntityOfflineActivitySubmissions.ATTR_SUBMISSION_TEXT,
-            m.get(AJEntityOfflineActivitySubmissions.SUBMISSION_TEXT) != null ? 
-                m.get(AJEntityOfflineActivitySubmissions.SUBMISSION_TEXT).toString() : null);
         submissionsObject.put(AJEntityOfflineActivitySubmissions.ATTR_SUBMISSION_SUBTYPE,
             m.get(AJEntityOfflineActivitySubmissions.SUBMISSION_SUBTYPE) != null ?
               m.get(AJEntityOfflineActivitySubmissions.SUBMISSION_SUBTYPE).toString() : null);
@@ -224,6 +232,16 @@ public class DCAStudentSubmissionForOAHandler implements DBHandler {
           JsonObject taskobj = new JsonObject();
           taskobj.put(AJEntityOfflineActivitySubmissions.ATTR_TASK_ID,
               Integer.valueOf(task.getKey()));
+          
+          // Can be removed as we will store only latest free form text. submission array will now include latest free-form text as well. 
+          // affects FE changes, so keeping as is for now.
+          AJEntityOfflineActivitySubmissions latestSubmission = AJEntityOfflineActivitySubmissions.findFirst(
+              AJEntityOfflineActivitySubmissions.FETCH_OA_LATEST_SUBMISSIONS, this.classId, this.oaDcaId,
+              this.studentId, Integer.valueOf(task.getKey()));
+          taskobj.put(AJEntityOfflineActivitySubmissions.ATTR_SUBMISSION_INFO,
+              (latestSubmission != null && latestSubmission.get(AJEntityOfflineActivitySubmissions.SUBMISSION_INFO) != null) ? 
+                  latestSubmission.get(AJEntityOfflineActivitySubmissions.SUBMISSION_INFO).toString() : null);
+          
           taskobj.put(AJEntityOfflineActivitySubmissions.ATTR_SUBMISSIONS, task.getValue());
           taskArray.add(taskobj);
         }
