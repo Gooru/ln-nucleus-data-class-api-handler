@@ -233,12 +233,14 @@ public class DCAStudentSubmissionForOAHandler implements DBHandler {
           taskobj.put(AJEntityOfflineActivitySubmissions.ATTR_TASK_ID,
               Integer.valueOf(task.getKey()));
           
+          // Can be removed as we will store only latest free form text. submission array will now include latest free-form text as well. 
+          // affects FE changes, so keeping as is for now.
           AJEntityOfflineActivitySubmissions latestSubmission = AJEntityOfflineActivitySubmissions.findFirst(
               AJEntityOfflineActivitySubmissions.FETCH_OA_LATEST_SUBMISSIONS, this.classId, this.oaDcaId,
               this.studentId, Integer.valueOf(task.getKey()));
-          taskobj.put(AJEntityOfflineActivitySubmissions.ATTR_SUBMISSION_TEXT,
-              (latestSubmission != null && latestSubmission.get(AJEntityOfflineActivitySubmissions.SUBMISSION_TEXT) != null) ? 
-                  latestSubmission.get(AJEntityOfflineActivitySubmissions.SUBMISSION_TEXT).toString() : null);
+          taskobj.put(AJEntityOfflineActivitySubmissions.ATTR_SUBMISSION_INFO,
+              (latestSubmission != null && latestSubmission.get(AJEntityOfflineActivitySubmissions.SUBMISSION_INFO) != null) ? 
+                  latestSubmission.get(AJEntityOfflineActivitySubmissions.SUBMISSION_INFO).toString() : null);
           
           taskobj.put(AJEntityOfflineActivitySubmissions.ATTR_SUBMISSIONS, task.getValue());
           taskArray.add(taskobj);
