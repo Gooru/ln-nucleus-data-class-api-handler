@@ -1,9 +1,7 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
-import com.hazelcast.util.StringUtil;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
@@ -19,6 +17,9 @@ import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.hazelcast.util.StringUtil;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 
 /**
  * @author mukul@gooru
@@ -91,21 +92,33 @@ public class DCAStudentsForRubricQuestionsHandler implements DBHandler {
   }
 
   @Override
-  @SuppressWarnings({"rawtypes", "unchecked"})
   public ExecutionResult<MessageResponse> executeRequest() {
     JsonObject result = new JsonObject();
-    JsonArray studentsIdArray;
-
+    JsonArray studentsIdArray = new JsonArray();
+    //for this question, get user id and latest session of users who needs to be graded
     LazyList<AJEntityDailyClassActivity> userIdsPendingGradingforSpecifiedQ = AJEntityDailyClassActivity
         .findBySQL(AJEntityDailyClassActivity.GET_DISTINCT_STUDENTS_FOR_THIS_RESOURCE, classId,
             collectionId, context.questionId(), activityDate);
 
     if (!userIdsPendingGradingforSpecifiedQ.isEmpty()) {
-      List<String> userIds = userIdsPendingGradingforSpecifiedQ
-          .collect(AJEntityDailyClassActivity.GOORUUID);
-      studentsIdArray = new JsonArray(userIds);
+      for (AJEntityDailyClassActivity userIdPendingGradingforSpecifiedQ : userIdsPendingGradingforSpecifiedQ) {
+        String gradePendingSessionId =
+            userIdPendingGradingforSpecifiedQ.get(AJEntityDailyClassActivity.SESSION_ID).toString();
+        String studentId =
+            userIdPendingGradingforSpecifiedQ.get(AJEntityDailyClassActivity.GOORUUID).toString();
+        //for this User, for this question, include student to response only if the latest session is completed
+        AJEntityDailyClassActivity latestCompletedSession = AJEntityDailyClassActivity.findFirst(
+            "event_name = 'collection.play' AND event_type = 'stop' AND actor_id = ? AND class_id = ? AND collection_id = ? AND date_in_time_zone = ? ORDER BY updated_at DESC",
+            studentId, classId, collectionId, activityDate);
+        if (latestCompletedSession != null) {
+          String latestCompletedSessionId =
+              latestCompletedSession.get(AJEntityDailyClassActivity.SESSION_ID).toString();
+          if (latestCompletedSessionId.equalsIgnoreCase(gradePendingSessionId)) {
+            studentsIdArray.add(studentId);
+          }
+        }
+      }
     } else {
-      studentsIdArray = new JsonArray();
       LOGGER.info(
           "No student list present in DB: class:'{}', collection:'{}', question: '{}', activity date: '{}'",
           classId, collectionId, context.questionId(), activityDate);

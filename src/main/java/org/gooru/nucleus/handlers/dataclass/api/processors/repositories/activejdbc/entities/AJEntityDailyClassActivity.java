@@ -557,12 +557,12 @@ public class AJEntityDailyClassActivity extends Model {
           + "order by resource_id, collection_id, actor_id, date_in_time_zone, updated_at desc";
 
   public static final String GET_DISTINCT_STUDENTS_FOR_THIS_RESOURCE =
-      "SELECT distinct (actor_id) from daily_class_activity where "
+      "SELECT distinct on (actor_id) actor_id, FIRST_VALUE (session_id) OVER (PARTITION BY actor_id ORDER BY updated_at desc) as session_id from daily_class_activity where "
           + "class_id = ? AND collection_id = ? AND resource_id = ? AND event_type = 'stop' AND "
           + "event_name = 'collection.resource.play' AND resource_type = 'question' "
           + "AND is_graded = 'false' AND resource_attempt_status = 'attempted' AND grading_type = 'teacher'  "
           + "AND question_type = 'OE' AND date_in_time_zone = ?";
-
+  
   public static final String GET_LATEST_SCORE_FOR_THIS_RESOURCE_STUDENT =
       "SELECT score, is_graded, resource_id from daily_class_activity "
           + "WHERE class_id = ? AND collection_id = ? AND resource_id = ? AND actor_id = ? "
