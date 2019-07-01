@@ -176,4 +176,6 @@ public interface ReportRepo {
 
   MessageResponse getDCAStudOAPerformance();
 
+  MessageResponse getDCAOACompleteMarkedByStudents();
+
 }
