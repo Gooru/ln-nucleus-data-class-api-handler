@@ -1,4 +1,4 @@
-package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers.oa;
+package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers.oa.ca;
 
 import java.util.ArrayList;
 import java.util.List;

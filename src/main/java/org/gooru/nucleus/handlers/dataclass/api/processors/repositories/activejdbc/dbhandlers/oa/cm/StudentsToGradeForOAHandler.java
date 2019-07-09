@@ -1,4 +1,4 @@
-package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers.oa;
+package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers.oa.cm;
 
 import java.util.List;
 import java.util.Map;
@@ -7,7 +7,8 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers.DBHandler;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
-import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityDailyClassActivity;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.validators.ValidationUtils;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
@@ -24,15 +25,15 @@ import io.vertx.core.json.JsonObject;
  * @author renuka
  * 
  */
-public class DCAStudentsForOAHandler implements DBHandler {
+public class StudentsToGradeForOAHandler implements DBHandler {
 
-  private static final Logger LOGGER =
-      LoggerFactory.getLogger(DCAStudentsForOAHandler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(StudentsToGradeForOAHandler.class);
   private final ProcessorContext context;
   private String classId;
-  private Long itemId;
+  private String courseId;
+  private String collectionId;
 
-  public DCAStudentsForOAHandler(ProcessorContext context) {
+  public StudentsToGradeForOAHandler(ProcessorContext context) {
     this.context = context;
   }
 
@@ -46,17 +47,17 @@ public class DCAStudentsForOAHandler implements DBHandler {
           ExecutionStatus.FAILED);
     } else if (context.request() != null || !context.request().isEmpty()) {
       this.classId = this.context.request().getString(MessageConstants.CLASS_ID);
-      if (StringUtil.isNullOrEmpty(classId))
-      {
+      this.courseId = this.context.request().getString(MessageConstants.COURSE_ID);
+      this.collectionId = this.context.request().getString(MessageConstants.ITEM_ID);
+      if (!ValidationUtils.isValidUUID(classId) || !ValidationUtils.isValidUUID(courseId)
+          || !ValidationUtils.isValidUUID(collectionId)) {
         LOGGER.warn("Invalid Json Payload");
         return new ExecutionResult<>(
             MessageResponseFactory.createInvalidRequestResponse("Invalid Json Payload"),
             ExecutionStatus.FAILED);
-      }     
+      }
 
     }
-
-    this.itemId = Long.valueOf(this.context.itemId().toString());
     LOGGER.debug("checkSanity() OK");
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
   }
@@ -64,13 +65,13 @@ public class DCAStudentsForOAHandler implements DBHandler {
   @Override
   @SuppressWarnings("rawtypes")
   public ExecutionResult<MessageResponse> validateRequest() {
-//    List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, this.classId,
-//        this.context.userIdFromSession());
-//    if (owner.isEmpty()) {
-//      LOGGER.debug("validateRequest() FAILED");
-//      return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse(
-//          "User is not authorized for OA Grading"), ExecutionStatus.FAILED);
-//    }
+    // List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, this.classId,
+    // this.context.userIdFromSession());
+    // if (owner.isEmpty()) {
+    // LOGGER.debug("validateRequest() FAILED");
+    // return new ExecutionResult<>(MessageResponseFactory.createForbiddenResponse(
+    // "User is not authorized for OA Grading"), ExecutionStatus.FAILED);
+    // }
 
     LOGGER.debug("validateRequest() OK");
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
@@ -81,22 +82,13 @@ public class DCAStudentsForOAHandler implements DBHandler {
   public ExecutionResult<MessageResponse> executeRequest() {
     JsonObject result = new JsonObject();
     JsonArray resultarray = new JsonArray();
-    
-    LazyList<AJEntityDailyClassActivity> userIdforOA = AJEntityDailyClassActivity.findBySQL(
-        AJEntityDailyClassActivity.GET_DISTINCT_STUDENTS_FOR_THIS_OA, classId, itemId);
-    
-    if (!userIdforOA.isEmpty()) {
-      List<String> userIds = userIdforOA.collect(AJEntityDailyClassActivity.GOORUUID);
-      for (String userID : userIds) {
-        LOGGER.debug("UID is " + userID);
-        AJEntityDailyClassActivity scoreModel =
-            AJEntityDailyClassActivity.findFirst(AJEntityDailyClassActivity.GET_OA_STUDENTS_PENDING_GRADING,
-                classId, itemId, userID);
-        if (scoreModel != null) {
-            resultarray.add(userID);
-        }
-      }
 
+    LazyList<AJEntityBaseReports> userIdforOA = AJEntityBaseReports.findBySQL(
+        AJEntityBaseReports.GET_DISTINCT_STUDENTS_FOR_THIS_OA, classId, courseId, collectionId);
+
+    if (userIdforOA != null && !userIdforOA.isEmpty()) {
+      List<String> userIds = userIdforOA.collect(AJEntityBaseReports.GOORUUID);
+      resultarray = new JsonArray(userIds);
     } else {
       LOGGER.info("Student list for this Offline Activity grading cannot be obtained");
     }

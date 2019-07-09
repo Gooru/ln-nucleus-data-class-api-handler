@@ -1,7 +1,8 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
-import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers.oa.*;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers.oa.ca.*;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers.oa.cm.*;
 
 /**
  * Created by mukul@gooru
@@ -323,20 +324,20 @@ public final class DBHandlerBuilder {
   }
 
   // DCA OA Grading
-  public static DBHandler buildDCAOAToGradeHandler(ProcessorContext context) {
-    return new DCAOAToGradeHandler(context);
+  public static DBHandler buildDCAOAToTeacherGradeHandler(ProcessorContext context) {
+    return new DCAOAToTeacherGradeHandler(context);
   }
   
-  public static DBHandler buildDCAOAToGradeStudentHandler(ProcessorContext context) {
+  public static DBHandler buildDCAOAToSelfGradeHandler(ProcessorContext context) {
     return new DCAOAToSelfGradeHandler(context);
   }
   
-  public static DBHandler buildDCAStudentsForOAHandler(ProcessorContext context) {
-    return new DCAStudentsForOAHandler(context);
+  public static DBHandler buildDCAStudentsToGradeForOAHandler(ProcessorContext context) {
+    return new DCAStudentsToGradeForOAHandler(context);
   }
   
-  public static DBHandler buildDCAStudentSubmissionsForOAHandler(ProcessorContext context) {
-    return new DCAStudentSubmissionForOAHandler(context);
+  public static DBHandler buildDCAStudentSubmissionsOfOAHandler(ProcessorContext context) {
+    return new DCAStudentSubmissionOfOAHandler(context);
   }
   
   public static DBHandler buildDCAStudOAPerfHandler(ProcessorContext context) {
@@ -346,6 +347,25 @@ public final class DBHandlerBuilder {
   public static DBHandler buildDCAOACompleteMarkedByStudentsHandler(ProcessorContext context) {
     return new DCAOACompleteMarkedByStudentsHandler(context);
   }
-   
+  
+  public static DBHandler buildOAToTeacherGradeHandler(ProcessorContext context) {
+    return new OAToTeacherGradeHandler(context);
+  }
+  
+  public static DBHandler buildOAToSelfGradeHandler(ProcessorContext context) {
+    return new OAToSelfGradeHandler(context);
+  }
+  
+  public static DBHandler buildStudentsToGradeForOAHandler(ProcessorContext context) {
+    return new StudentsToGradeForOAHandler(context);
+  } 
+  
+  public static DBHandler buildStudentSubmissionsOfOAHandler(ProcessorContext context) {
+    return new StudentSubmissionOfOAHandler(context);
+  }
+  
+  public static DBHandler buildOACompleteMarkedByStudentsHandler(ProcessorContext context) {
+    return new OACompleteMarkedByStudentsHandler(context);
+  }
 }
 

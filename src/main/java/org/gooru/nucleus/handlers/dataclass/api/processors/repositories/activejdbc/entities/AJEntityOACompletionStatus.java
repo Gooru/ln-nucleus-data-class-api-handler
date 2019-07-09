@@ -26,7 +26,10 @@ public class AJEntityOACompletionStatus extends Model {
   public static final String CREATED_AT = "created_at";
   public static final String UPDATED_AT = "updated_at";  
 
-  public static final String GET_OA_MARKED_AS_COMPLETE_BY_STUDENT =
+  public static final String GET_CA_OA_MARKED_AS_COMPLETE_BY_STUDENT =
       "select student_id from offline_activity_completion_status where class_id = ?::uuid AND oa_id = ?::uuid AND oa_dca_id = ? AND content_source = ? and is_marked_by_student = true and is_marked_by_teacher = false";
+  
+  public static final String GET_CM_OA_MARKED_AS_COMPLETE_BY_STUDENT =
+      "select student_id from offline_activity_completion_status where class_id = ?::uuid AND course_id = ?::uuid AND unit_id = ?::uuid AND lesson_id = ?::uuid AND oa_id = ?::uuid AND oa_dca_id IS NULL AND content_source = ? and is_marked_by_student = true and is_marked_by_teacher = false";
   
 }

@@ -36,11 +36,14 @@ public class AJEntityOfflineActivitySubmissions extends Model {
   public static final String UPDATED_AT = "updated_at";
 
 
-  public static final String FETCH_OA_SUBMISSIONS =
+  public static final String FETCH_CA_OA_SUBMISSIONS =
       "class_id = ?::uuid and oa_dca_id  = ? and student_id = ?::uuid";
   
-  public static final String FETCH_OA_LATEST_SUBMISSIONS =
+  public static final String FETCH_CA_OA_LATEST_SUBMISSIONS =
       "class_id = ?::uuid and oa_dca_id  = ? and student_id = ?::uuid "
       + "and task_id = ? and submission_info IS NOT NULL and submission_type = 'free-form-text' order by updated_at desc";
   
+  public static final String FETCH_CM_OA_SUBMISSIONS =
+      "class_id = ?::uuid and oa_dca_id  IS NULL and student_id = ?::uuid AND course_id = ?::uuid "
+      + "AND unit_id = ?::uuid AND lesson_id = ?::uuid AND oa_id = ?::uuid";
 }

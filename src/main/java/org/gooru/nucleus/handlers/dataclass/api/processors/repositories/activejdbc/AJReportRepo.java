@@ -472,26 +472,27 @@ class AJReportRepo implements ReportRepo {
   
   //OA Grading
   @Override
-  public MessageResponse getDCAOAToGrade() {
+  public MessageResponse getDCAOAToTeacherGrade() {
     return TransactionExecutor
-        .executeTransaction(DBHandlerBuilder.buildDCAOAToGradeHandler(context));
+        .executeTransaction(DBHandlerBuilder.buildDCAOAToTeacherGradeHandler(context));
   }
   
-  public MessageResponse getDCAOAToGradeStudent() {
+  @Override
+  public MessageResponse getDCAOAToSelfGrade() {
     return TransactionExecutor
-        .executeTransaction(DBHandlerBuilder.buildDCAOAToGradeStudentHandler(context));
+        .executeTransaction(DBHandlerBuilder.buildDCAOAToSelfGradeHandler(context));
   }
 
   @Override
-  public MessageResponse getDCAStudentsForOA() {
+  public MessageResponse getDCAStudentsToGradeForOA() {
     return TransactionExecutor
-        .executeTransaction(DBHandlerBuilder.buildDCAStudentsForOAHandler(context));
+        .executeTransaction(DBHandlerBuilder.buildDCAStudentsToGradeForOAHandler(context));
   }
   
   @Override
-  public MessageResponse getDCAStudentSubmissionsForOA() {
+  public MessageResponse getDCAStudentSubmissionsOfOA() {
     return TransactionExecutor
-        .executeTransaction(DBHandlerBuilder.buildDCAStudentSubmissionsForOAHandler(context));
+        .executeTransaction(DBHandlerBuilder.buildDCAStudentSubmissionsOfOAHandler(context));
   }
   
   @Override
@@ -504,6 +505,37 @@ class AJReportRepo implements ReportRepo {
   public MessageResponse getDCAOACompleteMarkedByStudents() {
     return TransactionExecutor
         .executeTransaction(DBHandlerBuilder.buildDCAOACompleteMarkedByStudentsHandler(context));
+  }
+  
+  @Override
+  public MessageResponse getOAToTeacherGrade() {
+    return TransactionExecutor
+        .executeTransaction(DBHandlerBuilder.buildOAToTeacherGradeHandler(context));
+  }
+  
+  @Override
+  public MessageResponse getOAToSelfGrade() {
+    return TransactionExecutor
+        .executeTransaction(DBHandlerBuilder.buildOAToSelfGradeHandler(context));
+  }
+  
+  @Override
+  public MessageResponse getStudentsToGradeForOA() {
+    return TransactionExecutor
+        .executeTransaction(DBHandlerBuilder.buildStudentsToGradeForOAHandler(context));
+  }
+  
+  @Override
+  public MessageResponse getStudentSubmissionsOfOA() {
+    return TransactionExecutor
+        .executeTransaction(DBHandlerBuilder.buildStudentSubmissionsOfOAHandler(context));
+  }
+  
+  
+  @Override
+  public MessageResponse getOACompleteMarkedByStudents() {
+    return TransactionExecutor
+        .executeTransaction(DBHandlerBuilder.buildOACompleteMarkedByStudentsHandler(context));
   }
 
 }

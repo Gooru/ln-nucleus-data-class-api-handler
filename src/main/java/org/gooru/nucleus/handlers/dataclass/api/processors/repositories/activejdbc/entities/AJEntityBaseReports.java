@@ -1721,5 +1721,27 @@ public class AJEntityBaseReports extends Model {
           + "FROM base_reports WHERE class_id IS NULL AND course_id = ? AND lesson_id = ?  "
           + "AND collection_type IN ('collection', 'collection-external') AND actor_id = ? AND event_name = 'collection.resource.play' "
           + "AND resource_type = 'question' AND (path_id IS NULL OR path_id = 0)) AS lessonData GROUP BY lesson_id;";
+  
+  public static final String GET_OA_TO_TEACHER_GRADE =
+      "SELECT collection_id, collection_type, actor_id, course_id, unit_id, lesson_id, date_in_time_zone, path_id, path_type "
+      + "FROM base_reports WHERE class_id = ? AND course_id = ? AND event_name = 'collection.play' AND event_type = 'stop' "
+      + "AND collection_type = 'offline-activity' AND is_graded = false AND grading_type = 'teacher' AND content_source = 'coursemap' "
+      + "ORDER BY collection_id, actor_id, date_in_time_zone, updated_at DESC";
+  
+  public static final String GET_OA_TO_SELF_GRADE =
+      "SELECT collection_id, collection_type, actor_id, course_id, unit_id, lesson_id, date_in_time_zone, path_id, path_type "
+      + "FROM base_reports WHERE class_id = ? AND course_id = ? AND actor_id = ? AND event_name = 'collection.play' AND event_type = 'stop' "
+      + "AND collection_type = 'offline-activity' AND is_graded = false AND grading_type = 'teacher' AND content_source = 'coursemap' "
+      + "ORDER BY collection_id, actor_id, date_in_time_zone, updated_at DESC";
+
+  public static final String GET_DISTINCT_STUDENTS_FOR_THIS_OA =
+      "SELECT DISTINCT (actor_id) FROM base_reports WHERE class_id = ? AND course_id = ? AND collection_id = ? AND content_source = 'coursemap' "
+      + "AND event_type = 'stop' AND event_name = 'collection.play' AND collection_type = 'offline-activity' "
+      + "AND is_graded = false AND grading_type = 'teacher'";
+
+  public static final String GET_COMPLETED_OA = "class_id = ? AND actor_id = ? "
+      + "AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND event_name = 'collection.play' "
+      + "AND event_type = 'stop' AND collection_type = 'offline-activity' "
+      + "AND grading_type = 'teacher' order by updated_at desc";
 }
 

@@ -166,16 +166,26 @@ public interface ReportRepo {
   MessageResponse getDCARubricSummaryforQuestion();
 
   // DCA OA Grading
-  MessageResponse getDCAOAToGrade();
+  MessageResponse getDCAOAToTeacherGrade();
   
-  MessageResponse getDCAOAToGradeStudent();
+  MessageResponse getDCAOAToSelfGrade();
 
-  MessageResponse getDCAStudentsForOA();
+  MessageResponse getDCAStudentsToGradeForOA();
   
-  MessageResponse getDCAStudentSubmissionsForOA();
+  MessageResponse getDCAStudentSubmissionsOfOA();
 
   MessageResponse getDCAStudOAPerformance();
 
   MessageResponse getDCAOACompleteMarkedByStudents();
+
+  MessageResponse getOAToTeacherGrade();
+
+  MessageResponse getOAToSelfGrade();
+
+  MessageResponse getStudentsToGradeForOA();
+
+  MessageResponse getStudentSubmissionsOfOA();
+
+  MessageResponse getOACompleteMarkedByStudents();
 
 }
