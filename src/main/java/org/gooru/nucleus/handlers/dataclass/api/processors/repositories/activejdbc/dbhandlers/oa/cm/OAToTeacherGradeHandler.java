@@ -12,6 +12,7 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejd
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityCollection;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityCoreContent;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityLesson;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityOACompletionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityUserNavigationPaths;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityUserRoute0ContentDetail;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.validators.ValidationUtils;
@@ -81,7 +82,7 @@ public class OAToTeacherGradeHandler implements DBHandler {
   @SuppressWarnings("rawtypes")
   public ExecutionResult<MessageResponse> executeRequest() {
     JsonObject result = new JsonObject();
-    List<Map> oaList = Base.findAll(AJEntityBaseReports.GET_OA_TO_TEACHER_GRADE, this.classId, this.courseId);
+    List<Map> oaList = Base.findAll(AJEntityOACompletionStatus.GET_CM_OA_TO_TEACHER_GRADE, this.classId, this.courseId);
     if (!oaList.isEmpty()) {
       oaList.forEach(m -> {
         String collectionId = m.get(AJEntityBaseReports.COLLECTION_OID).toString();

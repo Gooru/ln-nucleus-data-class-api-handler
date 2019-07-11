@@ -32,4 +32,24 @@ public class AJEntityOACompletionStatus extends Model {
   public static final String GET_CM_OA_MARKED_AS_COMPLETE_BY_STUDENT =
       "select student_id from offline_activity_completion_status where class_id = ?::uuid AND course_id = ?::uuid AND unit_id = ?::uuid AND lesson_id = ?::uuid AND oa_id = ?::uuid AND oa_dca_id IS NULL AND content_source = ? and is_marked_by_student = true and is_marked_by_teacher = false";
   
+  public static final String GET_CM_OA_TO_TEACHER_GRADE =
+      "SELECT oa_id as collection_id, collection_type, student_id as actor_id, course_id, unit_id, lesson_id, path_id, path_type "
+          + "FROM offline_activity_completion_status WHERE class_id = ?::uuid AND course_id = ?::uuid "
+          + "AND is_teacher_graded = false AND (is_marked_by_student = true OR is_marked_by_teacher = true)"
+          + "AND collection_type = 'offline-activity' AND content_source = 'coursemap' "
+          + "ORDER BY collection_id, actor_id, updated_at DESC";
+  
+  public static final String GET_CM_OA_TO_SELF_GRADE =
+      "SELECT oa_id AS collection_id, collection_type, student_id AS actor_id, course_id, unit_id, lesson_id, path_id, path_type "
+      + "FROM offline_activity_completion_status WHERE class_id = ?::uuid AND course_id = ?::uuid AND student_id = ?::uuid "
+      + "AND is_teacher_graded = false AND (is_marked_by_student = true OR is_marked_by_teacher = true) "
+      + "AND collection_type = 'offline-activity' AND content_source = 'coursemap' "
+      + "ORDER BY collection_id, actor_id, updated_at DESC";
+
+  public static final String GET_DISTINCT_STUDENTS_FOR_THIS_CM_OA =
+      "SELECT DISTINCT (student_id) FROM offline_activity_completion_status WHERE class_id = ?::uuid "
+      + "AND course_id = ?::uuid AND oa_id = ?::uuid AND content_source = 'coursemap' "
+      + "AND is_teacher_graded = false AND (is_marked_by_student = true OR is_marked_by_teacher = true)"
+      + "AND collection_type = 'offline-activity'";
+  
 }
