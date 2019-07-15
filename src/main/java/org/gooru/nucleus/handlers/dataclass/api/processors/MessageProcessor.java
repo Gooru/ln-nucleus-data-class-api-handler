@@ -281,6 +281,9 @@ class MessageProcessor implements Processor {
         case MessageConstants.MSG_OP_DCA_OA_STUDENT_SUBMISSIONS:
           result = getDCAStudentSubmissionsForOA();
           break;
+        case MessageConstants.MSG_OP_DCA_OA_COMPLETE_BY_STUDENT_LIST:
+          result = getDCAOACompleteMarkedByStudents();
+          break;
         default:
           LOGGER.error("Invalid operation type passed in, not able to handle");
           return MessageResponseFactory
@@ -1808,6 +1811,18 @@ class MessageProcessor implements Processor {
 
     } catch (Throwable t) {
       LOGGER.error("Exception while getting Student Submissions for OA Grading", t);
+      return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+    }
+
+  }
+  
+  private MessageResponse getDCAOACompleteMarkedByStudents() {
+    try {
+      ProcessorContext context = createContext();
+      return new RepoBuilder().buildReportRepo(context).getDCAOACompleteMarkedByStudents();
+
+    } catch (Throwable t) {
+      LOGGER.error("Exception while getting OA complete student list", t);
       return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
     }
 

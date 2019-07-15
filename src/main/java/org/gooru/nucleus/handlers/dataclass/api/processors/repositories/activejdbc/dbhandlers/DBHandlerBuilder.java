@@ -342,6 +342,10 @@ public final class DBHandlerBuilder {
   public static DBHandler buildDCAStudOAPerfHandler(ProcessorContext context) {
       return new DCAStudOAPerfHandler(context);
   }
+  
+  public static DBHandler buildDCAOACompleteMarkedByStudentsHandler(ProcessorContext context) {
+    return new DCAOACompleteMarkedByStudentsHandler(context);
+  }
    
 }
 
