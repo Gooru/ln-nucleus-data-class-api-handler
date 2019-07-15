@@ -100,10 +100,7 @@ public class StudentCurrentLocationHandler implements DBHandler {
           : null;
       loc.put(AJEntityBaseReports.ATTR_LESSON_ID, lessonId);
       String collId = locModel.get(AJEntityBaseReports.COLLECTION_OID).toString();
-      if (Objects.equals(locModel.get(AJEntityBaseReports.COLLECTION_TYPE),
-          EventConstants.ASSESSMENT)
-          || Objects.equals(locModel.get(AJEntityBaseReports.COLLECTION_TYPE),
-              EventConstants.EXT_ASSESSMENT)) {
+      if (EventConstants.ASSESSMENT_TYPES.matcher(locModel.get(AJEntityBaseReports.COLLECTION_TYPE).toString()).matches()) {
         loc.put(AJEntityBaseReports.ATTR_ASSESSMENT_ID, collId);
         Object collTitle = Base.firstCell(AJEntityContent.GET_TITLE, collId);
         loc.put(JsonConstants.ASSESSMENT_TITLE, (collTitle != null ? collTitle.toString() : "NA"));
@@ -127,10 +124,7 @@ public class StudentCurrentLocationHandler implements DBHandler {
           EventConstants.COLLECTION_PLAY, EventConstants.STOP);
       if (collectionStatus != null) {
         loc.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
-        if (Objects.equals(locModel.get(AJEntityBaseReports.COLLECTION_TYPE),
-            EventConstants.ASSESSMENT)
-            || Objects.equals(locModel.get(AJEntityBaseReports.COLLECTION_TYPE),
-                EventConstants.EXT_ASSESSMENT)) {
+        if (EventConstants.ASSESSMENT_TYPES.matcher(locModel.get(AJEntityBaseReports.COLLECTION_TYPE).toString()).matches()) {
           loc.put(AJEntityBaseReports.ATTR_SCORE,
               collectionStatus.get(AJEntityBaseReports.SCORE) == null ? null
                   : Math.round(

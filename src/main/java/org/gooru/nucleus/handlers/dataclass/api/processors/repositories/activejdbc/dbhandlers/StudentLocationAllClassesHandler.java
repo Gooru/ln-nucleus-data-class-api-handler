@@ -182,9 +182,7 @@ public class StudentLocationAllClassesHandler implements DBHandler {
             EventConstants.COLLECTION_PLAY, EventConstants.STOP);
         if (collectionStatus != null) {
           studLoc.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
-          if (Objects.equals(m.get(AJEntityBaseReports.COLLECTION_TYPE), EventConstants.ASSESSMENT)
-              || Objects.equals(m.get(AJEntityBaseReports.COLLECTION_TYPE),
-                  EventConstants.EXT_ASSESSMENT)) {
+          if (EventConstants.ASSESSMENT_TYPES.matcher(m.get(AJEntityBaseReports.COLLECTION_TYPE).toString()).matches()) {
             studLoc.put(AJEntityBaseReports.ATTR_SCORE,
                 collectionStatus.get(AJEntityBaseReports.SCORE) == null ? null
                     : Math.round(Double
