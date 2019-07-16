@@ -283,8 +283,6 @@ public final class EventConstants {
 
   public static final String LESSON = "lesson";
 
-  public static final String ASSESSMENT_URL = "assessment/url";
-
   public static final String ASSESSMENT_COUNT = "assessmentCount";
 
   public static final String ANSWER_ID = "answerId";
@@ -731,7 +729,7 @@ public final class EventConstants {
 
   public static final String RATE = "rate";
 
-  public static final String ASSESSMENT_TYPES = "assessment|assessment/url";
+  public static final Pattern ASSESSMENT_TYPES = Pattern.compile("assessment|assessment-external|offline-activity");
 
   public static final String RECOMPUTATION_COLLECTION_TYPES =
       "class|course|unit|lesson|assessment|assessment/url";

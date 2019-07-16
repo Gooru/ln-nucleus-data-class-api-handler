@@ -39,6 +39,10 @@ public class AJEntityOfflineActivitySelfGrade extends Model {
   public static final String CLASS_ID = "class_id";
   public static final String STUDENT_ID = "student_id";
 
-  public static final String FETCH_OA_SELF_GRADES =
+  public static final String FETCH_CA_OA_SELF_GRADES =
       "class_id = ?::uuid and oa_dca_id  = ? and student_id = ?::uuid";
+  
+  public static final String FETCH_CM_OA_SELF_GRADES =
+      "class_id = ?::uuid and oa_dca_id  IS NULL and student_id = ?::uuid AND course_id = ?::uuid "
+      + "AND unit_id = ?::uuid AND lesson_id = ?::uuid AND oa_id = ?::uuid";
 }
