@@ -1,15 +1,17 @@
-package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers.oa;
+package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers.oa.cm;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers.DBHandler;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
-import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityDailyClassActivity;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityOfflineActivitySelfGrade;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityOfflineActivitySubmissions;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityRubricGrading;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.validators.ValidationUtils;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
@@ -18,7 +20,6 @@ import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.hazelcast.util.StringUtil;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -26,17 +27,20 @@ import io.vertx.core.json.JsonObject;
  * @author renuka
  * 
  */
-public class DCAStudentSubmissionForOAHandler implements DBHandler {
+public class StudentSubmissionOfOAHandler implements DBHandler {
 
   private static final Logger LOGGER =
-      LoggerFactory.getLogger(DCAStudentSubmissionForOAHandler.class);
+      LoggerFactory.getLogger(StudentSubmissionOfOAHandler.class);
   private final ProcessorContext context;
 
-  private Long oaDcaId;
   private String classId;
   private String studentId;
+  private String courseId;
+  private String unitId;
+  private String lessonId;
+  private String collectionId;
 
-  public DCAStudentSubmissionForOAHandler(ProcessorContext context) {
+  public StudentSubmissionOfOAHandler(ProcessorContext context) {
     this.context = context;
   }
 
@@ -44,11 +48,15 @@ public class DCAStudentSubmissionForOAHandler implements DBHandler {
   public ExecutionResult<MessageResponse> checkSanity() {
 
     this.studentId = this.context.studId();
-    this.oaDcaId = Long.valueOf(this.context.oaId().toString());
     this.classId = this.context.classId();
-    
-    if (StringUtil.isNullOrEmpty(classId) || StringUtil.isNullOrEmpty(studentId) || 
-        oaDcaId == null) {
+    this.courseId = this.context.request().getString(MessageConstants.COURSE_ID);
+    this.unitId = this.context.request().getString(MessageConstants.UNIT_ID);
+    this.lessonId = this.context.request().getString(MessageConstants.LESSON_ID);
+    this.collectionId = this.context.oaId();
+
+    if (!ValidationUtils.isValidUUID(classId) || !ValidationUtils.isValidUUID(studentId)
+        || !ValidationUtils.isValidUUID(courseId) || !ValidationUtils.isValidUUID(unitId)
+        || !ValidationUtils.isValidUUID(lessonId) || !ValidationUtils.isValidUUID(collectionId)) {
       LOGGER.warn("Invalid Json Payload");
       return new ExecutionResult<>(
           MessageResponseFactory.createInvalidRequestResponse("Invalid Json Payload"),
@@ -98,21 +106,21 @@ public class DCAStudentSubmissionForOAHandler implements DBHandler {
   }
 
   private String getSessionId() {
-    AJEntityDailyClassActivity dcaModel =
-        AJEntityDailyClassActivity.findFirst(AJEntityDailyClassActivity.GET_COMPLETED_OA,
-            this.classId, this.oaDcaId, this.studentId);
+    AJEntityBaseReports brModel =
+        AJEntityBaseReports.findFirst(AJEntityBaseReports.GET_COMPLETED_OA,
+            this.classId, this.studentId, this.courseId, this.unitId, this.lessonId, this.collectionId);
     String sessionId = null;
-    if (dcaModel != null
-        && dcaModel.getString(AJEntityDailyClassActivity.SESSION_ID) != null) {
-      sessionId = dcaModel.getString(AJEntityDailyClassActivity.SESSION_ID);
+    if (brModel != null
+        && brModel.getString(AJEntityBaseReports.SESSION_ID) != null) {
+      sessionId = brModel.getString(AJEntityBaseReports.SESSION_ID);
     }
     return sessionId;
   }
 
   private void fetchStudentRubricData(JsonObject oaRubrics) {
     List<Model> ansModel = AJEntityOfflineActivitySelfGrade.where(
-        AJEntityOfflineActivitySelfGrade.FETCH_OA_SELF_GRADES, this.classId, this.oaDcaId,
-        this.studentId);
+        AJEntityOfflineActivitySelfGrade.FETCH_CM_OA_SELF_GRADES, this.classId,
+        this.studentId, this.courseId, this.unitId, this.lessonId, this.collectionId);
     JsonObject gradeObject = null;
     if (ansModel != null && ansModel.size() > 0) {
       gradeObject = new JsonObject();
@@ -155,8 +163,8 @@ public class DCAStudentSubmissionForOAHandler implements DBHandler {
   
   private void fetchTeacherRubricData(JsonObject oaRubrics) {
     List<Model> ansModel =
-        AJEntityRubricGrading.where(AJEntityRubricGrading.GET_TEACHER_RUBRIC_GRADE_FOR_DCA_OA,
-            this.classId, this.oaDcaId, this.studentId);
+        AJEntityRubricGrading.where(AJEntityRubricGrading.GET_TEACHER_RUBRIC_GRADE_FOR_CM_OA,
+            this.classId, this.studentId, this.courseId, this.unitId, this.lessonId, this.collectionId);
     JsonObject gradeObject = null;
     if (ansModel != null && ansModel.size() > 0) {
       gradeObject = new JsonObject();
@@ -197,8 +205,8 @@ public class DCAStudentSubmissionForOAHandler implements DBHandler {
     JsonArray taskArray = null;
     JsonObject taskMap = null;
     List<Model> taskSubmissionsModel = AJEntityOfflineActivitySubmissions.where(
-        AJEntityOfflineActivitySubmissions.FETCH_OA_SUBMISSIONS, this.classId, this.oaDcaId,
-        this.studentId);
+        AJEntityOfflineActivitySubmissions.FETCH_CM_OA_SUBMISSIONS, this.classId,
+        this.studentId, this.courseId, this.unitId, this.lessonId, this.collectionId);
     if (taskSubmissionsModel != null && taskSubmissionsModel.size() > 0) {
       taskMap = new JsonObject();
       for (Model m : taskSubmissionsModel) {
@@ -232,15 +240,6 @@ public class DCAStudentSubmissionForOAHandler implements DBHandler {
           JsonObject taskobj = new JsonObject();
           taskobj.put(AJEntityOfflineActivitySubmissions.ATTR_TASK_ID,
               Integer.valueOf(task.getKey()));
-          
-          // Can be removed as we will store only latest free form text. submission array will now include latest free-form text as well. 
-          // affects FE changes, so keeping as is for now.
-          AJEntityOfflineActivitySubmissions latestSubmission = AJEntityOfflineActivitySubmissions.findFirst(
-              AJEntityOfflineActivitySubmissions.FETCH_OA_LATEST_SUBMISSIONS, this.classId, this.oaDcaId,
-              this.studentId, Integer.valueOf(task.getKey()));
-          taskobj.put(AJEntityOfflineActivitySubmissions.ATTR_SUBMISSION_INFO,
-              (latestSubmission != null && latestSubmission.get(AJEntityOfflineActivitySubmissions.SUBMISSION_INFO) != null) ? 
-                  latestSubmission.get(AJEntityOfflineActivitySubmissions.SUBMISSION_INFO).toString() : null);
           
           taskobj.put(AJEntityOfflineActivitySubmissions.ATTR_SUBMISSIONS, task.getValue());
           taskArray.add(taskobj);

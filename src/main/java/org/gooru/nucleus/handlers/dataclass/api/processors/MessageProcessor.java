@@ -273,16 +273,22 @@ class MessageProcessor implements Processor {
           break;
        // DCA OA Grading
         case MessageConstants.MSG_OP_ITEMS_TO_GRADE:
-          result = getDCAOAsToGrade();
+          result = getOAsToGrade();
           break;
         case MessageConstants.MSG_OP_ITEMS_TO_GRADE_STUDENTS_LIST:
-          result = getDCAStudentsForOA();
+          result = getStudentsToGradeForOA();
           break;
         case MessageConstants.MSG_OP_DCA_OA_STUDENT_SUBMISSIONS:
           result = getDCAStudentSubmissionsForOA();
           break;
         case MessageConstants.MSG_OP_DCA_OA_COMPLETE_BY_STUDENT_LIST:
           result = getDCAOACompleteMarkedByStudents();
+          break;
+        case MessageConstants.MSG_OP_CM_OA_STUDENT_SUBMISSIONS:
+          result = getStudentSubmissionsOfOA();
+          break;
+        case MessageConstants.MSG_OP_CM_OA_COMPLETE_BY_STUDENT_LIST:
+          result = getOACompleteMarkedByStudents();
           break;
         default:
           LOGGER.error("Invalid operation type passed in, not able to handle");
@@ -1763,15 +1769,29 @@ class MessageProcessor implements Processor {
 
   }
   
-  private MessageResponse getDCAOAsToGrade() {
+  private MessageResponse getOAsToGrade() {
     try {
       ProcessorContext context = createContext();
       
-      String studentId = context.request().getString(MessageConstants.USER_ID);      
-      if (!StringUtil.isNullOrEmpty(studentId)) {
-        return new RepoBuilder().buildReportRepo(context).getDCAOAToGradeStudent();        
+      String studentId = context.request().getString(MessageConstants.USER_ID);  
+      String type = context.request().getString(MessageConstants.TYPE, MessageConstants.OA);      
+      String source = context.request().getString(MessageConstants.SOURCE, MessageConstants.DCA);   
+      if(!type.equalsIgnoreCase(MessageConstants.OA) || !MessageConstants.CM_CA_SOURCE_TYPES.matcher(source).matches()) {
+        LOGGER.error("Source or type is invalid. Aborting!");
+        return MessageResponseFactory.createInvalidRequestResponse("Invalid type or source");
+      }
+      if (source.equals(MessageConstants.DCA)) {
+        if (!StringUtil.isNullOrEmpty(studentId)) {
+          return new RepoBuilder().buildReportRepo(context).getDCAOAToSelfGrade();
+        } else {
+          return new RepoBuilder().buildReportRepo(context).getDCAOAToTeacherGrade();
+        }
       } else {
-        return new RepoBuilder().buildReportRepo(context).getDCAOAToGrade();
+        if (!StringUtil.isNullOrEmpty(studentId)) {
+          return new RepoBuilder().buildReportRepo(context).getOAToSelfGrade();
+        } else {
+          return new RepoBuilder().buildReportRepo(context).getOAToTeacherGrade();
+        }
       }
     } catch (Throwable t) {
       LOGGER.error("Exception while getting OA pending Grading", t);
@@ -1780,7 +1800,7 @@ class MessageProcessor implements Processor {
 
   }
 
-  private MessageResponse getDCAStudentsForOA() {
+  private MessageResponse getStudentsToGradeForOA() {
     try {
       ProcessorContext context = createContext();
 
@@ -1788,8 +1808,17 @@ class MessageProcessor implements Processor {
         LOGGER.error("oaId not available to obtain grading items. Aborting!");
         return MessageResponseFactory.createInvalidRequestResponse("Invalid ItemId");
       }
-
-      return new RepoBuilder().buildReportRepo(context).getDCAStudentsForOA();
+      String type = context.request().getString(MessageConstants.TYPE, MessageConstants.OA);      
+      String source = context.request().getString(MessageConstants.SOURCE, MessageConstants.DCA);   
+      if(!type.equalsIgnoreCase(MessageConstants.OA) || !MessageConstants.CM_CA_SOURCE_TYPES.matcher(source).matches()) {
+        LOGGER.error("Source or type is invalid. Aborting!");
+        return MessageResponseFactory.createInvalidRequestResponse("Invalid type or source");
+      }
+      if (source.equals(MessageConstants.DCA)) {
+        return new RepoBuilder().buildReportRepo(context).getDCAStudentsToGradeForOA();
+      } else {
+        return new RepoBuilder().buildReportRepo(context).getStudentsToGradeForOA();
+      }
 
     } catch (Throwable t) {
       LOGGER.error("Exception while getting Student List for OA Grading", t);
@@ -1807,7 +1836,7 @@ class MessageProcessor implements Processor {
         return MessageResponseFactory.createInvalidRequestResponse("Invalid oaId");
       }
 
-      return new RepoBuilder().buildReportRepo(context).getDCAStudentSubmissionsForOA();
+      return new RepoBuilder().buildReportRepo(context).getDCAStudentSubmissionsOfOA();
 
     } catch (Throwable t) {
       LOGGER.error("Exception while getting Student Submissions for OA Grading", t);
@@ -1823,6 +1852,36 @@ class MessageProcessor implements Processor {
 
     } catch (Throwable t) {
       LOGGER.error("Exception while getting OA complete student list", t);
+      return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+    }
+
+  }
+  
+  private MessageResponse getStudentSubmissionsOfOA() {
+    try {
+      ProcessorContext context = createContext();
+
+      if (!checkOaId(context)) {
+        LOGGER.error("oaId not available to obtain CM OA Student Submissions. Aborting!");
+        return MessageResponseFactory.createInvalidRequestResponse("Invalid oaId");
+      }
+
+      return new RepoBuilder().buildReportRepo(context).getStudentSubmissionsOfOA();
+
+    } catch (Throwable t) {
+      LOGGER.error("Exception while getting CM OA Student Submissions for OA Grading", t);
+      return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+    }
+
+  }
+  
+  private MessageResponse getOACompleteMarkedByStudents() {
+    try {
+      ProcessorContext context = createContext();
+      return new RepoBuilder().buildReportRepo(context).getOACompleteMarkedByStudents();
+
+    } catch (Throwable t) {
+      LOGGER.error("Exception while getting CM OA complete student list", t);
       return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
     }
 

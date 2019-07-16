@@ -71,6 +71,12 @@ public final class MessageConstants {
   public static final String ITEM_ID = "itemId";
   //Offline Activities
   public static final String OA_ID = "oaId";
+  public static final String TYPE = "type";
+  public static final String SOURCE = "source";
+  public static final String DCA = "dca";
+  public static final String COURSEMAP = "coursemap";
+  public static final String OA = "oa";
+  public static final Pattern CM_CA_SOURCE_TYPES = Pattern.compile("dca|coursemap");
 
   // Read API Constants
   public static final String MSG_OP_COURSE_PEERS = "student.peers.in.course";
@@ -226,9 +232,11 @@ public final class MessageConstants {
   public static final String MSG_OP_ITEMS_TO_GRADE = "items.to.grade";
   public static final String MSG_OP_ITEMS_TO_GRADE_STUDENTS_LIST = "items.to.grade.students.list";
 
-  //Offline-Actvities
+  //Offline-Activities
   public static final String MSG_OP_DCA_OA_STUDENT_SUBMISSIONS = "dca.oa.student.submissions";
   public static final String MSG_OP_DCA_OA_COMPLETE_BY_STUDENT_LIST = "dca.oa.complete.by.students.list";
+  public static final String MSG_OP_CM_OA_STUDENT_SUBMISSIONS = "cm.oa.student.submissions";
+  public static final String MSG_OP_CM_OA_COMPLETE_BY_STUDENT_LIST = "cm.oa.complete.by.students.list";
 
   public static final String PORT = "port";
   public static final String HOST = "host";

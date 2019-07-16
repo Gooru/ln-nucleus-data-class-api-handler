@@ -1,4 +1,4 @@
-package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers.oa;
+package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers.oa.ca;
 
 import java.util.List;
 import java.util.UUID;
@@ -73,7 +73,7 @@ public class DCAOACompleteMarkedByStudentsHandler implements DBHandler {
     JsonArray resultarray = new JsonArray();
     
     LazyList<Model> isOAMarkedCompleteByStudent = AJEntityOACompletionStatus.findBySQL(
-        AJEntityOACompletionStatus.GET_OA_MARKED_AS_COMPLETE_BY_STUDENT, classId, oaId, itemId,
+        AJEntityOACompletionStatus.GET_CA_OA_MARKED_AS_COMPLETE_BY_STUDENT, classId, oaId, itemId,
         DCA);
     if (!isOAMarkedCompleteByStudent.isEmpty()) {
       List<UUID> userIds =
