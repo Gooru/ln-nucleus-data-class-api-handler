@@ -95,5 +95,9 @@ public class AJEntityRubricGrading extends Model {
   
   public static final String GET_TEACHER_RUBRIC_GRADE_FOR_DCA_OA =
       "class_id = ? and dca_content_id = ? and student_id = ? AND resource_id is null";
+  
+  public static final String GET_TEACHER_RUBRIC_GRADE_FOR_CM_OA =
+      "class_id = ? and dca_content_id IS NULL and student_id = ? AND resource_id is null "
+      + "AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ?";
 
 }

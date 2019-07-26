@@ -1,4 +1,4 @@
-package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers.oa;
+package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers.oa.ca;
 
 import java.util.HashMap;
 import java.util.List;
@@ -27,9 +27,9 @@ import io.vertx.core.json.JsonObject;
  * @author renuka
  * 
  */
-public class DCAOAToGradeHandler implements DBHandler {
+public class DCAOAToTeacherGradeHandler implements DBHandler {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(DCAOAToGradeHandler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(DCAOAToTeacherGradeHandler.class);
   private final ProcessorContext context;
   private String classId;
   JsonArray resultArray = new JsonArray();
@@ -38,7 +38,7 @@ public class DCAOAToGradeHandler implements DBHandler {
 
 
 
-  public DCAOAToGradeHandler(ProcessorContext context) {
+  public DCAOAToTeacherGradeHandler(ProcessorContext context) {
     this.context = context;
   }
 
