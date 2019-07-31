@@ -8,10 +8,10 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers.DBHandler;
-import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityCollection;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityCoreContent;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityDailyClassActivity;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityOACompletionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
@@ -81,13 +81,12 @@ public class DCAOAToTeacherGradeHandler implements DBHandler {
   public ExecutionResult<MessageResponse> executeRequest() {
     JsonObject result = new JsonObject();
     List<Map> queMap =
-        Base.findAll(AJEntityDailyClassActivity.GET_OA_TO_GRADE, this.classId);
+        Base.findAll(AJEntityOACompletionStatus.GET_CA_OA_TO_TEACHER_GRADE, this.classId);
     if (!queMap.isEmpty()) {
       queMap.forEach(m -> {
         String collectionType = m.get(AJEntityDailyClassActivity.COLLECTION_TYPE).toString();
         String collectionId = m.get(AJEntityDailyClassActivity.COLLECTION_OID).toString();
-        String studentId = m.get(AJEntityDailyClassActivity.GOORUUID).toString();
-        Long dcaContentId = Long.valueOf(m.get(AJEntityDailyClassActivity.DCA_CONTENT_ID).toString());        
+        Long dcaContentId = Long.valueOf(m.get(AJEntityOACompletionStatus.OA_DCA_ID).toString());        
       calculateStudentCount(collectionType, collectionId, dcaContentId);
 
       });
