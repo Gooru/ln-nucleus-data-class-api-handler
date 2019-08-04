@@ -7,13 +7,15 @@ import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers.DBHandler;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityCollection;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityCoreContent;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityDailyClassActivity;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityOACompletionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
+import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
-import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.javalite.activejdbc.Base;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,9 +79,9 @@ public class DCAOAToSelfGradeHandler implements DBHandler {
   @SuppressWarnings("rawtypes")
   public ExecutionResult<MessageResponse> executeRequest() {
     JsonObject result = new JsonObject();
-    List<Map> queMap = Base.findAll(AJEntityDailyClassActivity.GET_OA_TO_GRADE_FOR_STUDENT, this.classId, this.studentId);
-    if (!queMap.isEmpty()) {
-      queMap.forEach(m -> {
+    List<Map> oaList = Base.findAll(AJEntityOACompletionStatus.GET_CA_OA_TO_SELF_GRADE, this.classId, this.studentId);
+    if (oaList != null && !oaList.isEmpty()) {
+      for (Map m : oaList) {        
         JsonObject coll = new JsonObject();
         String collectionId = m.get(AJEntityDailyClassActivity.COLLECTION_OID).toString();        
         String collTitle = fetchCollectionMeta(collectionId);
@@ -88,9 +90,9 @@ public class DCAOAToSelfGradeHandler implements DBHandler {
         coll.put(AJEntityDailyClassActivity.ATTR_COLLECTION_TYPE,
             m.get(AJEntityDailyClassActivity.COLLECTION_TYPE).toString());
         coll.put(AJEntityDailyClassActivity.ATTR_DCA_CONTENT_ID,
-            Long.valueOf(m.get(AJEntityDailyClassActivity.DCA_CONTENT_ID).toString()));
+            Long.valueOf(m.get(AJEntityOACompletionStatus.OA_DCA_ID).toString()));
         resultArray.add(coll);
-      });
+      }
     } else {
       LOGGER.info("Offline Activity pending grading cannot be obtained for Student {}", studentId);
     }

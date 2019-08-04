@@ -8,6 +8,7 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers.DBHandler;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityDailyClassActivity;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityOACompletionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
@@ -82,21 +83,12 @@ public class DCAStudentsToGradeForOAHandler implements DBHandler {
     JsonObject result = new JsonObject();
     JsonArray resultarray = new JsonArray();
     
-    LazyList<AJEntityDailyClassActivity> userIdforOA = AJEntityDailyClassActivity.findBySQL(
-        AJEntityDailyClassActivity.GET_DISTINCT_STUDENTS_FOR_THIS_OA, classId, itemId);
+    LazyList<AJEntityOACompletionStatus> userIdforOA = AJEntityOACompletionStatus.findBySQL(
+        AJEntityOACompletionStatus.GET_DISTINCT_STUDENTS_FOR_THIS_CA_OA, classId, itemId);
     
-    if (!userIdforOA.isEmpty()) {
-      List<String> userIds = userIdforOA.collect(AJEntityDailyClassActivity.GOORUUID);
-      for (String userID : userIds) {
-        LOGGER.debug("UID is " + userID);
-        AJEntityDailyClassActivity scoreModel =
-            AJEntityDailyClassActivity.findFirst(AJEntityDailyClassActivity.GET_OA_STUDENTS_PENDING_GRADING,
-                classId, itemId, userID);
-        if (scoreModel != null) {
-            resultarray.add(userID);
-        }
-      }
-
+    if (userIdforOA != null && !userIdforOA.isEmpty()) {
+      List<String> userIds = userIdforOA.collect(AJEntityOACompletionStatus.STUDENT_ID);
+      resultarray = new JsonArray(userIds);
     } else {
       LOGGER.info("Student list for this Offline Activity grading cannot be obtained");
     }

@@ -41,15 +41,37 @@ public class AJEntityOACompletionStatus extends Model {
   
   public static final String GET_CM_OA_TO_SELF_GRADE =
       "SELECT oa_id AS collection_id, collection_type, student_id AS actor_id, course_id, unit_id, lesson_id, path_id, path_type "
-      + "FROM offline_activity_completion_status WHERE class_id = ?::uuid AND course_id = ?::uuid AND student_id = ?::uuid "
-      + "AND is_teacher_graded = false AND (is_marked_by_student = true OR is_marked_by_teacher = true) "
-      + "AND collection_type = 'offline-activity' AND content_source = 'coursemap' "
-      + "ORDER BY collection_id, actor_id, updated_at DESC";
+          + "FROM offline_activity_completion_status WHERE class_id = ?::uuid AND course_id = ?::uuid AND student_id = ?::uuid "
+          + "AND is_teacher_graded = false AND is_student_graded = false AND has_student_rubric = true "
+          + "AND (is_marked_by_student = true OR is_marked_by_teacher = true) "
+          + "AND collection_type = 'offline-activity' AND content_source = 'coursemap' "
+          + "ORDER BY collection_id, actor_id, updated_at DESC";
 
   public static final String GET_DISTINCT_STUDENTS_FOR_THIS_CM_OA =
       "SELECT DISTINCT (student_id) FROM offline_activity_completion_status WHERE class_id = ?::uuid "
-      + "AND course_id = ?::uuid AND oa_id = ?::uuid AND content_source = 'coursemap' "
-      + "AND is_teacher_graded = false AND (is_marked_by_student = true OR is_marked_by_teacher = true) "
-      + "AND collection_type = 'offline-activity'";
+          + "AND course_id = ?::uuid AND oa_id = ?::uuid AND content_source = 'coursemap' "
+          + "AND is_teacher_graded = false AND (is_marked_by_student = true OR is_marked_by_teacher = true) "
+          + "AND collection_type = 'offline-activity'";
+  
+  public static final String GET_CA_OA_TO_SELF_GRADE =
+      "SELECT oa_id AS collection_id, collection_type, student_id AS actor_id, oa_dca_id, path_id, path_type "
+          + "FROM offline_activity_completion_status WHERE class_id = ?::uuid AND oa_dca_id is not null AND student_id = ?::uuid "
+          + "AND is_teacher_graded = false AND is_student_graded = false AND has_student_rubric = true "
+          + "AND (is_marked_by_student = true OR is_marked_by_teacher = true) "
+          + "AND collection_type = 'offline-activity' AND content_source = 'dailyclassactivity' "
+          + "ORDER BY collection_id, actor_id, updated_at DESC";
+
+  public static final String GET_DISTINCT_STUDENTS_FOR_THIS_CA_OA =
+      "SELECT DISTINCT (student_id) FROM offline_activity_completion_status WHERE class_id = ?::uuid "
+          + "AND oa_dca_id = ? AND content_source = 'dailyclassactivity' "
+          + "AND is_teacher_graded = false AND (is_marked_by_student = true OR is_marked_by_teacher = true) "
+          + "AND collection_type = 'offline-activity'";
+  
+  public static final String GET_CA_OA_TO_TEACHER_GRADE =
+      "SELECT oa_id as collection_id, collection_type, student_id as actor_id, oa_dca_id, path_id, path_type "
+          + "FROM offline_activity_completion_status WHERE class_id = ?::uuid AND oa_dca_id is not null "
+          + "AND is_teacher_graded = false AND (is_marked_by_student = true OR is_marked_by_teacher = true) "
+          + "AND collection_type = 'offline-activity' AND content_source = 'dailyclassactivity' "
+          + "ORDER BY collection_id, actor_id, updated_at DESC";
   
 }
