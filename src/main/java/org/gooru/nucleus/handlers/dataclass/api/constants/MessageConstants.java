@@ -47,6 +47,8 @@ public final class MessageConstants {
   public static final String COLLECTION_ID = "collectionId";
   public static final String COLLECTION_IDS = "collectionIds";
   public static final String DCA_CONTENT_IDS = "dcaContentIds";
+  public static final String PATH_IDS = "pathIds";
+  public static final String SUGGESTED_CLASSES_PATH = "suggestedClassesPath";
   public static final String SESSION_ID = "sessionId";
   public static final String RESP_JSON_KEY_RESOURCES = "resources";
   public static final String START_DATE = "startDate";
@@ -77,6 +79,7 @@ public final class MessageConstants {
   public static final String COURSEMAP = "coursemap";
   public static final String OA = "oa";
   public static final Pattern CM_CA_SOURCE_TYPES = Pattern.compile("dca|coursemap");
+  public static final Pattern CM_CA_PROFICIENCY_SOURCE_TYPES = Pattern.compile("dca|coursemap|proficiency");
 
   // Read API Constants
   public static final String MSG_OP_COURSE_PEERS = "student.peers.in.course";
@@ -237,6 +240,9 @@ public final class MessageConstants {
   public static final String MSG_OP_DCA_OA_COMPLETE_BY_STUDENT_LIST = "dca.oa.complete.by.students.list";
   public static final String MSG_OP_CM_OA_STUDENT_SUBMISSIONS = "cm.oa.student.submissions";
   public static final String MSG_OP_CM_OA_COMPLETE_BY_STUDENT_LIST = "cm.oa.complete.by.students.list";
+
+  //Suggestions performance
+  public static final String MSG_OP_STUD_PERFORMANCE_ON_SUGGESTIONS = "student.items.suggestion.performance";
 
   public static final String PORT = "port";
   public static final String HOST = "host";

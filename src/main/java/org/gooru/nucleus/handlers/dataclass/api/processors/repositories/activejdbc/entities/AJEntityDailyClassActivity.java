@@ -580,7 +580,8 @@ public class AJEntityDailyClassActivity extends Model {
   public static final String GET_COMPLETED_OA = "class_id = ? AND dca_content_id = ? AND actor_id = ? "
       + "AND event_name = 'collection.play' AND event_type = 'stop' AND collection_type = 'offline-activity' "
       + "AND grading_type = 'teacher' order by updated_at desc";
-  
+  public static final String GET_DCA_IDS_FOR_SESSIONS =
+      "SELECT session_id, dca_content_id FROM daily_class_activity WHERE session_id = ANY(?::varchar[]) ORDER BY updated_at";
   public static final String UUID_TYPE = "uuid";
   public static Pattern YEAR_PATTERN = Pattern.compile("^\\d{4}$");
 

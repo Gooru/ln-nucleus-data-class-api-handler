@@ -290,6 +290,9 @@ class MessageProcessor implements Processor {
         case MessageConstants.MSG_OP_CM_OA_COMPLETE_BY_STUDENT_LIST:
           result = getOACompleteMarkedByStudents();
           break;
+        case MessageConstants.MSG_OP_STUD_PERFORMANCE_ON_SUGGESTIONS:
+          result = getUserPerformanceOnSuggestions();
+          break;
         default:
           LOGGER.error("Invalid operation type passed in, not able to handle");
           return MessageResponseFactory
@@ -1886,6 +1889,16 @@ class MessageProcessor implements Processor {
     }
 
   }
+  
+  private MessageResponse getUserPerformanceOnSuggestions() {
+    try {
+      ProcessorContext context = createContext();
+      return new RepoBuilder().buildReportRepo(context).getUserPerformanceOnSuggestions();
+    } catch (Throwable t) {
+      LOGGER.error("Exception while getting student performance on suggestions", t);
+      return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+    }
+  }
 
   // **************************************************************************************************************
 
@@ -1910,7 +1923,7 @@ class MessageProcessor implements Processor {
     String studId = message.headers().get(MessageConstants.STUDENTID);
     String oaId = message.headers().get(MessageConstants.OA_ID);
     String itemId = message.headers().get(MessageConstants.ITEM_ID);
-
+    
     return new ProcessorContext(request, userId, userUId, classId, courseId, unitId, lessonId,
         collectionId, sessionId, studentId, questionId, startDate, endDate, collectionType,
         milestoneId, studId, oaId, itemId);
