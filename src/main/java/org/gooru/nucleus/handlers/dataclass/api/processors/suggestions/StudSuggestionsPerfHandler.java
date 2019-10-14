@@ -19,6 +19,7 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionRe
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
+import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.hazelcast.util.StringUtil;
@@ -60,17 +61,34 @@ public class StudSuggestionsPerfHandler implements DBHandler {
 
   @Override
   public ExecutionResult<MessageResponse> validateRequest() {
+    if (context.getUserIdFromRequest() == null || (context.getUserIdFromRequest() != null
+        && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))
+        && !StringUtil.isNullOrEmpty(classId)) {
+      LOGGER.debug("User ID in session : {} : class : {}", context.userIdFromSession(), classId);
+      LazyList<AJEntityClassAuthorizedUsers> owner =
+          AJEntityClassAuthorizedUsers.findBySQL(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER,
+              classId, this.context.userIdFromSession());
+      if (owner.isEmpty()) {
+        LOGGER.debug("validateRequest() FAILED");
+        return new ExecutionResult<>(
+            MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"),
+            ExecutionStatus.FAILED);
+      }
+    }
     LOGGER.debug("validateRequest() OK");
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
   }
 
   @Override
   public ExecutionResult<MessageResponse> executeRequest() {
+    JsonArray resultarray = new JsonArray();
     JsonObject resultBody = new JsonObject();
     JsonArray userUsageArray = new JsonArray();
     LOGGER.debug("userId : {} - pathIds:{}", userId, pIds);
     List<AJEntityCollectionPerformance> items = null;
-    if (pIds.size() > 0) {
+    List<String> userIds = fetchUserId();
+    for (String userId : userIds) {
+      JsonObject usageData = new JsonObject();
       if (classId != null) {
         items = AJEntityCollectionPerformance.findBySQL(
             AJEntityCollectionPerformance.FETCH_SUGG_ITEM_PERFORMANCE_IN_CLASS, classId, userId,
@@ -86,15 +104,17 @@ public class StudSuggestionsPerfHandler implements DBHandler {
 
         // Collection_perf table to also capture caid, until this support is added, below code can
         // help return caid for each dca session in response.
-        if (scope.equalsIgnoreCase(EventConstants.DCA)) {
+        if (scope.equalsIgnoreCase(EventConstants.DAILYCLASSACTIVITY)) {
           enrichResponseWithCaId(userUsageArray);
         }
+        usageData.put(JsonConstants.USAGE_DATA, userUsageArray).put(JsonConstants.USERUID, userId);
+        resultarray.add(usageData);
+      } else {
+        LOGGER.debug("No data returned for Suggestion performance");
       }
-    } else {
-      LOGGER.debug("No data returned for Suggestion performance");
     }
-    
-    resultBody.put(JsonConstants.USAGE_DATA, userUsageArray).put(JsonConstants.USERUID, userId);
+    resultBody.put(JsonConstants.CONTENT, resultarray).putNull(JsonConstants.MESSAGE)
+        .putNull(JsonConstants.PAGINATE);
     return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody),
         ExecutionStatus.SUCCESSFUL);
   }
@@ -182,8 +202,34 @@ public class StudSuggestionsPerfHandler implements DBHandler {
                 "NumberFormatException:Invalid pathIds provided to fetch Student Suggestion in class"));
       }
     }
-    if (scope.equalsIgnoreCase("dca")) {
-      scope = EventConstants.DCA;
+    if (pIds.size() == 0) {
+      LOGGER.warn("PathIds are mandatory to fetch Student Suggestion Performance");
+      throw new MessageResponseWrapperException(MessageResponseFactory.createInvalidRequestResponse(
+          "PathIds are missing or invalid. Cannot fetch Student Suggestion Performance"));
+    }
+    if (scope.equalsIgnoreCase(MessageConstants.DCA)) {
+      scope = EventConstants.DAILYCLASSACTIVITY;
     }
   }
+  
+  @SuppressWarnings("unchecked")
+  private List<String> fetchUserId() {
+    List<String> userIds = new ArrayList<>(1);
+    if (!StringUtil.isNullOrEmpty(userId)) {
+      userIds.add(userId);
+    } else {
+      LOGGER.warn(
+          "UserID is not in the request to fetch Student Suggestion Perf. Assume user is a teacher");
+      if (!StringUtil.isNullOrEmpty(classId)) {
+        LazyList<AJEntityCollectionPerformance> usersOfClass = AJEntityCollectionPerformance.findBySQL(
+            AJEntityCollectionPerformance.SELECT_DISTINCT_USERID_FOR_CLASS_SUGGESTIONS, classId,
+            PgUtils.listToPostgresArrayLong(pIds), scope);
+        if (usersOfClass != null) {
+          userIds = usersOfClass.collect(AJEntityDailyClassActivity.GOORUUID);
+        }
+      }
+    }
+    return userIds;
+  }
+
 }

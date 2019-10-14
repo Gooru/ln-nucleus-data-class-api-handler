@@ -57,6 +57,14 @@ public class AJEntityCollectionPerformance extends Model {
           + " FROM collection_performance WHERE actor_id = ? "
           + " AND path_id = ANY(?::bigint[]) AND path_id > 0 AND content_source = ? ORDER BY updated_at DESC";
 
+  public static final String SELECT_DISTINCT_USERID_FOR_CLASS_SUGGESTIONS =
+      "SELECT DISTINCT(actor_id) FROM collection_performance WHERE class_id = ? AND "
+          + " path_id = ANY(?::bigint[]) AND path_id > 0 AND content_source = ? ";
+
+  public static final String SELECT_DISTINCT_USERID_FOR_SUGGESTIONS =
+      "SELECT DISTINCT(actor_id) FROM collection_performance WHERE "
+          + " path_id = ANY(?::bigint[]) AND path_id > 0 AND content_source = ? ";
+
   public static Boolean isValidScoreForCollection(Double score, Double maxScore) {
     return ((maxScore != null && maxScore > 0) && score != null);
   }

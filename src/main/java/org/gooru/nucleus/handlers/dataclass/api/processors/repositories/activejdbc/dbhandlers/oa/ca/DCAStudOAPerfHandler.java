@@ -82,7 +82,9 @@ public class DCAStudOAPerfHandler implements DBHandler {
     List<Long> collIds = new ArrayList<>(dcaContentIds.size());
     for (Object collId : dcaContentIds) {
       try {
-        collIds.add(Long.valueOf(collId.toString()));
+        if (collId != null) {
+          collIds.add(Long.valueOf(collId.toString()));
+        }
       } catch (NumberFormatException nfe) {
         return new ExecutionResult<>(
             MessageResponseFactory.createInvalidRequestResponse(

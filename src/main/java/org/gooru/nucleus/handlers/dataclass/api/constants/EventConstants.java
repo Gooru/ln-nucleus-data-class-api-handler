@@ -867,7 +867,7 @@ public final class EventConstants {
 
   public static final String EXT_COLLECTION = "collection-external";
   
-  public static final String DCA = "dailyclassactivity";
+  public static final String DAILYCLASSACTIVITY = "dailyclassactivity";
 
   private EventConstants() {
     throw new AssertionError();
