@@ -113,8 +113,7 @@ public class StudSuggestionsPerfHandler implements DBHandler {
         LOGGER.debug("No data returned for Suggestion performance");
       }
     }
-    resultBody.put(JsonConstants.CONTENT, resultarray).putNull(JsonConstants.MESSAGE)
-        .putNull(JsonConstants.PAGINATE);
+    resultBody.put(JsonConstants.CONTENT, resultarray);
     return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody),
         ExecutionStatus.SUCCESSFUL);
   }
@@ -214,7 +213,7 @@ public class StudSuggestionsPerfHandler implements DBHandler {
   
   @SuppressWarnings("unchecked")
   private List<String> fetchUserId() {
-    List<String> userIds = new ArrayList<>(1);
+    List<String> userIds = new ArrayList<>();
     if (!StringUtil.isNullOrEmpty(userId)) {
       userIds.add(userId);
     } else {
