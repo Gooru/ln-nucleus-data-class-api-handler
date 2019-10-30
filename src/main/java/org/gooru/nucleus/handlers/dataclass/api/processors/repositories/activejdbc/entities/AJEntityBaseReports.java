@@ -1749,7 +1749,7 @@ public class AJEntityBaseReports extends Model {
   
   public static final String GET_SUGG_PERFORMANCE_FOR_CLASS_COLLECTIONS_SCORE =
       "SELECT SUM(agg.score) AS score FROM (SELECT DISTINCT ON (resource_id) collection_id, "
-          + "FIRST_VALUE(score) OVER (PARTITION BY resource_id, date_in_time_zone ORDER BY updated_at desc) AS score "
+          + "FIRST_VALUE(score) OVER (PARTITION BY resource_id, path_id ORDER BY updated_at desc) AS score "
           + ", path_id FROM base_reports WHERE "
           + " class_id = ? AND actor_id = ? AND path_id = ? AND content_source = ? AND collection_id = ? AND "
           + "event_name = 'collection.resource.play' AND resource_type = 'question' AND resource_attempt_status <> 'skipped' "
@@ -1759,8 +1759,8 @@ public class AJEntityBaseReports extends Model {
       "SELECT SUM(agg.timeSpent) AS timeSpent, "
           + "(AVG(agg.scoreInPercentage)) scoreInPercentage, agg.lastSessionId, SUM(agg.attempts) AS attempts, "
           + "agg.collectionId, agg.collectionType, agg.pathId FROM (SELECT time_spent AS timeSpent, "
-          + "FIRST_VALUE(score) OVER (PARTITION BY collection_id, date_in_time_zone ORDER BY updated_at desc) AS scoreInPercentage, "
-          + "FIRST_VALUE(session_id) OVER (PARTITION BY collection_id, date_in_time_zone ORDER BY updated_at desc) AS lastSessionId, "
+          + "FIRST_VALUE(score) OVER (PARTITION BY collection_id, path_id ORDER BY updated_at desc) AS scoreInPercentage, "
+          + "FIRST_VALUE(session_id) OVER (PARTITION BY collection_id, path_id ORDER BY updated_at desc) AS lastSessionId, "
           + "views AS attempts, collection_id as collectionId, actor_id as actorId, collection_id as collectionType, path_id as pathId FROM base_reports "
           + " WHERE class_id = ? AND actor_id = ? AND path_id = ANY(?::bigint[]) AND content_source = ? "
           + "AND collection_type IN ('assessment', 'assessment-external', 'offline-activity') AND event_name = 'collection.play' AND event_type = 'stop' "
