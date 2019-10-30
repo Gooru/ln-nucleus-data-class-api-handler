@@ -10,6 +10,7 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.exceptions.MessageResponseWrapperException;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers.DBHandler;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityCollectionPerformance;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityDailyClassActivity;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.utils.PgUtils;
@@ -61,7 +62,7 @@ public class SuggestionsPerfHandler implements DBHandler {
 
   @Override
   public ExecutionResult<MessageResponse> validateRequest() {
-/*    if (context.getUserIdFromRequest() == null || (context.getUserIdFromRequest() != null
+    if (context.getUserIdFromRequest() == null || (context.getUserIdFromRequest() != null
         && !context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))
         && !StringUtil.isNullOrEmpty(classId)) {
       LOGGER.debug("User ID in session : {} : class : {}", context.userIdFromSession(), classId);
@@ -74,7 +75,7 @@ public class SuggestionsPerfHandler implements DBHandler {
             MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"),
             ExecutionStatus.FAILED);
       }
-    }*/
+    }
     LOGGER.debug("validateRequest() OK");
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
   }

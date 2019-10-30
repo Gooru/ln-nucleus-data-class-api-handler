@@ -10,7 +10,7 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.exceptions.MessageRes
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.converters.ResponseAttributeIdentifier;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers.DBHandler;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
-import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityDailyClassActivity;
+import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.converters.ValueMapper;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
@@ -56,7 +56,7 @@ public class StudentSuggCollectionSummaryHandler implements DBHandler {
   @Override
   @SuppressWarnings("rawtypes")
   public ExecutionResult<MessageResponse> validateRequest() {
-/*    if (context.getUserIdFromRequest() == null
+    if (context.getUserIdFromRequest() == null
         || (!context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
         List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, classId,
             this.context.userIdFromSession());
@@ -66,7 +66,7 @@ public class StudentSuggCollectionSummaryHandler implements DBHandler {
               MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"),
               ExecutionStatus.FAILED);
         }
-    }*/
+    }
     LOGGER.debug("validateRequest() OK");
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
   }
