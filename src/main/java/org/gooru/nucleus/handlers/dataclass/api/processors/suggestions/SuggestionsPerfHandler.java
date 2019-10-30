@@ -1,7 +1,6 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.suggestions;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
@@ -19,6 +18,7 @@ import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionRe
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
+import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,17 +30,18 @@ import io.vertx.core.json.JsonObject;
  * @author renuka
  * 
  */
-public class StudSuggestionsPerfHandler implements DBHandler {
+public class SuggestionsPerfHandler implements DBHandler {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(StudSuggestionsPerfHandler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SuggestionsPerfHandler.class);
 
   private final ProcessorContext context;
   private String classId;
   private String userId;
   private String scope;
   List<Long> pIds;
+  private String collectionType;
 
-  public StudSuggestionsPerfHandler(ProcessorContext context) {
+  public SuggestionsPerfHandler(ProcessorContext context) {
     this.context = context;
   }
 
@@ -79,73 +80,124 @@ public class StudSuggestionsPerfHandler implements DBHandler {
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
   }
 
+  @SuppressWarnings("rawtypes")
   @Override
   public ExecutionResult<MessageResponse> executeRequest() {
     JsonArray resultarray = new JsonArray();
     JsonObject resultBody = new JsonObject();
-    JsonArray userUsageArray = new JsonArray();
-    LOGGER.debug("userId : {} - pathIds:{}", userId, pIds);
-    List<AJEntityCollectionPerformance> items = null;
     List<String> userIds = fetchUserId();
+    List<Map> activityList = null;
+    JsonArray userUsageArray = new JsonArray();
     for (String userId : userIds) {
       JsonObject usageData = new JsonObject();
-      if (classId != null) {
-        items = AJEntityCollectionPerformance.findBySQL(
-            AJEntityCollectionPerformance.FETCH_SUGG_ITEM_PERFORMANCE_IN_CLASS, classId, userId,
-            PgUtils.listToPostgresArrayLong(pIds), scope);
-      } else {
-        items = AJEntityCollectionPerformance.findBySQL(
-            AJEntityCollectionPerformance.FETCH_ALL_SUGG_ITEM_PERFORMANCE, userId,
-            PgUtils.listToPostgresArrayLong(pIds), scope);
-      }
-      if (!items.isEmpty()) {
-        userUsageArray =
-            SuggestionsPerformanceResponseBuilder.buildSuggestionPerformanceResponse(items).build();
-
-        // Collection_perf table to also capture caid, until this support is added, below code can
-        // help return caid for each dca session in response.
-        if (scope.equalsIgnoreCase(EventConstants.DAILYCLASSACTIVITY)) {
-          enrichResponseWithCaId(userUsageArray);
+      if (scope.equals(EventConstants.DAILYCLASSACTIVITY)) {
+        if (collectionType.equalsIgnoreCase(JsonConstants.ASSESSMENT)) {
+          LOGGER.debug("Fetching Performance for Assessments in Class");
+          activityList =
+              Base.findAll(AJEntityDailyClassActivity.GET_SUGG_PERFORMANCE_FOR_CLASS_ASSESSMENTS,
+                  classId, userId, PgUtils.listToPostgresArrayLong(pIds), scope);
+        } else {
+          activityList =
+              Base.findAll(AJEntityDailyClassActivity.GET_SUGG_PERFORMANCE_FOR_CLASS_COLLECTIONS,
+                  classId, userId, PgUtils.listToPostgresArrayLong(pIds), scope);
         }
+      } else {
+        if (collectionType.equalsIgnoreCase(JsonConstants.ASSESSMENT)) {
+          LOGGER.debug("Fetching Performance for Assessments in Class");
+          activityList =
+              Base.findAll(AJEntityBaseReports.GET_SUGG_PERFORMANCE_FOR_CLASS_ASSESSMENTS, classId,
+                  userId, PgUtils.listToPostgresArrayLong(pIds), scope);
+        } else {
+          activityList =
+              Base.findAll(AJEntityBaseReports.GET_SUGG_PERFORMANCE_FOR_CLASS_COLLECTIONS, classId,
+                  userId, PgUtils.listToPostgresArrayLong(pIds), scope);
+        }
+      }
+      if (activityList != null && !activityList.isEmpty()) {
+        activityList.forEach(m -> {
+          JsonObject contentKpi = new JsonObject();
+          contentKpi.put(AJEntityDailyClassActivity.ATTR_COLLECTION_ID,
+              m.get(AJEntityDailyClassActivity.ATTR_COLLECTION_ID).toString());
+          contentKpi.put(AJEntityDailyClassActivity.ATTR_COLLECTION_TYPE,
+              m.get(AJEntityDailyClassActivity.ATTR_COLLECTION_TYPE).toString());
+          contentKpi.put(AJEntityDailyClassActivity.ATTR_TIME_SPENT,
+              Long.parseLong(m.get(AJEntityDailyClassActivity.ATTR_TIME_SPENT).toString()));
+          contentKpi.put(AJEntityDailyClassActivity.ATTR_ATTEMPTS,
+              m.get(AJEntityDailyClassActivity.ATTR_ATTEMPTS) != null
+                  ? Integer.parseInt(m.get(AJEntityDailyClassActivity.ATTR_ATTEMPTS).toString())
+                  : 1);
+          contentKpi.put(AJEntityDailyClassActivity.ATTR_PATH_ID,
+              Long.valueOf(m.get(AJEntityDailyClassActivity.ATTR_PATH_ID).toString()));
+          contentKpi.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
+          if (collectionType.equalsIgnoreCase(JsonConstants.ASSESSMENT)) {
+            contentKpi.put(AJEntityDailyClassActivity.ATTR_SCORE,
+                m.get(AJEntityDailyClassActivity.ATTR_SCORE) != null
+                    ? Math.round(
+                        Double.valueOf(m.get(AJEntityDailyClassActivity.ATTR_SCORE).toString()))
+                    : null);
+            contentKpi.put(AJEntityDailyClassActivity.ATTR_LAST_SESSION_ID,
+                m.get(AJEntityDailyClassActivity.ATTR_LAST_SESSION_ID).toString());
+          } else {
+            calculateCollectionScore(userId, m, contentKpi);
+            contentKpi.put(AJEntityDailyClassActivity.ATTR_LAST_SESSION_ID,
+                AJEntityDailyClassActivity.NA);
+          }
+          userUsageArray.add(contentKpi);
+        });
+
         usageData.put(JsonConstants.USAGE_DATA, userUsageArray).put(JsonConstants.USERUID, userId);
         resultarray.add(usageData);
       } else {
         LOGGER.debug("No data returned for Suggestion performance");
       }
     }
+
     resultBody.put(JsonConstants.CONTENT, resultarray);
     return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody),
         ExecutionStatus.SUCCESSFUL);
   }
-
-  private void enrichResponseWithCaId(JsonArray userUsageArray) {
-    List<String> caSessionIds = new ArrayList<>();
-    userUsageArray.forEach(i -> {
-      JsonObject item = (JsonObject) i;
-      caSessionIds.add(item.getString(AJEntityBaseReports.ATTR_SESSION_ID));
-    });
-
-    Map<String, Long> caIdMap = fetchDcaContentIdOfGivenSessions(caSessionIds);
-    userUsageArray.forEach(i -> {
-      JsonObject item = (JsonObject) i;
-      item.put(AJEntityDailyClassActivity.DCA_CONTENT_ID,
-          caIdMap.get(item.getString(AJEntityBaseReports.ATTR_SESSION_ID)));
-    });
-  }
   
-  private Map<String, Long> fetchDcaContentIdOfGivenSessions(List<String> caSessionIds) {
-    Map<String, Long> contents = null;
-    List<AJEntityDailyClassActivity> contentModels =
-        AJEntityDailyClassActivity.findBySQL(AJEntityDailyClassActivity.GET_DCA_IDS_FOR_SESSIONS,
-            PgUtils.listToPostgresArrayString(caSessionIds));
-    if (contentModels != null) {
-      contents = new HashMap<>();
-      for (AJEntityDailyClassActivity contentModel : contentModels) {
-        contents.put(contentModel.getString(AJEntityDailyClassActivity.SESSION_ID),
-            contentModel.getLong(AJEntityDailyClassActivity.DCA_CONTENT_ID));
+  @SuppressWarnings("rawtypes")
+  private void calculateCollectionScore(String userId, Map m, JsonObject collectionKpi) {
+    double maxScore = 0;
+    List<Map> collectionMaximumScore = null;
+    if (scope.equals(EventConstants.DAILYCLASSACTIVITY)) {
+      collectionMaximumScore =
+          Base.findAll(AJEntityDailyClassActivity.SELECT_SUGG_PERFORMANCE_COLLECTION_MAX_SCORE, classId, userId,
+              Long.valueOf(m.get(AJEntityDailyClassActivity.ATTR_PATH_ID).toString()), scope,
+              m.get(AJEntityBaseReports.ATTR_COLLECTION_ID).toString());
+    } else {
+      collectionMaximumScore = Base.findAll(AJEntityBaseReports.SELECT_SUGG_COLLECTION_MAX_SCORE,
+          classId, userId, Long.valueOf(m.get(AJEntityDailyClassActivity.ATTR_PATH_ID).toString()), scope,
+          m.get(AJEntityBaseReports.ATTR_COLLECTION_ID).toString());
+    }
+    if (collectionMaximumScore != null && !collectionMaximumScore.isEmpty()) {
+      for (Map ms : collectionMaximumScore) {
+        if (ms.get(AJEntityBaseReports.MAX_SCORE) != null) {
+          maxScore = Double.valueOf(ms.get(AJEntityBaseReports.MAX_SCORE).toString());
+        }
       }
     }
-    return contents;
+
+    double scoreInPercent = 0;
+    Object collectionScore = null;
+    if (scope.equals(EventConstants.DAILYCLASSACTIVITY)) {
+      collectionScore = Base.firstCell(
+          AJEntityDailyClassActivity.GET_SUGG_PERFORMANCE_FOR_CLASS_COLLECTIONS_SCORE, classId,
+          userId, Long.valueOf(m.get(AJEntityDailyClassActivity.ATTR_PATH_ID).toString()), scope,
+          m.get(AJEntityBaseReports.ATTR_COLLECTION_ID).toString());
+    } else {
+      collectionScore =
+          Base.firstCell(AJEntityBaseReports.GET_SUGG_PERFORMANCE_FOR_CLASS_COLLECTIONS_SCORE,
+              classId, userId, Long.valueOf(m.get(AJEntityDailyClassActivity.ATTR_PATH_ID).toString()), scope,
+              m.get(AJEntityBaseReports.ATTR_COLLECTION_ID).toString());
+    }
+    if (collectionScore != null && (maxScore > 0)) {
+      scoreInPercent = ((Double.valueOf(collectionScore.toString()) / maxScore) * 100);
+      collectionKpi.put(AJEntityBaseReports.SCORE, Math.round(scoreInPercent));
+    } else {
+      collectionKpi.putNull(AJEntityBaseReports.SCORE);
+    }
   }
 
   @Override
@@ -165,6 +217,7 @@ public class StudSuggestionsPerfHandler implements DBHandler {
     userId = this.context.request().getString(MessageConstants.USER_ID);
     scope = this.context.request().getString(MessageConstants.SOURCE);
     classId = this.context.request().getString(MessageConstants.CLASS_ID);
+    collectionType = this.context.request().getString(MessageConstants.COLLECTION_TYPE);
   }
   
   private void validateContextRequestFields() {
@@ -174,11 +227,16 @@ public class StudSuggestionsPerfHandler implements DBHandler {
       throw new MessageResponseWrapperException(MessageResponseFactory.createInvalidRequestResponse(
           "Scope is Missing. Cannot fetch Student Suggestion Performance"));
     }
-    if (MessageConstants.CM_CA_SOURCE_TYPES.matcher(scope).matches()
-        && StringUtil.isNullOrEmpty(classId)) {
+    if (StringUtil.isNullOrEmpty(classId)) {
       LOGGER.warn("ClassId is mandatory for fetching Student Suggestion Performance");
       throw new MessageResponseWrapperException(MessageResponseFactory.createInvalidRequestResponse(
           "Class Id Missing. Cannot fetch Student Suggestion Performance"));
+    }
+    if (StringUtil.isNullOrEmpty(collectionType)) {
+      LOGGER.warn(
+          "Collection Type is mandatory to fetch Student Suggestion Performance");
+      throw new MessageResponseWrapperException(MessageResponseFactory.createNotFoundResponse(
+          "Collection Type is Missing. Cannot fetch Student Suggestion Performance"));
     }
     JsonArray pathIds = this.context.request().getJsonArray(MessageConstants.PATH_IDS);
     if (pathIds == null || pathIds.isEmpty()) {
