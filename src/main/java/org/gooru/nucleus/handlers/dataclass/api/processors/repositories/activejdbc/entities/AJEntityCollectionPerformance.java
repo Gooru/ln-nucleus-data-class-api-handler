@@ -45,26 +45,8 @@ public class AJEntityCollectionPerformance extends Model {
       "SELECT date_in_time_zone from collection_performance where "
           + " course_id = ? AND actor_id = ? ORDER BY date_in_time_zone ASC LIMIT 1";
 
-  public static final String FETCH_SUGG_ITEM_PERFORMANCE_IN_CLASS =
-      "SELECT timespent, score, max_score, reaction, views, is_graded, class_id, course_id, unit_id, lesson_id,"
-          + " collection_id, collection_type, session_id, updated_at, status, path_id, path_type, content_source FROM "
-          + " (SELECT *,row_number() over (partition by path_id, content_source order by updated_at desc) as r "
-          + " FROM collection_performance WHERE class_id = ? AND actor_id = ? "
-          + " AND path_id = ANY(?::bigint[]) AND path_id > 0 AND content_source = ? ORDER BY updated_at DESC) AS a WHERE r=1";
-
-  public static final String FETCH_ALL_SUGG_ITEM_PERFORMANCE =
-      "SELECT timespent, score, max_score, reaction, views, is_graded, class_id, course_id, unit_id, lesson_id,"
-          + " collection_id, collection_type, session_id, updated_at, status, path_id, path_type, content_source FROM "
-          + " (SELECT *,row_number() over (partition by path_id, content_source order by updated_at desc) as r "
-          + " FROM collection_performance WHERE actor_id = ? "
-          + " AND path_id = ANY(?::bigint[]) AND path_id > 0 AND content_source = ? ORDER BY updated_at DESC) AS a WHERE r=1";
-
   public static final String SELECT_DISTINCT_USERID_FOR_CLASS_SUGGESTIONS =
       "SELECT DISTINCT(actor_id) FROM collection_performance WHERE class_id = ? AND "
-          + " path_id = ANY(?::bigint[]) AND path_id > 0 AND content_source = ? ";
-
-  public static final String SELECT_DISTINCT_USERID_FOR_SUGGESTIONS =
-      "SELECT DISTINCT(actor_id) FROM collection_performance WHERE "
           + " path_id = ANY(?::bigint[]) AND path_id > 0 AND content_source = ? ";
 
   public static Boolean isValidScoreForCollection(Double score, Double maxScore) {

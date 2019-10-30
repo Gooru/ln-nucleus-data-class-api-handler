@@ -190,4 +190,8 @@ public interface ReportRepo {
 
   MessageResponse getUserPerformanceOnSuggestions();
 
+  MessageResponse getStudentSummaryInDCASuggCollection();
+
+  MessageResponse getStudentSummaryInSuggCollection();
+
 }

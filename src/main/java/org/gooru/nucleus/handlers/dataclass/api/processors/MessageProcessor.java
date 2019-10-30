@@ -345,9 +345,12 @@ class MessageProcessor implements Processor {
         LOGGER.error("Invalid User ID. Aborting");
         return MessageResponseFactory.createInvalidRequestResponse("Invalid userId");
       }
-
-      return new RepoBuilder().buildReportRepo(context).getStudentSummaryInDCACollection();
-
+      
+      if (isPathIdNotNull(context)) {
+        return new RepoBuilder().buildReportRepo(context).getStudentSummaryInDCASuggCollection();
+      } else {
+        return new RepoBuilder().buildReportRepo(context).getStudentSummaryInDCACollection();
+      }
     } catch (Throwable t) {
       LOGGER.error("Exception while getting Student DCA Collection Summary Report", t);
       return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
@@ -946,13 +949,15 @@ class MessageProcessor implements Processor {
         return MessageResponseFactory.createInvalidRequestResponse("Invalid userId");
       }
 
-      return new RepoBuilder().buildReportRepo(context).getStudentSummaryInCollection();
-
+      if (isPathIdNotNull(context)) {
+        return new RepoBuilder().buildReportRepo(context).getStudentSummaryInSuggCollection();
+      } else {
+        return new RepoBuilder().buildReportRepo(context).getStudentSummaryInCollection();
+      }
     } catch (Throwable t) {
       LOGGER.error("Exception while getting Student Collection Summary", t);
       return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
     }
-
   }
 
 
@@ -2018,6 +2023,11 @@ class MessageProcessor implements Processor {
     return (collectionType != null && !collectionType.isEmpty() && collectionType.equalsIgnoreCase(JsonConstants.OFFLINE_ACTIVITY));
   }
 
+  private boolean isPathIdNotNull(ProcessorContext context) {
+    String pathId = context.request().getString(JsonConstants.PATH_ID);
+    return checkIsNotNull(pathId);
+  }
+  
   private boolean validateUser(String userId) {
     return !(userId == null || userId.isEmpty()
         || (userId.equalsIgnoreCase(MessageConstants.MSG_USER_ANONYMOUS)) && validateUuid(userId));
