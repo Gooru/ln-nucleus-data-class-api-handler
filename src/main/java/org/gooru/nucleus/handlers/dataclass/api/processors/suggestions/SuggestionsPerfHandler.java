@@ -266,6 +266,8 @@ public class SuggestionsPerfHandler implements DBHandler {
     }
     if (scope.equalsIgnoreCase(MessageConstants.DCA)) {
       scope = EventConstants.DAILYCLASSACTIVITY;
+    } else if (scope.equalsIgnoreCase(MessageConstants.PROFICIENCY)) {
+      scope = EventConstants.COMPETENCY_MASTERY;
     }
   }
   
