@@ -1761,7 +1761,7 @@ public class AJEntityBaseReports extends Model {
           + "agg.collectionId, agg.collectionType, agg.pathId FROM (SELECT time_spent AS timeSpent, "
           + "FIRST_VALUE(score) OVER (PARTITION BY collection_id, path_id ORDER BY updated_at desc) AS scoreInPercentage, "
           + "FIRST_VALUE(session_id) OVER (PARTITION BY collection_id, path_id ORDER BY updated_at desc) AS lastSessionId, "
-          + "views AS attempts, collection_id as collectionId, actor_id as actorId, collection_id as collectionType, path_id as pathId FROM base_reports "
+          + "views AS attempts, collection_id as collectionId, actor_id as actorId, collection_type as collectionType, path_id as pathId FROM base_reports "
           + " WHERE class_id = ? AND actor_id = ? AND path_id = ANY(?::bigint[]) AND content_source = ? "
           + "AND collection_type IN ('assessment', 'assessment-external', 'offline-activity') AND event_name = 'collection.play' AND event_type = 'stop' "
           + ") AS agg GROUP BY agg.collectionId, agg.pathId, agg.collectionType, agg.lastSessionId ";

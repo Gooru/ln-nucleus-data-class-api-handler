@@ -77,6 +77,7 @@ public final class MessageConstants {
   public static final String SOURCE = "source";
   public static final String DCA = "dca";
   public static final String COURSEMAP = "coursemap";
+  public static final String PROFICIENCY = "proficiency";
   public static final String OA = "oa";
   public static final Pattern CM_CA_SOURCE_TYPES = Pattern.compile("dca|coursemap");
   public static final Pattern CM_CA_PROFICIENCY_SOURCE_TYPES = Pattern.compile("dca|coursemap|proficiency");
