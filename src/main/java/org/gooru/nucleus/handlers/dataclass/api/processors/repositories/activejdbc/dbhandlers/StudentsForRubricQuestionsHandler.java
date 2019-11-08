@@ -91,28 +91,30 @@ public class StudentsForRubricQuestionsHandler implements DBHandler {
     JsonObject result = new JsonObject();
     JsonArray resultarray = new JsonArray();
 
-    LazyList<AJEntityBaseReports> userIdforQue =
+    LazyList<AJEntityBaseReports> userIdsPendingGradingforSpecifiedQ =
         AJEntityBaseReports.findBySQL(AJEntityBaseReports.GET_DISTINCT_STUDENTS_FOR_THIS_RESOURCE,
             classId, courseId, collectionId, context.questionId());
 
-    if (!userIdforQue.isEmpty()) {
-      List<String> userIds = userIdforQue.collect(AJEntityBaseReports.GOORUUID);
+    if (!userIdsPendingGradingforSpecifiedQ.isEmpty()) {
+      for (AJEntityBaseReports userIdPendingGradingforSpecifiedQ : userIdsPendingGradingforSpecifiedQ) {
+        String gradePendingSessionId =
+            userIdPendingGradingforSpecifiedQ.get(AJEntityBaseReports.SESSION_ID).toString();
+        String studentId =
+            userIdPendingGradingforSpecifiedQ.get(AJEntityBaseReports.GOORUUID).toString();
+        LOGGER.debug("UID is " + studentId);
 
-      for (String userID : userIds) {
-        LOGGER.debug("UID is " + userID);
-        List<Map> scoreMap =
-            Base.findAll(AJEntityBaseReports.GET_LATEST_SCORE_FOR_THIS_RESOURCE_STUDENT, classId,
-                courseId, collectionId, context.questionId(), userID);
-
-        if (!scoreMap.isEmpty()) {
-          scoreMap.forEach(m -> {
-            if (m.get(AJEntityBaseReports.SCORE) == null) {
-              resultarray.add(userID);
-            }
-          });
+        // for this User, for this question, include student to response from latest completed session
+        AJEntityBaseReports latestCompletedSession = AJEntityBaseReports.findFirst(
+            "event_name = 'collection.play' AND event_type = 'stop' AND actor_id = ? AND class_id = ? AND collection_id = ? ORDER BY updated_at DESC",
+            studentId, classId, collectionId);
+        if (latestCompletedSession != null) {
+          String latestCompletedSessionId =
+              latestCompletedSession.get(AJEntityBaseReports.SESSION_ID).toString();
+          if (latestCompletedSessionId.equalsIgnoreCase(gradePendingSessionId)) {
+            resultarray.add(studentId);
+          }
         }
       }
-
     } else {
       LOGGER.info("Student list for this Rubric Question cannot be obtained");
     }

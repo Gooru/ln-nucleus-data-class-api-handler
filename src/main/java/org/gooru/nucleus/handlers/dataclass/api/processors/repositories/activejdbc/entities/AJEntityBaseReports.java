@@ -1385,7 +1385,7 @@ public class AJEntityBaseReports extends Model {
           + "resource_attempt_status = 'attempted' AND grading_type = 'teacher' AND question_type = 'OE' AND score IS NULL";
 
   public static final String GET_DISTINCT_STUDENTS_FOR_THIS_RESOURCE =
-      "SELECT distinct (actor_id) from base_reports where "
+      "SELECT distinct on (actor_id) actor_id, FIRST_VALUE (session_id) OVER (PARTITION BY actor_id ORDER BY updated_at desc) as session_id from base_reports where "
           + "class_id = ? AND course_id = ? AND collection_id = ? AND resource_id = ? AND event_type = 'stop' AND "
           + "event_name = 'collection.resource.play' AND resource_type = 'question'"
           + " AND is_graded = 'false' AND resource_attempt_status = 'attempted' AND grading_type = 'teacher'  "
