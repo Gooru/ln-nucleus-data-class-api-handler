@@ -104,12 +104,11 @@ public class StudentsForRubricQuestionsHandler implements DBHandler {
         LOGGER.debug("UID is " + studentId);
 
         // for this User, for this question, include student to response from latest completed session
-        AJEntityBaseReports latestCompletedSession = AJEntityBaseReports.findFirst(
-            "event_name = 'collection.play' AND event_type = 'stop' AND actor_id = ? AND class_id = ? AND collection_id = ? ORDER BY updated_at DESC",
-            studentId, classId, collectionId);
+        Object latestCompletedSession = Base.firstCell(AJEntityBaseReports.GET_LATEST_COMPLETED_SESSION_ID,
+            classId, this.courseId, this.collectionId, context.questionId(), context.studentId());
+
         if (latestCompletedSession != null) {
-          String latestCompletedSessionId =
-              latestCompletedSession.get(AJEntityBaseReports.SESSION_ID).toString();
+          String latestCompletedSessionId = latestCompletedSession.toString();
           if (latestCompletedSessionId.equalsIgnoreCase(gradePendingSessionId)) {
             resultarray.add(studentId);
           }

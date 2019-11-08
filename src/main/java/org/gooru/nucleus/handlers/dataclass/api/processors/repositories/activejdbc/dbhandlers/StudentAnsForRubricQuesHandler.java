@@ -92,13 +92,13 @@ public class StudentAnsForRubricQuesHandler implements DBHandler {
 
     }
 
-    String latestCompletedSessionId = (String) Base.firstCell(AJEntityBaseReports.GET_LATEST_COMPLETED_SESSION_ID,
+    Object latestCompletedSessionId = Base.firstCell(AJEntityBaseReports.GET_LATEST_COMPLETED_SESSION_ID,
         classId, this.courseId, this.collectionId, context.questionId(), context.studentId());
 
     if (latestCompletedSessionId != null) {
       List<Map> ansMap = Base.findAll(AJEntityBaseReports.GET_STUDENTS_ANSWER_FOR_RUBRIC_QUESTION,
           classId, this.courseId, this.collectionId, context.questionId(), context.studentId(),
-          latestCompletedSessionId);
+          latestCompletedSessionId.toString());
       if (!ansMap.isEmpty()) {
         ansMap.forEach(m -> {
           result.put(AJEntityBaseReports.ATTR_COURSE_ID, this.courseId);
