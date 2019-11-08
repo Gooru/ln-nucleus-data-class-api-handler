@@ -1409,10 +1409,16 @@ public class AJEntityBaseReports extends Model {
           + "FIRST_VALUE(session_id) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS session_id, "
           + "resource_id, updated_at, actor_id from base_reports "
           + "where class_id = ? AND course_id = ? AND collection_id = ? AND resource_id = ? AND actor_id = ? AND "
-          + "event_name = 'collection.resource.play' AND event_type = 'stop' AND "
+          + " session_id = ? AND event_name = 'collection.resource.play' AND event_type = 'stop' AND "
           + "resource_type = 'question' AND is_graded = 'false' AND resource_attempt_status = 'attempted' AND "
           + "grading_type = 'teacher' AND question_type = 'OE') AS q WHERE q.score IS NULL";
 
+  public static final String GET_LATEST_COMPLETED_SESSION_ID =
+      "SELECT session_id FROM base_reports WHERE "
+          + " class_id = ? AND course_id = ? AND collection_id = ? AND resource_id = ? AND actor_id = ? AND "
+          + " event_name = 'collection.play' AND event_type = 'stop' "
+          + " ORDER BY updated_at DESC LIMIT 1";
+  
   // TODO: Include actor_id
   public static final String GET_OE_QUE_GRADE_STATUS = "SELECT is_graded FROM base_reports "
       + "WHERE collection_id = ? AND session_id = ?  and resource_id = ? AND event_name = 'collection.resource.play' "

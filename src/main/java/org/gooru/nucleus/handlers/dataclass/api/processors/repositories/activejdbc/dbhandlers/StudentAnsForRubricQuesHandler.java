@@ -92,34 +92,38 @@ public class StudentAnsForRubricQuesHandler implements DBHandler {
 
     }
 
-    List<Map> ansMap = Base.findAll(AJEntityBaseReports.GET_STUDENTS_ANSWER_FOR_RUBRIC_QUESTION,
+    String latestCompletedSessionId = (String) Base.firstCell(AJEntityBaseReports.GET_LATEST_COMPLETED_SESSION_ID,
         classId, this.courseId, this.collectionId, context.questionId(), context.studentId());
 
-    if (!ansMap.isEmpty()) {
-      ansMap.forEach(m -> {
-        result.put(AJEntityBaseReports.ATTR_COURSE_ID, this.courseId);
-        result.put(AJEntityBaseReports.ATTR_COLLECTION_ID, this.collectionId);
-        result.put(AJEntityBaseReports.ATTR_QUESTION_ID, context.questionId());
-        result.put(AJEntityBaseReports.ATTR_QUESTION_TEXT, "NA");
-        result.put(AJEntityBaseReports.ATTR_ANSWER_TEXT,
-            m.get(AJEntityBaseReports.ATTR_ANSWER_TEXT) != null
-                ? new JsonArray(m.get(AJEntityBaseReports.ATTR_ANSWER_TEXT).toString())
-                : null);
-        result.put(AJEntityBaseReports.ATTR_TIME_SPENT,
-            Long.parseLong(m.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()));
-        result.put(AJEntityBaseReports.SUBMITTED_AT,
-            (m.get(AJEntityBaseReports.SUBMITTED_AT).toString()));
-        result.put(AJEntityBaseReports.SESSION_ID,
-            (m.get(AJEntityBaseReports.SESSION_ID).toString()));
-      });
+    if (latestCompletedSessionId != null) {
+      List<Map> ansMap = Base.findAll(AJEntityBaseReports.GET_STUDENTS_ANSWER_FOR_RUBRIC_QUESTION,
+          classId, this.courseId, this.collectionId, context.questionId(), context.studentId(),
+          latestCompletedSessionId);
+      if (!ansMap.isEmpty()) {
+        ansMap.forEach(m -> {
+          result.put(AJEntityBaseReports.ATTR_COURSE_ID, this.courseId);
+          result.put(AJEntityBaseReports.ATTR_COLLECTION_ID, this.collectionId);
+          result.put(AJEntityBaseReports.ATTR_QUESTION_ID, context.questionId());
+          result.put(AJEntityBaseReports.ATTR_QUESTION_TEXT, "NA");
+          result.put(AJEntityBaseReports.ATTR_ANSWER_TEXT,
+              m.get(AJEntityBaseReports.ATTR_ANSWER_TEXT) != null
+                  ? new JsonArray(m.get(AJEntityBaseReports.ATTR_ANSWER_TEXT).toString())
+                  : null);
+          result.put(AJEntityBaseReports.ATTR_TIME_SPENT,
+              Long.parseLong(m.get(AJEntityBaseReports.ATTR_TIME_SPENT).toString()));
+          result.put(AJEntityBaseReports.SUBMITTED_AT,
+              (m.get(AJEntityBaseReports.SUBMITTED_AT).toString()));
+          result.put(AJEntityBaseReports.SESSION_ID,
+              (m.get(AJEntityBaseReports.SESSION_ID).toString()));
+        });
 
-    } else {
-      LOGGER.info("Answers cannot be obtained");
+      } else {
+        LOGGER.info("Answers cannot be obtained");
+      }
     }
-
+    
     return new ExecutionResult<>(MessageResponseFactory.createGetResponse(result),
         ExecutionStatus.SUCCESSFUL);
-
   }
 
   @Override
