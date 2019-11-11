@@ -85,32 +85,33 @@ public class StudentsForRubricQuestionsHandler implements DBHandler {
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
   }
 
+  @SuppressWarnings("unchecked")
   @Override
-  @SuppressWarnings({"rawtypes", "unchecked"})
   public ExecutionResult<MessageResponse> executeRequest() {
     JsonObject result = new JsonObject();
     JsonArray resultarray = new JsonArray();
 
+    // for this question, get all distinct users who needs to be graded
     LazyList<AJEntityBaseReports> userIdsPendingGradingforSpecifiedQ =
         AJEntityBaseReports.findBySQL(AJEntityBaseReports.GET_DISTINCT_STUDENTS_FOR_THIS_RESOURCE,
             classId, courseId, collectionId, context.questionId());
 
-    if (!userIdsPendingGradingforSpecifiedQ.isEmpty()) {
-      for (AJEntityBaseReports userIdPendingGradingforSpecifiedQ : userIdsPendingGradingforSpecifiedQ) {
-        String gradePendingSessionId =
-            userIdPendingGradingforSpecifiedQ.get(AJEntityBaseReports.SESSION_ID).toString();
-        String studentId =
-            userIdPendingGradingforSpecifiedQ.get(AJEntityBaseReports.GOORUUID).toString();
-        LOGGER.debug("UID is " + studentId);
+    // for this collection, get distinct users of completed sessions
+    LazyList<AJEntityBaseReports> studentsWithLatestSessions = AJEntityBaseReports.findBySQL(
+        AJEntityBaseReports.GET_LATEST_SESSION_AND_STUDENTS_FOR_THIS_COLLECTION, classId, courseId,
+        this.collectionId);
 
-        // for this User, for this question, include student to response from latest completed session
-        Object latestCompletedSession = Base.firstCell(AJEntityBaseReports.GET_LATEST_COMPLETED_SESSION_ID,
-            classId, this.courseId, this.collectionId, context.questionId(), context.studentId());
+    if (!studentsWithLatestSessions.isEmpty()) {
+      for (AJEntityBaseReports studentsWithLatestSession : studentsWithLatestSessions) {
+        String userOfLatestCompletedSession =
+            studentsWithLatestSession.getString(AJEntityBaseReports.GOORUUID);
 
-        if (latestCompletedSession != null) {
-          String latestCompletedSessionId = latestCompletedSession.toString();
-          if (latestCompletedSessionId.equalsIgnoreCase(gradePendingSessionId)) {
-            resultarray.add(studentId);
+        if (!userIdsPendingGradingforSpecifiedQ.isEmpty()) {
+          List<String> usersWithPendingGrade =
+              userIdsPendingGradingforSpecifiedQ.collect(AJEntityBaseReports.GOORUUID);
+          if (usersWithPendingGrade.contains(userOfLatestCompletedSession)) {
+            LOGGER.debug("UID is " + userOfLatestCompletedSession);
+            resultarray.add(userOfLatestCompletedSession);
           }
         }
       }
