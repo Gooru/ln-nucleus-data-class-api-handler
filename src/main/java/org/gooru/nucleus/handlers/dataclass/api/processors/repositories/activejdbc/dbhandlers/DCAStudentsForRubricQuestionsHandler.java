@@ -2,8 +2,10 @@ package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activej
 
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
@@ -91,30 +93,32 @@ public class DCAStudentsForRubricQuestionsHandler implements DBHandler {
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public ExecutionResult<MessageResponse> executeRequest() {
     JsonObject result = new JsonObject();
     JsonArray studentsIdArray = new JsonArray();
-    // for this question, get user id and latest session of users who needs to be graded
+    // for this question, get all distinct users who needs to be graded
     LazyList<AJEntityDailyClassActivity> userIdsPendingGradingforSpecifiedQ =
         AJEntityDailyClassActivity.findBySQL(
             AJEntityDailyClassActivity.GET_DISTINCT_STUDENTS_FOR_THIS_RESOURCE, classId,
             collectionId, context.questionId(), activityDate);
 
-    if (!userIdsPendingGradingforSpecifiedQ.isEmpty()) {
-      for (AJEntityDailyClassActivity userIdPendingGradingforSpecifiedQ : userIdsPendingGradingforSpecifiedQ) {
-        String gradePendingSessionId =
-            userIdPendingGradingforSpecifiedQ.get(AJEntityDailyClassActivity.SESSION_ID).toString();
-        String studentId =
-            userIdPendingGradingforSpecifiedQ.get(AJEntityDailyClassActivity.GOORUUID).toString();
-        // for this User, for this question, include student to response from latest completed session
-        Object latestCompletedSession =
-            Base.firstCell(AJEntityDailyClassActivity.GET_LATEST_COMPLETED_SESSION_ID, classId,
-                this.collectionId, context.questionId(), context.studentId(), activityDate);
-        if (latestCompletedSession != null) {
-          String latestCompletedSessionId = latestCompletedSession.toString();
-          if (latestCompletedSessionId.equalsIgnoreCase(gradePendingSessionId)) {
-            studentsIdArray.add(studentId);
+    // for this collection, get all users from respective latest completed session
+    LazyList<AJEntityDailyClassActivity> studentsWithLatestSessions = AJEntityDailyClassActivity
+        .findBySQL(AJEntityDailyClassActivity.GET_LATEST_SESSION_AND_STUDENTS_FOR_THIS_COLLECTION,
+            classId, this.collectionId, activityDate);
+
+    if (!studentsWithLatestSessions.isEmpty()) {
+      for (AJEntityDailyClassActivity studentsWithLatestSession : studentsWithLatestSessions) {
+        String userOfLatestCompletedSession = studentsWithLatestSession.getString(AJEntityDailyClassActivity.GOORUUID);
+
+        if (!userIdsPendingGradingforSpecifiedQ.isEmpty()) {
+          List<String> usersWithPendingGrade =
+              userIdsPendingGradingforSpecifiedQ.collect(AJEntityDailyClassActivity.GOORUUID);
+          if (usersWithPendingGrade.contains(userOfLatestCompletedSession)) {
+            LOGGER.debug("UID is " + userOfLatestCompletedSession);
+            studentsIdArray.add(userOfLatestCompletedSession);
           }
         }
       }
