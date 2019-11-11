@@ -369,11 +369,11 @@ public class AJEntityDailyClassActivity extends Model {
           + "FROM daily_class_activity where collection_id = ? AND session_id = ? AND date_in_time_zone = ? AND reaction > 0 "
           + "AND event_name = 'reaction.create') AS data group by data.collection_id;";
 
-
   public static final String GET_LATEST_COMPLETED_SESSION_ID =
       "SELECT session_id FROM daily_class_activity WHERE "
-          + " class_id = ? AND collection_id = ? AND actor_id = ? AND event_name = 'collection.play' AND event_type = 'stop' "
-          + " AND date_in_time_zone BETWEEN ? AND ? ORDER BY created_at DESC LIMIT 1";
+          + " class_id = ? AND collection_id = ? AND resource_id = ? AND actor_id = ? AND date_in_time_zone = ? "
+          + " AND event_name = 'collection.play' AND event_type = 'stop' "
+          + " ORDER BY updated_at DESC LIMIT 1";
 
   // Reactions need not be included in these queries, since that should be obtained from separate
   // event

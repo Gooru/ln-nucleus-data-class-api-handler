@@ -95,9 +95,10 @@ public class DCAStudentsForRubricQuestionsHandler implements DBHandler {
   public ExecutionResult<MessageResponse> executeRequest() {
     JsonObject result = new JsonObject();
     JsonArray studentsIdArray = new JsonArray();
-    //for this question, get user id and latest session of users who needs to be graded
-    LazyList<AJEntityDailyClassActivity> userIdsPendingGradingforSpecifiedQ = AJEntityDailyClassActivity
-        .findBySQL(AJEntityDailyClassActivity.GET_DISTINCT_STUDENTS_FOR_THIS_RESOURCE, classId,
+    // for this question, get user id and latest session of users who needs to be graded
+    LazyList<AJEntityDailyClassActivity> userIdsPendingGradingforSpecifiedQ =
+        AJEntityDailyClassActivity.findBySQL(
+            AJEntityDailyClassActivity.GET_DISTINCT_STUDENTS_FOR_THIS_RESOURCE, classId,
             collectionId, context.questionId(), activityDate);
 
     if (!userIdsPendingGradingforSpecifiedQ.isEmpty()) {
@@ -106,13 +107,12 @@ public class DCAStudentsForRubricQuestionsHandler implements DBHandler {
             userIdPendingGradingforSpecifiedQ.get(AJEntityDailyClassActivity.SESSION_ID).toString();
         String studentId =
             userIdPendingGradingforSpecifiedQ.get(AJEntityDailyClassActivity.GOORUUID).toString();
-        //for this User, for this question, include student to response only if the latest session is completed
-        AJEntityDailyClassActivity latestCompletedSession = AJEntityDailyClassActivity.findFirst(
-            "event_name = 'collection.play' AND event_type = 'stop' AND actor_id = ? AND class_id = ? AND collection_id = ? AND date_in_time_zone = ? ORDER BY updated_at DESC",
-            studentId, classId, collectionId, activityDate);
+        // for this User, for this question, include student to response from latest completed session
+        Object latestCompletedSession =
+            Base.firstCell(AJEntityDailyClassActivity.GET_LATEST_COMPLETED_SESSION_ID, classId,
+                this.collectionId, context.questionId(), context.studentId(), activityDate);
         if (latestCompletedSession != null) {
-          String latestCompletedSessionId =
-              latestCompletedSession.get(AJEntityDailyClassActivity.SESSION_ID).toString();
+          String latestCompletedSessionId = latestCompletedSession.toString();
           if (latestCompletedSessionId.equalsIgnoreCase(gradePendingSessionId)) {
             studentsIdArray.add(studentId);
           }
