@@ -4,20 +4,17 @@ import java.sql.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.gooru.nucleus.handlers.dataclass.api.constants.EventConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
-
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityCollection;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityCoreContent;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityDailyClassActivity;
-import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityLesson;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
+import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponse;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.MessageResponseFactory;
-import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult.ExecutionStatus;
 import org.javalite.activejdbc.Base;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -122,35 +119,48 @@ public class DCAQuestionsToGradeHandler implements DBHandler {
         }
       });
       if (!resourceCCULMap.isEmpty()) {
-        resourceCCULMap.forEach((ky, val) -> {
-          if (resourceStudentMap.containsKey(ky)) {
+        for (String questionId : resourceCCULMap.keySet()) {
+          if (resourceStudentMap.containsKey(questionId)) {
+            JsonObject val = resourceCCULMap.get(questionId);
             JsonObject que = new JsonObject();
             String resId = val.getString(AJEntityDailyClassActivity.RESOURCE_ID);
             String collId = val.getString(AJEntityDailyClassActivity.COLLECTION_OID); 
-            que.put(AJEntityDailyClassActivity.ATTR_RESOURCE_ID, 
-                resId);
-            String resTitle = fetchQuestionMeta(resId, collId);
-            que.put(JsonConstants.TITLE, resTitle);
-            String collTitle = fetchCollectionMeta(collId);
-            que.put(AJEntityDailyClassActivity.ATTR_COLLECTION_ID, collId);
-            que.put(AJEntityDailyClassActivity.ATTR_COLLECTION_TYPE,
-                val.getString(AJEntityDailyClassActivity.COLLECTION_TYPE));
-            que.put(JsonConstants.COLLECTION_TITLE, collTitle);
-            que.put(AJEntityDailyClassActivity.ACTIVITY_DATE,
-                val.getString(AJEntityDailyClassActivity.DATE_IN_TIME_ZONE));
-            int studentCount = resourceStudentMap.get(ky) != null
-                ? Integer.valueOf(resourceStudentMap.get(ky).toString())
+            AJEntityCoreContent question = null;
+            try {
+              question = AJEntityCoreContent.fetchContent(resId, collId);
+              // content may be deleted, so skip content.
+              if (question == null) {
+                continue;
+              }
+              que = enrichWithCollMetadata(que, collId);
+              // content may be deleted, so skip content.
+              if (que == null) {
+                continue;
+              }
+              que.put(AJEntityDailyClassActivity.ATTR_COLLECTION_ID, collId);
+              que.put(AJEntityDailyClassActivity.ATTR_COLLECTION_TYPE,
+                  val.getString(AJEntityDailyClassActivity.COLLECTION_TYPE));
+              que.put(AJEntityDailyClassActivity.ATTR_RESOURCE_ID, resId);
+              que.put(AJEntityCoreContent.TITLE, question.getString(AJEntityCoreContent.TITLE));
+              que.put(AJEntityDailyClassActivity.ACTIVITY_DATE,
+                  val.getString(AJEntityDailyClassActivity.DATE_IN_TIME_ZONE));
+            } catch (Throwable e1) {
+              LOGGER.info("DCAQTGH::Exception while fetching rubric question meta:: {}",
+                  e1.getMessage());
+            }
+
+            int studentCount = resourceStudentMap.get(questionId) != null
+                ? Integer.valueOf(resourceStudentMap.get(questionId).toString())
                 : 0;
             que.put(JsonConstants.STUDENT_COUNT, studentCount);
             resultArray.add(que);
           }
-        });
+        }
       }
     } else {
       LOGGER.info("Questions pending grading cannot be obtained");
     }
 
-    // TODO: Orchestrate Title etc
     result.put(JsonConstants.GRADE_ITEMS, resultArray).put(AJEntityDailyClassActivity.ATTR_CLASS_ID,
         this.classId);
 
@@ -158,35 +168,16 @@ public class DCAQuestionsToGradeHandler implements DBHandler {
         ExecutionStatus.SUCCESSFUL);
 
   }
-
-  private String fetchQuestionMeta(String questionId, String collectionId) {
-    String title = EventConstants.NA;
-    try {
-    AJEntityCoreContent question = AJEntityCoreContent.fetchContent(questionId, collectionId);
-      if (question != null) {
-        title = question.getString(AJEntityCoreContent.TITLE);        
-      } 
-      } catch (Throwable e1) {
-        LOGGER.error("Exception while fetching question metadata:: {}",
-            e1.fillInStackTrace());
-      }
-      return title;
-  }
   
-  private String fetchCollectionMeta(String collectionId) {
-    String title = EventConstants.NA;
-    try {
-      AJEntityCollection collectionData =
-          AJEntityCollection.fetchCollectionMeta(collectionId);
-      if (collectionData != null) {
-        title = collectionData.getString(AJEntityCoreContent.TITLE);
-      }      
-    } catch (Throwable e1) {
-      LOGGER.error("Exception while fetching Collection metadata:: {}",
-          e1.fillInStackTrace());
-    } 
-    return title;
-
+  private JsonObject enrichWithCollMetadata(JsonObject que,
+      String collectionId) throws Throwable {
+    AJEntityCollection collectionData =
+        AJEntityCollection.fetchCollection(collectionId);
+    if (collectionData == null) {
+      return null;
+    }
+    que.put(JsonConstants.COLLECTION_TITLE, collectionData.getString(AJEntityCoreContent.TITLE));
+    return que;
   }
   
   @Override
