@@ -95,20 +95,24 @@ public class StudentsForRubricQuestionsHandler implements DBHandler {
     LazyList<AJEntityBaseReports> userIdsPendingGradingforSpecifiedQ =
         AJEntityBaseReports.findBySQL(AJEntityBaseReports.GET_DISTINCT_STUDENTS_FOR_THIS_RESOURCE,
             classId, courseId, collectionId, context.questionId());
-
+    List<String> usersWithPendingGrade = null;
+    if (!userIdsPendingGradingforSpecifiedQ.isEmpty()) {
+      usersWithPendingGrade =
+          userIdsPendingGradingforSpecifiedQ.collect(AJEntityBaseReports.GOORUUID);
+    }
+    
     // for this collection, get distinct users of completed sessions
     LazyList<AJEntityBaseReports> studentsWithLatestSessions = AJEntityBaseReports.findBySQL(
         AJEntityBaseReports.GET_LATEST_SESSION_AND_STUDENTS_FOR_THIS_COLLECTION, classId, courseId,
         this.collectionId);
 
-    if (!studentsWithLatestSessions.isEmpty()) {
+    if (usersWithPendingGrade != null && !usersWithPendingGrade.isEmpty()
+        && !studentsWithLatestSessions.isEmpty()) {
       for (AJEntityBaseReports studentsWithLatestSession : studentsWithLatestSessions) {
         String userOfLatestCompletedSession =
             studentsWithLatestSession.getString(AJEntityBaseReports.GOORUUID);
 
         if (!userIdsPendingGradingforSpecifiedQ.isEmpty()) {
-          List<String> usersWithPendingGrade =
-              userIdsPendingGradingforSpecifiedQ.collect(AJEntityBaseReports.GOORUUID);
           if (usersWithPendingGrade.contains(userOfLatestCompletedSession)) {
             LOGGER.debug("UID is " + userOfLatestCompletedSession);
             resultarray.add(userOfLatestCompletedSession);
