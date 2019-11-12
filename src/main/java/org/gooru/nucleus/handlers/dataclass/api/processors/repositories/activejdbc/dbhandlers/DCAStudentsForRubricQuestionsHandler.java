@@ -1,11 +1,8 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
 import java.sql.Date;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.constants.MessageConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
@@ -103,23 +100,25 @@ public class DCAStudentsForRubricQuestionsHandler implements DBHandler {
         AJEntityDailyClassActivity.findBySQL(
             AJEntityDailyClassActivity.GET_DISTINCT_STUDENTS_FOR_THIS_RESOURCE, classId,
             collectionId, context.questionId(), activityDate);
+    List<String> usersWithPendingGrade = null;
+    if (!userIdsPendingGradingforSpecifiedQ.isEmpty()) {
+      usersWithPendingGrade =
+          userIdsPendingGradingforSpecifiedQ.collect(AJEntityDailyClassActivity.GOORUUID);
+    }
 
     // for this collection, get all users from respective latest completed session
     LazyList<AJEntityDailyClassActivity> studentsWithLatestSessions = AJEntityDailyClassActivity
         .findBySQL(AJEntityDailyClassActivity.GET_LATEST_SESSION_AND_STUDENTS_FOR_THIS_COLLECTION,
             classId, this.collectionId, activityDate);
 
-    if (!studentsWithLatestSessions.isEmpty()) {
+    if (usersWithPendingGrade != null && !usersWithPendingGrade.isEmpty()
+        && !studentsWithLatestSessions.isEmpty()) {
       for (AJEntityDailyClassActivity studentsWithLatestSession : studentsWithLatestSessions) {
-        String userOfLatestCompletedSession = studentsWithLatestSession.getString(AJEntityDailyClassActivity.GOORUUID);
-
-        if (!userIdsPendingGradingforSpecifiedQ.isEmpty()) {
-          List<String> usersWithPendingGrade =
-              userIdsPendingGradingforSpecifiedQ.collect(AJEntityDailyClassActivity.GOORUUID);
-          if (usersWithPendingGrade.contains(userOfLatestCompletedSession)) {
-            LOGGER.debug("UID is " + userOfLatestCompletedSession);
-            studentsIdArray.add(userOfLatestCompletedSession);
-          }
+        String userOfLatestCompletedSession =
+            studentsWithLatestSession.getString(AJEntityDailyClassActivity.GOORUUID);
+        if (usersWithPendingGrade.contains(userOfLatestCompletedSession)) {
+          LOGGER.debug("UID is " + userOfLatestCompletedSession);
+          studentsIdArray.add(userOfLatestCompletedSession);
         }
       }
     } else {
