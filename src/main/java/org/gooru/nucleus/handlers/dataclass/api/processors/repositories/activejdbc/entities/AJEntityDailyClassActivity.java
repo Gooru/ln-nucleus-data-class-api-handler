@@ -371,7 +371,7 @@ public class AJEntityDailyClassActivity extends Model {
 
   public static final String GET_LATEST_COMPLETED_SESSION_ID =
       "SELECT session_id FROM daily_class_activity WHERE "
-          + " class_id = ? AND collection_id = ? AND resource_id = ? AND actor_id = ? AND date_in_time_zone = ? "
+          + " class_id = ? AND collection_id = ? AND actor_id = ? AND date_in_time_zone = ? "
           + " AND event_name = 'collection.play' AND event_type = 'stop' "
           + " ORDER BY updated_at DESC LIMIT 1";
 

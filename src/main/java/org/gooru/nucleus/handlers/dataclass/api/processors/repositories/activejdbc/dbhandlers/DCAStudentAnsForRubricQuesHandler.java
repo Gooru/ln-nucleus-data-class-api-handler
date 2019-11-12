@@ -98,7 +98,7 @@ public class DCAStudentAnsForRubricQuesHandler implements DBHandler {
     // for this User, for this question, get latest completed session's answer
     Object latestCompletedSessionId =
         Base.firstCell(AJEntityDailyClassActivity.GET_LATEST_COMPLETED_SESSION_ID, classId,
-            this.collectionId, context.questionId(), context.studentId(), activityDate);
+            this.collectionId, context.studentId(), activityDate);
     if (latestCompletedSessionId != null) {
 
       AJEntityDailyClassActivity ansModel = AJEntityDailyClassActivity.findFirst(

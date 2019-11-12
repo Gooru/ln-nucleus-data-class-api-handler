@@ -1412,7 +1412,7 @@ public class AJEntityBaseReports extends Model {
 
   public static final String GET_LATEST_COMPLETED_SESSION_ID =
       "SELECT session_id FROM base_reports WHERE "
-          + " class_id = ? AND course_id = ? AND collection_id = ? AND resource_id = ? AND actor_id = ? AND "
+          + " class_id = ? AND course_id = ? AND collection_id = ? AND actor_id = ? AND "
           + " event_name = 'collection.play' AND event_type = 'stop' "
           + " ORDER BY updated_at DESC LIMIT 1";
   

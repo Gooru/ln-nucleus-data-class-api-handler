@@ -93,7 +93,7 @@ public class StudentAnsForRubricQuesHandler implements DBHandler {
     }
 
     Object latestCompletedSessionId = Base.firstCell(AJEntityBaseReports.GET_LATEST_COMPLETED_SESSION_ID,
-        classId, this.courseId, this.collectionId, context.questionId(), context.studentId());
+        classId, this.courseId, this.collectionId, context.studentId());
 
     if (latestCompletedSessionId != null) {
       List<Map> ansMap = Base.findAll(AJEntityBaseReports.GET_STUDENTS_ANSWER_FOR_RUBRIC_QUESTION,
