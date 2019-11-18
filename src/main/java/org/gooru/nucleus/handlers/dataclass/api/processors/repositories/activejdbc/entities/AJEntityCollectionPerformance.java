@@ -6,6 +6,25 @@ import org.javalite.activejdbc.annotations.Table;
 @Table("collection_performance")
 public class AJEntityCollectionPerformance extends Model {
 
+  private static final String CLASS_ID = "course_id";
+  private static final String COURSE_ID = "course_id";
+  private static final String UNIT_ID = "unit_id";
+  private static final String LESSON_ID = "lesson_id";
+  private static final String COLLECTION_ID = "collection_id";
+  private static final String SESSION_ID = "session_id";
+  private static final String COLLECTION_TYPE = "collection_type";
+  private static final String PATH_ID = "path_id";
+  private static final String PATH_TYPE = "path_type";
+  public static final String TIMESPENT = "timespent";
+  public static final String MAX_SCORE = "max_score";
+  public static final String SCORE = "score";
+  public static final String REACTION = "reaction";
+  public static final String VIEWS = "views";
+  public static final String IS_GRADED = "is_graded";
+  public static final String UPDATED_AT = "updated_at";
+  public static final String STATUS = "status";
+  public static final String CONTENT_SOURCE = "content_source";
+
   public static final String SELECT_DISTINCT_USERID_FOR_COURSE_ID =
       "SELECT DISTINCT(actor_id) FROM collection_performance WHERE class_id = ? AND course_id = ?";
 
@@ -26,5 +45,83 @@ public class AJEntityCollectionPerformance extends Model {
       "SELECT date_in_time_zone from collection_performance where "
           + " course_id = ? AND actor_id = ? ORDER BY date_in_time_zone ASC LIMIT 1";
 
+  public static final String SELECT_DISTINCT_USERID_FOR_CLASS_SUGGESTIONS =
+      "SELECT DISTINCT(actor_id) FROM collection_performance WHERE class_id = ? AND "
+          + " path_id = ANY(?::bigint[]) AND path_id > 0 AND content_source = ? ";
 
+  public static Boolean isValidScoreForCollection(Double score, Double maxScore) {
+    return ((maxScore != null && maxScore > 0) && score != null);
+  }
+
+  public String getClassId() {
+    return this.getString(CLASS_ID);
+  }
+
+  public String getCourseId() {
+    return this.getString(COURSE_ID);
+  }
+
+  public String getUnitId() {
+    return this.getString(UNIT_ID);
+  }
+
+  public String getLessonId() {
+    return this.getString(LESSON_ID);
+  }
+
+  public String getCollectionId() {
+    return this.getString(COLLECTION_ID);
+  }
+
+  public String getSessionId() {
+    return this.getString(SESSION_ID);
+  }
+
+  public Long getPathId() {
+    return this.getLong(PATH_ID);
+  }
+
+  public String getPathType() {
+    return this.getString(PATH_TYPE);
+  }
+
+  public String getContentSource() {
+    return this.getString(CONTENT_SOURCE);
+  }
+
+  public Long getTimespent() {
+    return this.getLong(TIMESPENT);
+  }
+
+  public Double getScore() {
+    return this.getDouble(SCORE);
+  }
+
+  public Double getMaxScore() {
+    return this.getDouble(MAX_SCORE);
+  }
+
+  public Integer getReaction() {
+    return this.getInteger(REACTION);
+  }
+
+  public String getCollectionType() {
+    return this.getString(COLLECTION_TYPE);
+  }
+
+  public Boolean getIsGraded() {
+    return this.getBoolean(IS_GRADED);
+  }
+
+  public Integer getViews() {
+    return this.getInteger(VIEWS);
+  }
+
+  public String getUpdatedAt() {
+    return this.getString(UPDATED_AT);
+  }
+
+  public Boolean getStatus() {
+    return this.getBoolean(STATUS);
+  }
 }

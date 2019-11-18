@@ -1,8 +1,5 @@
 package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers;
 
-import com.hazelcast.util.StringUtil;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import java.sql.Date;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +16,9 @@ import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.hazelcast.util.StringUtil;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 
 /**
  * @author mukul@gooru
@@ -90,22 +90,38 @@ public class DCAStudentsForRubricQuestionsHandler implements DBHandler {
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
   }
 
+  @SuppressWarnings("unchecked")
   @Override
-  @SuppressWarnings({"rawtypes", "unchecked"})
   public ExecutionResult<MessageResponse> executeRequest() {
     JsonObject result = new JsonObject();
-    JsonArray studentsIdArray;
-
-    LazyList<AJEntityDailyClassActivity> userIdsPendingGradingforSpecifiedQ = AJEntityDailyClassActivity
-        .findBySQL(AJEntityDailyClassActivity.GET_DISTINCT_STUDENTS_FOR_THIS_RESOURCE, classId,
+    JsonArray studentsIdArray = new JsonArray();
+    // for this question, get all distinct users who needs to be graded
+    LazyList<AJEntityDailyClassActivity> userIdsPendingGradingforSpecifiedQ =
+        AJEntityDailyClassActivity.findBySQL(
+            AJEntityDailyClassActivity.GET_DISTINCT_STUDENTS_FOR_THIS_RESOURCE, classId,
             collectionId, context.questionId(), activityDate);
-
+    List<String> usersWithPendingGrade = null;
     if (!userIdsPendingGradingforSpecifiedQ.isEmpty()) {
-      List<String> userIds = userIdsPendingGradingforSpecifiedQ
-          .collect(AJEntityDailyClassActivity.GOORUUID);
-      studentsIdArray = new JsonArray(userIds);
+      usersWithPendingGrade =
+          userIdsPendingGradingforSpecifiedQ.collect(AJEntityDailyClassActivity.GOORUUID);
+    }
+
+    // for this collection, get all users from respective latest completed session
+    LazyList<AJEntityDailyClassActivity> studentsWithLatestSessions = AJEntityDailyClassActivity
+        .findBySQL(AJEntityDailyClassActivity.GET_LATEST_SESSION_AND_STUDENTS_FOR_THIS_COLLECTION,
+            classId, this.collectionId, activityDate);
+
+    if (usersWithPendingGrade != null && !usersWithPendingGrade.isEmpty()
+        && !studentsWithLatestSessions.isEmpty()) {
+      for (AJEntityDailyClassActivity studentsWithLatestSession : studentsWithLatestSessions) {
+        String userOfLatestCompletedSession =
+            studentsWithLatestSession.getString(AJEntityDailyClassActivity.GOORUUID);
+        if (usersWithPendingGrade.contains(userOfLatestCompletedSession)) {
+          LOGGER.debug("UID is " + userOfLatestCompletedSession);
+          studentsIdArray.add(userOfLatestCompletedSession);
+        }
+      }
     } else {
-      studentsIdArray = new JsonArray();
       LOGGER.info(
           "No student list present in DB: class:'{}', collection:'{}', question: '{}', activity date: '{}'",
           classId, collectionId, context.questionId(), activityDate);

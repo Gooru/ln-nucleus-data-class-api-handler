@@ -531,11 +531,27 @@ class AJReportRepo implements ReportRepo {
         .executeTransaction(DBHandlerBuilder.buildStudentSubmissionsOfOAHandler(context));
   }
   
-  
   @Override
   public MessageResponse getOACompleteMarkedByStudents() {
     return TransactionExecutor
         .executeTransaction(DBHandlerBuilder.buildOACompleteMarkedByStudentsHandler(context));
   }
+  
+  @Override
+  public MessageResponse getUserPerformanceOnSuggestions() {
+    return TransactionExecutor
+        .executeTransaction(DBHandlerBuilder.buildUserPerformanceSuggestionsHandler(context));
+  }
+  
+  @Override
+  public MessageResponse getStudentSummaryInDCASuggCollection() {
+    return TransactionExecutor
+        .executeTransaction(DBHandlerBuilder.buildStudentDCASuggCollectionSummaryHandler(context));
+  }
 
+  @Override
+  public MessageResponse getStudentSummaryInSuggCollection() {
+    return TransactionExecutor
+        .executeTransaction(DBHandlerBuilder.buildStudentSuggCollectionSummaryHandler(context));
+  }
 }

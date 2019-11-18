@@ -3,6 +3,9 @@ package org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activej
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers.oa.ca.*;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.dbhandlers.oa.cm.*;
+import org.gooru.nucleus.handlers.dataclass.api.processors.suggestions.StudDCASuggCollectionSummaryHandler;
+import org.gooru.nucleus.handlers.dataclass.api.processors.suggestions.StudentSuggCollectionSummaryHandler;
+import org.gooru.nucleus.handlers.dataclass.api.processors.suggestions.SuggestionsPerfHandler;
 
 /**
  * Created by mukul@gooru
@@ -367,5 +370,18 @@ public final class DBHandlerBuilder {
   public static DBHandler buildOACompleteMarkedByStudentsHandler(ProcessorContext context) {
     return new OACompleteMarkedByStudentsHandler(context);
   }
+  
+  public static DBHandler buildUserPerformanceSuggestionsHandler(ProcessorContext context) {
+    return new SuggestionsPerfHandler(context);
+  }
+  
+  public static DBHandler buildStudentDCASuggCollectionSummaryHandler(ProcessorContext context) {
+    return new StudDCASuggCollectionSummaryHandler(context);
+  }
+
+  public static DBHandler buildStudentSuggCollectionSummaryHandler(ProcessorContext context) {
+    return new StudentSuggCollectionSummaryHandler(context);
+  }
+
 }
 

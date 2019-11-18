@@ -509,11 +509,11 @@ public class AJEntityBaseReports extends Model {
   public static final String SELECT_COLLECTION_AGG_DATA_ =
       "SELECT SUM(CASE WHEN (agg.event_name = 'collection.resource.play' and agg.collection_type = 'collection') THEN agg.time_spent WHEN (agg.event_name = 'collection.play' and agg.collection_type = 'collection-external') THEN agg.time_spent ELSE 0 END) AS collectionTimeSpent, "
           + "SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.views ELSE 0 END) AS collectionViews,"
-          + "agg.collection_id, agg.completionStatus, 0 AS score, 0 AS reaction FROM "
+          + "agg.collection_id, agg.collection_type, agg.completionStatus, 0 AS score, 0 AS reaction FROM "
           + "(SELECT collection_id,time_spent,session_id,views,event_name,collection_type,"
           + "CASE  WHEN (FIRST_VALUE(event_type) OVER (PARTITION BY collection_id ORDER BY updated_at desc) = 'stop') THEN 'completed' ELSE 'in-progress' END AS completionStatus "
           + "FROM base_reports WHERE class_id IS NULL AND course_id IS NULL AND unit_id IS NULL AND lesson_id IS NULL AND event_name in ('collection.play', 'collection.resource.play') AND collection_id = ? AND actor_id = ? ) AS agg "
-          + "GROUP BY agg.collection_id,agg.completionStatus";
+          + "GROUP BY agg.collection_id,agg.collection_type, agg.completionStatus";
   // Getting COLLECTION DATA (score)
   public static final String SELECT_COLLECTION_AGG_SCORE_ = "SELECT SUM(agg.score) AS score FROM "
       + "(SELECT DISTINCT ON (resource_id) collection_id, "
@@ -1385,20 +1385,17 @@ public class AJEntityBaseReports extends Model {
           + "resource_attempt_status = 'attempted' AND grading_type = 'teacher' AND question_type = 'OE' AND score IS NULL";
 
   public static final String GET_DISTINCT_STUDENTS_FOR_THIS_RESOURCE =
-      "SELECT distinct (actor_id) from base_reports where "
+      "SELECT distinct actor_id from base_reports where "
           + "class_id = ? AND course_id = ? AND collection_id = ? AND resource_id = ? AND event_type = 'stop' AND "
           + "event_name = 'collection.resource.play' AND resource_type = 'question'"
           + " AND is_graded = 'false' AND resource_attempt_status = 'attempted' AND grading_type = 'teacher'  "
           + "AND question_type = 'OE' AND score IS NULL";
 
-  public static final String GET_LATEST_SCORE_FOR_THIS_RESOURCE_STUDENT =
-      "SELECT distinct on (resource_id) FIRST_VALUE(score) "
-          + "OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score, FIRST_VALUE(is_graded) OVER "
-          + "(PARTITION BY resource_id ORDER BY updated_at desc) AS is_graded, resource_id, updated_at from base_reports "
-          + "WHERE class_id = ? AND course_id = ? AND collection_id = ? AND resource_id = ? AND actor_id = ? "
-          + "AND event_name = 'collection.resource.play' AND event_type = 'stop' AND resource_type = 'question' "
-          + "AND grading_type = 'teacher' AND question_type = 'OE'";
-
+  public static final String GET_LATEST_SESSION_AND_STUDENTS_FOR_THIS_COLLECTION =
+      "SELECT distinct on (actor_id) actor_id, FIRST_VALUE (session_id) OVER (PARTITION BY actor_id ORDER BY updated_at desc) as "
+          + " session_id from base_reports where class_id = ? AND course_id = ? AND collection_id = ? "
+          + " AND event_name = 'collection.play' AND event_type = 'stop'";
+  
   public static final String GET_STUDENTS_ANSWER_FOR_RUBRIC_QUESTION =
       "select q.answerText, q.resource_id AS questionId, "
           + "q.time_spent AS timeSpent, q.updated_at AS submittedAt, q.session_id "
@@ -1409,10 +1406,16 @@ public class AJEntityBaseReports extends Model {
           + "FIRST_VALUE(session_id) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS session_id, "
           + "resource_id, updated_at, actor_id from base_reports "
           + "where class_id = ? AND course_id = ? AND collection_id = ? AND resource_id = ? AND actor_id = ? AND "
-          + "event_name = 'collection.resource.play' AND event_type = 'stop' AND "
+          + " session_id = ? AND event_name = 'collection.resource.play' AND event_type = 'stop' AND "
           + "resource_type = 'question' AND is_graded = 'false' AND resource_attempt_status = 'attempted' AND "
           + "grading_type = 'teacher' AND question_type = 'OE') AS q WHERE q.score IS NULL";
 
+  public static final String GET_LATEST_COMPLETED_SESSION_ID =
+      "SELECT session_id FROM base_reports WHERE "
+          + " class_id = ? AND course_id = ? AND collection_id = ? AND actor_id = ? AND "
+          + " event_name = 'collection.play' AND event_type = 'stop' "
+          + " ORDER BY updated_at DESC LIMIT 1";
+  
   // TODO: Include actor_id
   public static final String GET_OE_QUE_GRADE_STATUS = "SELECT is_graded FROM base_reports "
       + "WHERE collection_id = ? AND session_id = ?  and resource_id = ? AND event_name = 'collection.resource.play' "
@@ -1726,5 +1729,115 @@ public class AJEntityBaseReports extends Model {
       + "AND course_id = ? AND unit_id = ? AND lesson_id = ? AND collection_id = ? AND event_name = 'collection.play' "
       + "AND event_type = 'stop' AND collection_type = 'offline-activity' "
       + "AND grading_type = 'teacher' order by updated_at desc";
+  
+  //Fetch Suggestion Performance
+  public static final String GET_SUGG_PERFORMANCE_FOR_CLASS_COLLECTIONS =
+      "SELECT SUM(CASE WHEN (agg.event_name = 'collection.resource.play' and agg.collectionType = 'collection') "
+          + "THEN agg.timeSpent WHEN (agg.event_name = 'collection.play' and agg.collectionType = 'collection-external') THEN agg.timeSpent ELSE 0 END) AS timeSpent, "
+          + "SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.attempts ELSE 0 END) "
+          + "AS attempts, agg.pathId, agg.collectionId, agg.collectionType FROM (SELECT collection_type AS collectionType, time_spent AS timeSpent, views AS attempts, "
+          + "collection_id as collectionId, path_id AS pathId, actor_id as actorId, event_name, updated_at "
+          + "FROM base_reports WHERE collection_type IN ('collection', 'collection-external') AND "
+          + " class_id = ? AND actor_id = ? AND path_id = ANY(?::bigint[]) AND content_source = ? "
+          + " ) AS agg GROUP BY agg.pathId, agg.collectionId, agg.collectionType";
+
+  public static final String SELECT_SUGG_COLLECTION_MAX_SCORE =
+      "SELECT SUM(agg.max_score) AS max_score FROM "
+          + "(SELECT DISTINCT ON (resource_id) collection_id, FIRST_VALUE(updated_at) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS updated_at, "
+          + "FIRST_VALUE(max_score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS max_score "
+          + ", path_id FROM base_reports WHERE "
+          + " class_id = ? AND actor_id = ? AND path_id = ? AND content_source = ? AND collection_id = ? "
+          + " AND event_name = 'collection.resource.play' AND resource_type = 'question') AS agg "
+          + "GROUP BY agg.path_id";
+  
+  public static final String GET_SUGG_PERFORMANCE_FOR_CLASS_COLLECTIONS_SCORE =
+      "SELECT SUM(agg.score) AS score FROM (SELECT DISTINCT ON (resource_id) collection_id, "
+          + "FIRST_VALUE(score) OVER (PARTITION BY resource_id, path_id ORDER BY updated_at desc) AS score "
+          + ", path_id FROM base_reports WHERE "
+          + " class_id = ? AND actor_id = ? AND path_id = ? AND content_source = ? AND collection_id = ? AND "
+          + "event_name = 'collection.resource.play' AND resource_type = 'question' AND resource_attempt_status <> 'skipped' "
+          + ") AS agg GROUP BY agg.path_id";
+
+  public static final String GET_SUGG_PERFORMANCE_FOR_CLASS_ASSESSMENTS =
+      "SELECT SUM(agg.timeSpent) AS timeSpent, "
+          + "(AVG(agg.scoreInPercentage)) scoreInPercentage, agg.lastSessionId, SUM(agg.attempts) AS attempts, "
+          + "agg.collectionId, agg.collectionType, agg.pathId FROM (SELECT time_spent AS timeSpent, "
+          + "FIRST_VALUE(score) OVER (PARTITION BY collection_id, path_id ORDER BY updated_at desc) AS scoreInPercentage, "
+          + "FIRST_VALUE(session_id) OVER (PARTITION BY collection_id, path_id ORDER BY updated_at desc) AS lastSessionId, "
+          + "views AS attempts, collection_id as collectionId, actor_id as actorId, collection_type as collectionType, path_id as pathId FROM base_reports "
+          + " WHERE class_id = ? AND actor_id = ? AND path_id = ANY(?::bigint[]) AND content_source = ? "
+          + "AND collection_type IN ('assessment', 'assessment-external', 'offline-activity') AND event_name = 'collection.play' AND event_type = 'stop' "
+          + ") AS agg GROUP BY agg.collectionId, agg.pathId, agg.collectionType, agg.lastSessionId ";
+  
+  public static Boolean isValidScoreForCollection(Object score, Double maxScore) {
+    return ((maxScore != null && maxScore > 0) && score != null);
+  }
+
+  // Getting COLLECTION DATA (max_score)
+  public static final String SELECT_SUGG_COLLECTION_MAX_SCORE_ =
+      "SELECT SUM(agg.max_score) AS score FROM "
+          + "(SELECT DISTINCT ON (resource_id) collection_id, path_id, FIRST_VALUE(updated_at) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS updated_at, "
+          + "FIRST_VALUE(max_score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS max_score "
+          + "FROM base_reports WHERE path_id = ? AND collection_id = ? AND actor_id = ? AND "
+          + "event_name = 'collection.resource.play' AND resource_type = 'question') AS agg "
+          + "GROUP BY agg.collection_id, agg.path_id";
+  
+  public static final String SELECT_CLASS_SUGG_COLLECTION_LAST_ACCESSED_TIME =
+      "SELECT updated_at, session_id FROM base_reports "
+          + "WHERE path_id = ? AND collection_id = ? AND actor_id = ? AND event_name = 'collection.play'"
+          + " ORDER BY updated_at DESC LIMIT 1";
+  
+  // Getting COLLECTION DATA (views, time_spent)
+  public static final String SELECT_SUGG_COLLECTION_AGG_DATA_ =
+      "SELECT SUM(CASE WHEN (agg.event_name = 'collection.resource.play' and agg.collection_type = 'collection') THEN agg.time_spent WHEN (agg.event_name = 'collection.play' and agg.collection_type = 'collection-external') THEN agg.time_spent ELSE 0 END) AS collectionTimeSpent, "
+          + "SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.views ELSE 0 END) AS collectionViews,"
+          + "agg.collection_id, agg.path_id, agg.collection_type, agg.completionStatus, 0 AS score, 0 AS reaction FROM "
+          + "(SELECT collection_id,path_id, time_spent,session_id,views,event_name,collection_type,"
+          + "CASE  WHEN (FIRST_VALUE(event_type) OVER (PARTITION BY collection_id ORDER BY updated_at desc) = 'stop') THEN 'completed' ELSE 'in-progress' END AS completionStatus "
+          + "FROM base_reports WHERE path_id = ? AND event_name in ('collection.play', 'collection.resource.play') AND collection_id = ? AND actor_id = ? ) AS agg "
+          + "GROUP BY agg.collection_id,agg.path_id,agg.collection_type, agg.completionStatus";
+  
+  // Getting COLLECTION DATA (score)
+  public static final String SELECT_SUGG_COLLECTION_AGG_SCORE_ = "SELECT SUM(agg.score) AS score FROM "
+      + "(SELECT DISTINCT ON (resource_id) collection_id, path_id, "
+      + "FIRST_VALUE(score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score "
+      + "FROM base_reports WHERE path_id = ? AND collection_id = ? AND actor_id = ? AND "
+      + "event_name = 'collection.resource.play' AND resource_type = 'question' AND resource_attempt_status <> 'skipped' ) AS agg "
+      + "GROUP BY agg.collection_id, agg.path_id";
+  
+  // Getting COLLECTION DATA (reaction)
+  public static final String SELECT_SUGG_COLLECTION_AGG_REACTION_ =
+      "SELECT ROUND(AVG(agg.reaction)) AS reaction "
+          + "FROM (SELECT DISTINCT ON (resource_id) collection_id, path_id, "
+          + "FIRST_VALUE(reaction) OVER (PARTITION BY resource_id ORDER BY updated_at desc) "
+          + "AS reaction FROM base_reports "
+          + "WHERE path_id = ? AND collection_id = ? AND actor_id = ? AND event_name = 'reaction.create' "
+          + "AND reaction <> 0) AS agg GROUP BY agg.collection_id, agg.path_id";
+  
+  // Getting RESOURCE DATA (views, time_spent)
+  public static final String SELECT_SUGG_COLLECTION_RESOURCE_AGG_DATA_ =
+      "SELECT collection_id, path_id, resource_id, resource_type, question_type, SUM(views) AS resourceViews, "
+          + "SUM(time_spent) AS resourceTimeSpent, 0 as reaction, 0 as score, '[]' AS answer_object "
+          + "FROM base_reports WHERE path_id = ? AND collection_id = ? AND actor_id = ? "
+          + "AND event_name = 'collection.resource.play' GROUP BY collection_id, path_id, resource_id, resource_type, question_type";
+ 
+  // Getting RESOURCE DATA (score)
+  public static final String SELECT_SUGG_COLLECTION_QUESTION_AGG_SCORE_ =
+      "SELECT DISTINCT ON (resource_id) FIRST_VALUE(score) OVER (PARTITION BY resource_id "
+          + "ORDER BY updated_at desc) AS score,FIRST_VALUE(resource_attempt_status) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS attemptStatus, "
+          + "FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS answer_object,"
+          + "FIRST_VALUE(session_id) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS session_id, "
+          + "FIRST_VALUE(max_score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS max_score "
+          + "FROM base_reports WHERE path_id = ? AND collection_id = ? AND resource_id = ? "
+          + "AND actor_id = ? AND event_name = 'collection.resource.play' AND event_type = 'stop' "
+          + "AND resource_type = 'question' AND resource_attempt_status <> 'skipped'";
+
+  // Getting RESOURCE DATA (reaction)
+  public static final String SELECT_SUGG_COLLECTION_RESOURCE_AGG_REACTION_ =
+      "SELECT DISTINCT ON (resource_id) FIRST_VALUE(reaction) OVER (PARTITION BY resource_id "
+          + "ORDER BY updated_at desc) AS reaction "
+          + "FROM base_reports WHERE path_id = ? AND collection_id = ? AND resource_id = ? "
+          + "AND actor_id = ? AND event_name = 'reaction.create' AND reaction <> 0";
+
 }
 

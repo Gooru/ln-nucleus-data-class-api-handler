@@ -866,6 +866,10 @@ public final class EventConstants {
   public static final String EXT_ASSESSMENT = "assessment-external";
 
   public static final String EXT_COLLECTION = "collection-external";
+  
+  public static final String DAILYCLASSACTIVITY = "dailyclassactivity";
+  
+  public static final String COMPETENCY_MASTERY = "competencyMastery";
 
   private EventConstants() {
     throw new AssertionError();

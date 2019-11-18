@@ -17,6 +17,7 @@ import org.javalite.activejdbc.Base;
 import org.javalite.activejdbc.LazyList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.hazelcast.util.StringUtil;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -32,6 +33,7 @@ public class StudCAAssessmentSessionPerfHandler implements DBHandler {
 
   private final ProcessorContext context;
   private String userId;
+  private String sessionId;
 
   public StudCAAssessmentSessionPerfHandler(ProcessorContext context) {
     this.context = context;
@@ -48,10 +50,17 @@ public class StudCAAssessmentSessionPerfHandler implements DBHandler {
     }
 
     userId = this.context.request().getString(REQUEST_USERID);
-    if (userId == null || userId.trim().isEmpty()) {
+    if (StringUtil.isNullOrEmpty(userId)) {
       LOGGER.warn("User Id is mandatory to fetch Student Assessment Perf in req session");
       return new ExecutionResult<>(
           MessageResponseFactory.createInvalidRequestResponse("user Id is missing"),
+          ExecutionStatus.FAILED);
+    }
+    sessionId = this.context.sessionId();
+    if (StringUtil.isNullOrEmpty(sessionId)) {
+      LOGGER.warn("sessionId is mandatory to fetch Student Assessment Perf in req session");
+      return new ExecutionResult<>(
+          MessageResponseFactory.createInvalidRequestResponse("sessionId is missing"),
           ExecutionStatus.FAILED);
     }
     LOGGER.debug("checkSanity() OK");

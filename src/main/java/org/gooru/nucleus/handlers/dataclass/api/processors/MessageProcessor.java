@@ -290,6 +290,9 @@ class MessageProcessor implements Processor {
         case MessageConstants.MSG_OP_CM_OA_COMPLETE_BY_STUDENT_LIST:
           result = getOACompleteMarkedByStudents();
           break;
+        case MessageConstants.MSG_OP_STUD_PERFORMANCE_ON_SUGGESTIONS:
+          result = getUserPerformanceOnSuggestions();
+          break;
         default:
           LOGGER.error("Invalid operation type passed in, not able to handle");
           return MessageResponseFactory
@@ -342,9 +345,12 @@ class MessageProcessor implements Processor {
         LOGGER.error("Invalid User ID. Aborting");
         return MessageResponseFactory.createInvalidRequestResponse("Invalid userId");
       }
-
-      return new RepoBuilder().buildReportRepo(context).getStudentSummaryInDCACollection();
-
+      
+      if (isPathIdNotNull(context)) {
+        return new RepoBuilder().buildReportRepo(context).getStudentSummaryInDCASuggCollection();
+      } else {
+        return new RepoBuilder().buildReportRepo(context).getStudentSummaryInDCACollection();
+      }
     } catch (Throwable t) {
       LOGGER.error("Exception while getting Student DCA Collection Summary Report", t);
       return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
@@ -943,13 +949,15 @@ class MessageProcessor implements Processor {
         return MessageResponseFactory.createInvalidRequestResponse("Invalid userId");
       }
 
-      return new RepoBuilder().buildReportRepo(context).getStudentSummaryInCollection();
-
+      if (isPathIdNotNull(context)) {
+        return new RepoBuilder().buildReportRepo(context).getStudentSummaryInSuggCollection();
+      } else {
+        return new RepoBuilder().buildReportRepo(context).getStudentSummaryInCollection();
+      }
     } catch (Throwable t) {
       LOGGER.error("Exception while getting Student Collection Summary", t);
       return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
     }
-
   }
 
 
@@ -1886,6 +1894,16 @@ class MessageProcessor implements Processor {
     }
 
   }
+  
+  private MessageResponse getUserPerformanceOnSuggestions() {
+    try {
+      ProcessorContext context = createContext();
+      return new RepoBuilder().buildReportRepo(context).getUserPerformanceOnSuggestions();
+    } catch (Throwable t) {
+      LOGGER.error("Exception while getting student performance on suggestions", t);
+      return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+    }
+  }
 
   // **************************************************************************************************************
 
@@ -1910,7 +1928,7 @@ class MessageProcessor implements Processor {
     String studId = message.headers().get(MessageConstants.STUDENTID);
     String oaId = message.headers().get(MessageConstants.OA_ID);
     String itemId = message.headers().get(MessageConstants.ITEM_ID);
-
+    
     return new ProcessorContext(request, userId, userUId, classId, courseId, unitId, lessonId,
         collectionId, sessionId, studentId, questionId, startDate, endDate, collectionType,
         milestoneId, studId, oaId, itemId);
@@ -2005,6 +2023,11 @@ class MessageProcessor implements Processor {
     return (collectionType != null && !collectionType.isEmpty() && collectionType.equalsIgnoreCase(JsonConstants.OFFLINE_ACTIVITY));
   }
 
+  private boolean isPathIdNotNull(ProcessorContext context) {
+    String pathId = context.request().getString(JsonConstants.PATH_ID);
+    return checkIsNotNull(pathId);
+  }
+  
   private boolean validateUser(String userId) {
     return !(userId == null || userId.isEmpty()
         || (userId.equalsIgnoreCase(MessageConstants.MSG_USER_ANONYMOUS)) && validateUuid(userId));

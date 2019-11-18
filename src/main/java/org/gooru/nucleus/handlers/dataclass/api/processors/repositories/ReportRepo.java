@@ -188,4 +188,10 @@ public interface ReportRepo {
 
   MessageResponse getOACompleteMarkedByStudents();
 
+  MessageResponse getUserPerformanceOnSuggestions();
+
+  MessageResponse getStudentSummaryInDCASuggCollection();
+
+  MessageResponse getStudentSummaryInSuggCollection();
+
 }

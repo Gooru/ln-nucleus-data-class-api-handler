@@ -85,34 +85,40 @@ public class StudentsForRubricQuestionsHandler implements DBHandler {
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
   }
 
+  @SuppressWarnings("unchecked")
   @Override
-  @SuppressWarnings({"rawtypes", "unchecked"})
   public ExecutionResult<MessageResponse> executeRequest() {
     JsonObject result = new JsonObject();
     JsonArray resultarray = new JsonArray();
 
-    LazyList<AJEntityBaseReports> userIdforQue =
+    // for this question, get all distinct users who needs to be graded
+    LazyList<AJEntityBaseReports> userIdsPendingGradingforSpecifiedQ =
         AJEntityBaseReports.findBySQL(AJEntityBaseReports.GET_DISTINCT_STUDENTS_FOR_THIS_RESOURCE,
             classId, courseId, collectionId, context.questionId());
+    List<String> usersWithPendingGrade = null;
+    if (!userIdsPendingGradingforSpecifiedQ.isEmpty()) {
+      usersWithPendingGrade =
+          userIdsPendingGradingforSpecifiedQ.collect(AJEntityBaseReports.GOORUUID);
+    }
+    
+    // for this collection, get distinct users of completed sessions
+    LazyList<AJEntityBaseReports> studentsWithLatestSessions = AJEntityBaseReports.findBySQL(
+        AJEntityBaseReports.GET_LATEST_SESSION_AND_STUDENTS_FOR_THIS_COLLECTION, classId, courseId,
+        this.collectionId);
 
-    if (!userIdforQue.isEmpty()) {
-      List<String> userIds = userIdforQue.collect(AJEntityBaseReports.GOORUUID);
+    if (usersWithPendingGrade != null && !usersWithPendingGrade.isEmpty()
+        && !studentsWithLatestSessions.isEmpty()) {
+      for (AJEntityBaseReports studentsWithLatestSession : studentsWithLatestSessions) {
+        String userOfLatestCompletedSession =
+            studentsWithLatestSession.getString(AJEntityBaseReports.GOORUUID);
 
-      for (String userID : userIds) {
-        LOGGER.debug("UID is " + userID);
-        List<Map> scoreMap =
-            Base.findAll(AJEntityBaseReports.GET_LATEST_SCORE_FOR_THIS_RESOURCE_STUDENT, classId,
-                courseId, collectionId, context.questionId(), userID);
-
-        if (!scoreMap.isEmpty()) {
-          scoreMap.forEach(m -> {
-            if (m.get(AJEntityBaseReports.SCORE) == null) {
-              resultarray.add(userID);
-            }
-          });
+        if (!userIdsPendingGradingforSpecifiedQ.isEmpty()) {
+          if (usersWithPendingGrade.contains(userOfLatestCompletedSession)) {
+            LOGGER.debug("UID is " + userOfLatestCompletedSession);
+            resultarray.add(userOfLatestCompletedSession);
+          }
         }
       }
-
     } else {
       LOGGER.info("Student list for this Rubric Question cannot be obtained");
     }
