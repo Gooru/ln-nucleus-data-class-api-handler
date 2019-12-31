@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 import org.gooru.nucleus.handlers.dataclass.api.constants.JsonConstants;
 import org.gooru.nucleus.handlers.dataclass.api.processors.ProcessorContext;
-import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityBaseReports;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityClassAuthorizedUsers;
 import org.gooru.nucleus.handlers.dataclass.api.processors.repositories.activejdbc.entities.AJEntityDailyClassActivity;
 import org.gooru.nucleus.handlers.dataclass.api.processors.responses.ExecutionResult;
@@ -89,8 +88,8 @@ public class DCAYearlyClassSummaryHandler implements DBHandler {
     if (monthlyAggData != null) {
       monthlyAggData.forEach(monthAggData -> {
         JsonObject monthlyUsage = new JsonObject();
-        monthlyUsage.put(AJEntityDailyClassActivity.ATTR_SCORE,
-            Math.round(Double.parseDouble(monthAggData.get(AJEntityBaseReports.SCORE).toString())));
+        monthlyUsage.put(AJEntityDailyClassActivity.ATTR_SCORE, monthAggData.get(AJEntityDailyClassActivity.SCORE) != null ?
+            Math.round(Double.parseDouble(monthAggData.get(AJEntityDailyClassActivity.SCORE).toString())) : null);
         List<Map> monthlyCollectionData =
             Base.findAll(AJEntityDailyClassActivity.DCA_CLASS_TS_SUMMARY_FOR_MONTH,
                 context.classId(), monthAggData.get(YEAR), monthAggData.get(MONTH));
@@ -119,8 +118,8 @@ public class DCAYearlyClassSummaryHandler implements DBHandler {
     if (monthlyAggData != null) {
       monthlyAggData.forEach(monthAggData -> {
         JsonObject monthlyUsage = new JsonObject();
-        monthlyUsage.put(AJEntityDailyClassActivity.ATTR_SCORE,
-            Math.round(Double.parseDouble(monthAggData.get(AJEntityBaseReports.SCORE).toString())));
+        monthlyUsage.put(AJEntityDailyClassActivity.ATTR_SCORE, monthAggData.get(AJEntityDailyClassActivity.SCORE) != null ?
+            Math.round(Double.parseDouble(monthAggData.get(AJEntityDailyClassActivity.SCORE).toString())) : null);
         List<Map> monthlyCollectionData =
             Base.findAll(AJEntityDailyClassActivity.DCA_CLASS_TS_SUMMARY_FOR_MONTH_FOR_USER,
                 context.classId(), monthAggData.get(YEAR), monthAggData.get(MONTH), this.userId);
