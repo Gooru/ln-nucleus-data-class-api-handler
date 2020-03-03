@@ -31,6 +31,10 @@ public final class JsonConstants {
   public static final String INACTIVE = "inactive";
 
   public static final String STATUS = "status";
+  
+  public static final String RESOURCE_STATUS = "resourceStatus";
+  
+  public static final String COLLECTION_STATUS = "collectionStatus";
 
   public static final String ASSESSMENTID = "assessmentid";
 
@@ -58,11 +62,17 @@ public final class JsonConstants {
 
   public static final String COMPLETE = "complete";
 
+  public static final String EVENT_TYPE = "event_type";
+
   public static final String SEQUENCE = "sequence";
 
   public static final String EVENT_TIME = "eventTime";
 
   public static final String SESSIONID = "sessionId";
+  
+  public static final String COLLECTION_ID = "collectionId";
+  
+  public static final String RESOURCE_ID = "resourceId";
 
   public static final String STANDARDS_ID = "standardsId";
 

@@ -99,19 +99,23 @@ public class StudentResourceCurrentLocationHandler implements DBHandler {
       this.source = contentSource;
       if (contentSource.equalsIgnoreCase(JsonConstants.CA_SOURCE)) {
         if (!StringUtil.isNullOrEmpty(dcaId) && !StringUtil.isNullOrEmpty(classId)) {
-          LOGGER.warn("dcaContentId is mandatory to fetch Student Resource Current Location");
           this.classId = classId;
           try {
             this.dcaContentId = Long.valueOf(dcaId.toString());
           } catch (NumberFormatException nfe) {
             throw new MessageResponseWrapperException(
                 MessageResponseFactory.createInvalidRequestResponse(
-                    "NumberFormatException:Invalid pathIds provided to fetch Student Resource Current Location"));
+                    "NumberFormatException:Invalid DCA provided to fetch Student Resource Current Location"));
           }
         } else {
+          LOGGER.warn("dcaContentId and ClassId is mandatory for CA source");
           throw new MessageResponseWrapperException(MessageResponseFactory
-              .createInvalidRequestResponse("Invalid data provided for source"));
+              .createInvalidRequestResponse("ClassId and dcaContentId is mandatory for CA source"));
         }
+      }else if (!EventConstants.CONTENT_SOURCE_TYPES.matcher(contentSource).matches()) {
+        throw new MessageResponseWrapperException(MessageResponseFactory
+            .createInvalidRequestResponse("Invalid source provided to fetch Student Resource Current Location"));
+       
       }
 
     }
@@ -163,14 +167,14 @@ public class StudentResourceCurrentLocationHandler implements DBHandler {
       listOfStringParams.add(pathType);
     }
     if (!StringUtil.isNullOrEmpty(source)) {
-      if (!source.equalsIgnoreCase(JsonConstants.CA_SOURCE)) {
-        query.append(" and content_source = ? ");
-        listOfStringParams.add(source);
-      } else {
+      if (source.equalsIgnoreCase(JsonConstants.CA_SOURCE)) {
         isSourceCA = true;
         query.append(" and content_source = ?  and dca_content_id = ?  ");
         listOfStringParams.add(JsonConstants.CA_SOURCE_NAME);
         listOfLongParams.add(dcaContentId);
+      } else {
+        query.append(" and content_source = ? ");
+        listOfStringParams.add(source);
       }
     } else {
       query.append(" and content_source is null ");
@@ -193,36 +197,74 @@ public class StudentResourceCurrentLocationHandler implements DBHandler {
     }
     if (locModel != null) {
       JsonObject loc = new JsonObject();
-      loc.put(AJEntityBaseReports.COLLECTION_OID, collectionId);
+      loc.put(JsonConstants.COLLECTION_ID, collectionId);
       String resourceId = locModel.get(AJEntityBaseReports.RESOURCE_ID) != null
           ? locModel.get(AJEntityBaseReports.RESOURCE_ID).toString()
           : null;
-      loc.put(AJEntityBaseReports.RESOURCE_ID, resourceId);
-      AJEntityBaseReports collectionStatus = AJEntityBaseReports.findFirst(
-          "session_id = ?  AND collection_id = ? AND event_name = ? AND event_type = ?",
-          locModel.get(AJEntityBaseReports.SESSION_ID).toString(), collectionId,
-          EventConstants.COLLECTION_RESOURCE_PLAY, EventConstants.STOP);
-      if (collectionStatus != null) {
-        loc.put(JsonConstants.STATUS, JsonConstants.COMPLETE);
-      } else {
-        loc.put(JsonConstants.STATUS, JsonConstants.IN_PROGRESS);
+      loc.put(JsonConstants.RESOURCE_ID, resourceId);
+      String eventType = locModel.get(JsonConstants.EVENT_TYPE).toString();
+      if (!StringUtil.isNullOrEmpty(eventType)) {
+        if (eventType.equalsIgnoreCase(EventConstants.STOP)) {
+          loc.put(JsonConstants.RESOURCE_STATUS, JsonConstants.COMPLETE);
+        } else {
+          loc.put(JsonConstants.RESOURCE_STATUS, JsonConstants.IN_PROGRESS);
+        }
       }
+      String sessionId = locModel.get(AJEntityBaseReports.SESSION_ID).toString();
+      if (!StringUtil.isNullOrEmpty(sessionId)) {
+        loc.put(JsonConstants.SESSIONID, sessionId);
+        AJEntityBaseReports collectionStatus = AJEntityBaseReports.findFirst(
+            "session_id = ?  AND collection_id = ? AND event_name = ? AND event_type = ?",
+            locModel.get(AJEntityBaseReports.SESSION_ID).toString(), collectionId,
+            EventConstants.COLLECTION_PLAY, EventConstants.STOP);
+        if (collectionStatus != null) {
+          loc.put(JsonConstants.COLLECTION_STATUS, JsonConstants.COMPLETE);
+        } else {
+          loc.put(JsonConstants.COLLECTION_STATUS, JsonConstants.IN_PROGRESS);
+        }
+      } else {
+        LOGGER.debug("SessionId not found");
+      }
+      
       currentLocArray.add(loc);
     } else if (dcaModel != null) {
       JsonObject dca = new JsonObject();
-      dca.put(AJEntityDailyClassActivity.COLLECTION_OID, collectionId);
+      dca.put(JsonConstants.COLLECTION_ID, collectionId);
       String resourceId = dcaModel.get(AJEntityDailyClassActivity.RESOURCE_ID) != null
           ? dcaModel.get(AJEntityDailyClassActivity.RESOURCE_ID).toString()
           : null;
-      dca.put(AJEntityDailyClassActivity.RESOURCE_ID, resourceId);
+      dca.put(JsonConstants.RESOURCE_ID, resourceId);
+      String eventType = dcaModel.get(JsonConstants.EVENT_TYPE).toString();
+      if (!StringUtil.isNullOrEmpty(eventType)) {
+        if (eventType.equalsIgnoreCase(EventConstants.STOP)) {
+          dca.put(JsonConstants.RESOURCE_STATUS, JsonConstants.COMPLETE);
+        } else {
+          dca.put(JsonConstants.RESOURCE_STATUS, JsonConstants.IN_PROGRESS);
+        }
+      }
+      String sessionId = dcaModel.get(AJEntityDailyClassActivity.SESSION_ID).toString();
+      if (!StringUtil.isNullOrEmpty(sessionId)) {
+        dca.put(JsonConstants.SESSIONID, sessionId);
+        AJEntityDailyClassActivity collectionStatus = AJEntityDailyClassActivity.findFirst(
+            "session_id = ?  AND collection_id = ? AND event_name = ? AND event_type = ?",
+            dcaModel.get(AJEntityDailyClassActivity.SESSION_ID).toString(), collectionId,
+            EventConstants.COLLECTION_PLAY, EventConstants.STOP);
+        if (collectionStatus != null) {
+          dca.put(JsonConstants.COLLECTION_STATUS, JsonConstants.COMPLETE);
+        } else {
+          dca.put(JsonConstants.COLLECTION_STATUS, JsonConstants.IN_PROGRESS);
+        }
+      } else {
+        LOGGER.debug("SessionId not found");
+      }
+      
       currentLocArray.add(dca);
       LOGGER.debug("currentLocArray {}", currentLocArray);
     } else {
       LOGGER.info("Current Location Attributes cannot be obtained");
     }
 
-    resultBody.put(JsonConstants.CONTENT, currentLocArray).putNull(JsonConstants.MESSAGE)
-        .putNull(JsonConstants.PAGINATE);
+    resultBody.put(JsonConstants.CONTENT, currentLocArray);
     LOGGER.debug("Current Location  obtained");
     return new ExecutionResult<>(MessageResponseFactory.createGetResponse(resultBody),
         ExecutionStatus.SUCCESSFUL);
