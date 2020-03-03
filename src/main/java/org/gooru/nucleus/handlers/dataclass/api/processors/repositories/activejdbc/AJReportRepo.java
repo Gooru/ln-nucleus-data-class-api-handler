@@ -39,6 +39,12 @@ class AJReportRepo implements ReportRepo {
     return TransactionExecutor
         .executeTransaction(DBHandlerBuilder.buildStudentCurrentLocationHandler(context));
   }
+  
+  @Override
+  public MessageResponse getStudentResourceCurrentLocation() {
+    return TransactionExecutor
+        .executeTransaction(DBHandlerBuilder.buildStudentResourceCurrentLocationHandler(context));
+  }
 
   @Override
   public MessageResponse getStudentPerformanceInCourse() {

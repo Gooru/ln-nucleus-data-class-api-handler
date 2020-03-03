@@ -37,6 +37,22 @@ public final class JsonConstants {
   public static final String COLLECTIONID = "collectionid";
 
   public static final String SOURCELIST = "sourceList";
+  
+  public static final String SOURCE = "source";
+  
+  public static final String CA_SOURCE = "ca";
+  
+  public static final String CA_SOURCE_NAME ="dailyclassactivity";
+  
+  public static final String DCA_CONTENT_ID = "dcaContentId";
+  
+  public static final String CLASS_ID = "classId";
+  
+  public static final String COURSE_ID = "courseId";
+  
+  public static final String UNIT_ID = "unitId";
+  
+  public static final String LESSON_ID = "lessonId";
 
   public static final String IN_PROGRESS = "in-progress";
 
@@ -93,6 +109,8 @@ public final class JsonConstants {
   public static final String ALTERNATE_PATH = "alternatePath";
 
   public static final String PATH_ID = "pathId";
+  
+  public static final String PATH_TYPE = "pathType";
 
   public static final String STUDENT_COUNT = "studentCount";
 

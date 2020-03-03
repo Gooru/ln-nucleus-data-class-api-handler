@@ -15,6 +15,8 @@ public interface ReportRepo {
   MessageResponse getStudentPeersInLesson();
 
   MessageResponse getStudentCurrentLocation();
+  
+  MessageResponse getStudentResourceCurrentLocation();
 
   MessageResponse getStudentPerformanceInCourse();
 
