@@ -32,6 +32,10 @@ public final class DBHandlerBuilder {
   public static DBHandler buildStudentCurrentLocationHandler(ProcessorContext context) {
     return new StudentCurrentLocationHandler(context);
   }
+  
+  public static DBHandler buildStudentResourceCurrentLocationHandler(ProcessorContext context) {
+    return new StudentResourceCurrentLocationHandler(context);
+  }
 
   public static DBHandler buildStudentCoursePerfHandler(ProcessorContext context) {
     return new StudentCoursePerfHandler(context);

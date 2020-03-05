@@ -87,6 +87,7 @@ public final class MessageConstants {
   public static final String MSG_OP_UNIT_PEERS = "student.peers.in.unit";
   public static final String MSG_OP_LESSON_PEERS = "student.peers.in.lesson";
   public static final String MSG_OP_STUDENT_CURRENT_LOC = "student.current.loc";
+  public static final String MSG_OP_STUDENT_RESOURCE_CURRENT_LOC = "student.resource.current.loc";
   public static final String MSG_OP_STUDENT_COURSE_PERF = "student.course.performance";
   public static final String MSG_OP_STUDENT_UNIT_PERF = "student.unit.performance";
   public static final String MSG_OP_STUDENT_LESSON_PERF = "student.lesson.performance";

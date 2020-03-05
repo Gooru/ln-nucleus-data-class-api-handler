@@ -730,6 +730,8 @@ public final class EventConstants {
   public static final String RATE = "rate";
 
   public static final Pattern ASSESSMENT_TYPES = Pattern.compile("assessment|assessment-external|offline-activity");
+  
+  public static final Pattern CONTENT_SOURCE_TYPES = Pattern.compile("ILActivity|diagnostic|competencyMastery|courseMap|CourseMap|coursemap");
 
   public static final String RECOMPUTATION_COLLECTION_TYPES =
       "class|course|unit|lesson|assessment|assessment/url";

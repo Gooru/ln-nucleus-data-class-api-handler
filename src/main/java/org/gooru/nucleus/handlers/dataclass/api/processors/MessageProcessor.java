@@ -51,6 +51,9 @@ class MessageProcessor implements Processor {
         case MessageConstants.MSG_OP_STUDENT_CURRENT_LOC:
           result = getStudentCurrentLocation();
           break;
+        case MessageConstants.MSG_OP_STUDENT_RESOURCE_CURRENT_LOC:
+          result = getStudentResourceCurrentLocation();
+          break;
         case MessageConstants.MSG_OP_STUDENT_COURSE_PERF:
           result = getStudentPerfInCourse();
           break;
@@ -769,6 +772,31 @@ class MessageProcessor implements Processor {
       }
 
       return new RepoBuilder().buildReportRepo(context).getStudentCurrentLocation();
+
+    } catch (Throwable t) {
+      LOGGER.error("Exception while getting Student Current Location", t);
+      return MessageResponseFactory.createInternalErrorResponse(t.getMessage());
+    }
+
+  }
+  
+  
+  
+  private MessageResponse getStudentResourceCurrentLocation() {
+    try {
+      ProcessorContext context = createContext();
+
+      if (!checkCollectionId(context)) {
+        LOGGER.error("collectionId not available to obtain Student Location. Aborting");
+        return MessageResponseFactory.createInvalidRequestResponse("Invalid collectionId");
+      }
+
+      if (!validateUser(context.userIdFromSession())) {
+        LOGGER.error("Invalid User ID. Aborting");
+        return MessageResponseFactory.createInvalidRequestResponse("Invalid UserId");
+      }
+
+      return new RepoBuilder().buildReportRepo(context).getStudentResourceCurrentLocation();
 
     } catch (Throwable t) {
       LOGGER.error("Exception while getting Student Current Location", t);
