@@ -62,8 +62,6 @@ public final class JsonConstants {
 
   public static final String COMPLETE = "complete";
 
-  public static final String EVENT_TYPE = "event_type";
-
   public static final String SEQUENCE = "sequence";
 
   public static final String EVENT_TIME = "eventTime";

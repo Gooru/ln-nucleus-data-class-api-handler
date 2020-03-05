@@ -105,7 +105,7 @@ public class StudentResourceCurrentLocationHandler implements DBHandler {
           } catch (NumberFormatException nfe) {
             throw new MessageResponseWrapperException(
                 MessageResponseFactory.createInvalidRequestResponse(
-                    "NumberFormatException:Invalid DCA provided to fetch Student Resource Current Location"));
+                    "NumberFormatException:Invalid DCA ContentId provided to fetch Student Resource Current Location"));
           }
         } else {
           LOGGER.warn("dcaContentId and ClassId is mandatory for CA source");
@@ -202,7 +202,7 @@ public class StudentResourceCurrentLocationHandler implements DBHandler {
           ? locModel.get(AJEntityBaseReports.RESOURCE_ID).toString()
           : null;
       loc.put(JsonConstants.RESOURCE_ID, resourceId);
-      String eventType = locModel.get(JsonConstants.EVENT_TYPE).toString();
+      String eventType = locModel.get(AJEntityBaseReports.EVENTTYPE).toString();
       if (!StringUtil.isNullOrEmpty(eventType)) {
         if (eventType.equalsIgnoreCase(EventConstants.STOP)) {
           loc.put(JsonConstants.RESOURCE_STATUS, JsonConstants.COMPLETE);
@@ -234,7 +234,7 @@ public class StudentResourceCurrentLocationHandler implements DBHandler {
           ? dcaModel.get(AJEntityDailyClassActivity.RESOURCE_ID).toString()
           : null;
       dca.put(JsonConstants.RESOURCE_ID, resourceId);
-      String eventType = dcaModel.get(JsonConstants.EVENT_TYPE).toString();
+      String eventType = dcaModel.get(AJEntityDailyClassActivity.EVENTTYPE).toString();
       if (!StringUtil.isNullOrEmpty(eventType)) {
         if (eventType.equalsIgnoreCase(EventConstants.STOP)) {
           dca.put(JsonConstants.RESOURCE_STATUS, JsonConstants.COMPLETE);
@@ -259,7 +259,6 @@ public class StudentResourceCurrentLocationHandler implements DBHandler {
       }
       
       currentLocArray.add(dca);
-      LOGGER.debug("currentLocArray {}", currentLocArray);
     } else {
       LOGGER.info("Current Location Attributes cannot be obtained");
     }
