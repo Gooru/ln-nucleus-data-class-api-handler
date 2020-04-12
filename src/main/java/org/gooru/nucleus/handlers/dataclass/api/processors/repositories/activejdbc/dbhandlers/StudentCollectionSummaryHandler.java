@@ -22,18 +22,22 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 /**
- * Created by mukul@gooru Modified by daniel
+ * Created by mukul@gooru 
+ * Modified by daniel
  */
 
 public class StudentCollectionSummaryHandler implements DBHandler {
 
   private static final Logger LOGGER =
       LoggerFactory.getLogger(StudentCollectionSummaryHandler.class);
+  private static final String CONTENT_SOURCE = "contentSource";
+  private static final String COMPETENCY_MASTERY = "competencyMastery";
   private final ProcessorContext context;
   private String userId;
   private double maxScore = 0;
   private long lastAccessedTime;
   private String sessionId;
+  private String contentSource;
 
   public StudentCollectionSummaryHandler(ProcessorContext context) {
     this.context = context;
@@ -48,6 +52,13 @@ public class StudentCollectionSummaryHandler implements DBHandler {
               "Invalid data provided to fetch Student Performance in Collections"),
           ExecutionStatus.FAILED);
     }
+    
+    contentSource = context.request().getString(CONTENT_SOURCE);
+    if (StringUtil.isNullOrEmpty(contentSource)) {
+      this.contentSource = "courseMap";
+      LOGGER.debug("Default contentSource is CourseMap for legacy APIs");
+      
+    }
 
     LOGGER.debug("checkSanity() OK");
     return new ExecutionResult<>(null, ExecutionStatus.CONTINUE_PROCESSING);
@@ -58,22 +69,32 @@ public class StudentCollectionSummaryHandler implements DBHandler {
   public ExecutionResult<MessageResponse> validateRequest() {
     if (context.getUserIdFromRequest() == null
         || (!context.userIdFromSession().equalsIgnoreCase(this.context.getUserIdFromRequest()))) {
-      String classId = context.request().getString(EventConstants.CLASS_GOORU_OID);
-      if (classId == null) {
-        LOGGER.debug("validateRequest() FAILED");
-        return new ExecutionResult<>(
-            MessageResponseFactory.createForbiddenResponse(
-                "Independent Learner data can't be fetched by teacher/collaborator"),
-            ExecutionStatus.FAILED);
-      } else {
-        List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, classId,
-            this.context.userIdFromSession());
-        if (owner.isEmpty()) {
+      //By-Pass Teacher validation if request for data is for contentSource "competencyMastery
+
+      //Due to current limitation of FE-Study Player every time a Student plays a collection by clicking on his Skyline
+      //i.e by Inspecting his Competency Mastery, class context gets attached to that collection
+      //This class context can be different for each attempt/view and is based on the class container
+      //from which the Competency Profile - Skyline was accessed.
+      //Inspect Competency Play should not have a class context associated while reporting data and also 
+      //teacher validation wrt class should be bypassed
+      if (!contentSource.equalsIgnoreCase(COMPETENCY_MASTERY)) {
+        String classId = context.request().getString(EventConstants.CLASS_GOORU_OID);
+        if (classId == null) {
           LOGGER.debug("validateRequest() FAILED");
           return new ExecutionResult<>(
-              MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"),
+              MessageResponseFactory.createForbiddenResponse(
+                  "Learner data can't be fetched by teacher/collaborator"),
               ExecutionStatus.FAILED);
-        }
+        } else {
+          List<Map> owner = Base.findAll(AJEntityClassAuthorizedUsers.SELECT_CLASS_OWNER, classId,
+              this.context.userIdFromSession());
+          if (owner.isEmpty()) {
+            LOGGER.debug("validateRequest() FAILED");
+            return new ExecutionResult<>(
+                MessageResponseFactory.createForbiddenResponse("User is not a teacher/collaborator"),
+                ExecutionStatus.FAILED);
+          }
+        }        
       }
     }
     LOGGER.debug("validateRequest() OK");
@@ -102,6 +123,9 @@ public class StudentCollectionSummaryHandler implements DBHandler {
         && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
       collectionMaximumScore = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_MAX_SCORE,
           classId, courseId, unitId, lessonId, collectionId, this.userId);
+    } else if (contentSource.equalsIgnoreCase(COMPETENCY_MASTERY)) {
+      collectionMaximumScore =
+          Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_MAX_SCORE_IC, collectionId, this.userId);
     } else {
       collectionMaximumScore =
           Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_MAX_SCORE_, collectionId, this.userId);
@@ -120,6 +144,10 @@ public class StudentCollectionSummaryHandler implements DBHandler {
         && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
       lastAccessedTime = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_LAST_ACCESSED_TIME,
           classId, courseId, unitId, lessonId, collectionId, this.userId);
+    } else if (contentSource.equalsIgnoreCase(COMPETENCY_MASTERY)) {
+      lastAccessedTime =
+          Base.findAll(AJEntityBaseReports.SELECT_IC_COLLECTION_LAST_ACCESSED_TIME, collectionId,
+              this.userId);
     } else {
       lastAccessedTime =
           Base.findAll(AJEntityBaseReports.SELECT_CLASS_COLLECTION_LAST_ACCESSED_TIME, collectionId,
@@ -142,6 +170,9 @@ public class StudentCollectionSummaryHandler implements DBHandler {
         && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
       collectionData = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_AGG_DATA, classId,
           courseId, unitId, lessonId, collectionId, this.userId);
+    } else if (contentSource.equalsIgnoreCase(COMPETENCY_MASTERY)) {
+      collectionData =
+          Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_AGG_DATA_IC, collectionId, this.userId);
     } else {
       collectionData =
           Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_AGG_DATA_, collectionId, this.userId);
@@ -168,6 +199,9 @@ public class StudentCollectionSummaryHandler implements DBHandler {
             && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
           collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_SCORE, classId,
               courseId, unitId, lessonId, collectionId, this.userId);
+        } else if (contentSource.equalsIgnoreCase(COMPETENCY_MASTERY)) {
+          collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_SCORE_IC,
+              collectionId, this.userId);
         } else {
           collectionScore = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_SCORE_,
               collectionId, this.userId);
@@ -185,6 +219,9 @@ public class StudentCollectionSummaryHandler implements DBHandler {
             && !StringUtil.isNullOrEmpty(unitId) && !StringUtil.isNullOrEmpty(lessonId)) {
           collectionReaction = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_REACTION,
               classId, courseId, unitId, lessonId, collectionId, this.userId);
+        } else if (contentSource.equalsIgnoreCase(COMPETENCY_MASTERY)) {
+          collectionReaction = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_REACTION_IC,
+              collectionId, this.userId);
         } else {
           collectionReaction = Base.firstCell(AJEntityBaseReports.SELECT_COLLECTION_AGG_REACTION_,
               collectionId, this.userId);
@@ -203,6 +240,9 @@ public class StudentCollectionSummaryHandler implements DBHandler {
         assessmentQuestionsKPI =
             Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_RESOURCE_AGG_DATA, classId, courseId,
                 unitId, lessonId, collectionId, this.userId);
+      } else if (contentSource.equalsIgnoreCase(COMPETENCY_MASTERY)) {
+        assessmentQuestionsKPI = Base.findAll(
+            AJEntityBaseReports.SELECT_COLLECTION_RESOURCE_AGG_DATA_IC, collectionId, this.userId);
       } else {
         assessmentQuestionsKPI = Base.findAll(
             AJEntityBaseReports.SELECT_COLLECTION_RESOURCE_AGG_DATA_, collectionId, this.userId);
@@ -231,6 +271,9 @@ public class StudentCollectionSummaryHandler implements DBHandler {
             questionScore = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_QUESTION_AGG_SCORE,
                 classId, courseId, unitId, lessonId, collectionId,
                 questions.get(AJEntityBaseReports.RESOURCE_ID), this.userId);
+          } else if (contentSource.equalsIgnoreCase(COMPETENCY_MASTERY)) {
+            questionScore = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_QUESTION_AGG_SCORE_IC,
+                collectionId, questions.get(AJEntityBaseReports.RESOURCE_ID), this.userId);
           } else {
             questionScore = Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_QUESTION_AGG_SCORE_,
                 collectionId, questions.get(AJEntityBaseReports.RESOURCE_ID), this.userId);
@@ -283,6 +326,10 @@ public class StudentCollectionSummaryHandler implements DBHandler {
                 Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_RESOURCE_AGG_REACTION, classId,
                     courseId, unitId, lessonId, collectionId,
                     questions.get(AJEntityBaseReports.RESOURCE_ID), this.userId);
+          } else if (contentSource.equalsIgnoreCase(COMPETENCY_MASTERY)) {
+            resourceReaction =
+                Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_RESOURCE_AGG_REACTION_IC,
+                    collectionId, questions.get(AJEntityBaseReports.RESOURCE_ID), this.userId);
           } else {
             resourceReaction =
                 Base.findAll(AJEntityBaseReports.SELECT_COLLECTION_RESOURCE_AGG_REACTION_,
@@ -302,9 +349,7 @@ public class StudentCollectionSummaryHandler implements DBHandler {
           questionsArray.add(qnData);
         });
       }
-      // JsonArray questionsArray =
-      // ValueMapper.map(ResponseAttributeIdentifier.getSessionAssessmentQuestionAttributesMap(),
-      // assessmentQuestionsKPI);
+ 
       assessmentDataKPI.put(JsonConstants.RESOURCES, questionsArray);
       LOGGER.debug("Collection Attributes obtained");
       contentArray.add(assessmentDataKPI);
