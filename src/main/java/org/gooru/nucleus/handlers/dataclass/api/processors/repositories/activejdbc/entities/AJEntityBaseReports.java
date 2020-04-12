@@ -497,9 +497,6 @@ public class AJEntityBaseReports extends Model {
   // Collection Summary report Queries for context of outside class
   // Getting collection question count
   // Getting collection question count in the context of outside class
-  // These queries will be REDUNDANT NOW since Independent Learner is a separate Entity. These can
-  // be removed after the StudentCollectionSUmmaryHandler
-  // code is refactored to exclude these.
   public static final String SELECT_COLLECTION_QUESTION_COUNT_ =
       "SELECT question_count,updated_at FROM base_reports "
           + "WHERE class_id IS NULL AND course_id IS NULL AND unit_id IS NULL AND lesson_id IS NULL AND collection_id = ? AND actor_id = ? AND event_name = 'collection.play'"
@@ -559,6 +556,74 @@ public class AJEntityBaseReports extends Model {
       "SELECT DISTINCT ON (resource_id) " + "FIRST_VALUE(reaction) OVER (PARTITION BY resource_id "
           + "ORDER BY updated_at desc) AS reaction "
           + "FROM base_reports WHERE class_id IS NULL AND course_id IS NULL AND unit_id IS NULL AND lesson_id IS NULL AND collection_id = ? AND resource_id = ? "
+          + "AND actor_id = ? AND event_name = 'reaction.create' AND reaction <> 0";
+
+  // *************************************************************************************************************************
+  // Collection Summary report Queries for COLLECTION PLAYED BY INSPECTING COMPETENCIES by the learner
+  public static final String SELECT_IC_COLLECTION_LAST_ACCESSED_TIME =
+      "SELECT updated_at, session_id FROM base_reports "
+          + "WHERE collection_id = ? AND actor_id = ? AND event_name = 'collection.play' AND content_source = 'competencyMastery'"
+          + " ORDER BY updated_at DESC LIMIT 1";
+  // Getting collection question count in the context of Inspect Competency
+  public static final String SELECT_COLLECTION_QUESTION_COUNT_IC =
+      "SELECT question_count,updated_at FROM base_reports "
+          + "WHERE content_source = 'competencyMastery' AND collection_id = ? AND actor_id = ? AND event_name = 'collection.play'"
+          + " ORDER BY updated_at DESC LIMIT 1";
+
+  // Getting COLLECTION DATA (views, time_spent)
+  public static final String SELECT_COLLECTION_AGG_DATA_IC =
+      "SELECT SUM(CASE WHEN (agg.event_name = 'collection.resource.play' and agg.collection_type = 'collection') THEN agg.time_spent WHEN (agg.event_name = 'collection.play' and agg.collection_type = 'collection-external') THEN agg.time_spent ELSE 0 END) AS collectionTimeSpent, "
+          + "SUM(CASE WHEN (agg.event_name = 'collection.play') THEN agg.views ELSE 0 END) AS collectionViews,"
+          + "agg.collection_id, agg.collection_type, agg.completionStatus, 0 AS score, 0 AS reaction FROM "
+          + "(SELECT collection_id,time_spent,session_id,views,event_name,collection_type,"
+          + "CASE  WHEN (FIRST_VALUE(event_type) OVER (PARTITION BY collection_id ORDER BY updated_at desc) = 'stop') THEN 'completed' ELSE 'in-progress' END AS completionStatus "
+          + "FROM base_reports WHERE content_source = 'competencyMastery' AND event_name in ('collection.play', 'collection.resource.play') AND collection_id = ? AND actor_id = ? ) AS agg "
+          + "GROUP BY agg.collection_id,agg.collection_type, agg.completionStatus";
+  // Getting COLLECTION DATA (score)
+  public static final String SELECT_COLLECTION_AGG_SCORE_IC = "SELECT SUM(agg.score) AS score FROM "
+      + "(SELECT DISTINCT ON (resource_id) collection_id, "
+      + "FIRST_VALUE(score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS score "
+      + "FROM base_reports WHERE content_source = 'competencyMastery' AND collection_id = ? AND actor_id = ? AND "
+      + "event_name = 'collection.resource.play' AND resource_type = 'question' AND resource_attempt_status <> 'skipped' ) AS agg "
+      + "GROUP BY agg.collection_id";
+  // Getting COLLECTION DATA (max_score)
+  public static final String SELECT_COLLECTION_MAX_SCORE_IC =
+      "SELECT SUM(agg.max_score) AS score FROM "
+          + "(SELECT DISTINCT ON (resource_id) collection_id, FIRST_VALUE(updated_at) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS updated_at, "
+          + "FIRST_VALUE(max_score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS max_score "
+          + "FROM base_reports WHERE content_source = 'competencyMastery' AND collection_id = ? AND actor_id = ? AND "
+          + "event_name = 'collection.resource.play' AND resource_type = 'question') AS agg "
+          + "GROUP BY agg.collection_id";
+  // Getting COLLECTION DATA (reaction)
+  public static final String SELECT_COLLECTION_AGG_REACTION_IC =
+      "SELECT ROUND(AVG(agg.reaction)) AS reaction "
+          + "FROM (SELECT DISTINCT ON (resource_id) collection_id,  "
+          + "FIRST_VALUE(reaction) OVER (PARTITION BY resource_id ORDER BY updated_at desc) "
+          + "AS reaction FROM base_reports "
+          + "WHERE content_source = 'competencyMastery' AND collection_id = ? "
+          + "AND actor_id = ? AND event_name = 'reaction.create' AND reaction <> 0) AS agg GROUP BY agg.collection_id";
+  // Getting RESOURCE DATA (views, time_spent)
+  public static final String SELECT_COLLECTION_RESOURCE_AGG_DATA_IC =
+      "SELECT collection_id, resource_id ,resource_type,question_type, SUM(views) AS resourceViews, "
+          + "SUM(time_spent) AS resourceTimeSpent, 0 as reaction, 0 as score, '[]' AS answer_object "
+          + "FROM base_reports WHERE content_source = 'competencyMastery' AND collection_id = ? "
+          + "AND actor_id = ? AND event_name = 'collection.resource.play' GROUP BY collection_id, resource_id,resource_type,question_type";
+  // Getting RESOURCE DATA (score)
+  public static final String SELECT_COLLECTION_QUESTION_AGG_SCORE_IC =
+      "SELECT DISTINCT ON (resource_id) " + "FIRST_VALUE(score) OVER (PARTITION BY resource_id "
+          + "ORDER BY updated_at desc) AS score,FIRST_VALUE(resource_attempt_status) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS attemptStatus, "
+          + "FIRST_VALUE(answer_object) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS answer_object,"
+          + "FIRST_VALUE(session_id) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS session_id, "
+          + "FIRST_VALUE(max_score) OVER (PARTITION BY resource_id ORDER BY updated_at desc) AS max_score "
+          + "FROM base_reports WHERE content_source = 'competencyMastery' AND collection_id = ? AND resource_id = ? "
+          + "AND actor_id = ? AND event_name = 'collection.resource.play' AND event_type = 'stop' AND resource_type = 'question' "
+          + "AND resource_attempt_status <> 'skipped'";
+
+  // Getting RESOURCE DATA (reaction)
+  public static final String SELECT_COLLECTION_RESOURCE_AGG_REACTION_IC =
+      "SELECT DISTINCT ON (resource_id) " + "FIRST_VALUE(reaction) OVER (PARTITION BY resource_id "
+          + "ORDER BY updated_at desc) AS reaction "
+          + "FROM base_reports WHERE content_source = 'competencyMastery' AND collection_id = ? AND resource_id = ? "
           + "AND actor_id = ? AND event_name = 'reaction.create' AND reaction <> 0";
 
   // *************************************************************************************************************************
